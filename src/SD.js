@@ -4,6 +4,7 @@
 var JcampConverter=require("jcampconverter");
 
 function SD(sd) {
+    this.activeElement=0;
     console.log(sd);
 }
 
@@ -12,7 +13,6 @@ SD.fromJcamp = function(jcamp) {
     return new SD(spectrum);;
 }
 
-SD.prototype.activeElement = 0;
 
 /**
  * @function setActiveElement(nactiveSpectrum);
