@@ -2,6 +2,7 @@ var SD = require('./SD');
 var JcampConverter=require("jcampconverter");
 
 function NMR(sd) {
+    SD.constructor.apply(this, arguments);
     console.log(sd);
 }
 
