@@ -4,8 +4,8 @@
 var JcampConverter=require("jcampconverter");
 
 function SD(sd) {
+    this.sd=sd;
     this.activeElement=0;
-    console.log(sd);
 }
 
 SD.fromJcamp = function(jcamp) {
@@ -31,12 +31,7 @@ SD.prototype.getActiveElement = function(){
     return this.activeElement;
 },
 
-/**
-* Return the first value of the direct dimension
-*/
-SD.prototype.getLastY = function(){
-    return this.sd.minMax.maxY;
-}
+
 
 /**
 *   Returns the number of points in the current spectrum
@@ -138,23 +133,35 @@ SD.prototype.arrayPointToUnits=function(doublePoint){
 /**
 * Return the first value of the direct dimension
 */
-SD.prototype.getFirstX=function(){
-    return this.sd.minMax.minX;
+SD.prototype.getFirstX=function() {
+    i=i||this.activeElement;
+    return this.sd.spectra[i].firstX;
 }
 
 /**
 * Return the last value of the direct dimension
 */
-SD.prototype.getLastX=function(){
-    return this.sd.minMax.maxX;
+SD.prototype.getLastX=function() {
+    i=i||this.activeElement;
+    return this.sd.spectra[i].lastX;
 }
 
 /**
 * Return the first value of the direct dimension
 */
-SD.prototype.getFirstY=function(){
-    return this.sd.minMax.minY;
+SD.prototype.getFirstY=function() {
+    i=i||this.activeElement;
+     return this.sd.spectra[i].firstY;
 }
+
+/**
+ * Return the first value of the direct dimension
+ */
+SD.prototype.getLastY = function(i){
+    i=i||this.activeElement;
+    return this.sd.spectra[i].lastY;
+}
+
 /**
 * Returns the separation between 2 consecutive points in the spectra domain
 */
@@ -197,7 +204,7 @@ SD.prototype.getMaxY=function() {
  * @param max   Maximum desired value for Y
  */
 SD.prototype.setMinMax=function(min,max) {
-    return [this.getMinY(),this.getMaxY()]];
+    return [this.getMinY(),this.getMaxY()];
 }
 
 /**
