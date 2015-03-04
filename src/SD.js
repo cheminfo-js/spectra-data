@@ -41,6 +41,40 @@ SD.prototype.getNbPoints=function(){
 }
 
 /**
+ * Return the first value of the direct dimension
+ */
+SD.prototype.getFirstX=function(i) {
+    i=i||this.activeElement;
+    return this.sd.spectra[i].firstX;
+}
+
+/**
+ * Return the last value of the direct dimension
+ */
+SD.prototype.getLastX=function(i) {
+    i=i||this.activeElement;
+    return this.sd.spectra[i].lastX;
+}
+
+/**
+ * Return the first value of the direct dimension
+ */
+SD.prototype.getFirstY=function(i) {
+    i=i||this.activeElement;
+    return this.sd.spectra[i].firstY;
+}
+
+/**
+ * Return the first value of the direct dimension
+ */
+SD.prototype.getLastY = function(i){
+    i=i||this.activeElement;
+    return this.sd.spectra[i].lastY;
+}
+
+
+
+/**
 * Return the i-th sub-spectra in the current spectrum
 */
 SD.prototype.getSpectraData=function(i) {
@@ -130,37 +164,6 @@ SD.prototype.arrayPointToUnits=function(doublePoint){
     return (this.getFirstX() - (doublePoint* (this.getFirstX() - this.getLastX()) / (this.getNbPoints()-1)));
 }
 
-/**
-* Return the first value of the direct dimension
-*/
-SD.prototype.getFirstX=function() {
-    i=i||this.activeElement;
-    return this.sd.spectra[i].firstX;
-}
-
-/**
-* Return the last value of the direct dimension
-*/
-SD.prototype.getLastX=function() {
-    i=i||this.activeElement;
-    return this.sd.spectra[i].lastX;
-}
-
-/**
-* Return the first value of the direct dimension
-*/
-SD.prototype.getFirstY=function() {
-    i=i||this.activeElement;
-     return this.sd.spectra[i].firstY;
-}
-
-/**
- * Return the first value of the direct dimension
- */
-SD.prototype.getLastY = function(i){
-    i=i||this.activeElement;
-    return this.sd.spectra[i].lastY;
-}
 
 /**
 * Returns the separation between 2 consecutive points in the spectra domain
@@ -363,4 +366,3 @@ SD.prototype.getVector = function(from, to, nPoints){
 
 module.exports = SD;
 
-console.log(SD.fromJcamp)

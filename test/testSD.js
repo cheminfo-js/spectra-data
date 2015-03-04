@@ -18,22 +18,28 @@ function createSpectraData(filename, label, data) {
 describe('spectra-data test', function () {
     var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
 
-    console.log(spectrum);
-
     it('getFirstX', function () {
-        spectrum.getFirstX().should.equal(123);
+        spectrum.getFirstX().should.equal(11.00659);
     });
 
     it('getLastX', function () {
-        spectrum.getLastX().should.equal(123);
+        spectrum.getLastX().should.equal(-1.009276326659311);
     });
 
     it('getFirstY', function () {
-        spectrum.getLastY().should.equal(123);
+        spectrum.getFirstY().should.equal(-119886);
     });
 
     it('getLastY', function () {
-        spectrum.getLastY().should.equal(123);
+        spectrum.getLastY().should.equal(-109159);
+    });
+
+    it('getLastY', function () {
+        spectrum.getLastY().should.equal(-109159);
+    });
+
+    it('getLastY', function () {
+        spectrum.getLastY().should.equal(-109159);
     });
 });
 
