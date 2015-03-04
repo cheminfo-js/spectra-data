@@ -1,3 +1,6 @@
+// small note on the best way to define array
+// http://jsperf.com/lp-array-and-loops/2
+
 var JcampConverter=require("jcampconverter");
 
 function SD(sd) {

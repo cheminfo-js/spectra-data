@@ -40,6 +40,7 @@
     "vinyl-source-stream": "^1.0.0"
   },
   "dependencies": {
-    "jcampconverter": "^2.0.5"
+    "jcampconverter": "^2.0.5",
+    "ml-stat": "^1.0.1"
   }
 }
