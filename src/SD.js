@@ -11,7 +11,7 @@ function SD(sd) {
 
 SD.fromJcamp = function(jcamp) {
     var spectrum= JcampConverter.convert(jcamp,{xy:true});
-    return new SD(spectrum);;
+    return new SD(spectrum);
 }
 
 
