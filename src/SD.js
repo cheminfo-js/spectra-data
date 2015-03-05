@@ -1,6 +1,7 @@
 // small note on the best way to define array
 // http://jsperf.com/lp-array-and-loops/2
 
+var StatArray = require('ml-stat/array');
 var JcampConverter=require("jcampconverter");
 
 function SD(sd) {
@@ -126,6 +127,28 @@ SD.prototype.getTitle=function(i) {
     return this.getSpectrum(i).title;
 }
 
+/**
+ * @function getMinY(i)
+ * This function returns the minimal value of Y
+ */
+SD.prototype.getMinY=function(i) {
+    return  StatArray.min(this.getYData(i));
+}
+
+/**
+ * @function getMaxY(i)
+ * This function returns the maximal value of Y
+ */
+SD.prototype.getMaxY=function(i) {
+    return  StatArray.max(this.getYData(i));
+}
+
+/**
+ * @function getMinMax(i)
+ */
+SD.prototype.getMinMaxY=function(i) {
+    return  StatArray.minMax(this.getYData(i));
+}
 
 
 
@@ -173,33 +196,8 @@ SD.prototype.getDeltaX=function(){
     return (this.getLastX()-this.getFirstX()) / (this.getNbPoints()-1);
 }
 
-/**
- * @function getMinY()
- * This function returns the minimal value of Y
- */
- SD.prototype.getMinY=function() {
-    var tmp = this.getSpectrumData(this.activeElement);
-    var length = this.getNbPoints(),i=0, min = tmp[1];
-    for(i=length-1;i>=1;i--){
-        if(tmp[i*2+1]<min)
-            min=tmp[i*2+1];
-    }
-    return min;
-}
 
-/**
- * @function getMaxY()
- * This function returns the maximal value of Y
- */
-SD.prototype.getMaxY=function() {
-    var tmp = this.getSpectrumData(this.activeElement);
-    var length = this.getNbPoints(),i=0, max = tmp[1];
-    for(i=length-1;i>=1;i--){
-        if(tmp[i*2+1]>max)
-            max=tmp[i*2+1];
-    }
-    return max;
-}
+
 
 /**
  * @function setMinMax(min,max)

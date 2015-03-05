@@ -57,7 +57,7 @@ Increment the version in:
 
 ### Commit and push
 
-* git commit -a
+* git commit
 * git push
 
 ### Go on github

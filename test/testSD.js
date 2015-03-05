@@ -57,6 +57,12 @@ describe('spectra-data test', function () {
         xy[1][0].should.equal(-119886);
     });
 
+    it('Checking min / max', function () {
+        spectrum.getMinY().should.equal(-195265);
+        spectrum.getMaxY().should.equal(520359808);
+        spectrum.getMinMaxY().min.should.equal(-195265);
+        spectrum.getMinMaxY().max.should.equal(520359808);
+    });
 
 });
 
