@@ -102,6 +102,7 @@ SD.prototype.getNbSubSpectra=function(){
  *   Returns an array containing the x values of the spectrum
  */
 SD.prototype.getXData=function(i){
+    i=i||this.activeElement;
     return this.getSpectrumData(i).x;
 }
 
@@ -110,6 +111,7 @@ SD.prototype.getXData=function(i){
  * This function returns a double array containing the values of the intensity for the current sub-spectrum.
  */
 SD.prototype.getYData=function(i){
+    i=i||this.activeElement;
     return this.getSpectrumData(i).y;
 }
 
@@ -120,11 +122,21 @@ SD.prototype.getYData=function(i){
  * Returns a double[2][nbPoints] where the first row contains the x values and the second row the y values.
  */
 SD.prototype.getXYData=function(i){
-    return [this.getXData(),this.getYData()];
+    return [this.getXData(i),this.getYData(i)];
 }
 
 SD.prototype.getTitle=function(i) {
+    i=i||this.activeElement;
     return this.getSpectrum(i).title;
+}
+
+/**
+ * @function setTitle(newTitle);
+ * To set the title of this spectraData.
+ * @param newTitle The new title
+ */
+SD.prototype.setTitle=function(newTitle,i) {
+    this.getSpectrum(i).title=newTitle;
 }
 
 /**
@@ -151,25 +163,20 @@ SD.prototype.getMinMaxY=function(i) {
 }
 
 
-
-
-
-
-
 /**
 * Get the noise threshold level of the current spectrum. It uses median instead of the mean
 */
 SD.prototype.getNoiseLevel=function(){
     var mean = 0,stddev=0;
-    var tmp = this.getSpectrumData(this.activeElement);
+    var y = this.getYData();
     var length = this.getNbPoints(),i=0;
-    for(i=length-1;i>=0;i--){
-        mean+=tmp[i*2+1];
+    for(i = 0; i < length; i++){
+        mean+=y[i];
     }
     mean/=this.getNbPoints();
     var averageDeviations = new Array(length);
     for (i = 0; i < length; i++)
-        averageDeviations[i] = Math.abs(tmp[i*2+1] - mean);
+        averageDeviations[i] = Math.abs(y[i] - mean);
     averageDeviations.sort();
     if (length % 2 == 1) {
         stddev = averageDeviations[(length-1)/2] / 0.6745;
@@ -196,9 +203,6 @@ SD.prototype.getDeltaX=function(){
     return (this.getLastX()-this.getFirstX()) / (this.getNbPoints()-1);
 }
 
-
-
-
 /**
  * @function setMinMax(min,max)
  * This function scales the values of Y between the min and max parameters
@@ -206,7 +210,12 @@ SD.prototype.getDeltaX=function(){
  * @param max   Maximum desired value for Y
  */
 SD.prototype.setMinMax=function(min,max) {
-    return [this.getMinY(),this.getMaxY()];
+    var y = this.getYData();
+    var minMax = StatArray.minMax(y);
+    var factor = (max - min)/(minMax.max-minMax.min);
+    for(var i=0;i< y.length;i++){
+        y[i]=(y[i]-minMax.min)*factor+min;
+    }
 }
 
 /**
@@ -215,7 +224,12 @@ SD.prototype.setMinMax=function(min,max) {
  * @param min   Minimum desired value for Y
  */
 SD.prototype.setMin=function(min) {
-    //@TODO unimplemented
+    var y = this.getYData();
+    var currentMin = StatArray.min(y);
+    var factor = min/currentMin;
+    for(var i=0;i< y.length;i++){
+        y[i]*=factor;
+    }
 }
 
 /**
@@ -224,7 +238,12 @@ SD.prototype.setMin=function(min) {
  * @param max   Maximum desired value for Y
  */
 SD.prototype.setMax=function(max) {
-    //@TODO unimplemented
+    var y = this.getYData();
+    var currentMin = StatArray.max(y);
+    var factor = max/currentMin;
+    for(var i=0;i< y.length;i++){
+        y[i]*=factor;
+    }
 }
 
 /**
@@ -233,10 +252,10 @@ SD.prototype.setMax=function(max) {
  * @param value Distance of the shift
  */
 SD.prototype.YShift=function(value) {
-    var tmp = this.getSpectrumData(this.activeElement);
+    var y = this.getSpectrumData(this.activeElement).y;
     var length = this.getNbPoints(),i=0;
-    for(i=length-1;i>=1;i--){
-        tmp[i*2+1]+=value;
+    for(i=0;i<length;i++){
+        y[i]+=value;
     }
 }
 
@@ -251,7 +270,7 @@ SD.prototype.YShift=function(value) {
  * @option resolution: The maximum resolution of the spectrum for considering peaks.
  * @option yInverted: Is it a Y inverted spectrum?(like an IR spectrum)
  * @option smooth: A function for smoothing the spectraData before the detection. If your are dealing with
- * experimental spectra, smoothing will make the algorithm less prune to false possitives. 
+ * experimental spectra, smoothing will make the algorithm less prune to false positives.
  */
 SD.prototype.simplePeakPicking=function(parameters) {
     //@TODO implements this filter
@@ -262,34 +281,15 @@ SD.prototype.simplePeakPicking=function(parameters) {
  * Get the maximum peak
  */
 SD.prototype.getMaxPeak = function(){
-    return this.ESD.getMaxPeak();
-}
-
-/**
- * @function setDefinedMinY(minY);
- * Set the minimun Y. Must call the function updateY after
- * @param  minY The defined minimum Y
- */
-SD.prototype.setDefinedMinY = function(minY){
-    return this.ESD.setDefinedMinY(minY);
-}
-
-/**
- * @function setDefinedMaxY(maxY);
- * Set the maximun Y. Must call the function updateY after
- * @param  maxY The defined maximum Y
- */
-SD.prototype.setDefinedMaxY = function(maxY){
-    return this.ESD.setDefinedMaxY(maxY);
-}
-
-/**
- * @function updateY(maxY);
- * Updates the Y values according to the minY and maxY. Must to be called just after calling setDefinedMaxY or setDefinedMinY
- * @param  maxY The defined maximum Y
- */
-SD.prototype.updateY = function(){
-    return this.ESD.updateY();
+    var y = this.getSpectraDataY();
+    var max=y[0], index=0;
+    for(var i=0;i< y.length;i++){
+        if(max<y[i]){
+            max = y[i];
+            index=i;
+        }
+    }
+    return [this.getSpectraDataX()[index],max];
 }
 
 /**
@@ -299,7 +299,10 @@ SD.prototype.updateY = function(){
  * @param  defvalue The default value
  */
 SD.prototype.getParamDouble = function(name, defvalue){
-    return this.ESD.getParamDouble(name, defvalue);
+    var value = this.sd.info[name];
+    if(!value)
+        value = defvalue;
+    return value;
 }
 
 /**
@@ -309,7 +312,10 @@ SD.prototype.getParamDouble = function(name, defvalue){
  * @param  defvalue The default value
  */
 SD.prototype.getParamString = function(name, defvalue){
-    return this.ESD.getParamString(name, defvalue);
+    var value = this.sd.info[name];
+    if(!value)
+        value = defvalue;
+    return value+"";
 }
 
 /**
@@ -319,48 +325,88 @@ SD.prototype.getParamString = function(name, defvalue){
  * @param  defvalue The default value
  */
 SD.prototype.getParamInt = function(name, defvalue){
-    return this.ESD.getParamInt(name, defvalue);
+    var value = this.sd.info[name];
+    if(!value)
+        value = defvalue;
+    return value;
 }
 
 /**
- *  @function getNbPoints();
- *  To return the number of points in the given spectraData
+ * Return the y elements of the current spectrum
+ * @returns {*}
  */
-SD.prototype.getNbPoints = function(){
-    return this.ESD.getNbPoints();
+SD.prototype.getSpectrumDataY = function(){
+    return this.getYData(this.activeElement);
 }
 
 /**
- *  @function getSpectraDataY();
- *  To return Y vector of this spectraData
- */
-SD.prototype.getSpectraDataY = function(){
-    return this.ESD.getSpectraDataY();
-}
-
-/**
- *  @function getSpectraDataX();
- *  To return X vector of this spectraData
+ * Return the x elements of the current spectrum
+ * @returns {*}
  */
 SD.prototype.getSpectraDataX = function(){
-    return this.ESD.getSpectraDataX();
+    return this.getXData(this.activeElement);
 }
 
 /**
- *  @function putParam(name, value);
- *  Put a new user defined parameter
+ * Set a new parameter to this spectrum
+ * @param name
+ * @param value
  */
 SD.prototype.putParam = function(name, value){
-    return this.ESD.putParam(name, value);
+    this.sd.info[name]=value;
 }
 
 /**
- *  @function getVector(from, to, nPoints);
- *  Return a vector containing an equally space vector in the given window.
+ * Returns a equally spaced vector within the given window.
+ * @param from
+ * @param to
+ * @param nPoints
+ * @returns {*}
  */
 SD.prototype.getVector = function(from, to, nPoints){
-    return this.ESD.getVector(from, to, nPoints);
-}   
+    var x = this.getSpectraDataX();
+    var y = this.getSpectraDataY();
+    var result = [];
+    var start = 0, end = x.length- 1,direction=1;
+    var reversed = false;
+
+    if(x[0]>x[1]){
+        direction = -1;
+        start= x.length-1;
+        end = 0;
+    }
+
+    if(from > to){
+        var tmp = from;
+        from = to;
+        to = tmp;
+        reversed = true;
+    }
+
+    if(x[end]>from||x[start]>to)
+        return [];
+
+    while(x[start]<from){start+=direction;}
+
+    if(x[end]>to){
+        var end = start;
+        while(x[end]<to){end+=direction;}
+    }
+    var winPoints = Math.abs(end-start)+1;
+    var xwin = new Array(winPoints), ywin = new Array(winPoints);
+    var index = 0;
+    if(direction==-1)
+        index=winPoints-1;
+    var i=start-direction;
+    do{
+        i+=direction;
+        xwin[index]=x[i];
+        ywin[index]=y[i];
+        index+=direction;
+    }while(i!=end);
+
+    return [xwin,ywin];
+}
 
 
 module.exports = SD;

@@ -15,7 +15,7 @@ function createSpectraData(filename, label, data) {
 
 describe('spectra-data test', function () {
     var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
-
+    console.log(spectrum);
     it('getFirstX', function () {
         spectrum.getFirstX().should.equal(11.00659);
     });

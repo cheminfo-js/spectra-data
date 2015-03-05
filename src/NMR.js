@@ -319,31 +319,6 @@ NMR.prototype.toJcamp=function(options) {
      return "NOT IMPLEMENTED"
 }
 
-/**
- * @function setTitle(newTitle);
- * To set the title of this spectraData.
- * @param newTitle The new title
- */
-NMR.prototype.setTitle=function(newTitle) {
-    //@TODO implements this filter
-}
-
-/**
- * @function getTitle();
- * To get the title of this spectraData
- */
-NMR.prototype.getTitle=function(){
-     //@TODO implements this filter
-}
-
-/**
- * @function toXY(subSpectraDataID);
- * This function returns a 2 columns string representing the XY values of the given sub-spectrum.
- * @param subSpectraDataID The sub-spectrum index
- */
-NMR.prototype.toXY = function(subSpectraDataID){
-    //@TODO   ? Still useful?
-},
 
 /**
  * @function isDataClassPeak();
@@ -351,7 +326,7 @@ NMR.prototype.toXY = function(subSpectraDataID){
  */
 NMR.prototype.isDataClassPeak = function(){
     return true;
-},
+}
 
 /**
  * @function isDataClassXY();
@@ -359,120 +334,16 @@ NMR.prototype.isDataClassPeak = function(){
  */
 NMR.prototype.isDataClassXY = function(){
     return false;
-},
+}
 
 /**
  * @function is2D();
  * Is it a 2D spectrum?
  */
 NMR.prototype.is2D = function(){
-    return this.ESD.is2D();
-},
+    return false;
+}
 
-/**
- * @function getMaxPeak();
- * Get the maximum peak
- */
-NMR.prototype.getMaxPeak = function(){
-    return this.ESD.getMaxPeak();
-},
-
-/**
- * @function setDefinedMinY(minY);
- * Set the minimun Y. Must call the function updateY after
- * @param  minY The defined minimum Y
- */
-NMR.prototype.setDefinedMinY = function(minY){
-    return this.ESD.setDefinedMinY(minY);
-},
-
-/**
- * @function setDefinedMaxY(maxY);
- * Set the maximun Y. Must call the function updateY after
- * @param  maxY The defined maximum Y
- */
-NMR.prototype.setDefinedMaxY = function(maxY){
-    return this.ESD.setDefinedMaxY(maxY);
-},
-
-/**
- * @function updateY(maxY);
- * Updates the Y values according to the minY and maxY. Must to be called just after calling setDefinedMaxY or setDefinedMinY
- * @param  maxY The defined maximum Y
- */
-NMR.prototype.updateY = function(){
-    return this.ESD.updateY();
-},
-
-/**
- * @function getParamDouble(name, defvalue);
- * Get the value of the parameter
- * @param  name The parameter name
- * @param  defvalue The default value
- */
-NMR.prototype.getParamDouble = function(name, defvalue){
-    return this.ESD.getParamDouble(name, defvalue);
-},
-
-/**
- * @function getParamString(name, defvalue);
- * Get the value of the parameter
- * @param  name The parameter name
- * @param  defvalue The default value
- */
-NMR.prototype.getParamString = function(name, defvalue){
-    return this.ESD.getParamString(name, defvalue);
-},
-
-/**
- * @function getParamInt(name, defvalue);
- * Get the value of the parameter
- * @param  name The parameter name
- * @param  defvalue The default value
- */
-NMR.prototype.getParamInt = function(name, defvalue){
-    return this.ESD.getParamInt(name, defvalue);
-},
-
-/**
- *  @function getNbPoints();
- *  To return the number of points in the given spectraData
- */
-NMR.prototype.getNbPoints = function(){
-    return this.ESD.getNbPoints();
-},
-
-/**
- *  @function getSpectraDataY();
- *  To return Y vector of this spectraData
- */
-NMR.prototype.getSpectraDataY = function(){
-    return this.ESD.getSpectraDataY();
-},
-
-/**
- *  @function getSpectraDataX();
- *  To return X vector of this spectraData
- */
-NMR.prototype.getSpectraDataX = function(){
-    return this.ESD.getSpectraDataX();
-},
-
-/**
- *  @function putParam(name, value);
- *  Put a new user defined parameter
- */
-NMR.prototype.putParam = function(name, value){
-    return this.ESD.putParam(name, value);
-},
-
-/**
- *  @function getVector(from, to, nPoints);
- *  Return a vector containing an equally space vector in the given window.
- */
-NMR.prototype.getVector = function(from, to, nPoints){
-    return this.ESD.getVector(from, to, nPoints);
-}   
 
 
 module.exports = NMR;
