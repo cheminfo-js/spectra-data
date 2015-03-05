@@ -9,7 +9,7 @@ NMR2D.prototype = Object.create(SD.prototype);
 NMR2D.prototype.constructor = NMR2D;
 
 NMR2D.fromJcamp = function(jcamp) {
-    var spectrum= JcampConverter.convert(jcamp);
+    var spectrum= JcampConverter.convert(jcamp,{xy:true});
     return new NMR2D(spectrum);;
 }
 

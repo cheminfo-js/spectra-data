@@ -35,7 +35,7 @@ var PeakFinders2D = {
 		//var sum = new Array(nbPoints);
 		
 		for (var iSubSpectra = 0; iSubSpectra < nbSubSpectra; iSubSpectra++) {
-			var spectrum = spectraData.getSpectraData(iSubSpectra);
+			var spectrum = spectraData.getSpectrumData(iSubSpectra);
 			for (var iCol = 0; iCol < nbPoints; iCol++) {
 				if(isHomonuclear){
 					data[iSubSpectra * nbPoints + iCol] =(spectrum[iCol*2+1]>0?spectrum[iCol*2+1]:0);

@@ -30,9 +30,42 @@ spectra-data project - used as a starting point for new libraries
 
 `npm test`
 
+Or to test just one of the testing file
+
+`npm test test/testSD.js`
+
+http://unitjs.com/guide/should-js.html
+
+You can test one of
+
+
+## Build and distribute
+
+### Change the version
+
+Increment the version in:
+* package.json
+* bower.json
+
 ### Build dist files
 
 `npm run build`
+
+### Commit and push
+
+* git commit -a
+* git push
+
+### Publish the npm
+
+npm publish
+
+### Go on github
+
+* https://github.com/cheminfo-js/spectra-data/releases
+
+
+
 
 ## License
 

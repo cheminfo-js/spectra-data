@@ -10,7 +10,7 @@ NMR.prototype = Object.create(SD.prototype);
 NMR.prototype.constructor = NMR;
 
 NMR.fromJcamp = function(jcamp) {
-    var spectrum= JcampConverter.convert(jcamp);
+    var spectrum= JcampConverter.convert(jcamp,{xy:true});
     return new NMR(spectrum);;
 }
 

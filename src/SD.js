@@ -9,7 +9,7 @@ function SD(sd) {
 }
 
 SD.fromJcamp = function(jcamp) {
-    var spectrum= JcampConverter.convert(jcamp);
+    var spectrum= JcampConverter.convert(jcamp,{xy:true});
     return new SD(spectrum);;
 }
 
@@ -36,8 +36,9 @@ SD.prototype.getActiveElement = function(){
 /**
 *   Returns the number of points in the current spectrum
 */
-SD.prototype.getNbPoints=function(){
-    return this.getSpectraData(this.activeElement).length/2;
+SD.prototype.getNbPoints=function(i){
+    i=i||this.activeElement;
+    return this.getSpectrumData(this.activeElement).length/2;
 }
 
 /**
@@ -72,14 +73,35 @@ SD.prototype.getLastY = function(i){
     return this.sd.spectra[i].lastY;
 }
 
-
-
 /**
 * Return the i-th sub-spectra in the current spectrum
 */
-SD.prototype.getSpectraData=function(i) {
+SD.prototype.getSpectrumData=function(i) {
     i=i||this.activeElement;
     return this.sd.spectra[i].data[0];
+}
+
+/**
+ * Return the i-th sub-spectra in the current spectrum
+ */
+SD.prototype.getSpectrum=function(i) {
+    i=i||this.activeElement;
+    return this.sd.spectra[i];
+}
+
+/**
+ * Returns the number of sub-spectra in this object
+ */
+SD.prototype.getNbSubSpectra=function(){
+    return this.sd.spectra.length;
+}
+
+
+/**
+ *   Returns an array containing the x values of the spectrum
+ */
+SD.prototype.getXData=function(i){
+    return this.getSpectrumData(i).x;
 }
 
 /**
@@ -87,27 +109,9 @@ SD.prototype.getSpectraData=function(i) {
  * This function returns a double array containing the values of the intensity for the current sub-spectrum.
  */
 SD.prototype.getYData=function(i){
-    i=i||this.activeElement;
-    var y = new Array(this.getNbPoints());
-    var tmp = this.getSpectraData(i);
-    for(var i=this.getNbPoints()-1;i>=0;i--){
-        y[i]=tmp[i*2+1];
-    }
-    return y;
+    return this.getSpectrumData(i).y;
 }
 
-/**
-*   Returns an array containing the x values of the spectrum
-*/
-SD.prototype.getXData=function(i){
-    i=i||this.activeElement;
-    var x = new Array(this.getNbPoints());
-    var tmp = this.getSpectraData(i);
-    for(var i=this.getNbPoints()-1;i>=0;i--){
-        x[i]=tmp[i*2];
-    }
-    return x;
-}
 
 /**
  * @function getXYData();
@@ -115,23 +119,26 @@ SD.prototype.getXData=function(i){
  * Returns a double[2][nbPoints] where the first row contains the x values and the second row the y values.
  */
 SD.prototype.getXYData=function(i){
-    i=i||this.activeElement;
-    var y = new Array(this.getNbPoints());
-    var x = new Array(this.getNbPoints());
-    var tmp = this.getSpectraData(this.activeElement);
-    for(var i=this.getNbPoints()-1;i>=0;i--){
-        x[i]=tmp[i*2];
-        y[i]=tmp[i*2+1];
-    }
-    return [x,y];
+    return [this.getXData(),this.getYData()];
 }
+
+SD.prototype.getTitle=function(i) {
+    return this.getSpectrum(i).title;
+}
+
+
+
+
+
+
+
 
 /**
 * Get the noise threshold level of the current spectrum. It uses median instead of the mean
 */
 SD.prototype.getNoiseLevel=function(){
     var mean = 0,stddev=0;
-    var tmp = this.getSpectraData(this.activeElement);
+    var tmp = this.getSpectrumData(this.activeElement);
     var length = this.getNbPoints(),i=0;
     for(i=length-1;i>=0;i--){
         mean+=tmp[i*2+1];
@@ -150,12 +157,6 @@ SD.prototype.getNoiseLevel=function(){
     return stddev*this.getNMRPeakThreshold(this.getNucleus(1));
 }
 
-/**
-* Returns the number of sub-spectra in this object
-*/
-SD.prototype.getNbSubSpectra=function(){
-    return this.sd.spectra.length;
-}
 
 /**
 * Return the xValue for the given index
@@ -177,7 +178,7 @@ SD.prototype.getDeltaX=function(){
  * This function returns the minimal value of Y
  */
  SD.prototype.getMinY=function() {
-    var tmp = this.getSpectraData(this.activeElement);
+    var tmp = this.getSpectrumData(this.activeElement);
     var length = this.getNbPoints(),i=0, min = tmp[1];
     for(i=length-1;i>=1;i--){
         if(tmp[i*2+1]<min)
@@ -191,7 +192,7 @@ SD.prototype.getDeltaX=function(){
  * This function returns the maximal value of Y
  */
 SD.prototype.getMaxY=function() {
-    var tmp = this.getSpectraData(this.activeElement);
+    var tmp = this.getSpectrumData(this.activeElement);
     var length = this.getNbPoints(),i=0, max = tmp[1];
     for(i=length-1;i>=1;i--){
         if(tmp[i*2+1]>max)
@@ -234,7 +235,7 @@ SD.prototype.setMax=function(max) {
  * @param value Distance of the shift
  */
 SD.prototype.YShift=function(value) {
-    var tmp = this.getSpectraData(this.activeElement);
+    var tmp = this.getSpectrumData(this.activeElement);
     var length = this.getNbPoints(),i=0;
     for(i=length-1;i>=1;i--){
         tmp[i*2+1]+=value;

@@ -1,6 +1,6 @@
 {
   "name": "spectra-data",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "spectra-data project - manipulate spectra",
   "keywords": [
     "spectra-data",
@@ -40,7 +40,7 @@
     "vinyl-source-stream": "^1.0.0"
   },
   "dependencies": {
-    "jcampconverter": "^2.0.5",
+    "jcampconverter": "^2.0.6",
     "ml-stat": "^1.0.1"
   }
 }
