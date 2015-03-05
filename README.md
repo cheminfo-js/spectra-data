@@ -71,6 +71,16 @@ Increment the version in:
 
 npm publish
 
+## Install a new dependence
+
+You may go on http://www.npmjs.org and look for an interesting project
+
+After you will enter
+
+`npm install theNameOfTheProject --save` This will add this dependency in package.json
+
+and load it in the project with a usual `require`
+
 
 
 
