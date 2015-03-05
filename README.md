@@ -41,6 +41,10 @@ You can test one of
 
 ## Build and distribute
 
+### Be sure to have the last version
+
+* git pull
+
 ### Change the version
 
 Increment the version in:
@@ -56,13 +60,16 @@ Increment the version in:
 * git commit -a
 * git push
 
-### Publish the npm
-
-npm publish
-
 ### Go on github
 
 * https://github.com/cheminfo-js/spectra-data/releases
+  * Create a new release
+  * Attach binaries that is contained in the dist folder
+* publish the release
+
+### Publish the npm
+
+npm publish
 
 
 
