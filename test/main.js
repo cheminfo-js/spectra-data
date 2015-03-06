@@ -14,4 +14,11 @@ function createSpectraData(filename, label, data) {
 };
 
 var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
-console.log(spectrum.sd.spectra[0]);
+console.log(spectrum.getSpectrum());
+console.log(spectrum.getDataType()==spectrum.TYPE_NMR_SPECTRUM);
+console.log(spectrum.getDataType()==spectrum.TYPE_NMR_FID);
+console.log(spectrum.isDataClassPeak());
+console.log(spectrum.isDataClassXY());
+spectrum.setDataClass(spectrum.DATACLASS_PEAK)
+console.log(spectrum.isDataClassPeak());
+console.log(spectrum.isDataClassXY());

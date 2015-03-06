@@ -7,6 +7,24 @@ var JcampConverter=require("jcampconverter");
 function SD(sd) {
     this.sd=sd;
     this.activeElement=0;
+
+    this.DATACLASS_XY = 1;
+    this.DATACLASS_PEAK = 2;
+
+    this.TYPE_NMR_SPECTRUM = 'NMR Spectrum';
+    this.TYPE_NMR_FID = 'NMR FID';
+    this.TYPE_IR = 'IR';
+    this.TYPE_RAMAN = 'RAMAN';
+    this.TYPE_UV = 'UV';
+    this.TYPE_MASS = 'MASS';
+    this.TYPE_HPLC = 'HPLC';
+    this.TYPE_GC = 'GC';
+    this.TYPE_CD = 'CD';
+    this.TYPE_2DNMR_SPECTRUM = '2DNMR Spectrum';
+    this.TYPE_2DNMR_FID = '2DNMR FID';
+    this.TYPE_XY_DEC = 'XY DEC';
+    this.TYPE_XY_INC= 'XY INC';
+    this.TYPE_IV = 'IV';
 }
 
 SD.fromJcamp = function(jcamp) {
@@ -74,6 +92,45 @@ SD.prototype.getLastY = function(i){
     return this.sd.spectra[i].lastY;
 }
 
+SD.prototype.setDataClass = function(dataClass){
+    if(dataClass==this.DATACLASS_PEAK) {
+        this.getSpectrum().isPeaktable = true;
+        this.getSpectrum().isXYdata = false;
+    }
+    if(dataClass==this.DATACLASS_XY){
+        this.getSpectrum().isXYdata = true;
+        this.getSpectrum().isPeaktable = false;
+    }
+}
+
+/**
+ * @function isDataClassPeak();
+ * Is this a PEAKTABLE spectrum?
+ */
+SD.prototype.isDataClassPeak = function(){
+    if(this.getSpectrum().isPeaktable)
+        return  this.getSpectrum().isPeaktable;
+    return false;
+}
+
+/**
+ * @function isDataClassXY();
+ * Is this a XY spectrum?
+ */
+SD.prototype.isDataClassXY = function(){
+    if(this.getSpectrum().isXYdata)
+        return  this.getSpectrum().isXYdata;
+    return false
+}
+
+SD.prototype.setDataType = function(dataType){
+    this.getSpectrum().dataType=dataType;
+}
+
+SD.prototype.getDataType = function(){
+    return this.getSpectrum().dataType;
+}
+
 /**
 * Return the i-th sub-spectra in the current spectrum
 */
@@ -102,7 +159,6 @@ SD.prototype.getNbSubSpectra=function(){
  *   Returns an array containing the x values of the spectrum
  */
 SD.prototype.getXData=function(i){
-    i=i||this.activeElement;
     return this.getSpectrumData(i).x;
 }
 
@@ -111,10 +167,16 @@ SD.prototype.getXData=function(i){
  * This function returns a double array containing the values of the intensity for the current sub-spectrum.
  */
 SD.prototype.getYData=function(i){
-    i=i||this.activeElement;
     return this.getSpectrumData(i).y;
 }
 
+SD.prototype.getX=function(i){
+    return this.getXData()[i];
+}
+
+SD.prototype.getY=function(i){
+    return this.getYData()[i];
+}
 
 /**
  * @function getXYData();
@@ -126,7 +188,6 @@ SD.prototype.getXYData=function(i){
 }
 
 SD.prototype.getTitle=function(i) {
-    i=i||this.activeElement;
     return this.getSpectrum(i).title;
 }
 
@@ -195,6 +256,61 @@ SD.prototype.arrayPointToUnits=function(doublePoint){
     return (this.getFirstX() - (doublePoint* (this.getFirstX() - this.getLastX()) / (this.getNbPoints()-1)));
 }
 
+/**
+ * Returns the index-value for the data array corresponding to a X-value in
+ * units for the element of spectraData to which it is linked (spectraNb).
+ * This method makes use of spectraData.getFirstX(), spectraData.getLastX()
+ * and spectraData.getNbPoints() to derive the return value if it of data class XY
+ * It performs a binary search if the spectrum is a peak table
+ *
+ * @param inValue
+ *            (value in Units to be converted)
+ * @return an integer representing the index value of the inValue
+ */
+SD.prototype.unitsToArrayPoint=function(inValue){
+    if (this.isDataClassXY()) {
+        return Math.ceil((this.getFirstX() - inValue) * (-1.0 / this.getInterval()));
+    } else if (this.isDataClassPeak())
+    {
+        var currentArrayPoint = 0,upperLimit=this.getNbPoints()-1, lowerLimit=0, midPoint;
+        //If inverted scale
+        if(this.getFirstX()>this.getLastX()){
+            upperLimit=0;
+            lowerLimit=this.getNbPoints()-1;
+
+            if(inValue>this.getFirstX())
+                return this.getNbPoints();
+            if(inValue<this.getLastX())
+                return -1;
+        }
+        else{
+            if(inValue<this.getFirstX())
+                return -1;
+            if(inValue>this.getLastX())
+                return this.getNbPoints();
+        }
+
+        while (Math.abs(upperLimit-lowerLimit) > 1)
+        {
+            midPoint=Math.round(Math.floor((upperLimit+lowerLimit)/2));
+            //x=this.getX(midPoint);
+            if(this.getX(midPoint)==inValue)
+                return midPoint;
+            if(this.getX(midPoint)>inValue)
+                upperLimit=midPoint;
+            else
+                lowerLimit=midPoint;
+        }
+        currentArrayPoint=lowerLimit;
+        if(Math.abs(this.getX(lowerLimit)-inValue)>Math.abs(this.getX(upperLimit)-inValue))
+            currentArrayPoint=upperLimit;
+        return currentArrayPoint;
+    } else {
+        return 0;
+    }
+}
+
+
 
 /**
 * Returns the separation between 2 consecutive points in the spectra domain
@@ -252,12 +368,110 @@ SD.prototype.setMax=function(max) {
  * @param value Distance of the shift
  */
 SD.prototype.YShift=function(value) {
-    var y = this.getSpectrumData(this.activeElement).y;
+    var y = this.getSpectrumData().y;
     var length = this.getNbPoints(),i=0;
     for(i=0;i<length;i++){
         y[i]+=value;
     }
+    this.getSpectrum().firstY+=value;
+    this.getSpectrum().lastY+=value;
 }
+
+/**
+ * @function shift(globalShift)
+ * This function shift the given spectraData. After this function is applied, all the peaks in the
+ * spectraData will be found at xi+globalShift
+ * @param globalShift
+ */
+SD.prototype.shift=function(globalShift) {
+    for(var i=0;i<this.getNbSubSpectra();i++){
+        this.setActiveElement(i);
+        var x = this.getSpectrumData().x;
+        var length = this.getNbPoints(),i=0;
+        for(i=0;i<length;i++){
+            x[i]+=globalShift;
+        }
+
+        this.getSpectrum().firstX+=globalShift;
+        this.getSpectrum().lastX+=globalShift;
+    }
+
+}
+
+/**
+ * @function fillWith(from, to, value)
+ * This function fills a zone of the spectrum with the given value.
+ * @param from
+ * @param to
+ * @param fillWith
+ */
+SD.prototype.fillWith=function(from, to, value) {
+    var tmp, start, end, x, y;
+    if(from > to) {
+        var tmp = from;
+        from = to;
+        to = tmp;
+    }
+
+    for(var i=0;i<this.getNbSubSpectra();i++){
+        this.setActiveElement(i);
+        x = this.getXData();
+        y = this.getYData();
+        start = this.unitsToArrayPoint(from);
+        end = this.unitsToArrayPoint(to);
+        if(start > end){
+            tmp = start;
+            start = end;
+            end = tmp;
+        }
+        if(start<0)
+            start=0;
+        if(end>=this.getNbPoints)
+            end=this.getNbPoints-1;
+        for(i=start;i<=end;i++){
+                y[i]=value;
+        }
+    }
+}
+
+/**
+ * @function suppressZone(from, to)
+ * This function suppress a zone from the given spectraData within the given x range.
+ * Returns a spectraData of type PEAKDATA without peaks in the given region
+ * @param from
+ * @param to
+ */
+SD.prototype.suppressZone=function(from, to) {
+    var tmp, start, end, x, y;
+    if(from > to) {
+        var tmp = from;
+        from = to;
+        to = tmp;
+    }
+
+    for(var i=0;i<this.getNbSubSpectra();i++){
+        this.setActiveElement(i);
+        x = this.getXData();
+        y = this.getYData();
+        start = this.unitsToArrayPoint(from);
+        end = this.unitsToArrayPoint(to);
+        if(start > end){
+            tmp = start;
+            start = end;
+            end = tmp;
+        }
+        if(start<0)
+            start=0;
+        if(end>=this.getNbPoints)
+            end=this.getNbPoints-1;
+        for(i=end;i>=start;i--){
+            y.splice(i,1);
+            x.splice(i,1);
+        }
+    }
+    this.setDataClass(this.DATACLASS_PEAK);
+}
+
 
 /**
  * @function peakPicking(parameters)
@@ -336,7 +550,7 @@ SD.prototype.getParamInt = function(name, defvalue){
  * @returns {*}
  */
 SD.prototype.getSpectrumDataY = function(){
-    return this.getYData(this.activeElement);
+    return this.getYData();
 }
 
 /**
@@ -344,7 +558,7 @@ SD.prototype.getSpectrumDataY = function(){
  * @returns {*}
  */
 SD.prototype.getSpectraDataX = function(){
-    return this.getXData(this.activeElement);
+    return this.getXData();
 }
 
 /**
@@ -407,6 +621,15 @@ SD.prototype.getVector = function(from, to, nPoints){
 
     return [xwin,ywin];
 }
+
+/**
+ * @function is2D();
+ * Is it a 2D spectrum?
+ */
+SD.prototype.is2D = function(){
+    return false;
+}
+
 
 
 module.exports = SD;

@@ -51,37 +51,6 @@ NMR.prototype.getNMRPeakThreshold=function(nucleus) {
     
 }
 
-/**
- * @function shift(globalShift)
- * This function shift the given spectraData. After this function is applied, all the peaks in the
- * spectraData will be found at xi-globalShift
- * @param globalShift
- */
-NMR.prototype.shift=function(globalShift) {
-   
-}
-
-/**
- * @function fillWith(from, to, value)
- * This function fills a zone of the spectrum with the given value.
- * @param from
- * @param to
- * @param fillWith
- */
-NMR.prototype.fillWith=function(from, to, value) {
-    
-}
-
-/**
- * @function suppressZone(from, to)
- * This function suppress a zone from the given spectraData within the given x range. 
- * Returns a spectraData of type PEAKDATA without peaks in the given region
- * @param from
- * @param to
- */
-NMR.prototype.suppressZone=function(from, to) {
-
-}
 
 /**
  * @function addSpectraDatas(spec2,factor1,factor2,autoscale )   
@@ -225,7 +194,7 @@ NMR.prototype.powerFilter=function(power) {
         this.YShift(-1*minY);
         console.warn("SD.powerFilter: The spectrum had negative values and was automatically shifted before applying the function.");
     }
-    this.ESD.powerFilter(power);
+    //@TODO implement powerFilter
 }
 
 /**
@@ -318,32 +287,6 @@ NMR.prototype.toJcamp=function(options) {
      //@TODO implements this filter
      return "NOT IMPLEMENTED"
 }
-
-
-/**
- * @function isDataClassPeak();
- * Is this a PEAKTABLE spectrum?
- */
-NMR.prototype.isDataClassPeak = function(){
-    return true;
-}
-
-/**
- * @function isDataClassXY();
- * Is this a XY spectrum?
- */
-NMR.prototype.isDataClassXY = function(){
-    return false;
-}
-
-/**
- * @function is2D();
- * Is it a 2D spectrum?
- */
-NMR.prototype.is2D = function(){
-    return false;
-}
-
 
 
 module.exports = NMR;
