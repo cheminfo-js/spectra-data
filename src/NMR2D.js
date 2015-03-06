@@ -1,8 +1,9 @@
 var SD = require('./SD');
+var PeakPicking2D = require('./PeakPicking2D');
 var JcampConverter=require("jcampconverter");
 
 function NMR2D(sd) {
-    console.log(sd);
+    SD.call(this, sd); // Héritage
 }
 
 NMR2D.prototype = Object.create(SD.prototype);
@@ -44,7 +45,7 @@ NMR2D.prototype.nmrPeakDetection2D=function(options){
     options = options||{};
     if(!options.thresholdFactor)
         options.thresholdFactor=1;
-    return PeakPicking._findPeaks2DLoG(this, options.thresholdFactor);
+    return PeakPicking2D._findPeaks2DLoG(this, options.thresholdFactor);
 }
 
 /**

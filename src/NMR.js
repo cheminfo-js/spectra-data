@@ -1,9 +1,9 @@
 var SD = require('./SD');
+var PeakPicking = require('./PeakPicking');
 var JcampConverter=require("jcampconverter");
 
 function NMR(sd) {
-    SD.constructor.apply(this, arguments);
-    console.log(sd);
+    SD.call(this, sd); // Héritage
 }
 
 NMR.prototype = Object.create(SD.prototype);
@@ -11,7 +11,7 @@ NMR.prototype.constructor = NMR;
 
 NMR.fromJcamp = function(jcamp) {
     var spectrum= JcampConverter.convert(jcamp,{xy:true});
-    return new NMR(spectrum);;
+    return new NMR(spectrum);
 }
 
 /**
@@ -48,7 +48,7 @@ NMR.prototype.getNMRPeakThreshold=function(nucleus) {
  * @param SNR Signal to noise ratio
  */
  NMR.prototype.addNoise=function(SNR) {
-    
+     //@TODO Implement addNoise filter
 }
 
 
@@ -69,7 +69,7 @@ NMR.prototype.getNMRPeakThreshold=function(nucleus) {
  * @example spec1 = addSpectraDatas(spec1,spec2,1,-1, false) This subtract spec2 from spec1
 */
 NMR.prototype.addSpectraDatas=function(spec2,factor1,factor2,autoscale ) {
- 
+    //@TODO Implement addSpectraDatas filter
 }
 
 /**
@@ -78,7 +78,7 @@ NMR.prototype.addSpectraDatas=function(spec2,factor1,factor2,autoscale ) {
  * should have meaningful integrals.
  */
 NMR.prototype.autoBaseline=function( ) {
-
+    //@TODO Implement autoBaseline filter
 }
 
 /**
@@ -86,7 +86,7 @@ NMR.prototype.autoBaseline=function( ) {
  * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be of type NMR_FID or 2DNMR_FID
  */
 NMR.prototype.fourierTransform=function( ) {
-
+    //@TODO Implement fourierTransform filter
 }
 
 /**
@@ -100,7 +100,7 @@ NMR.prototype.fourierTransform=function( ) {
  * @param ph1corr Phase 1 correction value in radians.
  */
 NMR.prototype.postFourierTransform=function(ph1corr) {
-
+    //@TODO Implement postFourierTransform filter
 }
 
 /**
@@ -111,7 +111,7 @@ NMR.prototype.postFourierTransform=function(ph1corr) {
  * @param nPointsY Number of new zero points in the indirect dimension
  */
 NMR.prototype.zeroFilling=function(nPointsX, nPointsY) {
-
+    //@TODO Implement zeroFilling filter
 }
 
 /**
@@ -122,7 +122,7 @@ NMR.prototype.zeroFilling=function(nPointsX, nPointsY) {
  * @param whittakerLambda To be described
  */
 NMR.prototype.haarWhittakerBaselineCorrection=function(waveletScale,whittakerLambda) {
-
+    //@TODO Implement haarWhittakerBaselineCorrection filter
 }
 
 /**
@@ -134,7 +134,7 @@ NMR.prototype.haarWhittakerBaselineCorrection=function(waveletScale,whittakerLam
  * @param ranges A string containing the ranges of no signal.
  */
 NMR.prototype.whittakerBaselineCorrection=function(whittakerLambda,ranges) {
-
+    //@TODO Implement whittakerBaselineCorrection filter
 }
 
 /**
@@ -146,6 +146,7 @@ NMR.prototype.whittakerBaselineCorrection=function(whittakerLambda,ranges) {
  * @option DSPFVS: Acquisition parameter
  */
 NMR.prototype.brukerSpectra=function(options) {
+    //@TODO Implement brukerSpectra filter
 }
 
 /**
@@ -164,7 +165,7 @@ NMR.prototype.brukerSpectra=function(options) {
  * @example SD.apodization(, lineBroadening)
  */
 NMR.prototype.apodization=function(functionName, lineBroadening) {
-
+    //@TODO Implement apodization filter
 }
 
 /**
@@ -172,7 +173,7 @@ NMR.prototype.apodization=function(functionName, lineBroadening) {
  * That decodes an Echo-Antiecho 2D spectrum.
  */
 NMR.prototype.echoAntiechoFilter=function() {
-
+    //@TODO Implement echoAntiechoFilter filter
 }
 
 /**
@@ -180,7 +181,7 @@ NMR.prototype.echoAntiechoFilter=function() {
  * This function apply a Standard Normal Variate Transformation over the given spectraData. Mainly used for IR spectra.
  */
 NMR.prototype.SNVFilter=function() {
-
+    //@TODO Implement SNVFilter
 }
 
 /**
@@ -194,7 +195,7 @@ NMR.prototype.powerFilter=function(power) {
         this.YShift(-1*minY);
         console.warn("SD.powerFilter: The spectrum had negative values and was automatically shifted before applying the function.");
     }
-    //@TODO implement powerFilter
+    //@TODO Implement powerFilter
 }
 
 /**
@@ -208,7 +209,7 @@ NMR.prototype.logarithmFilter=function(base) {
         this.YShift((-1*minY)+1);
         console.warn("SD.logarithmFilter: The spectrum had negative values and was automatically shifted before applying the function.");
     }
-   //@TODO implements this filter
+   //@TODO Implement logarithmFilter filter
 }
 
 
@@ -226,7 +227,7 @@ NMR.prototype.logarithmFilter=function(base) {
  * given spectraData. 
  */
 NMR.prototype.correlationFilter=function(func) {
-    //@TODO implements this filter
+    //@TODO Implement correlationFilter filter
 }
 
 /**
@@ -236,7 +237,7 @@ NMR.prototype.correlationFilter=function(func) {
  * @param phi1 One order phase correction
 */
 NMR.prototype.phaseCorrection=function(phi0, phi1) {
-    //@TODO implements this filter
+    //@TODO Implement phaseCorrection filter
 }
 
 /**
@@ -245,7 +246,7 @@ NMR.prototype.phaseCorrection=function(phi0, phi1) {
  * function and applies it.
  */ 
 NMR.prototype.automaticPhase=function() {
-    //@TODO implements this filter
+    //@TODO Implement automaticPhase filter
 }
 
 /**
@@ -255,7 +256,7 @@ NMR.prototype.automaticPhase=function() {
  *  $PHC0 and $PHC1, and will use it to call the phaseCorrection function.
  */
 NMR.prototype.useBrukerPhase=function() {
-   //@TODO implements this filter
+   //@TODO Implement useBrukerPhase filter
 }
 
 /**
@@ -268,7 +269,10 @@ NMR.prototype.useBrukerPhase=function() {
  * @option stdev: Number of standard deviation of the noise for the threshold calculation if a threshold is not specified.
  */
 NMR.prototype.nmrPeakDetection=function(parameters) {
-     //@TODO implements this filter GSD
+    parameters=parameter||{};
+    if(!parameters.nH)
+        parameters.nH=10;
+    return PeakPicking.peakPicking(this, parameters.nH, this.getSolventName());
 }
 
 /**
@@ -284,8 +288,8 @@ NMR.prototype.nmrPeakDetection=function(parameters) {
  * @example SD.toJcamp(spectraData,{encode:'DIFDUP',yfactor:0.01,type:"SIMPLE",keep:['#batchID','#url']});
  */ 
 NMR.prototype.toJcamp=function(options) {
-     //@TODO implements this filter
-     return "NOT IMPLEMENTED"
+     //@TODO Implement toJcamp filter
+     return "NOT ImplementED"
 }
 
 

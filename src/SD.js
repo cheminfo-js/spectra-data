@@ -5,6 +5,7 @@ var StatArray = require('ml-stat/array');
 var JcampConverter=require("jcampconverter");
 
 function SD(sd) {
+    console.log("Herr");
     this.sd=sd;
     this.activeElement=0;
 
@@ -56,8 +57,7 @@ SD.prototype.getActiveElement = function(){
 *   Returns the number of points in the current spectrum
 */
 SD.prototype.getNbPoints=function(i){
-    i=i||this.activeElement;
-    return this.getSpectrumData(this.activeElement).length/2;
+    return this.getSpectrumData(i).length/2;
 }
 
 /**
@@ -629,7 +629,6 @@ SD.prototype.getVector = function(from, to, nPoints){
 SD.prototype.is2D = function(){
     return false;
 }
-
 
 
 module.exports = SD;
