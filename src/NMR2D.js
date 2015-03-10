@@ -10,8 +10,8 @@ NMR2D.prototype = Object.create(SD.prototype);
 NMR2D.prototype.constructor = NMR2D;
 
 NMR2D.fromJcamp = function(jcamp) {
-    var spectrum= JcampConverter.convert(jcamp,{xy:true});
-    return new NMR2D(spectrum);;
+    var spectrum= JcampConverter.convert(jcamp,{xy:true,keepSpectra:true});
+    return new NMR2D(spectrum);
 }
 
 NMR2D.prototype.isHomoNuclear=function(){
@@ -26,6 +26,27 @@ NMR2D.prototype.observeFrequencyX=function(){
 //Returns the observe frequency in the indirect dimension
 NMR2D.prototype.observeFrequencyY=function(){
     return this.sd.indirectFrequency;
+}
+
+/**
+ * Returns the solvent name
+ */
+NMR2D.prototype.getSolventName=function(){
+    return (this.sd.info[".SOLVENTNAME"]||this.sd.info["$SOLVENT"]).replace("<","").replace(">","");
+}
+/**
+ * Overwrite this function. Now, the Y axe refers to the indirect dimension
+ * @returns {sd.minMax.maxY}
+ */
+NMR2D.prototype.getLastY = function(){
+    return this.sd.minMax.maxY;
+}
+/**
+ * * Overwrite this function. Now, the Y axe refers to the indirect dimension
+ * @returns {sd.minMax.minY}
+ */
+NMR2D.prototype.getFirstY = function(){
+    return this.sd.minMax.minY;
 }
 
 //Returns the separation between 2 consecutive points in the indirect domain
@@ -45,7 +66,7 @@ NMR2D.prototype.nmrPeakDetection2D=function(options){
     options = options||{};
     if(!options.thresholdFactor)
         options.thresholdFactor=1;
-    return PeakPicking2D._findPeaks2DLoG(this, options.thresholdFactor);
+    return PeakPicking2D.findPeaks2D(this, options.thresholdFactor);
 }
 
 /**

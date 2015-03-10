@@ -55,3 +55,5 @@ var SimpleClustering={
 		return clusterList;
 	}
 }
+
+module.exports = SimpleClustering;

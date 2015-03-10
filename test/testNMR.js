@@ -15,6 +15,12 @@ function createSpectraData(filename, label, data) {
 describe('spectra-data test', function () {
     var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
 
+    it('getNucleus', function () {
+        spectrum.getNucleus().should.equal("1H");
+    });
+    it('getSolventName', function () {
+        spectrum.getSolventName().should.equal("DMSO");
+    });
     it('getFirstX', function () {
         spectrum.getFirstX().should.equal(11.00659);
     });

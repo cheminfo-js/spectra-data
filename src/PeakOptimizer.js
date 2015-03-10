@@ -1,27 +1,25 @@
-var HeteroNuclearPeakOptimizer={
-	toleranceX : 0.025,
-	toleranceY : 0.5,
-	clean: function(peaks, threshold){
-		var max = Number.NEGATIVE_INFINITY;
-		var i,peak;
-		//double min = Double.MAX_VALUE;
-		for(i=peaks.length-1;i>=0;i--){
-			if(Math.abs(peaks[i].z)>max)
-				max=Math.abs(peaks[i].z);
-		}
-		max*=threshold;
-		for(i=peaks.length-1;i>=0;i--){
-			if(Math.abs(peaks[i].z)<max)
-				peaks.splice(i,1);
-		}
-		return peaks;
-	}
-}
-
-var HomoNuclearPeakOptimizer={
+var PeakOptimizer={
 	diagonalError:0.05,
 	tolerance:0.05,
 	DEBUG:false,
+    toleranceX : 0.025,
+    toleranceY : 0.5,
+
+    clean: function(peaks, threshold){
+        var max = Number.NEGATIVE_INFINITY;
+        var i,peak;
+        //double min = Double.MAX_VALUE;
+        for(i=peaks.length-1;i>=0;i--){
+            if(Math.abs(peaks[i].z)>max)
+                max=Math.abs(peaks[i].z);
+        }
+        max*=threshold;
+        for(i=peaks.length-1;i>=0;i--){
+            if(Math.abs(peaks[i].z)<max)
+                peaks.splice(i,1);
+        }
+        return peaks;
+    },
 	
 	enhanceSymmetry: function(signals){
 		
@@ -257,3 +255,5 @@ var HomoNuclearPeakOptimizer={
 		}
 	}
 };
+
+module.exports = PeakOptimizer;

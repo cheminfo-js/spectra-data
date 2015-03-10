@@ -10,7 +10,7 @@ NMR.prototype = Object.create(SD.prototype);
 NMR.prototype.constructor = NMR;
 
 NMR.fromJcamp = function(jcamp) {
-    var spectrum= JcampConverter.convert(jcamp,{xy:true});
+    var spectrum= JcampConverter.convert(jcamp,{xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/});
     return new NMR(spectrum);
 }
 
@@ -25,7 +25,12 @@ NMR.prototype.getNucleus=function(){
 * Returns the solvent name
 */
 NMR.prototype.getSolventName=function(){
-    return this.sd.info[".SOLVENTNAME"];
+    return (this.sd.info[".SOLVENTNAME"]||this.sd.info["$SOLVENT"]).replace("<","").replace(">","");
+}
+
+//Returns the observe frequency in the direct dimension
+NMR.prototype.observeFrequencyX=function(){
+    return this.sd.spectra[0].observeFrequency;
 }
 
 /**
@@ -269,7 +274,7 @@ NMR.prototype.useBrukerPhase=function() {
  * @option stdev: Number of standard deviation of the noise for the threshold calculation if a threshold is not specified.
  */
 NMR.prototype.nmrPeakDetection=function(parameters) {
-    parameters=parameter||{};
+    parameters=parameters||{};
     if(!parameters.nH)
         parameters.nH=10;
     return PeakPicking.peakPicking(this, parameters.nH, this.getSolventName());

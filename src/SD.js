@@ -5,7 +5,6 @@ var StatArray = require('ml-stat/array');
 var JcampConverter=require("jcampconverter");
 
 function SD(sd) {
-    console.log("Herr");
     this.sd=sd;
     this.activeElement=0;
 
@@ -21,8 +20,8 @@ function SD(sd) {
     this.TYPE_HPLC = 'HPLC';
     this.TYPE_GC = 'GC';
     this.TYPE_CD = 'CD';
-    this.TYPE_2DNMR_SPECTRUM = '2DNMR Spectrum';
-    this.TYPE_2DNMR_FID = '2DNMR FID';
+    this.TYPE_2DNMR_SPECTRUM = 'nD NMR SPECTRUM';
+    this.TYPE_2DNMR_FID = 'nD NMR FID';
     this.TYPE_XY_DEC = 'XY DEC';
     this.TYPE_XY_INC= 'XY INC';
     this.TYPE_IV = 'IV';
@@ -57,7 +56,7 @@ SD.prototype.getActiveElement = function(){
 *   Returns the number of points in the current spectrum
 */
 SD.prototype.getNbPoints=function(i){
-    return this.getSpectrumData(i).length/2;
+    return this.getSpectrumData(i).y.length;
 }
 
 /**
