@@ -15,9 +15,9 @@ function createSpectraData(filename, label, data) {
 
 //var spectrum=createSpectraData("/data/ethylbenzene/h1_0.jdx");
 var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
-console.log(spectrum.getSolventName());
+//console.log(spectrum.getSolventName());
 //console.log(spectrum);
-var peakPicking = spectrum.nmrPeakDetection();
+//var peakPicking = spectrum.nmrPeakDetection();
 //console.log(peakPicking);
 //console.log(spectrum.getNucleus(0));
 /*console.log(spectrum.getDataType()==spectrum.TYPE_NMR_SPECTRUM);

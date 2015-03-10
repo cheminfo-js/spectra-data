@@ -9,7 +9,7 @@
   "config": {
     "name": "spectra-data"
   },
-  "author": "Michaël Zasso",
+  "author": "Andres Castillo, Luc Patiny and Michaël Zasso",
   "repository": "cheminfo-js/spectra-data",
   "bugs": {
     "url": "https://github.com/cheminfo-js/spectra-data/issues"
