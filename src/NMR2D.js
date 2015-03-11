@@ -34,6 +34,28 @@ NMR2D.prototype.observeFrequencyY=function(){
 NMR2D.prototype.getSolventName=function(){
     return (this.sd.info[".SOLVENTNAME"]||this.sd.info["$SOLVENT"]).replace("<","").replace(">","");
 }
+
+/**
+ * This function returns the units of the direct dimension. It overrides the SD getXUnits function
+ * @returns {ntuples.units|*|b.units}
+ */
+NMR2D.prototype.getXUnits = function(){
+    return this.sd.ntuples[1].units;
+}
+/**
+ * This function returns the units of the indirect dimension. It overrides the SD getYUnits function
+ * @returns {ntuples.units|*|b.units}
+ */
+NMR2D.prototype.getYUnits = function(){
+    return this.sd.ntuples[0].units;
+}
+/**
+ * Returns the units of the dependent variable
+ * @returns {ntuples.units|*|b.units}
+ */
+NMR2D.prototype.getZUnits = function(){
+    return this.sd.ntuples[2].units;
+}
 /**
  * Overwrite this function. Now, the Y axe refers to the indirect dimension
  * @returns {sd.minMax.maxY}

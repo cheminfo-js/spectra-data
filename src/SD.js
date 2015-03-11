@@ -48,9 +48,22 @@ SD.prototype.setActiveElement = function(nactiveSpectrum){
  */
 SD.prototype.getActiveElement = function(){
     return this.activeElement;
-},
+}
+/**
+ * This function returns the units of the independent dimension.
+ * @returns {xUnit|*|M.xUnit}
+ */
+SD.prototype.getXUnits = function(){
+    return this.getSpectrum().xUnit;
+}
 
-
+/**
+ * * This function returns the units of the dependent variable.
+ * @returns {yUnit|*|M.yUnit}
+ */
+SD.prototype.getYUnits = function(){
+    return this.getSpectrum().yUnit;
+}
 
 /**
 *   Returns the number of points in the current spectrum
