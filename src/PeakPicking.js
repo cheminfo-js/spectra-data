@@ -10,10 +10,10 @@ var PeakPicking={
 
     peakPicking:function(spectrum, nH, solvent){
         var peakList = this.GSD(spectrum);
-
+        var signals = this.detectSignals(peakList, spectrum.observeFrequencyX(), nH);
         //For now just return the peak List
         //@TODO work in the peakPicking
-        return peakList;
+        return signals;
 
         /*var frequency = spectrum.observeFrequencyX();//getParamDouble("$BF1",400);
         var imp = this.labelPeaks(peakList, solvent, frequency);
@@ -30,6 +30,61 @@ var PeakPicking={
         //this.impurities = API.getVar("impurities").getValue();
         //File.parse("solvent1H.txt", {header:false});
         //console.log(this.impurities[0]);
+    },
+    /*
+     {
+     "nbPeaks":1,"multiplicity":"","units":"PPM","startX":3.43505,"assignment":"",
+     "pattern":"s","stopX":3.42282,"observe":400.08,"asymmetric":false,
+     "delta1":3.42752,
+     "integralData":{"to":3.43505,"value":590586504,"from":3.42282},
+     "nucleus":"1H",
+     "peaks":[{"intensity":60066147,"x":3.42752}]
+     }
+     */
+    detectSignals: function(peakList, frequency, nH){
+        var signals = [];
+        var index = 0;
+        var signal1D = {};
+        var prevPeak = [100000,0];
+        var rangeX = 16/frequency;//Peaks withing this range are considered to belongs to the same signal1D
+        var spectrumIntegral = 0;
+        for(var i=0;i<peakList.length;i++){
+            if(Math.abs(peakList[i][0]-prevPeak[0])>rangeX){
+                signal1D = {"nbPeaks":1,"units":"PPM",
+                    "startX":peakList[i][0]+peakList[i][2],
+                    "stopX":peakList[i][0]-peakList[i][2],
+                    "multiplicity":"","pattern":"",
+                    "observe":frequency,"nucleus":"1H",
+                    "integralData":{"from":peakList[i][0]-peakList[i][2]*2,
+                                    "to":peakList[i][0]+peakList[i][2]*2,
+                                    "value":this.area(peakList[i])
+                    },
+                    "peaks":[]};
+                signal1D.peaks.push({x:peakList[i][0],"intensity":peakList[i][1], width:peakList[i][2]});
+                signals.push(signal1D);
+                spectrumIntegral+=this.area(peakList[i]);
+            }
+            else{
+                signal1D.stopX=peakList[i][0]-peakList[i][2];
+                signal1D.nbPeaks++;
+                signal1D.peaks.push({x:peakList[i][0],"intensity":peakList[i][1]});
+                signal1D.integralData.value+=this.area(peakList[i]);
+                signal1D.integralData.from=peakList[i][0]-peakList[i][2]*2;
+                spectrumIntegral+=this.area(peakList[i]);
+            }
+            prevPeak=peakList[i];
+        }
+        //Normalize the integral to the normalization parameter
+        for(var i=0;i<signals.length;i++){
+
+            signals[i].integralData.value*=nH/spectrumIntegral;
+        }
+
+        return signals;
+    },
+
+    area: function(peak){
+        return Math.abs(peak[1]*peak[2]*1.772453851);
     },
 
     /**
@@ -363,7 +418,7 @@ var PeakPicking={
                     //console.log(frecuency);
                     points.sort(function(a, b){return a-b});
                     if ((linewith > 2*dx) && (height > 0.0001*points[0])){
-                        signals.push( [frecuency, linewith, height] );
+                        signals.push( [frecuency, height, linewith] );
                         signalsS.push([frecuency,height]);
 
                     }
@@ -374,7 +429,7 @@ var PeakPicking={
                     console.log("Nested "+possible);
                 }
         }
-        return signalsS;
+        return signals;
         //jexport("peakPicking",signalsS);
     }
 }

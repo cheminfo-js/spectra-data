@@ -13,11 +13,12 @@ function createSpectraData(filename, label, data) {
     return spectrum;
 };
 
-//var spectrum=createSpectraData("/data/ethylbenzene/h1_0.jdx");
-var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
-console.log(spectrum.getSpectrum());
+var spectrum=createSpectraData("/data/ethylbenzene/h1_0.jdx");
+//var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
+
 //console.log(spectrum);
-//var peakPicking = spectrum.nmrPeakDetection();
+var peakPicking = spectrum.nmrPeakDetection({nH:10});
+//console.log(peakPicking);
 //console.log(peakPicking);
 //console.log(spectrum.getNucleus(0));
 /*console.log(spectrum.getDataType()==spectrum.TYPE_NMR_SPECTRUM);

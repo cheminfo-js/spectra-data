@@ -88,7 +88,17 @@ NMR2D.prototype.nmrPeakDetection2D=function(options){
     options = options||{};
     if(!options.thresholdFactor)
         options.thresholdFactor=1;
-    return PeakPicking2D.findPeaks2D(this, options.thresholdFactor);
+    var id = Math.round(Math.random()*255);
+    if(!options.id){
+        id=options.id;
+    }
+    var peakList = PeakPicking2D.findPeaks2D(this, options.thresholdFactor);
+
+    //lets add an unique ID for each peak.
+    for(var i=0;i<peakList.length;i++){
+        peakList[i]._highlight=[id+"_"+i];
+    }
+    return peakList;
 }
 
 /**

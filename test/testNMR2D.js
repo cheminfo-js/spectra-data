@@ -11,7 +11,6 @@ function createSpectraData(filename, label, data) {
 };
 
 
-
 describe('spectra-data test', function () {
     var spectrum=createSpectraData("/data/indometacin/hmbc.dx");
 
