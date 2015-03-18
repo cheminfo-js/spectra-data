@@ -18,8 +18,8 @@ var spectrum=createSpectraData("/data/ethylbenzene/h1_0.jdx");
 
 //console.log(spectrum);
 var peakPicking = spectrum.nmrPeakDetection({nH:10});
-console.log(peakPicking);
-console.log(Data.ACS.formater.toACS(peakPicking));
+//console.log(peakPicking);
+//console.log(Data.ACS.formater.toACS(peakPicking));
 //console.log(peakPicking);
 //console.log(peakPicking);
 //console.log(spectrum.getNucleus(0));
