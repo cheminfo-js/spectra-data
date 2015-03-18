@@ -7,7 +7,7 @@ var Data = require('..');
 var FS = require('fs');
 
 function createSpectraData(filename, label, data) {
-    var spectrum = Data.SD.fromJcamp(
+    var spectrum = Data.NMR.fromJcamp(
         FS.readFileSync(__dirname + filename).toString()
     );
     return spectrum;
@@ -15,11 +15,11 @@ function createSpectraData(filename, label, data) {
 
 
 
-
 describe('spectra-data test', function () {
     var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
-
-    it('getNucleus', function () {
-        spectrum.getNucleus().should.equal("1H");
+    var peakPicking = spectrum.nmrPeakDetection({nH:10});
+    it('format ACS', function () {
+        Data.ACS.formater.toACS(peakPicking).should.be.string;
     });
-}
+});
+

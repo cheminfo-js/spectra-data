@@ -74,10 +74,16 @@ var PeakPicking={
             }
             prevPeak=peakList[i];
         }
-        //Normalize the integral to the normalization parameter
+        //Normalize the integral to the normalization parameter and calculate cs
         for(var i=0;i<signals.length;i++){
-
             signals[i].integralData.value*=nH/spectrumIntegral;
+            var peaks = signals[i].peaks;
+            var cs = 0, sum=0;
+            for(var j=0;j<peaks.length;j++){
+                cs+=peaks[j].x*peaks[j].intensity;
+                sum+=peaks[j].intensity;
+            }
+            signals[i].delta1 = cs/sum;
         }
 
         return signals;

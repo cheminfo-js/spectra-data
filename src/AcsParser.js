@@ -1,6 +1,6 @@
 /**
  * This library formats a set of nmr1D signals to the ACS format.
- * Created by acastillo on 3/11/15.
+ * Created by acastillo on 3/11/15. p
  */
 var ACS=ACS || {};
 ACS.formater =(function() {
@@ -103,7 +103,7 @@ ACS.formater =(function() {
                 }
                 acsString+=")";
             }
-            acsString+=" �� ";
+            acsString+=" δ ";
         } else if (spectrum.type=="IR") {
             acsString+=" IR ";
         } else if (spectrum.type=="MASS") {
