@@ -1,6 +1,6 @@
 /**
  * spectra-data - spectra-data project - manipulate spectra
- * @version v1.0.5
+ * @version v1.0.6
  * @link https://github.com/cheminfo-js/spectra-data
  * @license MIT
  */
@@ -1856,10 +1856,7 @@ NMR.prototype.useBrukerPhase=function() {
  * @option stdev: Number of standard deviation of the noise for the threshold calculation if a threshold is not specified.
  */
 NMR.prototype.nmrPeakDetection=function(parameters) {
-    parameters=parameters||{};
-    if(!parameters.nH)
-        parameters.nH=10;
-    return PeakPicking.peakPicking(this, parameters.nH, this.getSolventName());
+    return PeakPicking.peakPicking(this, parameters);
 }
 
 /**
@@ -2281,11 +2278,11 @@ var PeakPicking={
     impurities:[],
     maxJ:20,
 
-    peakPicking:function(spectrum, solvent, options){
-        options = options||{nH:10,clean:true, realTop:true}
+    peakPicking:function(spectrum, options){
+        options = options||{nH:10, clean:true, realTop:false}
 
         var nH=options.nH||10;
-        options.realTop = options.realTop||true;
+        options.realTop = options.realTop||false;
         var peakList = this.GSD(spectrum);
         //console.log(peakList);
         if(options.realTop)
@@ -2308,6 +2305,17 @@ var PeakPicking={
         var alpha, beta, gamma, p,currentPoint;
         for(j=0;j<peakList.length;j++){
             currentPoint = spectrum.unitsToArrayPoint(peakList[j][0]);
+            //The detected peak could be moved 1 unit to left or right.
+            if(spectrum.getY(currentPoint-1)>=spectrum.getY(currentPoint-2)
+                &&spectrum.getY(currentPoint-1)>=spectrum.getY(currentPoint)) {
+                currentPoint--;
+            }
+            else{
+                if(spectrum.getY(currentPoint+1)>=spectrum.getY(currentPoint)
+                    &&spectrum.getY(currentPoint+1)>=spectrum.getY(currentPoint+2)) {
+                    currentPoint++;
+                }
+            }
             if(spectrum.getY(currentPoint-1)>0&&spectrum.getY(currentPoint+1)>0
                 &&spectrum.getY(currentPoint)>=spectrum.getY(currentPoint-1)
                 &&spectrum.getY(currentPoint)>=spectrum.getY(currentPoint+1)) {
