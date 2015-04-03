@@ -1,5 +1,4 @@
 'use strict';
-
 var Data = require('..');
 var FS = require('fs');
 

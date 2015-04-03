@@ -1,5 +1,4 @@
 'use strict';
-
 var converter = require("jcampconverter");
 
 var spectraData = require('..');

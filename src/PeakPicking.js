@@ -8,8 +8,15 @@ var PeakPicking={
     impurities:[],
     maxJ:20,
 
-    peakPicking:function(spectrum, nH, solvent){
+    peakPicking:function(spectrum, solvent, options){
+        options = options||{nH:10,clean:true}
+
+        var nH=options.nH||10;
+
         var peakList = this.GSD(spectrum);
+        //console.log(peakList);
+        this.realTopDetection(peakList,spectrum);
+        //console.log(peakList);
         var signals = this.detectSignals(peakList, spectrum.observeFrequencyX(), nH);
         //For now just return the peak List
         //@TODO work in the peakPicking
@@ -20,6 +27,26 @@ var PeakPicking={
         return [peakList,imp];
         */
         //return createSignals(peakList,nH);
+    },
+
+    realTopDetection: function(peakList, spectrum){
+        var listP = [];
+        var alpha, beta, gamma, p,currentPoint;
+        for(j=0;j<peakList.length;j++){
+            currentPoint = spectrum.unitsToArrayPoint(peakList[j][0]);
+            if(spectrum.getY(currentPoint-1)>0&&spectrum.getY(currentPoint+1)>0
+                &&spectrum.getY(currentPoint)>=spectrum.getY(currentPoint-1)
+                &&spectrum.getY(currentPoint)>=spectrum.getY(currentPoint+1)) {
+                alpha = 20 * Math.log10(spectrum.getY(currentPoint - 1));
+                beta = 20 * Math.log10(spectrum.getY(currentPoint));
+                gamma = 20 * Math.log10(spectrum.getY(currentPoint + 1));
+                p = 0.5 * (alpha - gamma) / (alpha - 2 * beta + gamma);
+
+                peakList[j][0] = spectrum.arrayPointToUnits(currentPoint + p);
+                peakList[j][1] = spectrum.getY(currentPoint) - 0.25 * (spectrum.getY(currentPoint - 1) - spectrum.getY(currentPoint + 1)) * p;//signal.peaks[j].intensity);
+
+            }
+        }
     },
 
     /**

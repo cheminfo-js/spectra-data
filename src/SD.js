@@ -281,7 +281,7 @@ SD.prototype.arrayPointToUnits=function(doublePoint){
  */
 SD.prototype.unitsToArrayPoint=function(inValue){
     if (this.isDataClassXY()) {
-        return Math.ceil((this.getFirstX() - inValue) * (-1.0 / this.getInterval()));
+        return Math.round((this.getFirstX() - inValue) * (-1.0 / this.getDeltaX()));
     } else if (this.isDataClassPeak())
     {
         var currentArrayPoint = 0,upperLimit=this.getNbPoints()-1, lowerLimit=0, midPoint;

@@ -11,9 +11,10 @@
 exports.SD = require('./SD');
 exports.NMR = require('./NMR');
 exports.NMR2D = require('./NMR2D');
+exports.ACS = require('./AcsParser');
 
 //exports.SD2 = require('/SD2');
-},{"./NMR":5,"./NMR2D":6,"./SD":10}],2:[function(require,module,exports){
+},{"./AcsParser":4,"./NMR":6,"./NMR2D":7,"./SD":11}],2:[function(require,module,exports){
 'use strict';
 
 function getConverter() {
@@ -89,7 +90,6 @@ function getConverter() {
             dataLabel = dataLabel.replace(/[_ -]/g, '').toUpperCase();
 
             if (dataLabel == 'DATATABLE') {
-
                 endLine = dataValue.indexOf('\n');
                 if (endLine == -1) endLine = dataValue.indexOf('\r');
                 if (endLine > 0) {
@@ -98,8 +98,7 @@ function getConverter() {
                     // ##DATA TABLE= (X++(I..I)), XYDATA
                     // We need to find the variables
 
-                    infos = dataValue.substring(0, endLine).split(/[ ,;\t]+/);
-
+                    infos = dataValue.substring(0, endLine).split(/[ ,;\t]{2,}/);
                     if (infos[0].indexOf('++') > 0) {
                         var firstVariable = infos[0].replace(/.*\(([a-zA-Z0-9]+)\+\+.*/, '$1');
                         var secondVariable = infos[0].replace(/.*\.\.([a-zA-Z0-9]+).*/, '$1');
@@ -184,30 +183,30 @@ function getConverter() {
                 //                 result.shiftOffsetNum = parseInt(parts[2].trim());
                 //                 result.shiftOffsetVal = parseFloat(parts[3].trim());
             } else if (dataLabel == 'VARNAME') {
-                ntuples.varname = dataValue.split(/[, \t]+/);
+                ntuples.varname = dataValue.split(/[, \t]{2,}/);
             } else if (dataLabel == 'SYMBOL') {
-                ntuples.symbol = dataValue.split(/[, \t]+/);
+                ntuples.symbol = dataValue.split(/[, \t]{2,}/);
             } else if (dataLabel == 'VARTYPE') {
-                ntuples.vartype = dataValue.split(/[, \t]+/);
+                ntuples.vartype = dataValue.split(/[, \t]{2,}/);
             } else if (dataLabel == 'VARFORM') {
-                ntuples.varform = dataValue.split(/[, \t]+/);
+                ntuples.varform = dataValue.split(/[, \t]{2,}/);
             } else if (dataLabel == 'VARDIM') {
-                ntuples.vardim = convertToFloatArray(dataValue.split(/[, \t]+/));
+                ntuples.vardim = convertToFloatArray(dataValue.split(/[, \t]{2,}/));
             } else if (dataLabel == 'UNITS') {
-                ntuples.units = dataValue.split(/[, \t]+/);
+                ntuples.units = dataValue.split(/[, \t]{2,}/);
             } else if (dataLabel == 'FACTOR') {
-                ntuples.factor = convertToFloatArray(dataValue.split(/[, \t]+/));
+                ntuples.factor = convertToFloatArray(dataValue.split(/[, \t]{2,}/));
             } else if (dataLabel == 'FIRST') {
-                ntuples.first = convertToFloatArray(dataValue.split(/[, \t]+/));
+                ntuples.first = convertToFloatArray(dataValue.split(/[, \t]{2,}/));
             } else if (dataLabel == 'LAST') {
-                ntuples.last = convertToFloatArray(dataValue.split(/[, \t]+/));
+                ntuples.last = convertToFloatArray(dataValue.split(/[, \t]{2,}/));
             } else if (dataLabel == 'MIN') {
-                ntuples.min = convertToFloatArray(dataValue.split(/[, \t]+/));
+                ntuples.min = convertToFloatArray(dataValue.split(/[, \t]{2,}/));
             } else if (dataLabel == 'MAX') {
-                ntuples.max = convertToFloatArray(dataValue.split(/[, \t]+/));
+                ntuples.max = convertToFloatArray(dataValue.split(/[, \t]{2,}/));
             } else if (dataLabel == '.NUCLEUS') {
                 if (result.twoD) {
-                    result.yType = dataValue.split(/[, \t]+/)[0];
+                    result.yType = dataValue.split(/[, \t]{2,}/)[0];
                 }
             } else if (dataLabel == 'PAGE') {
                 spectrum.page = dataValue.trim();
@@ -250,6 +249,20 @@ function getConverter() {
 
         if (result.profiling) result.profiling.push({action: 'Finished parsing', time: new Date() - start});
 
+        if (Object.keys(ntuples).length>0) {
+            var newNtuples=[];
+            var keys=Object.keys(ntuples);
+            for (var i=0; i<keys.length; i++) {
+                var key=keys[i];
+                var values=ntuples[key];
+                for (var j=0; j<values.length; j++) {
+                    if (! newNtuples[j]) newNtuples[j]={};
+                    newNtuples[j][key]=values[j];
+                }
+            }
+            result.ntuples=newNtuples;
+        }
+
         if (result.twoD) {
             add2D(result);
             if (result.profiling) result.profiling.push({
@@ -263,7 +276,7 @@ function getConverter() {
 
 
         // maybe it is a GC (HPLC) / MS. In this case we add a new format
-        if (spectra.length > 1 && spectra[0].dataType.toLowerCase().match(/.*mass./)) {
+        if (spectra.length > 1 && spectra[0].dataType && spectra[0].dataType.toLowerCase().match(/.*mass./)) {
             addGCMS(result);
             if (result.profiling) result.profiling.push({
                 action: 'Finished GCMS calculation',
@@ -1111,6 +1124,275 @@ module.exports = {
 };
 
 },{}],4:[function(require,module,exports){
+/**
+ * This library formats a set of nmr1D signals to the ACS format.
+ * Created by acastillo on 3/11/15. p
+ */
+var ACS=ACS || {};
+ACS.formater =(function() {
+    var acsString="";
+    var parenthesis="";
+    var spectro="";
+    rangeForMultiplet=true;
+
+    function fromNMRSignal1D2ACS(spectrum, options){
+        acsString="";
+        parenthesis="";
+        spectro="";
+        var solvent = null;
+        if(options&&options.solvent)
+            solvent = options.solvent;
+        //options.rangeForMultiplet=false;
+        if(options&&options.rangeForMultiplet!=undefined)
+            rangeForMultiplet = options.rangeForMultiplet;
+
+        //console.log("Range1: "+options.rangeForMultiplet);
+
+        spectrum.type="NMR SPEC";
+        if (spectrum[0]["nucleus"]=="1H") {
+            formatAcs_default(spectrum, false, 2, 1, solvent);
+        } else if (spectrum[0]["nucleus"]=="13C") {
+            formatAcs_default(spectrum, false, 1, 0, solvent);
+        }
+
+        if (acsString.length>0) acsString+=".";
+
+        return acsString;
+    }
+
+    /*function formatAcs_default_IR(spectra, ascending, decimalValue, smw) {
+     appendSeparator();
+     appendSpectroInformation(spectra);
+     if (spectra["peakLabels"]) {
+     var numberPeakLabels=spectra["peakLabels"].length;
+     var minIntensity= 9999999;
+     var maxIntensity=-9999999;
+     for (var i=0; i<numberPeakLabels; i++) {
+     if (spectra["peakLabels"][i].intensity<minIntensity) minIntensity=spectra["peakLabels"][i].intensity;
+     if (spectra["peakLabels"][i].intensity>maxIntensity) maxIntensity=spectra["peakLabels"][i].intensity;
+     }
+     for (var i=0; i<numberPeakLabels; i++) {
+     if (ascending) {
+     var peakLabel=spectra["peakLabels"][i];
+     } else {
+     var peakLabel=spectra["peakLabels"][numberPeakLabels-i-1];
+     }
+     if (peakLabel) {
+     appendSeparator();
+     appendValue(peakLabel,decimalValue);
+     if (smw) { // we need to add small / medium / strong
+     if (peakLabel.intensity<((maxIntensity-minIntensity)/3+minIntensity)) acsString+=" (s)";
+     else if (peakLabel.intensity>(maxIntensity-(maxIntensity-minIntensity)/3)) acsString+=" (w)";
+     else acsString+=" (m)";
+     }
+     }
+     }
+     }
+     }*/
+
+    function formatAcs_default(spectra, ascending, decimalValue, decimalJ, solvent) {
+        appendSeparator();
+        appendSpectroInformation(spectra, solvent);
+        var numberSmartPeakLabels=spectra.length;
+        //console.log("SP "+spectra);
+        //console.log("# "+numberSmartPeakLabels);
+        for (var i=0; i<numberSmartPeakLabels; i++) {
+            if (ascending) {
+                var signal=spectra[i];
+            } else {
+                var signal=spectra[numberSmartPeakLabels-i-1];
+            }
+            if (signal) {
+                //console.log("X2X"+i+JSON.stringify(signal));
+                appendSeparator();
+                appendDelta(signal,decimalValue);
+                appendParenthesis(signal,decimalJ);
+                //console.log("S2S"+i);
+            }
+        }
+    }
+
+    function appendSpectroInformation(spectrum, solvent) {
+        if (spectrum.type=="NMR SPEC") {
+            if (spectrum[0].nucleus) {
+                acsString+=formatNucleus(spectrum[0].nucleus);
+            }
+            acsString+=" NMR";
+            if ((solvent) || (spectrum[0].observe)) {
+                acsString+=" (";
+                if (spectrum.observe) {
+                    acsString+=(spectrum[0].observe*1).toFixed(0)+" MHz";
+                    if (solvent) acsString+=", ";
+                }
+                if (solvent) {
+                    acsString+=formatMF(solvent);
+                }
+                acsString+=")";
+            }
+            acsString+=" δ ";
+        } else if (spectrum.type=="IR") {
+            acsString+=" IR ";
+        } else if (spectrum.type=="MASS") {
+            acsString+=" MASS ";
+        }
+    }
+
+    function appendDelta(line, nbDecimal) {
+        //console.log("appendDelta1");
+        var startX = 0,stopX=0,delta1=0;
+        if(line.startX){
+            if((typeof line.startX)=="string"){
+                startX=parseFloat(line.startX);
+            }
+            else
+                startX=line.startX;
+        }
+        if(line.stopX){
+            if((typeof line.stopX)=="string"){
+                stopX=parseFloat(line.stopX);
+            }
+            else
+                stopX=line.stopX;
+        }
+        if(line.delta1){
+            if((typeof line.delta1)=="string"){
+                delta1=parseFloat(line.delta1);
+            }
+            else
+                delta1=line.delta1;
+
+        }
+        //console.log("Range2: "+rangeForMultiplet);
+        if (line.pattern=="massive"||(line.pattern=="m"&&rangeForMultiplet==true)) {//Is it massive??
+            if (line.startX&&line.stopX) {
+                if (startX<stopX) {
+                    acsString+=startX.toFixed(nbDecimal)+"-"+stopX.toFixed(nbDecimal);
+                } else {
+                    acsString+=stopX.toFixed(nbDecimal)+"-"+startX.toFixed(nbDecimal);
+                }
+            } else {
+                if(line.delta1)
+                    acsString+=delta1.toFixed(nbDecimal);
+            }
+        }
+        else{
+            if(line.delta1)
+                acsString+=delta1.toFixed(nbDecimal);
+            else{
+                if(line.startX&&line.stopX){
+                    acsString+=((startX+stopX)/2).toFixed(nbDecimal);
+                }
+            }
+        }
+    }
+
+    function appendValue(line, nbDecimal) {
+        if (line.xPosition) {
+            acsString+=line.xPosition.toFixed(nbDecimal);
+        }
+    }
+
+    function appendParenthesis(line, nbDecimal) {
+        //console.log("appendParenthesis1");
+        // need to add assignment - coupling - integration
+        parenthesis="";
+        appendMultiplicity(line);
+        appendIntegration(line);
+        appendCoupling(line,nbDecimal);
+        appendAssignment(line);
+
+
+        if (parenthesis.length>0) {
+            acsString+=" ("+parenthesis+")";
+        }
+        //console.log("appendParenthesis2");
+    }
+
+    function appendIntegration(line) {
+        if (line.pubIntegration) {
+            appendParenthesisSeparator();
+            parenthesis+=line.pubIntegration;
+        } else if (line.integralData) {
+            appendParenthesisSeparator();
+            parenthesis+=line.integralData.value.toFixed(0)+" H";
+        }
+    }
+
+    function appendAssignment(line) {
+        if (line.pubAssignment) {
+            appendParenthesisSeparator();
+            parenthesis+=formatAssignment(line.pubAssignment);
+        }
+        else{
+            if (line.assignment) {
+                appendParenthesisSeparator();
+                parenthesis+=formatAssignment(line.assignment);
+            }
+        }
+    }
+
+    function appendMultiplicity(line) {
+        if (line.pubMultiplicity) {
+            appendParenthesisSeparator();
+            parenthesis+=line.pubMultiplicity;
+        } else if (line.multiplicity) {
+            appendParenthesisSeparator();
+            parenthesis+=line.multiplicity;
+        }
+    }
+
+    function appendCoupling(line, nbDecimal) {
+        if (line.nmrJs) {
+            var j="<i>J</i> = ";
+            for (var i=0; i<line.nmrJs.length; i++) {
+                var coupling=line.nmrJs[i].coupling;
+                if (j.length>11) j+=", ";
+                j+=coupling.toFixed(nbDecimal);
+            }
+            appendParenthesisSeparator();
+            parenthesis+=j+" Hz";
+        }
+
+    }
+
+    function formatAssignment(assignment) {
+        assignment=assignment.replace(/([0-9])/g,"<sub>$1</sub>");
+        assignment=assignment.replace(/\"([^\"]*)\"/g,"<i>$1</i>");
+        return assignment;
+    }
+
+    function formatMF(mf) {
+        mf=mf.replace(/([0-9])/g,"<sub>$1</sub>");
+        return mf;
+    }
+
+    function formatNucleus(nucleus) {
+        nucleus=nucleus.replace(/([0-9])/g,"<sup>$1</sup>");
+        return nucleus;
+    }
+
+    function appendSeparator() {
+        if ((acsString.length>0) && (! acsString.match(/ $/))) {
+            acsString+=", ";
+        }
+    }
+
+    function appendParenthesisSeparator() {
+        if ((parenthesis.length>0) && (! parenthesis.match(", $"))) parenthesis+=", ";
+    }
+
+    function fromACS2NMRSignal1D(acsString){
+        return JSON.parse(SDAPI.AcsParserAsJSONString(acsString));
+    }
+
+    return {
+        toACS:fromNMRSignal1D2ACS,
+        toNMRSignal:fromACS2NMRSignal1D
+    }
+})();
+
+module.exports=ACS;
+},{}],5:[function(require,module,exports){
 var FFT = require('./fftlib');
 
 var FFTUtils= {
@@ -1309,7 +1591,7 @@ var FFTUtils= {
 
 module.exports = FFTUtils;
 
-},{"./fftlib":12}],5:[function(require,module,exports){
+},{"./fftlib":13}],6:[function(require,module,exports){
 var SD = require('./SD');
 var PeakPicking = require('./PeakPicking');
 var JcampConverter=require("jcampconverter");
@@ -1612,7 +1894,7 @@ NMR.prototype.toJcamp=function(options) {
 
 module.exports = NMR;
 
-},{"./PeakPicking":8,"./SD":10,"jcampconverter":2}],6:[function(require,module,exports){
+},{"./PeakPicking":9,"./SD":11,"jcampconverter":2}],7:[function(require,module,exports){
 var SD = require('./SD');
 var PeakPicking2D = require('./PeakPicking2D');
 var JcampConverter=require("jcampconverter");
@@ -1649,6 +1931,28 @@ NMR2D.prototype.observeFrequencyY=function(){
 NMR2D.prototype.getSolventName=function(){
     return (this.sd.info[".SOLVENTNAME"]||this.sd.info["$SOLVENT"]).replace("<","").replace(">","");
 }
+
+/**
+ * This function returns the units of the direct dimension. It overrides the SD getXUnits function
+ * @returns {ntuples.units|*|b.units}
+ */
+NMR2D.prototype.getXUnits = function(){
+    return this.sd.ntuples[1].units;
+}
+/**
+ * This function returns the units of the indirect dimension. It overrides the SD getYUnits function
+ * @returns {ntuples.units|*|b.units}
+ */
+NMR2D.prototype.getYUnits = function(){
+    return this.sd.ntuples[0].units;
+}
+/**
+ * Returns the units of the dependent variable
+ * @returns {ntuples.units|*|b.units}
+ */
+NMR2D.prototype.getZUnits = function(){
+    return this.sd.ntuples[2].units;
+}
 /**
  * Overwrite this function. Now, the Y axe refers to the indirect dimension
  * @returns {sd.minMax.maxY}
@@ -1681,7 +1985,17 @@ NMR2D.prototype.nmrPeakDetection2D=function(options){
     options = options||{};
     if(!options.thresholdFactor)
         options.thresholdFactor=1;
-    return PeakPicking2D.findPeaks2D(this, options.thresholdFactor);
+    var id = Math.round(Math.random()*255);
+    if(!options.id){
+        id=options.id;
+    }
+    var peakList = PeakPicking2D.findPeaks2D(this, options.thresholdFactor);
+
+    //lets add an unique ID for each peak.
+    for(var i=0;i<peakList.length;i++){
+        peakList[i]._highlight=[id+"_"+i];
+    }
+    return peakList;
 }
 
 /**
@@ -1708,7 +2022,7 @@ NMR2D.prototype.getNucleus=function(dim){
 
 module.exports = NMR2D;
 
-},{"./PeakPicking2D":9,"./SD":10,"jcampconverter":2}],7:[function(require,module,exports){
+},{"./PeakPicking2D":10,"./SD":11,"jcampconverter":2}],8:[function(require,module,exports){
 var PeakOptimizer={
 	diagonalError:0.05,
 	tolerance:0.05,
@@ -1968,7 +2282,7 @@ var PeakOptimizer={
 };
 
 module.exports = PeakOptimizer;
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /**
  * Implementation of the peak pickig method described by Cobas in:
  * A new approach to improving automated analysis of proton NMR spectra
@@ -1981,10 +2295,10 @@ var PeakPicking={
 
     peakPicking:function(spectrum, nH, solvent){
         var peakList = this.GSD(spectrum);
-
+        var signals = this.detectSignals(peakList, spectrum.observeFrequencyX(), nH);
         //For now just return the peak List
         //@TODO work in the peakPicking
-        return peakList;
+        return signals;
 
         /*var frequency = spectrum.observeFrequencyX();//getParamDouble("$BF1",400);
         var imp = this.labelPeaks(peakList, solvent, frequency);
@@ -2001,6 +2315,67 @@ var PeakPicking={
         //this.impurities = API.getVar("impurities").getValue();
         //File.parse("solvent1H.txt", {header:false});
         //console.log(this.impurities[0]);
+    },
+    /*
+     {
+     "nbPeaks":1,"multiplicity":"","units":"PPM","startX":3.43505,"assignment":"",
+     "pattern":"s","stopX":3.42282,"observe":400.08,"asymmetric":false,
+     "delta1":3.42752,
+     "integralData":{"to":3.43505,"value":590586504,"from":3.42282},
+     "nucleus":"1H",
+     "peaks":[{"intensity":60066147,"x":3.42752}]
+     }
+     */
+    detectSignals: function(peakList, frequency, nH){
+        var signals = [];
+        var index = 0;
+        var signal1D = {};
+        var prevPeak = [100000,0];
+        var rangeX = 16/frequency;//Peaks withing this range are considered to belongs to the same signal1D
+        var spectrumIntegral = 0;
+        for(var i=0;i<peakList.length;i++){
+            if(Math.abs(peakList[i][0]-prevPeak[0])>rangeX){
+                signal1D = {"nbPeaks":1,"units":"PPM",
+                    "startX":peakList[i][0]+peakList[i][2],
+                    "stopX":peakList[i][0]-peakList[i][2],
+                    "multiplicity":"","pattern":"",
+                    "observe":frequency,"nucleus":"1H",
+                    "integralData":{"from":peakList[i][0]-peakList[i][2]*2,
+                                    "to":peakList[i][0]+peakList[i][2]*2,
+                                    "value":this.area(peakList[i])
+                    },
+                    "peaks":[]};
+                signal1D.peaks.push({x:peakList[i][0],"intensity":peakList[i][1], width:peakList[i][2]});
+                signals.push(signal1D);
+                spectrumIntegral+=this.area(peakList[i]);
+            }
+            else{
+                signal1D.stopX=peakList[i][0]-peakList[i][2];
+                signal1D.nbPeaks++;
+                signal1D.peaks.push({x:peakList[i][0],"intensity":peakList[i][1]});
+                signal1D.integralData.value+=this.area(peakList[i]);
+                signal1D.integralData.from=peakList[i][0]-peakList[i][2]*2;
+                spectrumIntegral+=this.area(peakList[i]);
+            }
+            prevPeak=peakList[i];
+        }
+        //Normalize the integral to the normalization parameter and calculate cs
+        for(var i=0;i<signals.length;i++){
+            signals[i].integralData.value*=nH/spectrumIntegral;
+            var peaks = signals[i].peaks;
+            var cs = 0, sum=0;
+            for(var j=0;j<peaks.length;j++){
+                cs+=peaks[j].x*peaks[j].intensity;
+                sum+=peaks[j].intensity;
+            }
+            signals[i].delta1 = cs/sum;
+        }
+
+        return signals;
+    },
+
+    area: function(peak){
+        return Math.abs(peak[1]*peak[2]*1.772453851);
     },
 
     /**
@@ -2334,7 +2709,7 @@ var PeakPicking={
                     //console.log(frecuency);
                     points.sort(function(a, b){return a-b});
                     if ((linewith > 2*dx) && (height > 0.0001*points[0])){
-                        signals.push( [frecuency, linewith, height] );
+                        signals.push( [frecuency, height, linewith] );
                         signalsS.push([frecuency,height]);
 
                     }
@@ -2345,13 +2720,13 @@ var PeakPicking={
                     console.log("Nested "+possible);
                 }
         }
-        return signalsS;
+        return signals;
         //jexport("peakPicking",signalsS);
     }
 }
 
 module.exports = PeakPicking;
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 var FFTUtils = require("./FFTUtils");
 var PeakOptimizer = require("./PeakOptimizer");
 var SimpleClustering =  require("./SimpleClustering");
@@ -2698,7 +3073,7 @@ var PeakPicking2D= {
 }
 
 module.exports = PeakPicking2D;
-},{"./FFTUtils":4,"./PeakOptimizer":7,"./SimpleClustering":11,"ml-stat/array":3}],10:[function(require,module,exports){
+},{"./FFTUtils":5,"./PeakOptimizer":8,"./SimpleClustering":12,"ml-stat/array":3}],11:[function(require,module,exports){
 // small note on the best way to define array
 // http://jsperf.com/lp-array-and-loops/2
 
@@ -2749,9 +3124,22 @@ SD.prototype.setActiveElement = function(nactiveSpectrum){
  */
 SD.prototype.getActiveElement = function(){
     return this.activeElement;
-},
+}
+/**
+ * This function returns the units of the independent dimension.
+ * @returns {xUnit|*|M.xUnit}
+ */
+SD.prototype.getXUnits = function(){
+    return this.getSpectrum().xUnit;
+}
 
-
+/**
+ * * This function returns the units of the dependent variable.
+ * @returns {yUnit|*|M.yUnit}
+ */
+SD.prototype.getYUnits = function(){
+    return this.getSpectrum().yUnit;
+}
 
 /**
 *   Returns the number of points in the current spectrum
@@ -3334,7 +3722,7 @@ SD.prototype.is2D = function(){
 module.exports = SD;
 
 
-},{"jcampconverter":2,"ml-stat/array":3}],11:[function(require,module,exports){
+},{"jcampconverter":2,"ml-stat/array":3}],12:[function(require,module,exports){
 var SimpleClustering={
 
 	/*This function returns the cluster list for a given connectivity matrix.
@@ -3394,7 +3782,7 @@ var SimpleClustering={
 }
 
 module.exports = SimpleClustering;
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /**
  * Fast Fourier Transform module
  * 1D-FFT/IFFT, 2D-FFT/IFFT (radix-2)
