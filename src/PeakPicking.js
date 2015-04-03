@@ -9,13 +9,14 @@ var PeakPicking={
     maxJ:20,
 
     peakPicking:function(spectrum, solvent, options){
-        options = options||{nH:10,clean:true}
+        options = options||{nH:10,clean:true, realTop:true}
 
         var nH=options.nH||10;
-
+        options.realTop = options.realTop||true;
         var peakList = this.GSD(spectrum);
         //console.log(peakList);
-        this.realTopDetection(peakList,spectrum);
+        if(options.realTop)
+            this.realTopDetection(peakList,spectrum);
         //console.log(peakList);
         var signals = this.detectSignals(peakList, spectrum.observeFrequencyX(), nH);
         //For now just return the peak List
