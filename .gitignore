@@ -2,3 +2,7 @@
 node_modules
 .DS_Store
 
+
+dist/spectra-data.min.js
+
+dist/spectra-data.min.js.map
