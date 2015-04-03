@@ -8,11 +8,11 @@ var PeakPicking={
     impurities:[],
     maxJ:20,
 
-    peakPicking:function(spectrum, solvent, options){
-        options = options||{nH:10,clean:true, realTop:true}
+    peakPicking:function(spectrum, options){
+        options = options||{nH:10, clean:true, realTop:false}
 
         var nH=options.nH||10;
-        options.realTop = options.realTop||true;
+        options.realTop = options.realTop||false;
         var peakList = this.GSD(spectrum);
         //console.log(peakList);
         if(options.realTop)
@@ -35,6 +35,17 @@ var PeakPicking={
         var alpha, beta, gamma, p,currentPoint;
         for(j=0;j<peakList.length;j++){
             currentPoint = spectrum.unitsToArrayPoint(peakList[j][0]);
+            //The detected peak could be moved 1 unit to left or right.
+            if(spectrum.getY(currentPoint-1)>=spectrum.getY(currentPoint-2)
+                &&spectrum.getY(currentPoint-1)>=spectrum.getY(currentPoint)) {
+                currentPoint--;
+            }
+            else{
+                if(spectrum.getY(currentPoint+1)>=spectrum.getY(currentPoint)
+                    &&spectrum.getY(currentPoint+1)>=spectrum.getY(currentPoint+2)) {
+                    currentPoint++;
+                }
+            }
             if(spectrum.getY(currentPoint-1)>0&&spectrum.getY(currentPoint+1)>0
                 &&spectrum.getY(currentPoint)>=spectrum.getY(currentPoint-1)
                 &&spectrum.getY(currentPoint)>=spectrum.getY(currentPoint+1)) {

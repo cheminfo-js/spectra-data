@@ -274,10 +274,7 @@ NMR.prototype.useBrukerPhase=function() {
  * @option stdev: Number of standard deviation of the noise for the threshold calculation if a threshold is not specified.
  */
 NMR.prototype.nmrPeakDetection=function(parameters) {
-    parameters=parameters||{};
-    if(!parameters.nH)
-        parameters.nH=10;
-    return PeakPicking.peakPicking(this, parameters.nH, this.getSolventName());
+    return PeakPicking.peakPicking(this, parameters);
 }
 
 /**

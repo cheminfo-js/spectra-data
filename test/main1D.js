@@ -17,9 +17,9 @@ var spectrum=createSpectraData("/data/ethylbenzene/h1_0.jdx");
 //var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
 
 //console.log(spectrum);
-var peakPicking = spectrum.nmrPeakDetection({nH:10});
+var peakPicking = spectrum.nmrPeakDetection({nH:10,realTop:true});
 //console.log(peakPicking);
-console.log(Data.ACS.formater.toACS(peakPicking,{solvent:spectrum.getSolventName()}));
+//console.log(Data.ACS.formater.toACS(peakPicking,{solvent:spectrum.getSolventName()}));
 //console.log(peakPicking);
 //console.log(peakPicking);
 //console.log(spectrum.getNucleus(0));
