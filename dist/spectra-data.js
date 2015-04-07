@@ -1,6 +1,6 @@
 /**
  * spectra-data - spectra-data project - manipulate spectra
- * @version v1.0.6
+ * @version v1.0.7
  * @link https://github.com/cheminfo-js/spectra-data
  * @license MIT
  */
@@ -2279,11 +2279,12 @@ var PeakPicking={
     maxJ:20,
 
     peakPicking:function(spectrum, options){
-        options = options||{nH:10, clean:true, realTop:false}
+        options = options||{nH:10, clean:true, realTop:false, thresholdFactor:1}
 
         var nH=options.nH||10;
         options.realTop = options.realTop||false;
-        var peakList = this.GSD(spectrum);
+        options.thresholdFactor = options.thresholdFactor || 1;
+        var peakList = this.GSD(spectrum,options.thresholdFactor);
         //console.log(peakList);
         if(options.realTop)
             this.realTopDetection(peakList,spectrum);
@@ -2652,13 +2653,13 @@ var PeakPicking={
     /**
      Determine the peaks of the spectrum by applying a global spectrum deconvolution.
      */
-    GSD:function(spectrum){
+    GSD:function(spectrum, thresholdFactor){
         var data= spectrum.getXYData();
         var y = data[1];
         var x = data[0];
 
         //Lets remove the noise for better performance
-        var noiseLevel = Math.abs(spectrum.getNoiseLevel());
+        var noiseLevel = Math.abs(spectrum.getNoiseLevel())*thresholdFactor;
 
         //console.log("noise level "+noiseLevel);
         for(var i=y.length-1;i>=0;i--)
