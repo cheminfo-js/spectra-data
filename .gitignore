@@ -6,3 +6,5 @@ node_modules
 dist/spectra-data.min.js
 
 dist/spectra-data.min.js.map
+
+test/data/h1_31.jdx

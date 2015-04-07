@@ -9,7 +9,7 @@ var PeakPicking={
     maxJ:20,
 
     peakPicking:function(spectrum, options){
-        options = options||{nH:10, clean:true, realTop:false,thresholdFactor:1}
+        options = options||{nH:10, clean:true, realTop:false, thresholdFactor:1}
 
         var nH=options.nH||10;
         options.realTop = options.realTop||false;
