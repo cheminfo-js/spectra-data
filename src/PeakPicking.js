@@ -4,22 +4,38 @@
  * through Global Spectral Deconvolution (GSD)
  * http://www.spectroscopyeurope.com/images/stories/ColumnPDFs/TD_23_1.pdf
  */
+var JAnalyzer = require('./JAnalyzer');
 var PeakPicking={
     impurities:[],
     maxJ:20,
 
     peakPicking:function(spectrum, options){
-        options = options||{nH:10, clean:true, realTop:false, thresholdFactor:1}
+        options = options||{nH:10, clean:true, realTop:false, thresholdFactor:1, compile:true}
 
         var nH=options.nH||10;
-        options.realTop = options.realTop||false;
-        options.thresholdFactor = options.thresholdFactor || 1;
-        var peakList = this.GSD(spectrum,options.thresholdFactor);
-        //console.log(peakList);
-        if(options.realTop)
+        //options.realTop = options.realTop||false;
+        //options.thresholdFactor = options.thresholdFactor || 1;
+        //options.compile = options.compile || false;
+        //options.clean = options.clean || false;
+        var peakList = this.GSD(spectrum, options.thresholdFactor||1);
+
+        if(options.realTop || false)
             this.realTopDetection(peakList,spectrum);
         //console.log(peakList);
         var signals = this.detectSignals(peakList, spectrum.observeFrequencyX(), nH);
+        //Remove all the signals with small integral
+        if(options.clean||false){
+            for(var i=signals.length-1;i>=0;i--){
+                if(signals[i].integralData.value<0.1) {
+                    signals.splice(i, 1);
+                }
+            }
+        }
+        if(options.compile||false){
+            for(var i=signals.length-1;i>=0;i--){
+                JAnalyzer.compilePattern(signals[i]);
+            }
+        }
         //For now just return the peak List
         //@TODO work in the peakPicking
         return signals;
