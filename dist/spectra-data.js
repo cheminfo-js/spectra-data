@@ -1,6 +1,6 @@
 /**
  * spectra-data - spectra-data project - manipulate spectra
- * @version v1.0.8
+ * @version v1.1.0
  * @link https://github.com/cheminfo-js/spectra-data
  * @license MIT
  */
