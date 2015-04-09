@@ -18,7 +18,7 @@ function createSpectraData(filename, label, data) {
 var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
 
 //console.log(spectrum);
-var peakPicking = spectrum.nmrPeakDetection({nH:10,realTop:true,thresholdFactor:0.8,clean:true,compile:true});
+var peakPicking = spectrum.nmrPeakDetection({nH:8,realTop:true,thresholdFactor:0.8,clean:true,compile:true});
 //console.log(peakPicking);
 //console.log(Data.ACS.formater.toACS(peakPicking,{solvent:spectrum.getSolventName()}));
 //console.log(peakPicking);

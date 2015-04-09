@@ -413,7 +413,7 @@ var PeakPicking={
                 y[i]=0;
 
         var dx = x[1]-x[0];
-        // fill convolution frecuency axis
+        // fill convolution frequency axis
         var X = [];//x[2:(x.length-2)];
 
         // fill Savitzky-Golay polynomes
@@ -431,65 +431,70 @@ var PeakPicking={
         var stackInt = new Array();
         var intervals = new Array();
         var minddY = new Array();
-        //console.log(Y.length);
-        for (var i = 1; i < Y.length -1 ; i++)
-        {
-            if ((Y[i] > Y[i-1]) && (Y[i] > Y[i+1]))
-            {
+        var maxDy = 0;
+//console.log(Y.length);
+        for (var i = 1; i < Y.length -1 ; i++){
+            if(Math.abs(dY[i])>maxDy){
+                maxDy = Math.abs(dY[i]);
+            }
+            if ((Y[i] >= Y[i-1]) && (Y[i] >= Y[i+1])) {
                 maxY.push(X[i]);
             }
-            if ((dY[i] < dY[i-1]) && (dY[i] < dY[i+1]))
-            {
+            if ((dY[i] <= dY[i-1]) && (dY[i] <= dY[i+1])) {
                 stackInt.push(X[i]);
             }
-            if ((dY[i] > dY[i-1]) && (dY[i] > dY[i+1]))
-            {
+            if ((dY[i] >= dY[i-1]) && (dY[i] >= dY[i+1])) {
                 try{
                     intervals.push( [X[i] , stackInt.pop()] );
                 }
                 catch(e){
-                    console.log("Error I don't know why");
+                    console.log("Error I don't know why "+e);
                 }
             }
-            if ((ddY[i] < ddY[i-1]) && (ddY[i] < ddY[i+1]))
-            {
-                minddY.push( [X[i], Y[i]] );
+            if ((ddY[i] < ddY[i-1]) && (ddY[i] < ddY[i+1])) {
+                minddY.push( [X[i], Y[i], i] );
             }
         }
-        // creates a list with (frecuency, linewith, height)
+        // creates a list with (frequency, linewith, height)
         var signalsS = new Array();
         var signals = new Array();
         for (var j = 0; j < minddY.length; j++)
         {
             var f = minddY[j];
-            var frecuency = f[0];
+            var frequency = f[0];
             var possible = new Array();
             for (var k=0;k<intervals.length;k++){
                 var i = intervals[k];
-                if (frecuency > i[0] && frecuency < i[1])
+                if (frequency > i[0] && frequency < i[1])
                     possible.push(i);
             }
-            //console.log("possible "+possible.length);
-            if (possible.length > 0)
-                if (possible.length == 1)
-                {
+            //Lets give the opportunity to other peaks to belong
+            if (possible.length === 0){
+                if(Math.abs(dY[f[2]])>0.1*maxDy){
+                    possible.push([frequency+2*dx,frequency-2*dx]);
+                }
+            }
+            if (possible.length > 0) {
+                if (possible.length == 1) {
                     var inter = possible[0];
                     var linewith = inter[1] - inter[0];
                     var height = f[1];
                     var points = Y;
-                    //console.log(frecuency);
-                    points.sort(function(a, b){return a-b});
-                    if ((linewith > 2*dx) && (height > 0.0001*points[0])){
-                        signals.push( [frecuency, height, linewith] );
-                        signalsS.push([frecuency,height]);
+                    //console.log(frequency);
+                    points.sort(function (a, b) {
+                        return a - b
+                    });
+                    if ((linewith >= 2 * dx) && (height > 0.0001 * points[0])) {
+                        signals.push([frequency, height, linewith]);
+                        signalsS.push([frequency, height]);
 
                     }
                 }
-                else
-                {
+                else {
                     //TODO: nested peaks
-                    console.log("Nested "+possible);
+                    console.log("Nested " + possible);
                 }
+            }
         }
         return signals;
         //jexport("peakPicking",signalsS);
