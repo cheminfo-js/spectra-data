@@ -22,11 +22,11 @@ var PeakPicking={
         if(options.realTop || false)
             this.realTopDetection(peakList,spectrum);
         //console.log(peakList);
-        var signals = this.detectSignals(peakList, spectrum.observeFrequencyX(), nH);
+        var signals = this.detectSignals(peakList, spectrum, nH);
         //Remove all the signals with small integral
         if(options.clean||false){
             for(var i=signals.length-1;i>=0;i--){
-                if(signals[i].integralData.value<0.1) {
+                if(signals[i].integralData.value<0.5) {
                     signals.splice(i, 1);
                 }
             }
@@ -109,13 +109,13 @@ var PeakPicking={
      "peaks":[{"intensity":60066147,"x":3.42752}]
      }
      */
-    detectSignals: function(peakList, frequency, nH){
+    detectSignals: function(peakList, spectrum, nH){
+        var frequency = spectrum.observeFrequencyX();
         var signals = [];
-        var index = 0;
         var signal1D = {};
-        var prevPeak = [100000,0];
+        var prevPeak = [100000,0],peaks=null;
         var rangeX = 16/frequency;//Peaks withing this range are considered to belongs to the same signal1D
-        var spectrumIntegral = 0;
+        var spectrumIntegral = 0,cs,sum;
         for(var i=0;i<peakList.length;i++){
             if(Math.abs(peakList[i][0]-prevPeak[0])>rangeX){
                 signal1D = {"nbPeaks":1,"units":"PPM",
@@ -123,44 +123,51 @@ var PeakPicking={
                     "stopX":peakList[i][0]-peakList[i][2],
                     "multiplicity":"","pattern":"",
                     "observe":frequency,"nucleus":"1H",
-                    "integralData":{"from":peakList[i][0]-peakList[i][2]*2,
-                                    "to":peakList[i][0]+peakList[i][2]*2,
-                                    "value":this.area(peakList[i])
+                    "integralData":{"from":peakList[i][0]-peakList[i][2]*3,
+                                    "to":peakList[i][0]+peakList[i][2]*3
+                                    //"value":this.area(peakList[i])
                     },
                     "peaks":[]};
                 signal1D.peaks.push({x:peakList[i][0],"intensity":peakList[i][1], width:peakList[i][2]});
                 signals.push(signal1D);
-                spectrumIntegral+=this.area(peakList[i]);
+                //spectrumIntegral+=this.area(peakList[i]);
             }
             else{
                 signal1D.stopX=peakList[i][0]-peakList[i][2];
                 signal1D.nbPeaks++;
-                signal1D.peaks.push({x:peakList[i][0],"intensity":peakList[i][1]});
-                signal1D.integralData.value+=this.area(peakList[i]);
-                signal1D.integralData.from=peakList[i][0]-peakList[i][2]*2;
-                spectrumIntegral+=this.area(peakList[i]);
+                signal1D.peaks.push({x:peakList[i][0],"intensity":peakList[i][1], width:peakList[i][2]});
+                //signal1D.integralData.value+=this.area(peakList[i]);
+                signal1D.integralData.from=peakList[i][0]-peakList[i][2]*3;
+                //spectrumIntegral+=this.area(peakList[i]);
             }
-            prevPeak=peakList[i];
+            prevPeak = peakList[i];
         }
         //Normalize the integral to the normalization parameter and calculate cs
         for(var i=0;i<signals.length;i++){
-            signals[i].integralData.value*=nH/spectrumIntegral;
-            var peaks = signals[i].peaks;
-            var cs = 0, sum=0;
+            peaks = signals[i].peaks;
+            var integral = signals[i].integralData;
+            integral.value=spectrum.getArea(integral.from,integral.to);//*nH/spectrumIntegral;
+            spectrumIntegral+=integral.value;
+            cs = 0;
+            sum = 0;
             for(var j=0;j<peaks.length;j++){
-                cs+=peaks[j].x*peaks[j].intensity;
-                sum+=peaks[j].intensity;
+                cs+=peaks[j].x*this.area(peaks[j]);//.intensity;
+                sum+=this.area(peaks[j]);
             }
             signals[i].delta1 = cs/sum;
+        }
+        for(var i=0;i<signals.length;i++){
+            //console.log(integral.value);
+            var integral = signals[i].integralData;
+            integral.value*=nH/spectrumIntegral;
         }
 
         return signals;
     },
 
     area: function(peak){
-        return Math.abs(peak[1]*peak[2]*1.772453851);
+        return Math.abs(peak.intensity*peak.width*1.772453851);
     },
-
     /**
      This function tries to determine which peaks belongs to common laboratory solvents
      as trace impurities from DOI:10.1021/jo971176v. The only parameter of the table is

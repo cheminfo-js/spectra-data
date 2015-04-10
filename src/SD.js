@@ -583,6 +583,26 @@ SD.prototype.putParam = function(name, value){
 }
 
 /**
+ * This function returns the area under the spectrum in the given window
+ */
+SD.prototype.getArea = function(from, to){
+    var i0 = this.unitsToArrayPoint(from);
+    var ie = this.unitsToArrayPoint(to);
+    var area = 0;
+    if(i0>ie){
+        var tmp = i0;
+        i0 = ie;
+        ie = tmp;
+    }
+    i0=i0<0?0:i0;
+    ie=ie>=this.getNbPoints()?this.getNbPoints()-1:ie;
+    for(var i=i0;i<ie;i++){
+        area+= this.getY(i);
+    }
+    return area*Math.abs(this.getDeltaX());
+},
+
+/**
  * Returns a equally spaced vector within the given window.
  * @param from
  * @param to

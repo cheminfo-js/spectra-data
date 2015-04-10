@@ -28,7 +28,6 @@ var JAnalyzer = {
 
         //Is the signal asymmetric?
         if(signal.symRank<0.95){
-            signal.nmrJs = [];
             return;
         }
 
@@ -193,6 +192,7 @@ var JAnalyzer = {
         }
         return pattern;
     },
+
     /**
      * Find a combination of integer heights Hi, one from each Si, that sums to 2n.
      */
@@ -301,11 +301,13 @@ var JAnalyzer = {
      */
     symmetrize : function(signal, maxError, iteration){
         //Before to symmetrize we need to keep only the peaks that possibly conforms the multiplete
-        var max, min, avg, ratio;
+        var max, min, avg, ratio, avgWidth;
         var peaks = new Array(signal.peaks.length);
         //Make a deep copy of the peaks and convert PPM ot HZ
         for(j=0;j<peaks.length;j++){
-            peaks[j]= {x:signal.peaks[j].x*signal.observe, intensity:signal.peaks[j].intensity};
+            peaks[j]= {x:signal.peaks[j].x*signal.observe,
+                       intensity:signal.peaks[j].intensity,
+                       width:signal.peaks[j].width};
         }
         //Join the peaks that are closer than 0.25 Hz
         for(j=peaks.length-2;j>=0;j--){
@@ -314,6 +316,7 @@ var JAnalyzer = {
                 peaks[j].intensity = peaks[j].intensity+peaks[j+1].intensity;
                 peaks[j].x/=peaks[j].intensity;
                 peaks[j].intensity/=2;
+                peaks[j].width+=peaks[j+1].width;
                 peaks.splice(j+1,1);
             }
 
@@ -360,8 +363,11 @@ var JAnalyzer = {
                     if(Math.abs(diffL-diffR)<maxError){
                         //avg = (peaks[left].intensity+peaks[right].intensity)/2;
                         avg = Math.min(peaks[left].intensity,peaks[right].intensity);
+                        avgWidth = Math.min(peaks[left].width,peaks[right].width);
                         peaks[left].intensity=avg
                         peaks[right].intensity=avg;
+                        peaks[left].width=avgWidth
+                        peaks[right].width=avgWidth;
                     }
                     else{
                         if(Math.max(diffL,diffR)==diffR){
@@ -432,6 +438,16 @@ var JAnalyzer = {
         //Sometimes we need a second opinion after the first symmetrization.
         if(symFactor>0.8&&symFactor<0.97&&iteration<2){
             return this.symmetrize(signal, this.maxErrorIter2, 2);
+        }{
+            //Center the given pattern at cs and symmetrize x
+            if(peaks.length>1) {
+                var weight = 0, dxi;
+                for (i = Math.ceil(peaks.length / 2) - 1; i >= 0; i--) {
+                    dxi = (peaks[i].x - peaks[peaks.length - 1 - i].x)/2.0;
+                    peaks[i].x =cs+dxi;
+                    peaks[peaks.length - 1 - i].x=cs-dxi;
+                }
+            }
         }
         return symFactor;
     },
@@ -469,11 +485,34 @@ var JAnalyzer = {
      * @returns {number}
      */
     chemicalShift : function(peaks, mask){
-        var sum=0,cs= 0,i;
+        var sum=0,cs= 0, i, area;
         if(mask){
             for(i=0;i<peaks.length;i++){
                 //console.log(mask[i]);
                 if(mask[i]===true){
+                    area = this.area(peaks[i]);
+                    sum+=area;
+                    cs+=area*peaks[i].x;
+                }
+            }
+        }
+        else{
+            for(i=0;i<peaks.length;i++){
+                area = this.area(peaks[i]);
+                sum+=area;
+                cs+=area*peaks[i].x;
+            }
+        }
+        return cs/sum;
+    },
+
+    /*chemicalShift : function(peaks, mask){
+        var sum=0,cs= 0, i, area;
+        if(mask){
+            for(i=0;i<peaks.length;i++){
+                //console.log(mask[i]);
+                if(mask[i]===true){
+                    area = this.area(peaks[i]);
                     sum+=peaks[i].intensity;
                     cs+=peaks[i].intensity*peaks[i].x;
                 }
@@ -486,6 +525,10 @@ var JAnalyzer = {
             }
         }
         return cs/sum;
+    }*/
+
+    area: function(peak){
+        return Math.abs(peak.intensity*peak.width*1.772453851);
     }
 }
 
