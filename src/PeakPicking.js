@@ -52,7 +52,7 @@ var PeakPicking={
         var alpha, beta, gamma, p,currentPoint;
         for(j=0;j<peakList.length;j++){
             currentPoint = spectrum.unitsToArrayPoint(peakList[j][0]);
-            //The detected peak could be moved 1 unit to left or right.
+            //The detected peak could be moved 1 or 2 unit to left or right.
             if(spectrum.getY(currentPoint-1)>=spectrum.getY(currentPoint-2)
                 &&spectrum.getY(currentPoint-1)>=spectrum.getY(currentPoint)) {
                 currentPoint--;
@@ -61,6 +61,18 @@ var PeakPicking={
                 if(spectrum.getY(currentPoint+1)>=spectrum.getY(currentPoint)
                     &&spectrum.getY(currentPoint+1)>=spectrum.getY(currentPoint+2)) {
                     currentPoint++;
+                }
+                else{
+                    if(spectrum.getY(currentPoint-2)>=spectrum.getY(currentPoint-3)
+                        &&spectrum.getY(currentPoint-2)>=spectrum.getY(currentPoint-1)) {
+                        currentPoint-=2;
+                    }
+                    else{
+                        if(spectrum.getY(currentPoint+2)>=spectrum.getY(currentPoint+1)
+                            &&spectrum.getY(currentPoint+2)>=spectrum.getY(currentPoint+3)) {
+                            currentPoint+=2;
+                        }
+                    }
                 }
             }
             if(spectrum.getY(currentPoint-1)>0&&spectrum.getY(currentPoint+1)>0
@@ -471,7 +483,7 @@ var PeakPicking={
             //Lets give the opportunity to other peaks to belong
             if (possible.length === 0){
                 if(Math.abs(dY[f[2]])>0.1*maxDy){
-                    possible.push([frequency+2*dx,frequency-2*dx]);
+                    possible.push([frequency+dx,frequency-dx]);
                 }
             }
             if (possible.length > 0) {
