@@ -1,6 +1,6 @@
 /**
  * spectra-data - spectra-data project - manipulate spectra
- * @version v1.1.2
+ * @version v1.1.3
  * @link https://github.com/cheminfo-js/spectra-data
  * @license MIT
  */
@@ -1610,7 +1610,6 @@ var JAnalyzer = {
 
         //Is the signal asymmetric?
         if(signal.symRank<0.95){
-            signal.nmrJs = [];
             return;
         }
 
@@ -1775,6 +1774,7 @@ var JAnalyzer = {
         }
         return pattern;
     },
+
     /**
      * Find a combination of integer heights Hi, one from each Si, that sums to 2n.
      */
@@ -1883,11 +1883,13 @@ var JAnalyzer = {
      */
     symmetrize : function(signal, maxError, iteration){
         //Before to symmetrize we need to keep only the peaks that possibly conforms the multiplete
-        var max, min, avg, ratio;
+        var max, min, avg, ratio, avgWidth;
         var peaks = new Array(signal.peaks.length);
         //Make a deep copy of the peaks and convert PPM ot HZ
         for(j=0;j<peaks.length;j++){
-            peaks[j]= {x:signal.peaks[j].x*signal.observe, intensity:signal.peaks[j].intensity};
+            peaks[j]= {x:signal.peaks[j].x*signal.observe,
+                       intensity:signal.peaks[j].intensity,
+                       width:signal.peaks[j].width};
         }
         //Join the peaks that are closer than 0.25 Hz
         for(j=peaks.length-2;j>=0;j--){
@@ -1896,6 +1898,7 @@ var JAnalyzer = {
                 peaks[j].intensity = peaks[j].intensity+peaks[j+1].intensity;
                 peaks[j].x/=peaks[j].intensity;
                 peaks[j].intensity/=2;
+                peaks[j].width+=peaks[j+1].width;
                 peaks.splice(j+1,1);
             }
 
@@ -1942,8 +1945,11 @@ var JAnalyzer = {
                     if(Math.abs(diffL-diffR)<maxError){
                         //avg = (peaks[left].intensity+peaks[right].intensity)/2;
                         avg = Math.min(peaks[left].intensity,peaks[right].intensity);
+                        avgWidth = Math.min(peaks[left].width,peaks[right].width);
                         peaks[left].intensity=avg
                         peaks[right].intensity=avg;
+                        peaks[left].width=avgWidth
+                        peaks[right].width=avgWidth;
                     }
                     else{
                         if(Math.max(diffL,diffR)==diffR){
@@ -2014,6 +2020,16 @@ var JAnalyzer = {
         //Sometimes we need a second opinion after the first symmetrization.
         if(symFactor>0.8&&symFactor<0.97&&iteration<2){
             return this.symmetrize(signal, this.maxErrorIter2, 2);
+        }{
+            //Center the given pattern at cs and symmetrize x
+            if(peaks.length>1) {
+                var weight = 0, dxi;
+                for (i = Math.ceil(peaks.length / 2) - 1; i >= 0; i--) {
+                    dxi = (peaks[i].x - peaks[peaks.length - 1 - i].x)/2.0;
+                    peaks[i].x =cs+dxi;
+                    peaks[peaks.length - 1 - i].x=cs-dxi;
+                }
+            }
         }
         return symFactor;
     },
@@ -2051,11 +2067,34 @@ var JAnalyzer = {
      * @returns {number}
      */
     chemicalShift : function(peaks, mask){
-        var sum=0,cs= 0,i;
+        var sum=0,cs= 0, i, area;
         if(mask){
             for(i=0;i<peaks.length;i++){
                 //console.log(mask[i]);
                 if(mask[i]===true){
+                    area = this.area(peaks[i]);
+                    sum+=area;
+                    cs+=area*peaks[i].x;
+                }
+            }
+        }
+        else{
+            for(i=0;i<peaks.length;i++){
+                area = this.area(peaks[i]);
+                sum+=area;
+                cs+=area*peaks[i].x;
+            }
+        }
+        return cs/sum;
+    },
+
+    /*chemicalShift : function(peaks, mask){
+        var sum=0,cs= 0, i, area;
+        if(mask){
+            for(i=0;i<peaks.length;i++){
+                //console.log(mask[i]);
+                if(mask[i]===true){
+                    area = this.area(peaks[i]);
                     sum+=peaks[i].intensity;
                     cs+=peaks[i].intensity*peaks[i].x;
                 }
@@ -2068,6 +2107,10 @@ var JAnalyzer = {
             }
         }
         return cs/sum;
+    }*/
+
+    area: function(peak){
+        return Math.abs(peak.intensity*peak.width*1.772453851);
     }
 }
 
@@ -2785,11 +2828,11 @@ var PeakPicking={
         if(options.realTop || false)
             this.realTopDetection(peakList,spectrum);
         //console.log(peakList);
-        var signals = this.detectSignals(peakList, spectrum.observeFrequencyX(), nH);
+        var signals = this.detectSignals(peakList, spectrum, nH);
         //Remove all the signals with small integral
         if(options.clean||false){
             for(var i=signals.length-1;i>=0;i--){
-                if(signals[i].integralData.value<0.1) {
+                if(signals[i].integralData.value<0.5) {
                     signals.splice(i, 1);
                 }
             }
@@ -2872,13 +2915,13 @@ var PeakPicking={
      "peaks":[{"intensity":60066147,"x":3.42752}]
      }
      */
-    detectSignals: function(peakList, frequency, nH){
+    detectSignals: function(peakList, spectrum, nH){
+        var frequency = spectrum.observeFrequencyX();
         var signals = [];
-        var index = 0;
         var signal1D = {};
-        var prevPeak = [100000,0];
+        var prevPeak = [100000,0],peaks=null;
         var rangeX = 16/frequency;//Peaks withing this range are considered to belongs to the same signal1D
-        var spectrumIntegral = 0;
+        var spectrumIntegral = 0,cs,sum;
         for(var i=0;i<peakList.length;i++){
             if(Math.abs(peakList[i][0]-prevPeak[0])>rangeX){
                 signal1D = {"nbPeaks":1,"units":"PPM",
@@ -2886,44 +2929,51 @@ var PeakPicking={
                     "stopX":peakList[i][0]-peakList[i][2],
                     "multiplicity":"","pattern":"",
                     "observe":frequency,"nucleus":"1H",
-                    "integralData":{"from":peakList[i][0]-peakList[i][2]*2,
-                                    "to":peakList[i][0]+peakList[i][2]*2,
-                                    "value":this.area(peakList[i])
+                    "integralData":{"from":peakList[i][0]-peakList[i][2]*3,
+                                    "to":peakList[i][0]+peakList[i][2]*3
+                                    //"value":this.area(peakList[i])
                     },
                     "peaks":[]};
                 signal1D.peaks.push({x:peakList[i][0],"intensity":peakList[i][1], width:peakList[i][2]});
                 signals.push(signal1D);
-                spectrumIntegral+=this.area(peakList[i]);
+                //spectrumIntegral+=this.area(peakList[i]);
             }
             else{
                 signal1D.stopX=peakList[i][0]-peakList[i][2];
                 signal1D.nbPeaks++;
-                signal1D.peaks.push({x:peakList[i][0],"intensity":peakList[i][1]});
-                signal1D.integralData.value+=this.area(peakList[i]);
-                signal1D.integralData.from=peakList[i][0]-peakList[i][2]*2;
-                spectrumIntegral+=this.area(peakList[i]);
+                signal1D.peaks.push({x:peakList[i][0],"intensity":peakList[i][1], width:peakList[i][2]});
+                //signal1D.integralData.value+=this.area(peakList[i]);
+                signal1D.integralData.from=peakList[i][0]-peakList[i][2]*3;
+                //spectrumIntegral+=this.area(peakList[i]);
             }
-            prevPeak=peakList[i];
+            prevPeak = peakList[i];
         }
         //Normalize the integral to the normalization parameter and calculate cs
         for(var i=0;i<signals.length;i++){
-            signals[i].integralData.value*=nH/spectrumIntegral;
-            var peaks = signals[i].peaks;
-            var cs = 0, sum=0;
+            peaks = signals[i].peaks;
+            var integral = signals[i].integralData;
+            integral.value=spectrum.getArea(integral.from,integral.to);//*nH/spectrumIntegral;
+            spectrumIntegral+=integral.value;
+            cs = 0;
+            sum = 0;
             for(var j=0;j<peaks.length;j++){
-                cs+=peaks[j].x*peaks[j].intensity;
-                sum+=peaks[j].intensity;
+                cs+=peaks[j].x*this.area(peaks[j]);//.intensity;
+                sum+=this.area(peaks[j]);
             }
             signals[i].delta1 = cs/sum;
+        }
+        for(var i=0;i<signals.length;i++){
+            //console.log(integral.value);
+            var integral = signals[i].integralData;
+            integral.value*=nH/spectrumIntegral;
         }
 
         return signals;
     },
 
     area: function(peak){
-        return Math.abs(peak[1]*peak[2]*1.772453851);
+        return Math.abs(peak.intensity*peak.width*1.772453851);
     },
-
     /**
      This function tries to determine which peaks belongs to common laboratory solvents
      as trace impurities from DOI:10.1021/jo971176v. The only parameter of the table is
@@ -4208,6 +4258,26 @@ SD.prototype.getSpectraDataX = function(){
 SD.prototype.putParam = function(name, value){
     this.sd.info[name]=value;
 }
+
+/**
+ * This function returns the area under the spectrum in the given window
+ */
+SD.prototype.getArea = function(from, to){
+    var i0 = this.unitsToArrayPoint(from);
+    var ie = this.unitsToArrayPoint(to);
+    var area = 0;
+    if(i0>ie){
+        var tmp = i0;
+        i0 = ie;
+        ie = tmp;
+    }
+    i0=i0<0?0:i0;
+    ie=ie>=this.getNbPoints()?this.getNbPoints()-1:ie;
+    for(var i=i0;i<ie;i++){
+        area+= this.getY(i);
+    }
+    return area*Math.abs(this.getDeltaX());
+},
 
 /**
  * Returns a equally spaced vector within the given window.
