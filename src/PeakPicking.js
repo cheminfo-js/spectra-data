@@ -35,6 +35,7 @@ var PeakPicking={
             for(var i=signals.length-1;i>=0;i--){
                 JAnalyzer.compilePattern(signals[i]);
             }
+            this.updateIntegrals(signals, nH);
         }
         //For now just return the peak List
         //@TODO work in the peakPicking
@@ -45,6 +46,41 @@ var PeakPicking={
         return [peakList,imp];
         */
         //return createSignals(peakList,nH);
+    },
+
+    updateLimits : function(signal){
+        if(signal.multiplicity!="massive" && signal.multiplicity!=""){
+            //Remove the integral of the removed peaks
+            var peaksO = signal.peaks;
+            var nbPeaks0 = peaksO.length, index = 0, factor = 0, toRemove = 0;
+
+            for(var i=0;i<nbPeaks0;i++){
+                if(signal.maskPattern[i]===false)
+                    toRemove+=this.area(peaksO[i])*0.666;
+                factor+= this.area(peaksO[i]);
+            }
+            factor=signal.integralData.value/factor;
+            signal.integralData.value-=toRemove*factor;
+        }
+        return signal.integralData.value;
+    },
+
+    updateIntegrals : function(signals, nH){
+        var sumIntegral = 0,i,sumObserved=0;
+        for(i=0;i<signals.length;i++){
+            sumObserved+=Math.round(signals[i].integralData.value);
+        }
+        if(sumObserved!=nH){
+            for(i=0;i<signals.length;i++){
+                //Re-assign the integral to the remaining signals.
+                sumIntegral+=this.updateLimits(signals[i]);
+                sumObserved+=Math.round(signals[i].integralData.value);
+            }
+            sumIntegral=nH/sumIntegral;
+            for(i=0;i<signals.length;i++){
+                signals[i].integralData.value*=sumIntegral;
+            }
+        }
     },
 
     realTopDetection: function(peakList, spectrum){
@@ -487,9 +523,9 @@ var PeakPicking={
                 if (frequency > i[0] && frequency < i[1])
                     possible.push(i);
             }
-            //Lets give the opportunity to other peaks to belong
+            //Lets give the opportunity to other peaks to exist
             if (possible.length === 0){
-                if(Math.abs(dY[f[2]])>0.1*maxDy){
+                if(Math.abs(dY[f[2]])>0.2*maxDy){
                     possible.push([frequency+dx,frequency-dx]);
                 }
             }

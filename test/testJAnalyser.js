@@ -24,10 +24,10 @@ describe('spectra-data test', function () {
         for(var i=0;i<peakPicking.length;i++){
             var signal = peakPicking[i];
             if(Math.abs(signal.delta1-1.308)<0.01){
-                signal.multiplicity.should.equal("dd");
+                signal.multiplicity.should.equal("t");
             }
             if(Math.abs(signal.delta1-3.77)<0.01){
-                signal.multiplicity.should.equal("ddd");
+                signal.multiplicity.should.equal("q");
             }
             if(Math.abs(signal.delta1-3.99)<0.01){
                 signal.multiplicity.should.equal("dd");
@@ -39,7 +39,7 @@ describe('spectra-data test', function () {
                 signal.multiplicity.should.equal("dd");
             }
         }
-        console.log(Data.ACS.formater.toACS(peakPicking,{solvent:spectrum.getSolventName()}));
+        //console.log(Data.ACS.formater.toACS(peakPicking,{solvent:spectrum.getSolventName()}));
     });
 
     it('Number of patterns', function(){

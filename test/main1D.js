@@ -13,8 +13,8 @@ function createSpectraData(filename, label, data) {
     return spectrum;
 };
 
-var spectrum=createSpectraData("/data/ethylbenzene/h1_0.jdx");
-//var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
+//var spectrum=createSpectraData("/data/ethylbenzene/h1_0.jdx");
+var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
 //var spectrum=createSpectraData("/data/h1_31.jdx");
 //var spectrum=createSpectraData("/data/h1_14.jdx");
 
@@ -24,7 +24,7 @@ var peakPicking = spectrum.nmrPeakDetection({nH:10,realTop:true,thresholdFactor:
 /*for(var i=0;i<peakPicking.length;i++){
     console.log(JSON.stringify(peakPicking[i].peaks));
 }*/
-console.log(Data.ACS.formater.toACS(peakPicking,{solvent:spectrum.getSolventName()}));
+//console.log(Data.ACS.formater.toACS(peakPicking,{solvent:spectrum.getSolventName()}));
 //console.log(peakPicking);
 //console.log(peakPicking);
 //console.log(spectrum.getNucleus(0));
