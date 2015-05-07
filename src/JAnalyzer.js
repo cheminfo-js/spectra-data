@@ -19,7 +19,7 @@ var JAnalyzer = {
     compilePattern : function(signal){
         if(this.DEBUG)console.log("Debugin...");
 
-        signal.multiplicity="massive";//By default the multiplicity is massive
+        signal.multiplicity="m";//By default the multiplicity is massive
         // 1.1 symmetrize
         // It will add a set of peaks(signal.peaksComp) to the signal that will be used during
         // the compilation process. The unit of those peaks will be in Hz
