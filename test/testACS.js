@@ -16,10 +16,12 @@ function createSpectraData(filename, label, data) {
 
 
 describe('spectra-data test', function () {
-    var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
-    var peakPicking = spectrum.nmrPeakDetection({nH:10});
+    //var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
+    var spectrum=createSpectraData("/data/ethylbenzene/h1_0.jdx");
+    var peakPicking = spectrum.nmrPeakDetection({"nH":10, realTop:true, thresholdFactor:0.8,clean:true,compile:true});
     it('format ACS', function () {
-        Data.ACS.formater.toACS(peakPicking).should.be.string;
+        //console.log(Data.ACS.formater.toACS(peakPicking,{rangeForMultiplet:true}));
+        Data.ACS.formater.toACS(peakPicking,{rangeForMultiplet:true}).should.be.string;
     });
 });
 

@@ -24,11 +24,11 @@ var JAnalyzer = {
         // It will add a set of peaks(signal.peaksComp) to the signal that will be used during
         // the compilation process. The unit of those peaks will be in Hz
         signal.symRank = this.symmetrizeChoiseBest(signal,this.maxErrorIter1,1);
-
+        signal.asymmetric = true;
         //Is the signal symmetric?
         if(signal.symRank>=0.94&&signal.peaksComp.length<32){
             if(this.DEBUG)console.log(signal.delta1+ " nbPeaks "+signal.peaksComp.length);
-
+            signal.asymmetric = false;
             var i,j,min,max,k=1,P1,Jc=[],n2,maxFlagged;
             //Loop over the possible number of coupling contributing to the multiplet
             for(var n=0;n<9;n++){
