@@ -7,7 +7,7 @@ ACS.formater =(function() {
     var acsString="";
     var parenthesis="";
     var spectro="";
-    rangeForMultiplet=false;
+    rangeForMultiplet=true;
 
     function fromNMRSignal1D2ACS(spectrum, options){
         acsString="";
@@ -136,8 +136,8 @@ ACS.formater =(function() {
                 delta1=line.delta1;
 
         }
-        //console.log("Range2: "+rangeForMultiplet+" "+line.multiplicity);
-        if (line.asymmetric===true||(line.multiplicity=="m"&&rangeForMultiplet===true)) {//Is it massive??
+        //console.log("Range2: "+rangeForMultiplet);
+        if (line.pattern=="massive"||(line.pattern=="m"&&rangeForMultiplet==true)) {//Is it massive??
             if (line.startX&&line.stopX) {
                 if (startX<stopX) {
                     acsString+=startX.toFixed(nbDecimal)+"-"+stopX.toFixed(nbDecimal);
