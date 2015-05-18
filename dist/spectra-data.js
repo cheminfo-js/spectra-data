@@ -1,6 +1,6 @@
 /**
  * spectra-data - spectra-data project - manipulate spectra
- * @version v1.1.4
+ * @version v1.1.5
  * @link https://github.com/cheminfo-js/spectra-data
  * @license MIT
  */
@@ -1601,7 +1601,7 @@ var JAnalyzer = {
     compilePattern : function(signal){
         if(this.DEBUG)console.log("Debugin...");
 
-        signal.multiplicity="massive";//By default the multiplicity is massive
+        signal.multiplicity="m";//By default the multiplicity is massive
         // 1.1 symmetrize
         // It will add a set of peaks(signal.peaksComp) to the signal that will be used during
         // the compilation process. The unit of those peaks will be in Hz
@@ -2887,7 +2887,7 @@ var PeakPicking={
     },
 
     updateLimits : function(signal){
-        if(signal.multiplicity!="massive" && signal.multiplicity!=""){
+        if(signal.multiplicity!="m" && signal.multiplicity!=""){
             //Remove the integral of the removed peaks
             var peaksO = signal.peaks;
             var nbPeaks0 = peaksO.length, index = 0, factor = 0, toRemove = 0;
@@ -3362,11 +3362,12 @@ var PeakPicking={
                     possible.push(i);
             }
             //Lets give the opportunity to other peaks to exist
-            if (possible.length === 0){
+            /******It did not work. amc************
+            /*if (possible.length === 0){
                 if(Math.abs(dY[f[2]])>0.2*maxDy){
                     possible.push([frequency+dx,frequency-dx]);
                 }
-            }
+            }*/
             if (possible.length > 0) {
                 if (possible.length == 1) {
                     var inter = possible[0];
