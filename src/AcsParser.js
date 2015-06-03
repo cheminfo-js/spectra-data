@@ -94,7 +94,7 @@ ACS.formater =(function() {
             acsString+=" NMR";
             if ((solvent) || (spectrum[0].observe)) {
                 acsString+=" (";
-                if (spectrum.observe) {
+                if (spectrum[0].observe) {
                     acsString+=(spectrum[0].observe*1).toFixed(0)+" MHz";
                     if (solvent) acsString+=", ";
                 }
