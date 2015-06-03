@@ -1,6 +1,6 @@
 /**
  * spectra-data - spectra-data project - manipulate spectra
- * @version v1.1.6
+ * @version v1.1.7
  * @link https://github.com/cheminfo-js/spectra-data
  * @license MIT
  */
@@ -1208,7 +1208,7 @@ ACS.formater =(function() {
             acsString+=" NMR";
             if ((solvent) || (spectrum[0].observe)) {
                 acsString+=" (";
-                if (spectrum.observe) {
+                if (spectrum[0].observe) {
                     acsString+=(spectrum[0].observe*1).toFixed(0)+" MHz";
                     if (solvent) acsString+=", ";
                 }
