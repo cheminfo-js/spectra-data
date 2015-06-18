@@ -6,3 +6,5 @@ node_modules
 dist/*
 
 test/data/h1_31.jdx
+
+src/gg.js

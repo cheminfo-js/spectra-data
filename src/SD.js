@@ -27,8 +27,12 @@ function SD(sd) {
     this.TYPE_IV = 'IV';
 }
 
-SD.fromJcamp = function(jcamp) {
-    var spectrum= JcampConverter.convert(jcamp,{xy:true});
+SD.fromJcamp = function(jcamp, options) {
+    options = options ||{};
+    if(typeof options.xy ==="undefined")
+        options.xy=true;
+
+    var spectrum= JcampConverter.convert(jcamp,options);
     return new SD(spectrum);
 }
 

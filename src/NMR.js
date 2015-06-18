@@ -9,16 +9,21 @@ function NMR(sd) {
 NMR.prototype = Object.create(SD.prototype);
 NMR.prototype.constructor = NMR;
 
-NMR.fromJcamp = function(jcamp) {
-    var spectrum= JcampConverter.convert(jcamp,{xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/});
+NMR.fromJcamp = function(jcamp,options) {
+    options = options || {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/};
+    var spectrum= JcampConverter.convert(jcamp,options);
     return new NMR(spectrum);
 }
 
 /**
 * Return the observed nucleus 
 */
-NMR.prototype.getNucleus=function(){
-    return this.sd.xType;
+NMR.prototype.getNucleus=function(dim){
+    if(!dim||dim==0)
+        return this.sd.xType;
+    else{
+        return "";
+    }
 }
 
 /**

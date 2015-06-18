@@ -15,6 +15,8 @@ function createSpectraData(filename, label, data) {
 
 //var spectrum=createSpectraData("/data/ethylbenzene/h1_0.jdx");
 var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
+//console.log(spectrum);
+//console.log(spectrum.getParamString(".PULSE SEQUENCE"));
 //var spectrum=createSpectraData("/data/h1_31.jdx");
 //var spectrum=createSpectraData("/data/h1_14.jdx");
 
