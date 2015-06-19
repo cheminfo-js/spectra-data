@@ -30,7 +30,7 @@ NMR.prototype.getNucleus=function(dim){
 * Returns the solvent name
 */
 NMR.prototype.getSolventName=function(){
-    return (this.sd.info[".SOLVENTNAME"]||this.sd.info["$SOLVENT"]).replace("<","").replace(">","");
+    return (this.sd.info[".SOLVENTNAME"]||this.sd.info["$SOLVENT"]||"").replace("<","").replace(">","");
 }
 
 //Returns the observe frequency in the direct dimension
