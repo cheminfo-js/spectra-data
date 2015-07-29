@@ -19,7 +19,7 @@ describe('spectra-data test', function () {
     var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
     var peakPicking = spectrum.nmrPeakDetection({"nH":nH, realTop:true, thresholdFactor:0.8,clean:true,compile:true});
 
-
+    //console.log(peakPicking);
     it('Known patterns', function () {
         for(var i=0;i<peakPicking.length;i++){
             var signal = peakPicking[i];

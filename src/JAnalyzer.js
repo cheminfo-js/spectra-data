@@ -17,6 +17,7 @@ var JAnalyzer = {
      * @param signal
      */
     compilePattern : function(signal){
+        //console.log(signal);
         if(this.DEBUG)console.log("Debugin...");
 
         signal.multiplicity="m";//By default the multiplicity is massive
@@ -194,6 +195,9 @@ var JAnalyzer = {
         }
         else{
             pattern="s";
+            if(Math.abs(signal.startX-signal.stopX)*signal.observe>16){
+                pattern="bs"
+            }
         }
         return pattern;
     },
@@ -560,7 +564,7 @@ var JAnalyzer = {
     },
 
     area: function(peak){
-        return Math.abs(peak.intensity*peak.width*1.772453851);
+        return Math.abs(peak.intensity*peak.width*1.57)//1.772453851);
     }
 }
 
