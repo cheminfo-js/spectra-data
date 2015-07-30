@@ -569,7 +569,7 @@ var PeakPicking={
                 count++;
             }
             else{
-                if(count>20){
+                if(count>40){
                     //Lets determine the linewidth
                     var width = 0;
                     for(var j=0;j<candidates.length;j++){
