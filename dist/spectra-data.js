@@ -1,6 +1,6 @@
 /**
  * spectra-data - spectra-data project - manipulate spectra
- * @version v1.1.9
+ * @version v1.1.10
  * @link https://github.com/cheminfo-js/spectra-data
  * @license MIT
  */
@@ -1611,6 +1611,7 @@ var JAnalyzer = {
      * @param signal
      */
     compilePattern : function(signal){
+        //console.log(signal);
         if(this.DEBUG)console.log("Debugin...");
 
         signal.multiplicity="m";//By default the multiplicity is massive
@@ -1788,6 +1789,9 @@ var JAnalyzer = {
         }
         else{
             pattern="s";
+            if(Math.abs(signal.startX-signal.stopX)*signal.observe>16){
+                pattern="bs"
+            }
         }
         return pattern;
     },
@@ -2154,7 +2158,7 @@ var JAnalyzer = {
     },
 
     area: function(peak){
-        return Math.abs(peak.intensity*peak.width*1.772453851);
+        return Math.abs(peak.intensity*peak.width*1.57)//1.772453851);
     }
 }
 
@@ -3038,7 +3042,11 @@ var PeakPicking={
         for(var i=0;i<signals.length;i++){
             peaks = signals[i].peaks;
             var integral = signals[i].integralData;
-            integral.value=spectrum.getArea(integral.from,integral.to);//*nH/spectrumIntegral;
+            //If we have a broad singulet we can aproximate the integral as the area under the lorentzian
+            if(peaks.length==1&&Math.abs(signals[i].startX-signals[i].stopX)*frequency>16)
+                integral.value=this.area(peaks[0]);
+            else
+                integral.value=spectrum.getArea(integral.from,integral.to);//*nH/spectrumIntegral;
             spectrumIntegral+=integral.value;
             cs = 0;
             sum = 0;
@@ -3058,7 +3066,7 @@ var PeakPicking={
     },
 
     area: function(peak){
-        return Math.abs(peak.intensity*peak.width*1.772453851);
+        return Math.abs(peak.intensity*peak.width*1.57)//1.772453851);
     },
     /**
      This function tries to determine which peaks belongs to common laboratory solvents
@@ -3078,7 +3086,7 @@ var PeakPicking={
         var nImpurities = this.impurities.length-1;
         var nPeaks = peakList.length;
         //Scores matrix
-        console.log(nImpurities);
+        //console.log(nImpurities);
         var scores = new Array(nImpurities);
         var max = 0, diff=0, score=0;
         var gamma = 0.2;//ppm
@@ -3314,7 +3322,8 @@ var PeakPicking={
         var data= spectrum.getXYData();
         var y = data[1];
         var x = data[0];
-
+        var frequency = spectrum.observeFrequencyX();
+        var rangeX = 16/frequency;//Peaks withing this range are considered to belongs to the same signal1D
         //Lets remove the noise for better performance
         var noiseLevel = Math.abs(spectrum.getNoiseLevel())*thresholdFactor;
 
@@ -3342,12 +3351,16 @@ var PeakPicking={
         var stackInt = new Array();
         var intervals = new Array();
         var minddY = new Array();
-        var maxDy = 0;
-//console.log(Y.length);
-        for (var i = 1; i < Y.length -1 ; i++){
-            if(Math.abs(dY[i])>maxDy){
-                maxDy = Math.abs(dY[i]);
+        var maxDdy = 0;
+        for (var i = 0; i < Y.length ; i++)
+        {
+            if(Math.abs(ddY[i])>maxDdy){
+                maxDdy = Math.abs(ddY[i]);
             }
+        }
+        var broadLines = new Array();
+        //console.log(Y.length);
+        for (var i = 1; i < Y.length -1 ; i++){
             if ((Y[i] >= Y[i-1]) && (Y[i] >= Y[i+1])) {
                 maxY.push(X[i]);
             }
@@ -3363,12 +3376,23 @@ var PeakPicking={
                 }
             }
             if ((ddY[i] < ddY[i-1]) && (ddY[i] < ddY[i+1])) {
-                minddY.push( [X[i], Y[i], i] );
+                if(Math.abs(ddY[i])>0.005*maxDdy){
+                    minddY.push( [X[i], Y[i], i] );
+                }
+                else{
+                    broadLines.push([X[i], Y[i], i]);
+                }
             }
         }
-        // creates a list with (frequency, linewith, height)
-        var signalsS = new Array();
+        //console.log(intervals[1])//.length);
+        // creates a list with (frecuency, linewith, height)
+        dx = Math.abs(dx);
+        //var signalsS = new Array();
         var signals = new Array();
+        Y.sort(function (a, b) {
+            return a - b
+        });
+
         for (var j = 0; j < minddY.length; j++)
         {
             var f = minddY[j];
@@ -3379,27 +3403,13 @@ var PeakPicking={
                 if (frequency > i[0] && frequency < i[1])
                     possible.push(i);
             }
-            //Lets give the opportunity to other peaks to exist
-            /******It did not work. amc************
-            /*if (possible.length === 0){
-                if(Math.abs(dY[f[2]])>0.2*maxDy){
-                    possible.push([frequency+dx,frequency-dx]);
-                }
-            }*/
             if (possible.length > 0) {
                 if (possible.length == 1) {
                     var inter = possible[0];
-                    var linewith = inter[1] - inter[0];
+                    var linewidth = Math.abs(inter[1] - inter[0]);
                     var height = f[1];
-                    var points = Y;
-                    //console.log(frequency);
-                    points.sort(function (a, b) {
-                        return a - b
-                    });
-                    if ((linewith >= 2 * dx) && (height > 0.0001 * points[0])) {
-                        signals.push([frequency, height, linewith]);
-                        signalsS.push([frequency, height]);
-
+                    if (Math.abs(height) > 0.0001*Y[0]){
+                        signals.push([frequency, height, linewidth]);
                     }
                 }
                 else {
@@ -3408,6 +3418,53 @@ var PeakPicking={
                 }
             }
         }
+        var max=0, maxI=0,count=0;
+        var candidates = [];
+        var isPartOf = false;
+        for(var i=broadLines.length-1;i>0;i--){
+            if(Math.abs(broadLines[i-1][0]-broadLines[i][0])<rangeX){
+                candidates.push(broadLines[i]);
+                if(broadLines[i][1]>max){
+                    max = broadLines[i][1];
+                    maxI = i;
+                }
+                count++;
+            }
+            else{
+                isPartOf = true;
+                if(count>40){
+                    //Lets determine the linewidth
+                    isPartOf = false;
+                    for(var j=0;j<signals.length;j++){
+                        if(Math.abs(broadLines[maxI][0]-broadLines[j][0])<rangeX)
+                            isPartOf = true;
+                    }
+                }
+                if(isPartOf){
+                    for(var j=0;j<candidates.length;j++){
+                        signals.push([candidates[j][0], candidates[j][1], dx]);
+                    }
+                }
+                else{
+                    var width = 0;
+                    for(var j=0;j<candidates.length;j++){
+                        if(candidates[j][1]>=max/2){
+                            width=Math.abs(broadLines[maxI][0]-broadLines[j][0])*2;
+                            break;
+                        }
+                    }
+
+                    signals.push([broadLines[maxI][0], max, width]);
+                }
+                candidates = [];
+                max = 0;
+                maxI = 0;
+                count = 0;
+            }
+        }
+        signals.sort(function (a, b) {
+            return b[0] - a[0];
+        });
         return signals;
         //jexport("peakPicking",signalsS);
     }
