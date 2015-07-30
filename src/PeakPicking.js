@@ -526,8 +526,12 @@ var PeakPicking={
         //console.log(intervals[1])//.length);
         // creates a list with (frecuency, linewith, height)
         dx = Math.abs(dx);
-        var signalsS = new Array();
+        //var signalsS = new Array();
         var signals = new Array();
+        Y.sort(function (a, b) {
+            return a - b
+        });
+
         for (var j = 0; j < minddY.length; j++)
         {
             var f = minddY[j];
@@ -543,13 +547,9 @@ var PeakPicking={
                     var inter = possible[0];
                     var linewidth = Math.abs(inter[1] - inter[0]);
                     var height = f[1];
-                    var points = Y;
-                    //console.log(frequency);
-                    points.sort(function (a, b) {
-                        return a - b
-                    });
-
-                    signals.push([frequency, height, linewidth]);
+                    if (Math.abs(height) > 0.0001*Y[0]){
+                        signals.push([frequency, height, linewidth]);
+                    }
                 }
                 else {
                     //TODO: nested peaks
