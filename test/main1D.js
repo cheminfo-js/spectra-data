@@ -15,14 +15,14 @@ function createSpectraData(filename, label, data) {
 
 //var spectrum=createSpectraData("/data/ethylbenzene/h1_0.jdx");
 //var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
-var spectrum=createSpectraData("/data/broadPeak.jdx");
+var spectrum=createSpectraData("/data/reiner124.jdx");
 //console.log(spectrum);
 //console.log(spectrum.getParamString(".PULSE SEQUENCE"));
 //var spectrum=createSpectraData("/data/h1_31.jdx");
 //var spectrum=createSpectraData("/data/h1_14.jdx");
 
 //console.log(spectrum);
-var peakPicking = spectrum.nmrPeakDetection({nH:19,realTop:true,thresholdFactor:1.5, clean:true, compile:true});
+var peakPicking = spectrum.nmrPeakDetection({nH:19,realTop:true,thresholdFactor:1, clean:true, compile:true});
 //console.log(peakPicking);
 /*for(var i=0;i<peakPicking.length;i++){
     console.log(JSON.stringify(peakPicking[i].peaks));

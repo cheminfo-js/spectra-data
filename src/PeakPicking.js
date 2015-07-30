@@ -462,7 +462,8 @@ var PeakPicking={
         var data= spectrum.getXYData();
         var y = data[1];
         var x = data[0];
-
+        var frequency = spectrum.observeFrequencyX();
+        var rangeX = 16/frequency;//Peaks withing this range are considered to belongs to the same signal1D
         //Lets remove the noise for better performance
         var noiseLevel = Math.abs(spectrum.getNoiseLevel())*thresholdFactor;
 
@@ -558,9 +559,10 @@ var PeakPicking={
             }
         }
         var max=0, maxI=0,count=0;
-        var candidates = [],broadLinesS=[];
+        var candidates = [];
+        var isPartOf = false;
         for(var i=broadLines.length-1;i>0;i--){
-            if(Math.abs(broadLines[i-1][0]-broadLines[i][0])<20*dx){
+            if(Math.abs(broadLines[i-1][0]-broadLines[i][0])<rangeX){
                 candidates.push(broadLines[i]);
                 if(broadLines[i][1]>max){
                     max = broadLines[i][1];
@@ -569,8 +571,21 @@ var PeakPicking={
                 count++;
             }
             else{
+                isPartOf = true;
                 if(count>40){
                     //Lets determine the linewidth
+                    isPartOf = false;
+                    for(var j=0;j<signals.length;j++){
+                        if(Math.abs(broadLines[maxI][0]-broadLines[j][0])<rangeX)
+                            isPartOf = true;
+                    }
+                }
+                if(isPartOf){
+                    for(var j=0;j<candidates.length;j++){
+                        signals.push([candidates[j][0], candidates[j][1], dx]);
+                    }
+                }
+                else{
                     var width = 0;
                     for(var j=0;j<candidates.length;j++){
                         if(candidates[j][1]>=max/2){
@@ -578,13 +593,8 @@ var PeakPicking={
                             break;
                         }
                     }
-                    signals.push([broadLines[maxI][0], max, width]);
 
-                }
-                else{
-                    for(var j=0;j<candidates.length;j++){
-                        signals.push([candidates[j][0], candidates[j][1], dx]);
-                    }
+                    signals.push([broadLines[maxI][0], max, width]);
                 }
                 candidates = [];
                 max = 0;
