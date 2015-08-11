@@ -17,7 +17,7 @@ function createSpectraData(filename, label, data) {
 describe('spectra-data test', function () {
     var nH = 8;
     var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
-    var peakPicking = spectrum.nmrPeakDetection({"nH":nH, realTop:true, thresholdFactor:0.8,clean:true,compile:true});
+    var peakPicking = spectrum.nmrPeakDetection({"nH":nH, realTop:true, thresholdFactor:1,clean:true,compile:true});
 
     //console.log(peakPicking);
     it('Known patterns', function () {

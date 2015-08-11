@@ -5,6 +5,8 @@
  * http://www.spectroscopyeurope.com/images/stories/ColumnPDFs/TD_23_1.pdf
  */
 var JAnalyzer = require('./JAnalyzer');
+var Opt = require('optimization');
+var math = require('mathjs')
 var PeakPicking={
     impurities:[],
     maxJ:20,
@@ -23,6 +25,8 @@ var PeakPicking={
             this.realTopDetection(peakList,spectrum);
         //console.log(peakList);
         var signals = this.detectSignals(peakList, spectrum, nH);
+        //console.log(JSON.stringify(signals));
+        //console.log(signals);
         //Remove all the signals with small integral
         if(options.clean||false){
             for(var i=signals.length-1;i>=0;i--){
@@ -169,11 +173,15 @@ var PeakPicking={
                 //spectrumIntegral+=this.area(peakList[i]);
             }
             else{
-                signal1D.stopX=peakList[i][0]-peakList[i][2];
+                var tmp = peakList[i][0]-peakList[i][2];
+                signal1D.stopX=Math.min(signal1D.stopX,tmp);
+                tmp = peakList[i][0]+peakList[i][2];
+                signal1D.stopX=Math.max(signal1D.stopX,tmp);
                 signal1D.nbPeaks++;
                 signal1D.peaks.push({x:peakList[i][0],"intensity":peakList[i][1], width:peakList[i][2]});
                 //signal1D.integralData.value+=this.area(peakList[i]);
-                signal1D.integralData.from=peakList[i][0]-peakList[i][2]*3;
+                signal1D.integralData.from=Math.min(signal1D.integralData.from, peakList[i][0]-peakList[i][2]*3);
+                signal1D.integralData.to=Math.max(signal1D.integralData.to,peakList[i][0]+peakList[i][2]*3);
                 //spectrumIntegral+=this.area(peakList[i]);
             }
             prevPeak = peakList[i];
@@ -462,7 +470,7 @@ var PeakPicking={
         var data= spectrum.getXYData();
         var y = data[1];
         var x = data[0];
-        var frequency = spectrum.observeFrequencyX();
+        var frequencyX = spectrum.observeFrequencyX();
         var rangeX = 16/frequency;//Peaks withing this range are considered to belongs to the same signal1D
         //Lets remove the noise for better performance
         var noiseLevel = Math.abs(spectrum.getNoiseLevel())*thresholdFactor;
@@ -487,27 +495,26 @@ var PeakPicking={
             ddY.push((1/(7*dx*dx))*(2*y[j-2] - y[j-1] - 2*y[j] - y[j+1] + 2*y[j+2]));
         }
         // pushs max and min points in convolution functions
-        var maxY = new Array();
         var stackInt = new Array();
         var intervals = new Array();
         var minddY = new Array();
-        var maxDdy = 0;
-        for (var i = 0; i < Y.length ; i++)
-        {
+        var maxDdy=0;
+        //console.log(Y.length);
+        for (var i = 0; i < Y.length ; i++){
             if(Math.abs(ddY[i])>maxDdy){
                 maxDdy = Math.abs(ddY[i]);
             }
         }
-        var broadLines = new Array();
-        //console.log(Y.length);
+        //console.log(maxY+"x"+maxDy+"x"+maxDdy);
+        var broadMask = new Array();
         for (var i = 1; i < Y.length -1 ; i++){
-            if ((Y[i] >= Y[i-1]) && (Y[i] >= Y[i+1])) {
-                maxY.push(X[i]);
-            }
-            if ((dY[i] <= dY[i-1]) && (dY[i] <= dY[i+1])) {
+            if ((dY[i] < dY[i-1]) && (dY[i] <= dY[i+1])||
+                (dY[i] <= dY[i-1]) && (dY[i] < dY[i+1])) {
                 stackInt.push(X[i]);
             }
-            if ((dY[i] >= dY[i-1]) && (dY[i] >= dY[i+1])) {
+
+            if ((dY[i] >= dY[i-1]) && (dY[i] > dY[i+1])||
+                (dY[i] > dY[i-1]) && (dY[i] >= dY[i+1])) {
                 try{
                     intervals.push( [X[i] , stackInt.pop()] );
                 }
@@ -516,25 +523,22 @@ var PeakPicking={
                 }
             }
             if ((ddY[i] < ddY[i-1]) && (ddY[i] < ddY[i+1])) {
-                if(Math.abs(ddY[i])>0.005*maxDdy){
-                    minddY.push( [X[i], Y[i], i] );
+                minddY.push( [X[i], Y[i], i] );
+                if(Math.abs(ddY[i])>0.001*maxDdy){
+                    broadMask.push(false);
                 }
                 else{
-                    broadLines.push([X[i], Y[i], i]);
+                    broadMask.push(true);
                 }
             }
         }
-        //console.log(intervals[1])//.length);
         // creates a list with (frecuency, linewith, height)
         dx = Math.abs(dx);
         //var signalsS = new Array();
         var signals = new Array();
-        Y.sort(function (a, b) {
-            return a - b
-        });
-
-        for (var j = 0; j < minddY.length; j++)
-        {
+        var broadLines=[[[Number.MAX_VALUE,0,0]]];
+        Y.sort(function(a, b){return a-b});
+        for (var j = 0; j < minddY.length; j++){
             var f = minddY[j];
             var frequency = f[0];
             var possible = new Array();
@@ -543,26 +547,39 @@ var PeakPicking={
                 if (frequency > i[0] && frequency < i[1])
                     possible.push(i);
             }
-            if (possible.length > 0) {
-                if (possible.length == 1) {
+            //console.log("possible "+possible.length);
+            if (possible.length > 0)
+                if (possible.length == 1)
+                {
                     var inter = possible[0];
-                    var linewidth = Math.abs(inter[1] - inter[0]);
+                    var linewidth = inter[1] - inter[0];
                     var height = f[1];
                     if (Math.abs(height) > 0.0001*Y[0]){
-                        signals.push([frequency, height, linewidth]);
+                        if(!broadMask[j]){
+                            signals.push([frequency, height, linewidth]);
+                            //signalsS.push([frequency, height]);
+                        }
+                        else{
+                            broadLines.push([frequency, height, linewidth]);
+                        }
                     }
                 }
-                else {
+                else
+                {
                     //TODO: nested peaks
-                    console.log("Nested " + possible);
+                    console.log("Nested "+possible);
                 }
-            }
         }
+        //console.log(signalsS);
+        //Optimize the possible broad lines
         var max=0, maxI=0,count=0;
-        var candidates = [];
+        var candidates = [],broadLinesS=[];
         var isPartOf = false;
+        var rangeX = 16/frequencyX;
         for(var i=broadLines.length-1;i>0;i--){
+            //console.log(broadLines[i][0]+" "+rangeX+" "+Math.abs(broadLines[i-1][0]-broadLines[i][0]));
             if(Math.abs(broadLines[i-1][0]-broadLines[i][0])<rangeX){
+
                 candidates.push(broadLines[i]);
                 if(broadLines[i][1]>max){
                     max = broadLines[i][1];
@@ -572,8 +589,8 @@ var PeakPicking={
             }
             else{
                 isPartOf = true;
-                if(count>40){
-                    //Lets determine the linewidth
+                if(count>30){
+
                     isPartOf = false;
                     for(var j=0;j<signals.length;j++){
                         if(Math.abs(broadLines[maxI][0]-broadLines[j][0])<rangeX)
@@ -586,15 +603,13 @@ var PeakPicking={
                     }
                 }
                 else{
-                    var width = 0;
-                    for(var j=0;j<candidates.length;j++){
-                        if(candidates[j][1]>=max/2){
-                            width=Math.abs(broadLines[maxI][0]-broadLines[j][0])*2;
-                            break;
-                        }
-                    }
+                    var fitted =  this.optimizeLorentzian(candidates);
+                    //console.log(fitted);
+                    signals.push(fitted);
+                    //signalsS.push([fitted[0], fitted[1]]);
+                    //console.log(fitted[0]+" "+fitted[2]+" "+fitted[1]);
+                    //broadLinesS.push([fitted[0], fitted[1]]);
 
-                    signals.push([broadLines[maxI][0], max, width]);
                 }
                 candidates = [];
                 max = 0;
@@ -603,11 +618,54 @@ var PeakPicking={
             }
         }
         signals.sort(function (a, b) {
-            return b[0] - a[0];
+            return a[0] - b[0];
         });
+
         return signals;
         //jexport("peakPicking",signalsS);
+    },
+
+    optimizeLorentzian:function(data){
+
+        var lm_func = function(t,p,c){
+            var factor = p[2][0]*Math.pow(p[1][0],2);
+            var tmp = math.add(math.dotPow(math.subtract(t,p[0][0]),2),Math.pow(p[1][0],2));
+            return math.map(tmp,function(value){
+                return p[3][0]+factor/value;
+            });
+        };
+
+        var nbPoints = data.length;
+        var t = new Array(nbPoints);
+
+        var y_data = new Array(nbPoints);
+        var sum = 0;
+        var maxY = 0;
+        for(var i=0;i<nbPoints;i++){
+            t[i]=[data[i][0]];
+            y_data[i]=[data[i][1]];
+            if(data[i][1]>maxY)
+                maxY = data[i][1];
+        }
+        //console.log(JSON.stringify(t));
+        //console.log(nbPoints);
+        for(var i=0;i<nbPoints;i++){
+            y_data[i][0]/=maxY
+        }
+        var weight = [nbPoints / math.sqrt(math.multiply(math.transpose(y_data),y_data))];
+        //console.log("weight: "+weight);
+        var opts = [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ];
+        var consts = [ ];                         // optional vector of constants
+
+        var p_init = [[(t[0][0]+t[nbPoints-1][0])/2],[Math.abs(t[0][0]-t[nbPoints-1][0])/2],[1],[0]];
+        var p_min = [[t[0][0]],[0.0],[0],[0]];
+        var p_max = [[t[nbPoints-1][0]],[Math.abs(t[0][0]-t[nbPoints-1][0])],[1.5],[0.5]];
+
+        var p_fit = Opt.LM.optimize(lm_func,p_init,t,y_data,weight,-0.01,p_min,p_max,consts,opts);
+
+        return [p_fit[0][0],p_fit[2][0]*maxY,p_fit[1][0]*2];
     }
 }
 
 module.exports = PeakPicking;
+
