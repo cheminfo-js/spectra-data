@@ -590,10 +590,9 @@ var PeakPicking={
             else{
                 isPartOf = true;
                 if(count>30){
-
                     isPartOf = false;
                     for(var j=0;j<signals.length;j++){
-                        if(Math.abs(broadLines[maxI][0]-broadLines[j][0])<rangeX)
+                        if(Math.abs(broadLines[maxI][0]-signals[j][0])<rangeX)
                             isPartOf = true;
                     }
                 }
