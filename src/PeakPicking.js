@@ -19,7 +19,9 @@ var PeakPicking={
         //options.thresholdFactor = options.thresholdFactor || 1;
         //options.compile = options.compile || false;
         //options.clean = options.clean || false;
+        //var tmp = spectrum.clone();
         var peakList = this.GSD(spectrum, options.thresholdFactor||1);
+        peakList = this.optmizeSpectrum(peakList,spectrum);
 
         if(options.realTop || false)
             this.realTopDetection(peakList,spectrum);
@@ -51,6 +53,267 @@ var PeakPicking={
         */
         //return createSignals(peakList,nH);
     },
+
+    optmizeSpectrum: function(peakList, spectrum){
+        var frequency = spectrum.observeFrequencyX();
+        var group = [];
+        var groups = [];
+        var nL = 4, i, j;
+        var limits = [peakList[0][0],nL*peakList[0][2]];
+        var upperLimit, lowerLimit;
+        //Merge forward
+        for(i=0;i<peakList.length;i++){
+            //If the 2 things overlaps
+            //console.log(peakList[i]+" - "+limits);
+            if(Math.abs(peakList[i][0]-limits[0])<(nL*peakList[i][2]+limits[1])){
+                //console.log("Here");
+                //Add the peak to the group
+                group.push(peakList[i]);
+                //Update the group limits
+                upperLimit = limits[0]+limits[1];
+                if(peakList[i][0]+nL*peakList[i][2]>upperLimit){
+                    upperLimit = peakList[i][0]+nL*peakList[i][2];
+                }
+                lowerLimit = limits[0]-limits[1];
+                if(peakList[i][0]-nL*peakList[i][2]<lowerLimit){
+                    lowerLimit = peakList[i][0]-nL*peakList[i][2];
+                }
+                //console.log(limits);
+                limits = [(upperLimit+lowerLimit)/2,Math.abs(upperLimit-lowerLimit)/2];
+                //console.log(limits);
+            }
+            else{
+                groups.push({limits:limits,group:group});
+                //var optmimalPeak = fitSpectrum(group,limits,spectrum);
+                group=[peakList[i]];
+                limits = [peakList[i][0],nL*peakList[i][2]];
+            }
+        }
+        groups.push({limits:limits,group:group});
+        //Merge backward
+        for(i =groups.length-2;i>=0;i--){
+            //The groups overlaps
+            if(Math.abs(groups[i].limits[0]-groups[i+1].limits[0])<
+                (groups[i].limits[1]+groups[i+1].limits[1])/2){
+                for(j=0;j<groups[i+1].group.length;j++){
+                    groups[i].group.push(groups[i+1].group[j]);
+                }
+                upperLimit = groups[i].limits[0]+groups[i].limits[1];
+                if(groups[i+1].limits[0]+groups[i+1].limits[1]>upperLimit){
+                    upperLimit = groups[i+1].limits[0]+groups[i+1].limits[1];
+                }
+                lowerLimit = groups[i].limits[0]-groups[i].limits[1];
+                if(groups[i+1].limits[0]-groups[i+1].limits[1]<lowerLimit){
+                    lowerLimit = groups[i+1].limits[0]-groups[i+1].limits[1];
+                }
+                //console.log(limits);
+                groups[i].limits = [(upperLimit+lowerLimit)/2,Math.abs(upperLimit-lowerLimit)/2];
+
+                groups.splice(i+1,1);
+            }
+
+        }
+        var result = new Array(peakList.length);
+        var index = 0;
+        for(i =0;i<groups.length;i++){
+            //console.log(groups[i].limits);
+            //if(Math.abs(groups[i].limits[0]-4)>0.1){
+            var optmimalPeaks = this.fitSpectrum(groups[i].group,groups[i].limits,spectrum);
+            for(j=0;j<optmimalPeaks.length;j++)
+                result[index++]=optmimalPeaks[j];
+            //}
+        }
+        return result;
+
+    },
+
+    fitSpectrum: function(group,limits,spectrum){
+        var xy = this.sampling(spectrum, group,false);
+
+        //This function calculates the spectrum as a sum of lorentzian functions. The Lorentzian
+        //parameters are divided in 3 batches. 1st: centers; 2nd: heights; 3th: widths;
+
+        var lm_func = function(t,p,c){
+            var nL = p.length/3,factor,i,j;
+            var tmp = null, result = null;
+
+            for(i=0;i<nL;i++){
+                factor = p[i+nL][0]*Math.pow(p[i+nL*2][0],2);
+                //console.log(factor);
+                tmp = math.add(math.dotPow(math.subtract(t,p[i][0]),2),Math.pow(p[i+nL*2][0],2));
+                for(j=0;j<tmp.length;j++){
+                    tmp[j][0] = factor/tmp[j][0];
+                }
+                //console.log(tmp[0]);
+                if(result === null){
+                    result = tmp;
+                }
+                else{
+                    result = math.add(tmp,result);
+                }
+            }
+            return result;
+        };
+
+        var t = xy[0];
+        var y_data = xy[1];
+        var nbPoints = t.length;
+        var maxY = 0,i;
+        for(i=0;i<nbPoints;i++){
+            if(y_data[i][0]>maxY)
+                maxY = y_data[i][0];
+        }
+        for(i=0;i<nbPoints;i++){
+            y_data[i][0]/=maxY
+        }
+        var weight = [nbPoints / math.sqrt(math.multiply(math.transpose(y_data),y_data))];
+        //console.log("weight: "+weight+" "+nbPoints );
+        var opts = [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ];
+        var consts = [ ];// optional vector of constants
+
+        var nL = group.length;
+        var p_init = new Array(nL*3);
+        var p_min =  new Array(nL*3);
+        var p_max =  new Array(nL*3);
+        for( i=0;i<nL;i++){
+            p_init[i] = [group[i][0]];
+            p_init[i+nL] = [group[i][1]/maxY];
+            p_init[i+2*nL] = [group[i][2]/2];
+
+            p_min[i] = [group[i][0]-0.0025];
+            p_min[i+nL] = [0];
+            p_min[i+2*nL] = [group[i][2]/8];
+
+            p_max[i] = [group[i][0]+0.0025];
+            p_max[i+nL] = [group[i][1]*1.3/maxY];
+            p_max[i+2*nL] =[group[i][2]*2];
+        }
+
+        var p_fit = Opt.LM.optimize(lm_func,p_init,t,y_data,weight,-0.00005,p_min,p_max,consts,opts);
+
+        //Put back the result in the correct format
+        var result = new Array(nL);
+        for( i=0;i<nL;i++){
+            result[i]=[p_fit[i][0],p_fit[i+nL][0],p_fit[i+2*nL][0]*2];
+        }
+        //console.log(p_init);
+        //console.log(p_fit);
+        /*console.log("x="+JSON.stringify(t));
+        console.log("y="+JSON.stringify(y_data));
+        console.log("y0="+JSON.stringify(lm_func(t,p_fit,consts)));
+        console.log("y1="+JSON.stringify(lm_func(t,p_init,consts)));
+        console.log("plot(x,y,'r');hold;plot(x,y0,'b');plot(x,y1,'g');");*/
+        //console.log(p_init)
+        //console.log(p_fit);
+        return result;
+
+    },
+    /**
+     * This method implements a non linear sampling of the spectrum. The point close to
+     * the critic points are more sampled than the other ones.
+     * @param spectrum
+     * @param peaks
+     * @param rowWise
+     */
+    sampling: function(spectrum, peaks, rowWise){
+        var i0, ie, ic,i, j,nbPoints;
+        var xy = []
+        if(i0>ie){
+            var tmp = i0;
+            i0 = ie;
+            ie = tmp;
+        }
+        //Non linear sampling for each peak.
+        for(i=0;i<peaks.length;i++){
+            var more = true;
+            var nL = 4;
+            while(more) {
+                i0 = spectrum.unitsToArrayPoint(peaks[i][0] - peaks[i][2] * nL);
+                ie = spectrum.unitsToArrayPoint(peaks[i][0] + peaks[i][2] * nL);
+                ic = spectrum.unitsToArrayPoint(peaks[i][0]);
+                if (i0 > ie) {
+                    tmp = i0;
+                    i0 = ie;
+                    ie = tmp;
+                }
+                i0 = i0 < 0 ? 0 : i0;
+                ie = ie >= spectrum.getNbPoints() ? spectrum.getNbPoints() - 1 : ie;
+
+                if (ie - i0 < 10) {
+                    for (j = i0; j <= ie; j++) {
+                        xy.push([spectrum.getX(j), spectrum.getY(j)]);
+                    }
+                    more = false;
+                }
+                else {
+                    xy.push([spectrum.getX(i0), spectrum.getY(i0)]);
+                    xy.push([spectrum.getX(ie), spectrum.getY(ie)]);
+                    if (nL > 0.5) {
+                        nL -= 0.5;
+                    }
+                    else {
+                        nL /= 2;
+                    }
+                }
+            }
+        }
+        //console.log(xy);
+        xy.sort(function(a,b){
+            return a[0]-b[0];
+        });
+        //console.log("XX "+xy.length);
+        var x=[],y=[];
+        var index =0;
+        if(rowWise){
+            x=[xy[0][0]],y=[xy[0][1]];
+            for(i=1;i<xy.length;i++){
+                if(x[index]!=xy[i][0]){
+                    x.push(xy[i][0]);
+                    y.push(xy[i][1]);
+                    index++;
+                }
+            }
+        }
+        else{
+            x=[[xy[0][0]]],y=[[xy[0][1]]];
+            for(i=1;i<xy.length;i++){
+                if(x[index][0]!=xy[i][0]){
+                    x.push([xy[i][0]]);
+                    y.push([xy[i][1]]);
+                    index++;
+                }
+            }
+        }
+        return [x,y];
+
+    },
+
+    getVector: function(spectrum, from, to, rowWise){
+        var i0 = spectrum.unitsToArrayPoint(from);
+        var ie = spectrum.unitsToArrayPoint(to);
+        var x = [];
+        var y = [];
+        if(i0>ie){
+            var tmp = i0;
+            i0 = ie;
+            ie = tmp;
+        }
+        i0=i0<0?0:i0;
+        ie=ie>=spectrum.getNbPoints()?spectrum.getNbPoints()-1:ie;
+        for(var i=i0;i<ie;i+=10){
+            if(rowWise){
+                y.push(spectrum.getY(i));
+                x.push(spectrum.getX(i));
+            }
+            else{
+                y.push([spectrum.getY(i)]);
+                x.push([spectrum.getX(i)]);
+            }
+        }
+        return [x,y];
+    },
+
+
 
     updateLimits : function(signal){
         if(signal.multiplicity!="m" && signal.multiplicity!=""){
@@ -124,7 +387,8 @@ var PeakPicking={
                 p = 0.5 * (alpha - gamma) / (alpha - 2 * beta + gamma);
 
                 peakList[j][0] = spectrum.arrayPointToUnits(currentPoint + p);
-                peakList[j][1] = spectrum.getY(currentPoint) - 0.25 * (spectrum.getY(currentPoint - 1) - spectrum.getY(currentPoint + 1)) * p;//signal.peaks[j].intensity);
+                peakList[j][1] = spectrum.getY(currentPoint) - 0.25 * (spectrum.getY(currentPoint - 1)
+                    - spectrum.getY(currentPoint + 1)) * p;//signal.peaks[j].intensity);
 
             }
         }
@@ -468,7 +732,7 @@ var PeakPicking={
      */
     GSD:function(spectrum, thresholdFactor){
         var data= spectrum.getXYData();
-        var y = data[1];
+        var y = new Array(data[1].length);
         var x = data[0];
         var frequencyX = spectrum.observeFrequencyX();
         var rangeX = 16/frequency;//Peaks withing this range are considered to belongs to the same signal1D
@@ -476,9 +740,11 @@ var PeakPicking={
         var noiseLevel = Math.abs(spectrum.getNoiseLevel())*thresholdFactor;
 
         //console.log("noise level "+noiseLevel);
-        for(var i=y.length-1;i>=0;i--)
+        for(var i=y.length-1;i>=0;i--){
+            y[i]=data[1][i];
             if(Math.abs(y[i])<noiseLevel)
                 y[i]=0;
+        }
 
         var dx = x[1]-x[0];
         // fill convolution frequency axis
@@ -524,7 +790,7 @@ var PeakPicking={
             }
             if ((ddY[i] < ddY[i-1]) && (ddY[i] < ddY[i+1])) {
                 minddY.push( [X[i], Y[i], i] );
-                if(Math.abs(ddY[i])>0.001*maxDdy){
+                if(Math.abs(ddY[i])>0.0025*maxDdy){
                     broadMask.push(false);
                 }
                 else{
@@ -552,9 +818,9 @@ var PeakPicking={
                 if (possible.length == 1)
                 {
                     var inter = possible[0];
-                    var linewidth = inter[1] - inter[0];
+                    var linewidth = Math.abs(inter[1] - inter[0]);
                     var height = f[1];
-                    if (Math.abs(height) > 0.0001*Y[0]){
+                    if (Math.abs(height) > 0.00025*Y[0]){
                         if(!broadMask[j]){
                             signals.push([frequency, height, linewidth]);
                             //signalsS.push([frequency, height]);
@@ -591,10 +857,11 @@ var PeakPicking={
                 isPartOf = true;
                 if(count>30){
                     isPartOf = false;
-                    for(var j=0;j<signals.length;j++){
+                    /*for(var j=0;j<signals.length;j++){
                         if(Math.abs(broadLines[maxI][0]-signals[j][0])<rangeX)
                             isPartOf = true;
                     }
+                    console.log("Was part of "+isPartOf);*/
                 }
                 if(isPartOf){
                     for(var j=0;j<candidates.length;j++){
