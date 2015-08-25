@@ -36,6 +36,6 @@
     "jcampconverter": "^2.0.8",
     "ml-stat": "^1.0.1",
     "ml-matrix":"../matrix",
-    "optimization":"../optimization"
+    "curve-fitting":"latest"
   }
 }

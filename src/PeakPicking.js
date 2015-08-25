@@ -5,8 +5,8 @@
  * http://www.spectroscopyeurope.com/images/stories/ColumnPDFs/TD_23_1.pdf
  */
 var JAnalyzer = require('./JAnalyzer');
-var Opt = require('optimization');
-var Matrix = require("ml-matrix");
+var LM = require('curve-fitting');
+var Matrix = LM.Matrix;
 var math = Matrix.algebra;
 //var math = require('mathjs')
 var PeakPicking={
@@ -230,7 +230,7 @@ var PeakPicking={
         }
         //console.log(p_init);
         //console.log("y1="+JSON.stringify(lm_func(t,p_init,consts)));
-        var p_fit = Opt.LM.optimize(lm_func,p_init,t,y_data,weight,-0.00005,p_min,p_max,consts,opts);
+        var p_fit = LM.optimize(lm_func,p_init,t,y_data,weight,-0.00005,p_min,p_max,consts,opts);
 
         //Put back the result in the correct format
         var result = new Array(nL);
@@ -969,7 +969,7 @@ var PeakPicking={
         var p_min = new Matrix([[t[0][0]],[0.0],[0],[0]]);
         var p_max = new Matrix([[t[nbPoints-1][0]],[Math.abs(t[0][0]-t[nbPoints-1][0])],[1.5],[0.5]]);
 
-        var p_fit = Opt.LM.optimize(lm_func,p_init,t,y_data,weight,-0.01,p_min,p_max,consts,opts);
+        var p_fit = LM.optimize(lm_func,p_init,t,y_data,weight,-0.01,p_min,p_max,consts,opts);
 
         return [p_fit[0][0],p_fit[2][0]*maxY,p_fit[1][0]*2];
     }
