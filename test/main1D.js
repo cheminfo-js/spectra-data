@@ -32,7 +32,7 @@ if(false){
         /*for(var i=0;i<peakPicking.length;i++){
          console.log(JSON.stringify(peakPicking[i].peaks));
          }*/
-    console.log(Data.ACS.formater.toACS(peakPicking,{solvent:spectrum.getSolventName()}));
+    //console.log(Data.ACS.formater.toACS(peakPicking,{solvent:spectrum.getSolventName()}));
 }
 
 //console.log(peakPicking);

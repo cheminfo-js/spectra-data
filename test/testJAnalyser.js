@@ -18,11 +18,11 @@ describe('spectra-data test', function () {
     var nH = 8;
     var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
     var peakPicking = spectrum.nmrPeakDetection({"nH":nH, realTop:true, thresholdFactor:1,clean:true,compile:true});
-    console.log(Data.ACS.formater.toACS(peakPicking,{solvent:spectrum.getSolventName()}));
+    //console.log(Data.ACS.formater.toACS(peakPicking,{solvent:spectrum.getSolventName()}));
     //console.log(peakPicking);
     it('Known patterns', function () {
 
-        console.log(Data.ACS.formater.toACS(peakPicking,{solvent:spectrum.getSolventName()}));
+        //console.log(Data.ACS.formater.toACS(peakPicking,{solvent:spectrum.getSolventName()}));
         for(var i=0;i<peakPicking.length;i++){
             var signal = peakPicking[i];
             if(Math.abs(signal.delta1-1.308)<0.01){
