@@ -6,7 +6,7 @@
 var JAnalyzer = {
     pascalTriangle : [[0],[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1],[1,5,10,10,5,1],[1,6,15,20,15,6,1]],
     patterns: ["s","d","t","q","quint","h","sept","o","n"],
-    symRatio : 2.2,
+    symRatio : 1.5,
     maxErrorIter1 : 2.5,//Hz
     maxErrorIter2 : 1,//Hz
     DEBUG : false,
@@ -17,7 +17,6 @@ var JAnalyzer = {
      * @param signal
      */
     compilePattern : function(signal){
-        //console.log(signal);
         if(this.DEBUG)console.log("Debugin...");
 
         signal.multiplicity="m";//By default the multiplicity is massive
@@ -26,8 +25,9 @@ var JAnalyzer = {
         // the compilation process. The unit of those peaks will be in Hz
         signal.symRank = this.symmetrizeChoiseBest(signal,this.maxErrorIter1,1);
         signal.asymmetric = true;
+       // console.log(signal.delta1+" "+signal.symRank);
         //Is the signal symmetric?
-        if(signal.symRank>=0.94&&signal.peaksComp.length<32){
+        if(signal.symRank>=0.95&&signal.peaksComp.length<32){
             if(this.DEBUG)console.log(signal.delta1+ " nbPeaks "+signal.peaksComp.length);
             signal.asymmetric = false;
             var i,j,min,max,k=1,P1,Jc=[],n2,maxFlagged;
