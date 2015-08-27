@@ -1,6 +1,6 @@
 {
   "name": "spectra-data",
-  "version": "1.1.10",
+  "version": "1.2.0",
   "description": "spectra-data project - manipulate spectra",
   "keywords": [
     "spectra-data",
@@ -35,7 +35,7 @@
   "dependencies": {
     "jcampconverter": "^2.0.8",
     "ml-stat": "^1.0.1",
-    "ml-matrix":"latest",
-    "curve-fitting":"latest"
+    "ml-matrix": "latest",
+    "curve-fitting": "latest"
   }
 }
