@@ -2,11 +2,6 @@
 node_modules
 .DS_Store
 
-
-dist/*
-
 test/data/h1_31.jdx
 
 src/gg.js
-
-dist/spectra-data.js
