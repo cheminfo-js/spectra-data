@@ -59,8 +59,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	exports.SD = __webpack_require__(1);
 	exports.NMR = __webpack_require__(4);
-	exports.NMR2D = __webpack_require__(19);
-	exports.ACS = __webpack_require__(25);
+	exports.NMR2D = __webpack_require__(23);
+	exports.ACS = __webpack_require__(30);
 	exports.JAnalyzer = __webpack_require__(6);
 	//exports.SD2 = require('/SD2');
 
@@ -472,7 +472,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	SD.prototype.shift=function(globalShift) {
 	    for(var i=0;i<this.getNbSubSpectra();i++){
 	        this.setActiveElement(i);
-	        var x = this.getSpectraData().x;
+	        var x = this.getSpectrumData().x;
 	        var length = this.getNbPoints(),i=0;
 	        for(i=0;i<length;i++){
 	            x[i]+=globalShift;
@@ -635,7 +635,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * Return the y elements of the current spectrum
 	 * @returns {*}
 	 */
-	SD.prototype.getSpectrumDataY = function(){
+
+	SD.prototype.getSpectraDataX = function(){
 	    return this.getYData();
 	}
 
@@ -2179,10 +2180,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * http://www.spectroscopyeurope.com/images/stories/ColumnPDFs/TD_23_1.pdf
 	 */
 	var JAnalyzer = __webpack_require__(6);
-	var LM = __webpack_require__(7);
+	/*var LM = require('ml-curve-fitting');
 	var Matrix = LM.Matrix;
-	var math = Matrix.algebra;
-	//var math = require('mathjs')
+	var math = Matrix.algebra;*/
+	var peakPicking = __webpack_require__(7);
+
 	var PeakPicking={
 	    impurities:[],
 	    maxJ:20,
@@ -2197,12 +2199,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	        //options.compile = options.compile || false;
 	        //options.clean = options.clean || false;
 	        //var tmp = spectrum.clone();
+
 	        var noiseLevel = Math.abs(spectrum.getNoiseLevel())*(options.thresholdFactor||1);
-	        var peakList = this.GSD(spectrum, noiseLevel);
-	        peakList = this.optmizeSpectrum(peakList,spectrum,noiseLevel);
-
+	        var data = spectrum.getXYData();
+	        //var peakList = this.GSD(spectrum, noiseLevel);
+	        //peakList = Opt.optimizeLorentzianSum(peakList);//this.optmizeSpectrum(peakList,spectrum,noiseLevel);
+	        var peakList = peakPicking.gsd(data[0],data[1], {noiseLevel: noiseLevel, minMaxRatio:0.01, broadRatio:0.0025,smoothY:true});
+	        peakList = peakPicking.optimize(peakList,data[0],data[1],3,"lorentzian");
+	        //console.log(noiseLevel);
+	        peakList = this.clearList(peakList,noiseLevel);
 	        var signals = this.detectSignals(peakList, spectrum, nH, options.integral||0);
-
+	        //console.log(JSON.stringify(signals));
 	        //Remove all the signals with small integral
 	        if(options.clean||false){
 	            for(var i=signals.length-1;i>=0;i--){
@@ -2213,6 +2220,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        if(options.compile||false){
 	            for(i=0;i<signals.length;i++){
+	                //console.log("Sum "+signals[i].integralData.value);
 	                JAnalyzer.compilePattern(signals[i]);
 	                if(signals[i].maskPattern&&signals[i].multiplicity!="m"
 	                    && signals[i].multiplicity!=""){
@@ -2222,16 +2230,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    var peaksO = [];
 	                    for(j=signals[i].maskPattern.length-1;j>=0;j--){
 	                        sum+=this.area(signals[i].peaks[j]);
+
 	                        if(signals[i].maskPattern[j]===false) {
 	                            var peakR = signals[i].peaks.splice(j)[0];
-	                            peaksO.push([peakR.x,peakR.intensity,peakR.width]);
+	                            peaksO.push({x:peakR.x,y:peakR.intensity,width:peakR.width});
 	                            signals[i].maskPattern.splice(j);
 	                            signals[i].peaksComp.splice(j);
 	                            signals[i].nbPeaks--;
 	                            nHi+=this.area(peakR);
 	                        }
 	                    }
-
 	                    if(peaksO.length>0){
 	                        nHi=nHi*signals[i].integralData.value/sum;
 	                        signals[i].integralData.value-=nHi;
@@ -2244,6 +2252,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    }
 	                }
 	            }
+	            //console.log(signals);
 	            this.updateIntegrals(signals, nH);
 	        }
 	        signals.sort(function(a,b){
@@ -2268,161 +2277,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	        //return createSignals(peakList,nH);
 	    },
 
-	    optmizeSpectrum: function(peakList, spectrum, noiseLevel){
-	        var frequency = spectrum.observeFrequencyX();
-	        var group = [];
-	        var groups = [];
-	        var nL = 4, i, j;
-	        var limits = [peakList[0][0],nL*peakList[0][2]];
-	        var upperLimit, lowerLimit;
-	        //Merge forward
-	        for(i=0;i<peakList.length;i++){
-	            //If the 2 things overlaps
-	            //console.log(peakList[i]+" - "+limits);
-	            if(Math.abs(peakList[i][0]-limits[0])<(nL*peakList[i][2]+limits[1])){
-	                //console.log("Here");
-	                //Add the peak to the group
-	                group.push(peakList[i]);
-	                //Update the group limits
-	                upperLimit = limits[0]+limits[1];
-	                if(peakList[i][0]+nL*peakList[i][2]>upperLimit){
-	                    upperLimit = peakList[i][0]+nL*peakList[i][2];
-	                }
-	                lowerLimit = limits[0]-limits[1];
-	                if(peakList[i][0]-nL*peakList[i][2]<lowerLimit){
-	                    lowerLimit = peakList[i][0]-nL*peakList[i][2];
-	                }
-	                //console.log(limits);
-	                limits = [(upperLimit+lowerLimit)/2,Math.abs(upperLimit-lowerLimit)/2];
-	                //console.log(limits);
-	            }
-	            else{
-	                groups.push({limits:limits,group:group});
-	                //var optmimalPeak = fitSpectrum(group,limits,spectrum);
-	                group=[peakList[i]];
-	                limits = [peakList[i][0],nL*peakList[i][2]];
+	    clearList:function(peakList, threshold){
+	        for(var i=peakList.length-1;i>=0;i--){
+	            if(Math.abs(peakList[i].y)<threshold){
+	                peakList.splice(i,1);
 	            }
 	        }
-	        groups.push({limits:limits,group:group});
-	        //Merge backward
-	        for(i =groups.length-2;i>=0;i--){
-	            //The groups overlaps
-	            if(Math.abs(groups[i].limits[0]-groups[i+1].limits[0])<
-	                (groups[i].limits[1]+groups[i+1].limits[1])/2){
-	                for(j=0;j<groups[i+1].group.length;j++){
-	                    groups[i].group.push(groups[i+1].group[j]);
-	                }
-	                upperLimit = groups[i].limits[0]+groups[i].limits[1];
-	                if(groups[i+1].limits[0]+groups[i+1].limits[1]>upperLimit){
-	                    upperLimit = groups[i+1].limits[0]+groups[i+1].limits[1];
-	                }
-	                lowerLimit = groups[i].limits[0]-groups[i].limits[1];
-	                if(groups[i+1].limits[0]-groups[i+1].limits[1]<lowerLimit){
-	                    lowerLimit = groups[i+1].limits[0]-groups[i+1].limits[1];
-	                }
-	                //console.log(limits);
-	                groups[i].limits = [(upperLimit+lowerLimit)/2,Math.abs(upperLimit-lowerLimit)/2];
-
-	                groups.splice(i+1,1);
-	            }
-
-	        }
-	        var result = [];
-	        var index = 0;
-	        for(i =0;i<groups.length;i++){
-	            //console.log(i+" "+groups[i].limits);
-	            //if(Math.abs(groups[i].limits[0]-3.1)<0.1){
-	                var optmimalPeaks = this.fitSpectrum(groups[i].group,groups[i].limits,spectrum);
-	                for(j=0;j<optmimalPeaks.length;j++){
-	                    if(optmimalPeaks[j][1]>noiseLevel){
-	                        result.push(optmimalPeaks[j]);
-	                    }
-	                }
-	            //}
-	            //index++;
-	        }
-	        return result;
-
+	        return peakList;
 	    },
 
-	    fitSpectrum: function(group,limits,spectrum){
-	        var xy = this.sampling(spectrum, group,false);
 
-	        //This function calculates the spectrum as a sum of lorentzian functions. The Lorentzian
-	        //parameters are divided in 3 batches. 1st: centers; 2nd: heights; 3th: widths;
-	        var lm_func = function(t,p,c){
-	            var nL = p.length/3,factor,i, j,p2, cols = t.rows;
-	            var tmp = new Matrix(t.length,1), result = new Matrix(t.length,1);
-	            for(j=0;j<cols;j++){
-	                result[j][0]=0;
-	            }
-	            for(i=0;i<nL;i++){
-	                p2 = Math.pow(p[i+nL*2][0],2);
-	                factor = p[i+nL][0]*p2;
-	                for(j=0;j<cols;j++){
-	                    result[j][0]+=factor/(Math.pow(t[j][0]-p[i][0],2)+p2);
-	                }
-	            }
-	            return result;
-	        };
-
-
-	        var nbPoints = xy[0].length;
-	        var t = new Matrix(nbPoints,1);//independent variable
-	        var y_data = new Matrix(nbPoints,1);
-	        var maxY = 0,i;
-	        for(i=0;i<nbPoints;i++){
-	            t[i][0]=xy[0][i][0];
-	            y_data[i][0]=xy[1][i][0];
-	            if(y_data[i][0]>maxY)
-	                maxY = y_data[i][0];
-	        }
-	        for(i=0;i<nbPoints;i++){
-	            y_data[i][0]/=maxY
-	        }
-	        var weight = [nbPoints / math.sqrt(y_data.dot(y_data))];
-	        //console.log("weight: "+weight+" "+nbPoints );
-	        var opts = [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ];
-	        var consts = [ ];// optional vector of constants
-
-	        var nL = group.length;
-	        var p_init = new Matrix(nL*3,1);
-	        var p_min =  new Matrix(nL*3,1);
-	        var p_max =  new Matrix(nL*3,1);
-	        for( i=0;i<nL;i++){
-	            p_init[i][0] = group[i][0];
-	            p_init[i+nL][0] = group[i][1]/maxY;
-	            p_init[i+2*nL][0] = group[i][2]/2;
-
-	            p_min[i][0] = group[i][0]-0.0025;
-	            p_min[i+nL][0] = 0;
-	            p_min[i+2*nL][0] = group[i][2]/8;
-
-	            p_max[i][0] = group[i][0]+0.0025;
-	            p_max[i+nL][0] = group[i][1]*1.3/maxY;
-	            p_max[i+2*nL][0] = group[i][2]*2;
-	        }
-	        //console.log(p_init);
-	        //console.log("y1="+JSON.stringify(lm_func(t,p_init,consts)));
-	        var p_fit = LM.optimize(lm_func,p_init,t,y_data,weight,-0.00005,p_min,p_max,consts,opts);
-
-	        //Put back the result in the correct format
-	        var result = new Array(nL);
-	        for( i=0;i<nL;i++){
-	            result[i]=[p_fit[i][0],p_fit[i+nL][0]*maxY,p_fit[i+2*nL][0]*2];
-	        }
-	        //console.log(p_init);
-	        //console.log(p_fit);
-	        /*console.log("x="+JSON.stringify(t));
-	        console.log("y="+JSON.stringify(y_data));
-	        console.log("y0="+JSON.stringify(lm_func(t,p_fit,consts)));
-	        console.log("y1="+JSON.stringify(lm_func(t,p_init,consts)));
-	        console.log("plot(x,y,'r*');hold;plot(x,y0,'b');plot(x,y1,'g');");*/
-	        //console.log(p_init)
-	        //console.log(p_fit);
-	        return result;
-
-	    },
 	    /**
 	     * This method implements a non linear sampling of the spectrum. The point close to
 	     * the critic points are more sampled than the other ones.
@@ -2561,59 +2425,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	    },
 
-	    realTopDetection: function(peakList, spectrum){
-	        var listP = [];
-	        var alpha, beta, gamma, p,currentPoint;
-	        for(j=0;j<peakList.length;j++){
-	            currentPoint = spectrum.unitsToArrayPoint(peakList[j][0]);
-	            //The detected peak could be moved 1 or 2 unit to left or right.
-	            if(spectrum.getY(currentPoint-1)>=spectrum.getY(currentPoint-2)
-	                &&spectrum.getY(currentPoint-1)>=spectrum.getY(currentPoint)) {
-	                currentPoint--;
-	            }
-	            else{
-	                if(spectrum.getY(currentPoint+1)>=spectrum.getY(currentPoint)
-	                    &&spectrum.getY(currentPoint+1)>=spectrum.getY(currentPoint+2)) {
-	                    currentPoint++;
-	                }
-	                else{
-	                    if(spectrum.getY(currentPoint-2)>=spectrum.getY(currentPoint-3)
-	                        &&spectrum.getY(currentPoint-2)>=spectrum.getY(currentPoint-1)) {
-	                        currentPoint-=2;
-	                    }
-	                    else{
-	                        if(spectrum.getY(currentPoint+2)>=spectrum.getY(currentPoint+1)
-	                            &&spectrum.getY(currentPoint+2)>=spectrum.getY(currentPoint+3)) {
-	                            currentPoint+=2;
-	                        }
-	                    }
-	                }
-	            }
-	            if(spectrum.getY(currentPoint-1)>0&&spectrum.getY(currentPoint+1)>0
-	                &&spectrum.getY(currentPoint)>=spectrum.getY(currentPoint-1)
-	                &&spectrum.getY(currentPoint)>=spectrum.getY(currentPoint+1)) {
-	                alpha = 20 * Math.log10(spectrum.getY(currentPoint - 1));
-	                beta = 20 * Math.log10(spectrum.getY(currentPoint));
-	                gamma = 20 * Math.log10(spectrum.getY(currentPoint + 1));
-	                p = 0.5 * (alpha - gamma) / (alpha - 2 * beta + gamma);
-
-	                peakList[j][0] = spectrum.arrayPointToUnits(currentPoint + p);
-	                peakList[j][1] = spectrum.getY(currentPoint) - 0.25 * (spectrum.getY(currentPoint - 1)
-	                    - spectrum.getY(currentPoint + 1)) * p;//signal.peaks[j].intensity);
-
-	            }
-	        }
-	    },
-
-	    /**
-	     * Should we read the impurities table from somewhere else?
-	     */
-	    init:function(){
-	        this.impurities = [{"impurities":[{"shifts":[{"proton":"X","coupling":0,"multiplicity":"","shift":7.26}],"name":"solvent_residual_peak"},{"shifts":[{"proton":"H2O","coupling":0,"multiplicity":"s","shift":1.56}],"name":"H2O"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.1}],"name":"acetic_acid"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.17}],"name":"acetone"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.1}],"name":"acetonitrile"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.36}],"name":"benzene"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.28}],"name":"tert-butyl_alcohol"},{"shifts":[{"proton":"CCH3","coupling":0,"multiplicity":"s","shift":1.19},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.22}],"name":"tert-butyl_methyl_ether"},{"shifts":[{"proton":"ArH","coupling":0,"multiplicity":"s","shift":6.98},{"proton":"OHc","coupling":0,"multiplicity":"s","shift":5.01},{"proton":"ArCH3","coupling":0,"multiplicity":"s","shift":2.27},{"proton":"ArC(CH3)3","coupling":0,"multiplicity":"s","shift":1.43}],"name":"BHTb"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.26}],"name":"chloroform"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":1.43}],"name":"cyclohexane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.73}],"name":"1,2-dichloroethane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":5.3}],"name":"dichloromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.21},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.48}],"name":"diethyl_ether"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.65},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.57},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.39}],"name":"diglyme"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.4},{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.55}],"name":"1,2-dimethoxyethane"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.09},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":3.02},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.94}],"name":"dimethylacetamide"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":8.02},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.96},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.88}],"name":"dimethylformamide"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.62}],"name":"dimethyl_sulfoxide"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.71}],"name":"dioxane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.25},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.72},{"proton":"OH","coupling":5,"multiplicity":"s,t","shift":1.32}],"name":"ethanol"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.05},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":4.12},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.26}],"name":"ethyl_acetate"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.14},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":2.46},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.06}],"name":"ethyl_methyl_ketone"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":3.76}],"name":"ethylene_glycol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"m","shift":0.86},{"proton":"CH2","coupling":0,"multiplicity":"br_s","shift":1.26}],"name":"grease^f"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"t","shift":0.88},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.26}],"name":"n-hexane"},{"shifts":[{"proton":"CH3","coupling":9.5,"multiplicity":"d","shift":2.65}],"name":"HMPAg"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.49},{"proton":"OH","coupling":0,"multiplicity":"s","shift":1.09}],"name":"methanol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":4.33}],"name":"nitromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":7},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.27}],"name":"n-pentane"},{"shifts":[{"proton":"CH3","coupling":6,"multiplicity":"d","shift":1.22},{"proton":"CH","coupling":6,"multiplicity":"sep","shift":4.04}],"name":"2-propanol"},{"shifts":[{"proton":"CH(2)","coupling":0,"multiplicity":"m","shift":8.62},{"proton":"CH(3)","coupling":0,"multiplicity":"m","shift":7.29},{"proton":"CH(4)","coupling":0,"multiplicity":"m","shift":7.68}],"name":"pyridine"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":0.07}],"name":"silicone_greasei"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.85},{"proton":"CH2O","coupling":0,"multiplicity":"m","shift":3.76}],"name":"tetrahydrofuran"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.36},{"proton":"CH(o/p)","coupling":0,"multiplicity":"m","shift":7.17},{"proton":"CH(m)","coupling":0,"multiplicity":"m","shift":7.25}],"name":"toluene"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.03},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":2.53}],"name":"triethylamine"}],"solvent":"CDCl3"},{"impurities":[{"shifts":[{"proton":"X","coupling":0,"multiplicity":"","shift":2.05}],"name":"solvent_residual_peak"},{"shifts":[{"proton":"H2O","coupling":0,"multiplicity":"s","shift":2.84}],"name":"H2O"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.96}],"name":"acetic_acid"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.09}],"name":"acetone"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.05}],"name":"acetonitrile"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.36}],"name":"benzene"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.18}],"name":"tert-butyl_alcohol"},{"shifts":[{"proton":"CCH3","coupling":0,"multiplicity":"s","shift":1.13},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.13}],"name":"tert-butyl_methyl_ether"},{"shifts":[{"proton":"ArH","coupling":0,"multiplicity":"s","shift":6.96},{"proton":"ArCH3","coupling":0,"multiplicity":"s","shift":2.22},{"proton":"ArC(CH3)3","coupling":0,"multiplicity":"s","shift":1.41}],"name":"BHTb"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":8.02}],"name":"chloroform"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":1.43}],"name":"cyclohexane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.87}],"name":"1,2-dichloroethane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":5.63}],"name":"dichloromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.11},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.41}],"name":"diethyl_ether"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.56},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.47},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.28}],"name":"diglyme"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.28},{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.46}],"name":"1,2-dimethoxyethane"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.97},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":3},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.83}],"name":"dimethylacetamide"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.96},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.94},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.78}],"name":"dimethylformamide"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.52}],"name":"dimethyl_sulfoxide"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.59}],"name":"dioxane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.12},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.57},{"proton":"OH","coupling":5,"multiplicity":"s,t","shift":3.39}],"name":"ethanol"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.97},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":4.05},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.2}],"name":"ethyl_acetate"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.07},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":2.45},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":0.96}],"name":"ethyl_methyl_ketone"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":3.28}],"name":"ethylene_glycol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"m","shift":0.87},{"proton":"CH2","coupling":0,"multiplicity":"br_s","shift":1.29}],"name":"grease^f"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"t","shift":0.88},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.28}],"name":"n-hexane"},{"shifts":[{"proton":"CH3","coupling":9.5,"multiplicity":"d","shift":2.59}],"name":"HMPAg"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.31},{"proton":"OH","coupling":0,"multiplicity":"s","shift":3.12}],"name":"methanol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":4.43}],"name":"nitromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.88},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.27}],"name":"n-pentane"},{"shifts":[{"proton":"CH3","coupling":6,"multiplicity":"d","shift":1.1},{"proton":"CH","coupling":6,"multiplicity":"sep","shift":3.9}],"name":"2-propanol"},{"shifts":[{"proton":"CH(2)","coupling":0,"multiplicity":"m","shift":8.58},{"proton":"CH(3)","coupling":0,"multiplicity":"m","shift":7.35},{"proton":"CH(4)","coupling":0,"multiplicity":"m","shift":7.76}],"name":"pyridine"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":0.13}],"name":"silicone_greasei"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.79},{"proton":"CH2O","coupling":0,"multiplicity":"m","shift":3.63}],"name":"tetrahydrofuran"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.32},{"proton":"CH(o/p)","coupling":0,"multiplicity":"m","shift":7.5},{"proton":"CH(m)","coupling":0,"multiplicity":"m","shift":7.5}],"name":"toluene"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.96},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":2.45}],"name":"triethylamine"}],"solvent":"(CD3)2CO"},{"impurities":[{"shifts":[{"proton":"X","coupling":0,"multiplicity":"","shift":2.5}],"name":"solvent_residual_peak"},{"shifts":[{"proton":"H2O","coupling":0,"multiplicity":"s","shift":3.33}],"name":"H2O"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.91}],"name":"acetic_acid"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.09}],"name":"acetone"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.07}],"name":"acetonitrile"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.37}],"name":"benzene"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.11},{"proton":"OHc","coupling":0,"multiplicity":"s","shift":4.19}],"name":"tert-butyl_alcohol"},{"shifts":[{"proton":"CCH3","coupling":0,"multiplicity":"s","shift":1.11},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.08}],"name":"tert-butyl_methyl_ether"},{"shifts":[{"proton":"ArH","coupling":0,"multiplicity":"s","shift":6.87},{"proton":"OHc","coupling":0,"multiplicity":"s","shift":6.65},{"proton":"ArCH3","coupling":0,"multiplicity":"s","shift":2.18},{"proton":"ArC(CH3)3","coupling":0,"multiplicity":"s","shift":1.36}],"name":"BHTb"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":8.32}],"name":"chloroform"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":1.4}],"name":"cyclohexane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.9}],"name":"1,2-dichloroethane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":5.76}],"name":"dichloromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.09},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.38}],"name":"diethyl_ether"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.51},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.38},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.24}],"name":"diglyme"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.24},{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.43}],"name":"1,2-dimethoxyethane"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.96},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.94},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.78}],"name":"dimethylacetamide"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.95},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.89},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.73}],"name":"dimethylformamide"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.54}],"name":"dimethyl_sulfoxide"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.57}],"name":"dioxane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.06},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.44},{"proton":"OH","coupling":5,"multiplicity":"s,t","shift":4.63}],"name":"ethanol"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.99},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":4.03},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.17}],"name":"ethyl_acetate"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.07},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":2.43},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":0.91}],"name":"ethyl_methyl_ketone"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":3.34}],"name":"ethylene_glycol"},{"shifts":[],"name":"grease^f"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"t","shift":0.86},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.25}],"name":"n-hexane"},{"shifts":[{"proton":"CH3","coupling":9.5,"multiplicity":"d","shift":2.53}],"name":"HMPAg"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.16},{"proton":"OH","coupling":0,"multiplicity":"s","shift":4.01}],"name":"methanol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":4.42}],"name":"nitromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.88},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.27}],"name":"n-pentane"},{"shifts":[{"proton":"CH3","coupling":6,"multiplicity":"d","shift":1.04},{"proton":"CH","coupling":6,"multiplicity":"sep","shift":3.78}],"name":"2-propanol"},{"shifts":[{"proton":"CH(2)","coupling":0,"multiplicity":"m","shift":8.58},{"proton":"CH(3)","coupling":0,"multiplicity":"m","shift":7.39},{"proton":"CH(4)","coupling":0,"multiplicity":"m","shift":7.79}],"name":"pyridine"},{"shifts":[],"name":"silicone_greasei"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.76},{"proton":"CH2O","coupling":0,"multiplicity":"m","shift":3.6}],"name":"tetrahydrofuran"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.3},{"proton":"CH(o/p)","coupling":0,"multiplicity":"m","shift":7.18},{"proton":"CH(m)","coupling":0,"multiplicity":"m","shift":7.25}],"name":"toluene"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.93},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":2.43}],"name":"triethylamine"}],"solvent":"(CD3)2SO/DMSO"},{"impurities":[{"shifts":[{"proton":"X","coupling":0,"multiplicity":"","shift":7.16}],"name":"solvent_residual_peak"},{"shifts":[{"proton":"H2O","coupling":0,"multiplicity":"s","shift":0.4}],"name":"H2O"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.55}],"name":"acetic_acid"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.55}],"name":"acetone"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.55}],"name":"acetonitrile"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.15}],"name":"benzene"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.05},{"proton":"OHc","coupling":0,"multiplicity":"s","shift":1.55}],"name":"tert-butyl_alcohol"},{"shifts":[{"proton":"CCH3","coupling":0,"multiplicity":"s","shift":1.07},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.04}],"name":"tert-butyl_methyl_ether"},{"shifts":[{"proton":"ArH","coupling":0,"multiplicity":"s","shift":7.05},{"proton":"OHc","coupling":0,"multiplicity":"s","shift":4.79},{"proton":"ArCH3","coupling":0,"multiplicity":"s","shift":2.24},{"proton":"ArC(CH3)3","coupling":0,"multiplicity":"s","shift":1.38}],"name":"BHTb"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":6.15}],"name":"chloroform"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":1.4}],"name":"cyclohexane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":2.9}],"name":"1,2-dichloroethane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":4.27}],"name":"dichloromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.11},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.26}],"name":"diethyl_ether"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.46},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.34},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.11}],"name":"diglyme"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.12},{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.33}],"name":"1,2-dimethoxyethane"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.6},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.57},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.05}],"name":"dimethylacetamide"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.63},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.36},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.86}],"name":"dimethylformamide"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.68}],"name":"dimethyl_sulfoxide"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.35}],"name":"dioxane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.96},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.34}],"name":"ethanol"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.65},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":3.89},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":0.92}],"name":"ethyl_acetate"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.58},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":1.81},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":0.85}],"name":"ethyl_methyl_ketone"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":3.41}],"name":"ethylene_glycol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"m","shift":0.92},{"proton":"CH2","coupling":0,"multiplicity":"br_s","shift":1.36}],"name":"grease^f"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"t","shift":0.89},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.24}],"name":"n-hexane"},{"shifts":[{"proton":"CH3","coupling":9.5,"multiplicity":"d","shift":2.4}],"name":"HMPAg"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.07}],"name":"methanol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.94}],"name":"nitromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.86},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.23}],"name":"n-pentane"},{"shifts":[{"proton":"CH3","coupling":6,"multiplicity":"d","shift":0.95},{"proton":"CH","coupling":6,"multiplicity":"sep","shift":3.67}],"name":"2-propanol"},{"shifts":[{"proton":"CH(2)","coupling":0,"multiplicity":"m","shift":8.53},{"proton":"CH(3)","coupling":0,"multiplicity":"m","shift":6.66},{"proton":"CH(4)","coupling":0,"multiplicity":"m","shift":6.98}],"name":"pyridine"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":0.29}],"name":"silicone_greasei"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.4},{"proton":"CH2O","coupling":0,"multiplicity":"m","shift":3.57}],"name":"tetrahydrofuran"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.11},{"proton":"CH(o/p)","coupling":0,"multiplicity":"m","shift":7.02},{"proton":"CH(m)","coupling":0,"multiplicity":"m","shift":7.13}],"name":"toluene"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.96},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":2.4}],"name":"triethylamine"}],"solvent":"C6D6"},{"impurities":[{"shifts":[{"proton":"X","coupling":0,"multiplicity":"","shift":1.94}],"name":"solvent_residual_peak"},{"shifts":[{"proton":"H2O","coupling":0,"multiplicity":"s","shift":2.13}],"name":"H2O"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.96}],"name":"acetic_acid"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.08}],"name":"acetone"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.96}],"name":"acetonitrile"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.37}],"name":"benzene"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.16},{"proton":"OHc","coupling":0,"multiplicity":"s","shift":2.18}],"name":"tert-butyl_alcohol"},{"shifts":[{"proton":"CCH3","coupling":0,"multiplicity":"s","shift":1.14},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.13}],"name":"tert-butyl_methyl_ether"},{"shifts":[{"proton":"ArH","coupling":0,"multiplicity":"s","shift":6.97},{"proton":"OHc","coupling":0,"multiplicity":"s","shift":5.2},{"proton":"ArCH3","coupling":0,"multiplicity":"s","shift":2.22},{"proton":"ArC(CH3)3","coupling":0,"multiplicity":"s","shift":1.39}],"name":"BHTb"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.58}],"name":"chloroform"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":1.44}],"name":"cyclohexane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.81}],"name":"1,2-dichloroethane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":5.44}],"name":"dichloromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.12},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.42}],"name":"diethyl_ether"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.53},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.45},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.29}],"name":"diglyme"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.28},{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.45}],"name":"1,2-dimethoxyethane"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.97},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.96},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.83}],"name":"dimethylacetamide"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.92},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.89},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.77}],"name":"dimethylformamide"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.5}],"name":"dimethyl_sulfoxide"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.6}],"name":"dioxane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.12},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.54},{"proton":"OH","coupling":5,"multiplicity":"s,t","shift":2.47}],"name":"ethanol"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.97},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":4.06},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.2}],"name":"ethyl_acetate"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.06},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":2.43},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":0.96}],"name":"ethyl_methyl_ketone"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":3.51}],"name":"ethylene_glycol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"m","shift":0.86},{"proton":"CH2","coupling":0,"multiplicity":"br_s","shift":1.27}],"name":"grease^f"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"t","shift":0.89},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.28}],"name":"n-hexane"},{"shifts":[{"proton":"CH3","coupling":9.5,"multiplicity":"d","shift":2.57}],"name":"HMPAg"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.28},{"proton":"OH","coupling":0,"multiplicity":"s","shift":2.16}],"name":"methanol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":4.31}],"name":"nitromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.87},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.29}],"name":"n-pentane"},{"shifts":[{"proton":"CH3","coupling":6,"multiplicity":"d","shift":1.09},{"proton":"CH","coupling":6,"multiplicity":"sep","shift":3.87}],"name":"2-propanol"},{"shifts":[{"proton":"CH(2)","coupling":0,"multiplicity":"m","shift":8.57},{"proton":"CH(3)","coupling":0,"multiplicity":"m","shift":7.33},{"proton":"CH(4)","coupling":0,"multiplicity":"m","shift":7.73}],"name":"pyridine"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":0.08}],"name":"silicone_greasei"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.8},{"proton":"CH2O","coupling":0,"multiplicity":"m","shift":3.64}],"name":"tetrahydrofuran"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.33},{"proton":"CH(o/p)","coupling":0,"multiplicity":"m","shift":7.2},{"proton":"CH(m)","coupling":0,"multiplicity":"m","shift":7.2}],"name":"toluene"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.96},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":2.45}],"name":"triethylamine"}],"solvent":"CD3CN"},{"impurities":[{"shifts":[{"proton":"X","coupling":0,"multiplicity":"","shift":3.31}],"name":"solvent_residual_peak"},{"shifts":[{"proton":"H2O","coupling":0,"multiplicity":"s","shift":4.87}],"name":"H2O"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.99}],"name":"acetic_acid"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.15}],"name":"acetone"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.03}],"name":"acetonitrile"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.33}],"name":"benzene"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.4}],"name":"tert-butyl_alcohol"},{"shifts":[{"proton":"CCH3","coupling":0,"multiplicity":"s","shift":1.15},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.2}],"name":"tert-butyl_methyl_ether"},{"shifts":[{"proton":"ArH","coupling":0,"multiplicity":"s","shift":6.92},{"proton":"ArCH3","coupling":0,"multiplicity":"s","shift":2.21},{"proton":"ArC(CH3)3","coupling":0,"multiplicity":"s","shift":1.4}],"name":"BHTb"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.9}],"name":"chloroform"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":1.45}],"name":"cyclohexane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.78}],"name":"1,2-dichloroethane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":5.49}],"name":"dichloromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.18},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.49}],"name":"diethyl_ether"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.61},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.58},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.35}],"name":"diglyme"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.35},{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.52}],"name":"1,2-dimethoxyethane"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.07},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":3.31},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.92}],"name":"dimethylacetamide"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.97},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.99},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.86}],"name":"dimethylformamide"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.65}],"name":"dimethyl_sulfoxide"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.66}],"name":"dioxane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.19},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.6}],"name":"ethanol"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.01},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":4.09},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.24}],"name":"ethyl_acetate"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.12},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":2.5},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.01}],"name":"ethyl_methyl_ketone"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":3.59}],"name":"ethylene_glycol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"m","shift":0.88},{"proton":"CH2","coupling":0,"multiplicity":"br_s","shift":1.29}],"name":"grease^f"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"t","shift":0.9},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.29}],"name":"n-hexane"},{"shifts":[{"proton":"CH3","coupling":9.5,"multiplicity":"d","shift":2.64}],"name":"HMPAg"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.34}],"name":"methanol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":4.34}],"name":"nitromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.89},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.29}],"name":"n-pentane"},{"shifts":[{"proton":"CH3","coupling":6,"multiplicity":"d","shift":1.5},{"proton":"CH","coupling":6,"multiplicity":"sep","shift":3.92}],"name":"2-propanol"},{"shifts":[{"proton":"CH(2)","coupling":0,"multiplicity":"m","shift":8.53},{"proton":"CH(3)","coupling":0,"multiplicity":"m","shift":7.44},{"proton":"CH(4)","coupling":0,"multiplicity":"m","shift":7.85}],"name":"pyridine"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":0.1}],"name":"silicone_greasei"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.87},{"proton":"CH2O","coupling":0,"multiplicity":"m","shift":3.71}],"name":"tetrahydrofuran"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.32},{"proton":"CH(o/p)","coupling":0,"multiplicity":"m","shift":7.16},{"proton":"CH(m)","coupling":0,"multiplicity":"m","shift":7.16}],"name":"toluene"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.05},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":2.58}],"name":"triethylamine"}],"solvent":"CD3OD"},{"impurities":[{"shifts":[{"proton":"X","coupling":0,"multiplicity":"","shift":4.79}],"name":"solvent_residual_peak"},{"shifts":[],"name":"H2O"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.08}],"name":"acetic_acid"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.22}],"name":"acetone"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.06}],"name":"acetonitrile"},{"shifts":[],"name":"benzene"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.24}],"name":"tert-butyl_alcohol"},{"shifts":[{"proton":"CCH3","coupling":0,"multiplicity":"s","shift":1.21},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.22}],"name":"tert-butyl_methyl_ether"},{"shifts":[],"name":"BHTb"},{"shifts":[],"name":"chloroform"},{"shifts":[],"name":"cyclohexane"},{"shifts":[],"name":"1,2-dichloroethane"},{"shifts":[],"name":"dichloromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.17},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.56}],"name":"diethyl_ether"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.67},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.61},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.37}],"name":"diglyme"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.37},{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.6}],"name":"1,2-dimethoxyethane"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.08},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":3.06},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.9}],"name":"dimethylacetamide"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.92},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.01},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.85}],"name":"dimethylformamide"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.71}],"name":"dimethyl_sulfoxide"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.75}],"name":"dioxane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.17},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.65}],"name":"ethanol"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.07},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":4.14},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.24}],"name":"ethyl_acetate"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.19},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":3.18},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.26}],"name":"ethyl_methyl_ketone"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":3.65}],"name":"ethylene_glycol"},{"shifts":[],"name":"grease^f"},{"shifts":[],"name":"n-hexane"},{"shifts":[{"proton":"CH3","coupling":9.5,"multiplicity":"d","shift":2.61}],"name":"HMPAg"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.34}],"name":"methanol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":4.4}],"name":"nitromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.9}],"name":"n-pentane"},{"shifts":[{"proton":"CH3","coupling":6,"multiplicity":"d","shift":1.17},{"proton":"CH","coupling":6,"multiplicity":"sep","shift":4.02}],"name":"2-propanol"},{"shifts":[{"proton":"CH(2)","coupling":0,"multiplicity":"m","shift":8.52},{"proton":"CH(3)","coupling":0,"multiplicity":"m","shift":7.45},{"proton":"CH(4)","coupling":0,"multiplicity":"m","shift":7.87}],"name":"pyridine"},{"shifts":[],"name":"silicone_greasei"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.88},{"proton":"CH2O","coupling":0,"multiplicity":"m","shift":3.74}],"name":"tetrahydrofuran"},{"shifts":[],"name":"toluene"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.99},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":2.57}],"name":"triethylamine"}],"solvent":"D2O"}];
-	        //this.impurities = API.getVar("impurities").getValue();
-	        //File.parse("solvent1H.txt", {header:false});
-	        //console.log(this.impurities[0]);
-	    },
 	    /*
 	     {
 	     "nbPeaks":1,"multiplicity":"","units":"PPM","startX":3.43505,"assignment":"",
@@ -2628,36 +2439,38 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var frequency = spectrum.observeFrequencyX();
 	        var signals = [];
 	        var signal1D = {};
-	        var prevPeak = [100000,0],peaks=null;
+	        var prevPeak = {x:100000,y:0,width:0},peaks=null;
 	        var rangeX = 16/frequency;//Peaks withing this range are considered to belongs to the same signal1D
 	        var spectrumIntegral = 0,cs,sum, i,j;
+	        //console.log("RangeX "+rangeX);
 	        for(i=0;i<peakList.length;i++){
-	            //console.log(i+" "+peakList[i]);
-	            if(Math.abs(peakList[i][0]-prevPeak[0])>rangeX){
+	            //console.log(peakList[i]);
+	            if(Math.abs(peakList[i].x-prevPeak.x)>rangeX){
+	                //console.log(typeof peakList[i].x+" "+typeof peakList[i].width);
 	                signal1D = {"nbPeaks":1,"units":"PPM",
-	                    "startX":peakList[i][0]+peakList[i][2],
-	                    "stopX":peakList[i][0]-peakList[i][2],
+	                    "startX":peakList[i].x+peakList[i].width,
+	                    "stopX":peakList[i].x-peakList[i].width,
 	                    "multiplicity":"","pattern":"",
 	                    "observe":frequency,"nucleus":"1H",
-	                    "integralData":{"from":peakList[i][0]-peakList[i][2]*3,
-	                                    "to":peakList[i][0]+peakList[i][2]*3
+	                    "integralData":{"from":peakList[i].x-peakList[i].width*3,
+	                                    "to":peakList[i].x+peakList[i].width*3
 	                                    //"value":this.area(peakList[i])
 	                    },
 	                    "peaks":[]};
-	                signal1D.peaks.push({x:peakList[i][0],"intensity":peakList[i][1], width:peakList[i][2]});
+	                signal1D.peaks.push({x:peakList[i].x,"intensity":peakList[i].y, width:peakList[i].width});
 	                signals.push(signal1D);
 	                //spectrumIntegral+=this.area(peakList[i]);
 	            }
 	            else{
-	                var tmp = peakList[i][0]-peakList[i][2];
-	                signal1D.stopX=Math.min(signal1D.stopX,tmp);
-	                tmp = peakList[i][0]+peakList[i][2];
-	                signal1D.stopX=Math.max(signal1D.stopX,tmp);
+	                var tmp = peakList[i].x-peakList[i].width;
+	                signal1D.stopX = Math.min(signal1D.stopX,tmp);
+	                tmp = peakList[i].x+peakList[i].width;
+	                signal1D.stopX = Math.max(signal1D.stopX,tmp);
 	                signal1D.nbPeaks++;
-	                signal1D.peaks.push({x:peakList[i][0],"intensity":peakList[i][1], width:peakList[i][2]});
+	                signal1D.peaks.push({x:peakList[i].x,"intensity":peakList[i].y, width:peakList[i].width});
 	                //signal1D.integralData.value+=this.area(peakList[i]);
-	                signal1D.integralData.from=Math.min(signal1D.integralData.from, peakList[i][0]-peakList[i][2]*3);
-	                signal1D.integralData.to=Math.max(signal1D.integralData.to,peakList[i][0]+peakList[i][2]*3);
+	                signal1D.integralData.from = Math.min(signal1D.integralData.from, peakList[i].x-peakList[i].width*3);
+	                signal1D.integralData.to = Math.max(signal1D.integralData.to,peakList[i].x+peakList[i].width*3);
 	                //spectrumIntegral+=this.area(peakList[i]);
 	            }
 	            prevPeak = peakList[i];
@@ -2940,213 +2753,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    createSignals:function(){
 
-	    },
-	    /**
-	     Determine the peaks of the spectrum by applying a global spectrum deconvolution.
-	     */
-	    GSD:function(spectrum, noiseLevel){
-	        var data= spectrum.getXYData();
-	        var y = new Array(data[1].length);
-	        var x = data[0];
-	        var frequencyX = spectrum.observeFrequencyX();
-	        var rangeX = 16/frequency;//Peaks withing this range are considered to belongs to the same signal1D
-	        //Lets remove the noise for better performance
-	        for(var i=y.length-1;i>=0;i--){
-	            y[i]=data[1][i];
-	            if(Math.abs(y[i])<noiseLevel)
-	                y[i]=0;
-	        }
-
-	        var dx = x[1]-x[0];
-	        // fill convolution frequency axis
-	        var X = [];//x[2:(x.length-2)];
-
-	        // fill Savitzky-Golay polynomes
-	        var Y = new Array();
-	        var dY = new Array();
-	        var ddY = new Array();
-	        for (var j = 2; j < x.length -2; j++){
-	            Y.push((1/35.0)*(-3*y[j-2] + 12*y[j-1] + 17*y[j] + 12*y[j+1] - 3*y[j+2]));
-	            X.push(x[j]);
-	            dY.push((1/(12*dx))*(y[j-2] - 8*y[j-1] + 8*y[j+1] - y[j+2]));
-	            ddY.push((1/(7*dx*dx))*(2*y[j-2] - y[j-1] - 2*y[j] - y[j+1] + 2*y[j+2]));
-	        }
-	        // pushs max and min points in convolution functions
-	        var stackInt = new Array();
-	        var intervals = new Array();
-	        var minddY = new Array();
-	        var maxDdy=0;
-	        //console.log(Y.length);
-	        for (var i = 0; i < Y.length ; i++){
-	            if(Math.abs(ddY[i])>maxDdy){
-	                maxDdy = Math.abs(ddY[i]);
-	            }
-	        }
-	        //console.log(maxY+"x"+maxDy+"x"+maxDdy);
-	        var broadMask = new Array();
-	        for (var i = 1; i < Y.length -1 ; i++){
-	            if ((dY[i] < dY[i-1]) && (dY[i] <= dY[i+1])||
-	                (dY[i] <= dY[i-1]) && (dY[i] < dY[i+1])) {
-	                stackInt.push(X[i]);
-	            }
-
-	            if ((dY[i] >= dY[i-1]) && (dY[i] > dY[i+1])||
-	                (dY[i] > dY[i-1]) && (dY[i] >= dY[i+1])) {
-	                try{
-	                    intervals.push( [X[i] , stackInt.pop()] );
-	                }
-	                catch(e){
-	                    console.log("Error I don't know why "+e);
-	                }
-	            }
-	            if ((ddY[i] < ddY[i-1]) && (ddY[i] < ddY[i+1])) {
-	                minddY.push( [X[i], Y[i], i] );
-	                if(Math.abs(ddY[i])>0.0025*maxDdy){
-	                    broadMask.push(false);
-	                }
-	                else{
-	                    broadMask.push(true);
-	                }
-	            }
-	        }
-	        // creates a list with (frecuency, linewith, height)
-	        dx = Math.abs(dx);
-	        //var signalsS = new Array();
-	        var signals = new Array();
-	        var broadLines=[[[Number.MAX_VALUE,0,0]]];
-	        Y.sort(function(a, b){return a-b});
-	        for (var j = 0; j < minddY.length; j++){
-	            var f = minddY[j];
-	            var frequency = f[0];
-	            var possible = new Array();
-	            for (var k=0;k<intervals.length;k++){
-	                var i = intervals[k];
-	                if (frequency > i[0] && frequency < i[1])
-	                    possible.push(i);
-	            }
-	            //console.log("possible "+possible.length);
-	            if (possible.length > 0)
-	                if (possible.length == 1)
-	                {
-	                    var inter = possible[0];
-	                    var linewidth = Math.abs(inter[1] - inter[0]);
-	                    var height = f[1];
-	                    if (Math.abs(height) > 0.00025*Y[0]){
-	                        if(!broadMask[j]){
-	                            signals.push([frequency, height, linewidth]);
-	                            //signalsS.push([frequency, height]);
-	                        }
-	                        else{
-	                            broadLines.push([frequency, height, linewidth]);
-	                        }
-	                    }
-	                }
-	                else
-	                {
-	                    //TODO: nested peaks
-	                    console.log("Nested "+possible);
-	                }
-	        }
-	        //console.log(signalsS);
-	        //Optimize the possible broad lines
-	        var max=0, maxI=0,count=0;
-	        var candidates = [],broadLinesS=[];
-	        var isPartOf = false;
-	        var rangeX = 16/frequencyX;
-	        for(var i=broadLines.length-1;i>0;i--){
-	            //console.log(broadLines[i][0]+" "+rangeX+" "+Math.abs(broadLines[i-1][0]-broadLines[i][0]));
-	            if(Math.abs(broadLines[i-1][0]-broadLines[i][0])<rangeX){
-
-	                candidates.push(broadLines[i]);
-	                if(broadLines[i][1]>max){
-	                    max = broadLines[i][1];
-	                    maxI = i;
-	                }
-	                count++;
-	            }
-	            else{
-	                isPartOf = true;
-	                if(count>30){
-	                    isPartOf = false;
-	                    /*for(var j=0;j<signals.length;j++){
-	                        if(Math.abs(broadLines[maxI][0]-signals[j][0])<rangeX)
-	                            isPartOf = true;
-	                    }
-	                    console.log("Was part of "+isPartOf);*/
-	                }
-	                if(isPartOf){
-	                    for(var j=0;j<candidates.length;j++){
-	                        signals.push([candidates[j][0], candidates[j][1], dx]);
-	                    }
-	                }
-	                else{
-	                    var fitted =  this.optimizeLorentzian(candidates);
-	                    //console.log(fitted);
-	                    signals.push(fitted);
-	                    //signalsS.push([fitted[0], fitted[1]]);
-	                    //console.log(fitted[0]+" "+fitted[2]+" "+fitted[1]);
-	                    //broadLinesS.push([fitted[0], fitted[1]]);
-
-	                }
-	                candidates = [];
-	                max = 0;
-	                maxI = 0;
-	                count = 0;
-	            }
-	        }
-	        signals.sort(function (a, b) {
-	            return a[0] - b[0];
-	        });
-
-	        return signals;
-	        //jexport("peakPicking",signalsS);
-	    },
-
-	    optimizeLorentzian:function(data){
-
-	        var lm_func = function(t,p,c){
-	            var factor = p[2][0]*Math.pow(p[1][0],2);
-	            var rows = t.rows;
-	            var result = new Matrix(t.rows, t.columns);
-	            // var tmp = math.add(math.dotPow(math.subtract(t,p[0][0]),2),Math.pow(p[1][0],2));
-	            for(var i=0;i<rows;i++){
-	                result[i][0]=p[3][0]+factor/(Math.pow(t[i][0]-p[0][0],2)+Math.pow(p[1][0],2));
-	            }
-
-	            return result;
-	        };
-
-
-	        var nbPoints = data.length;
-	        var t = new Matrix(nbPoints,1);
-
-	        var y_data = new Matrix(nbPoints,1);
-	        var sum = 0;
-	        var maxY = 0;
-	        for(var i=0;i<nbPoints;i++){
-	            t[i][0]=data[i][0];
-	            y_data[i][0]=data[i][1];
-	            if(data[i][1]>maxY)
-	                maxY = data[i][1];
-	        }
-	        //console.log(JSON.stringify(t));
-	        //console.log(nbPoints);
-	        for(var i=0;i<nbPoints;i++){
-	            y_data[i][0]/=maxY
-	        }
-	        var weight = [nbPoints / math.sqrt(y_data.dot(y_data))];
-	        //console.log("weight: "+weight);
-	        var opts = [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ];
-	        var consts = [ ];                         // optional vector of constants
-
-	        var p_init = new Matrix([[(t[0][0]+t[nbPoints-1][0])/2],[Math.abs(t[0][0]-t[nbPoints-1][0])/2],[1],[0]]);
-	        var p_min = new Matrix([[t[0][0]],[0.0],[0],[0]]);
-	        var p_max = new Matrix([[t[nbPoints-1][0]],[Math.abs(t[0][0]-t[nbPoints-1][0])],[1.5],[0.5]]);
-
-	        var p_fit = LM.optimize(lm_func,p_init,t,y_data,weight,-0.01,p_min,p_max,consts,opts);
-
-	        return [p_fit[0][0],p_fit[2][0]*maxY,p_fit[1][0]*2];
 	    }
+
 	}
 
 	module.exports = PeakPicking;
@@ -3733,11 +3341,9 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
-
-	module.exports = __webpack_require__(8);
-	module.exports.Matrix = __webpack_require__(9);
-	module.exports.Matrix.algebra = __webpack_require__(18);
+	
+	module.exports.optimize = __webpack_require__(8);
+	module.exports.gsd = __webpack_require__(22);
 
 
 /***/ },
@@ -3745,10 +3351,533 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
+	 * Created by acastillo on 9/6/15.
+	 */
+	var Opt = __webpack_require__(9);
+
+	function sampleFunction(from, to, x, y, lastIndex){
+	    var nbPoints = x.length;
+	    var sampleX = [];
+	    var sampleY = [];
+	    var direction = Math.sign(x[1]-x[0]);//Direction of the derivative
+	    if(direction==-1){
+	        lastIndex[0]= x.length-1;
+	    }
+
+	    var delta = Math.abs(to-from)/2;
+	    var mid = (from+to)/2;
+	    var stop = false;
+	    var index = lastIndex[0];
+	    while(!stop&&index<nbPoints&&index>=0){
+	        if(Math.abs(x[index]-mid)<=delta){
+	            sampleX.push(x[index]);
+	            sampleY.push(y[index]);
+	            index+=direction;
+	        }
+	        //It is outside the range.
+	        else{
+
+	            if(Math.sign(mid-x[index])==1){
+	                //We'll reach the mid going in the current direction
+	                index+=direction;
+	            }
+	            else{
+	                //There is not more peaks in the current range
+	                stop=true;
+	            }
+	        }
+	        //console.log(sampleX);
+	    }
+	    lastIndex[0]=index;
+	    return [sampleX, sampleY];
+	}
+
+	function optimizePeaks(peakList,x,y,n, fnType){
+	    var i, j, lastIndex=[0];
+	    var groups = groupPeaks(peakList,n);
+	    var result = [];
+	    var factor = 1;
+	    if(fnType=="gaussian")
+	        factor = 1.17741;//From https://en.wikipedia.org/wiki/Gaussian_function#Properties
+	    for(i=0;i<groups.length;i++){
+	        var peaks = groups[i].group;
+	        if(peaks.length>1){
+	            //Multiple peaks
+	            //console.log("Pending group of overlaped peaks "+peaks.length);
+	            //console.log("here1");
+	            //console.log(groups[i].limits);
+	            var sampling = sampleFunction(groups[i].limits[0]-groups[i].limits[1],groups[i].limits[0]+groups[i].limits[1],x,y,lastIndex);
+	            //console.log(sampling);
+	            if(sampling[0].length>5){
+	                var error = peaks[0].width/1000;
+	                var opts = [  3,    100, error, error, error, error*10, error*10,    11,    9,        1 ];
+	                //var gauss = Opt.optimizeSingleGaussian(sampling[0], sampling[1], opts, peaks);
+	                var optPeaks = [];
+	                if(fnType=="gaussian")
+	                    optPeaks = Opt.optimizeGaussianSum(sampling, peaks, opts);
+	                else{
+	                    if(fnType=="lorentzian"){
+	                        optPeaks = Opt.optimizeLorentzianSum(sampling, peaks, opts);
+	                    }
+	                }
+	                //console.log(optPeak);
+	                for(j=0;j<optPeaks.length;j++){
+	                    result.push({x:optPeaks[j][0][0],y:optPeaks[j][1][0],width:optPeaks[j][2][0]*factor});
+	                }
+	            }
+	        }
+	        else{
+	            //Single peak
+	            peaks = peaks[0];
+	            var sampling = sampleFunction(peaks.x-n*peaks.width,
+	                peaks.x+n*peaks.width,x,y,lastIndex);
+	            //console.log("here2");
+	            //console.log(groups[i].limits);
+	            if(sampling[0].length>5){
+	                var error = peaks.width/1000;
+	                var opts = [  3,    100, error, error, error, error*10, error*10,    11,    9,        1 ];
+	                //var gauss = Opt.optimizeSingleGaussian(sampling[0], sampling[1], opts, peaks);
+	                //var gauss = Opt.optimizeSingleGaussian([sampling[0],sampling[1]], peaks, opts);
+	                var optPeak = [];
+	                if(fnType=="gaussian")
+	                    var optPeak = Opt.optimizeSingleGaussian([sampling[0],sampling[1]], peaks,  opts);
+	                else{
+	                    if(fnType=="lorentzian"){
+	                        var optPeak = Opt.optimizeSingleLorentzian([sampling[0],sampling[1]], peaks,  opts);
+	                    }
+	                }
+	                //console.log(optPeak);
+	                result.push({x:optPeak[0][0],y:optPeak[1][0],width:optPeak[2][0]*factor}); // From https://en.wikipedia.org/wiki/Gaussian_function#Properties}
+	            }
+	        }
+
+	    }
+	    return result;
+	}
+
+	function groupPeaks(peakList,nL){
+	    var group = [];
+	    var groups = [];
+	    var i, j;
+	    var limits = [peakList[0].x,nL*peakList[0].width];
+	    var upperLimit, lowerLimit;
+	    //Merge forward
+	    for(i=0;i<peakList.length;i++){
+	        //If the 2 things overlaps
+	        if(Math.abs(peakList[i].x-limits[0])<(nL*peakList[i].width+limits[1])){
+	            //Add the peak to the group
+	            group.push(peakList[i]);
+	            //Update the group limits
+	            upperLimit = limits[0]+limits[1];
+	            if(peakList[i].x+nL*peakList[i].width>upperLimit){
+	                upperLimit = peakList[i].x+nL*peakList[i].width;
+	            }
+	            lowerLimit = limits[0]-limits[1];
+	            if(peakList[i].x-nL*peakList[i].width<lowerLimit){
+	                lowerLimit = peakList[i].x-nL*peakList[i].width;
+	            }
+	            limits = [(upperLimit+lowerLimit)/2,Math.abs(upperLimit-lowerLimit)/2];
+
+	        }
+	        else{
+	            groups.push({limits:limits,group:group});
+	            //var optmimalPeak = fitSpectrum(group,limits,spectrum);
+	            group=[peakList[i]];
+	            limits = [peakList[i].x,nL*peakList[i].width];
+	        }
+	    }
+	    groups.push({limits:limits,group:group});
+	    //Merge backward
+	    for(i =groups.length-2;i>=0;i--){
+	        //The groups overlaps
+	        if(Math.abs(groups[i].limits[0]-groups[i+1].limits[0])<
+	            (groups[i].limits[1]+groups[i+1].limits[1])/2){
+	            for(j=0;j<groups[i+1].group.length;j++){
+	                groups[i].group.push(groups[i+1].group[j]);
+	            }
+	            upperLimit = groups[i].limits[0]+groups[i].limits[1];
+	            if(groups[i+1].limits[0]+groups[i+1].limits[1]>upperLimit){
+	                upperLimit = groups[i+1].limits[0]+groups[i+1].limits[1];
+	            }
+	            lowerLimit = groups[i].limits[0]-groups[i].limits[1];
+	            if(groups[i+1].limits[0]-groups[i+1].limits[1]<lowerLimit){
+	                lowerLimit = groups[i+1].limits[0]-groups[i+1].limits[1];
+	            }
+	            //console.log(limits);
+	            groups[i].limits = [(upperLimit+lowerLimit)/2,Math.abs(upperLimit-lowerLimit)/2];
+
+	            groups.splice(i+1,1);
+	        }
+	    }
+	    return groups;
+	}
+
+	module.exports=optimizePeaks;
+
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var LM = __webpack_require__(10);
+	var math = LM.Matrix.algebra;
+	var Matrix = __webpack_require__(12);
+
+	/**
+	 * This function calculates the spectrum as a sum of lorentzian functions. The Lorentzian
+	 * parameters are divided in 3 batches. 1st: centers; 2nd: heights; 3th: widths;
+	 * @param t Ordinate values
+	 * @param p Lorentzian parameters
+	 * @param c Constant parameters(Not used)
+	 * @returns {*}
+	 */
+	function sumOfLorentzians(t,p,c){
+	    var nL = p.length/3,factor,i, j,p2, cols = t.rows;
+	    var result = Matrix.zeros(t.length,1);
+
+	    for(i=0;i<nL;i++){
+	        p2 = Math.pow(p[i+nL*2][0]/2,2);
+	        factor = p[i+nL][0]*p2;
+	        for(j=0;j<cols;j++){
+	            result[j][0]+=factor/(Math.pow(t[j][0]-p[i][0],2)+p2);
+	        }
+	    }
+	    return result;
+	}
+
+	/**
+	 * This function calculates the spectrum as a sum of gaussian functions. The Gaussian
+	 * parameters are divided in 3 batches. 1st: centers; 2nd: height; 3th: std's;
+	 * @param t Ordinate values
+	 * @param p Gaussian parameters
+	 * @param c Constant parameters(Not used)
+	 * @returns {*}
+	 */
+	function sumOfGaussians(t,p,c){
+	    var nL = p.length/3,factor,i, j, cols = t.rows;
+	    var result = Matrix.zeros(t.length,1);
+
+	    for(i=0;i<nL;i++){
+	        factor = p[i+nL*2][0]*p[i+nL*2][0]/2;
+	        for(j=0;j<cols;j++){
+	            result[j][0]+=p[i+nL][0]*Math.exp(-(t[i][0]-p[i][0])*(t[i][0]-p[i][0])/factor);
+	        }
+	    }
+	    return result;
+	}
+	/**
+	 * Single 4 parameter lorentzian function
+	 * @param t Ordinate values
+	 * @param p Lorentzian parameters
+	 * @param c Constant parameters(Not used)
+	 * @returns {*}
+	 */
+	function singleLorentzian(t,p,c){
+	    var factor = p[1][0]*Math.pow(p[2][0]/2,2);
+	    var rows = t.rows;
+	    var result = new Matrix(t.rows, t.columns);
+	    for(var i=0;i<rows;i++){
+	        result[i][0]=factor/(Math.pow(t[i][0]-p[0][0],2)+Math.pow(p[2][0]/2,2));
+	    }
+	    return result;
+	}
+
+	/**
+	 * Single 3 parameter gaussian function
+	 * @param t Ordinate values
+	 * @param p Gaussian parameters [mean, height, std]
+	 * @param c Constant parameters(Not used)
+	 * @returns {*}
+	 */
+	function singleGaussian(t,p,c){
+	    var factor2 = p[2][0]*p[2][0]/2;
+	    var rows = t.rows;
+	    var result = new Matrix(t.rows, t.columns);
+	    for(var i=0;i<rows;i++){
+	        result[i][0]=p[1][0]*Math.exp(-(t[i][0]-p[0][0])*(t[i][0]-p[0][0])/factor2);
+	    }
+	    return result;
+	}
+
+	/**
+	 * * Fits a set of points to a Lorentzian function. Returns the center of the peak, the width at half height, and the height of the signal.
+	 * @param data,[y]
+	 * @returns {*[]}
+	 */
+	function optimizeSingleLorentzian(xy, peak, opts) {
+	    var xy2 = parseData(xy);
+	    var t = xy2[0];
+	    var y_data = xy2[1];
+	    var maxY = xy2[2];
+	    var nbPoints = t.columns, i;
+
+	    var weight = [nbPoints / Math.sqrt(y_data.dot(y_data))];
+
+	    var opts=Object.create(opts || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ]);
+	    //var opts = [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ];
+	    var consts = [ ];
+	    var dt = Math.abs(t[0][0]-t[1][0]);// optional vector of constants
+	    var dx = new Matrix([[-dt/10000],[-1e-3],[-dt/10000]]);//-Math.abs(t[0][0]-t[1][0])/100;
+	    var p_init = new Matrix([[peak.x],[1],[peak.width]]);
+	    var p_min = new Matrix([[peak.x-dt],[0.75],[peak.width/4]]);
+	    var p_max = new Matrix([[peak.x+dt],[1.25],[peak.width*4]]);
+
+	    var p_fit = LM.optimize(singleLorentzian,p_init,t,y_data,weight,dx,p_min,p_max,consts,opts);
+
+
+	    p_fit = p_fit.p;
+	    return [p_fit[0],[p_fit[1][0]*maxY],p_fit[2]];
+
+	}
+
+	/**
+	 * Fits a set of points to a gaussian bell. Returns the mean of the peak, the std and the height of the signal.
+	 * @param data,[y]
+	 * @returns {*[]}
+	 */
+	function optimizeSingleGaussian(xy, peak, opts) {
+	    var xy2 = parseData(xy);
+	    var t = xy2[0];
+	    var y_data = xy2[1];
+	    var maxY = xy2[2];
+
+	    var nbPoints = t.columns, i;
+
+	    var weight = [nbPoints / Math.sqrt(y_data.dot(y_data))];
+
+	    var opts=Object.create(opts || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ]);
+	    //var opts = [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ];
+	    var consts = [ ];                         // optional vector of constants
+	    var dt = Math.abs(t[0][0]-t[1][0]);
+	    var dx = new Matrix([[-dt/10000],[-1e-3],[-dt/10000]]);//-Math.abs(t[0][0]-t[1][0])/100;
+
+	    var dx = new Matrix([[-Math.abs(t[0][0]-t[1][0])/1000],[-1e-3],[-peak.width/1000]]);
+	    var p_init = new Matrix([[peak.x],[1],[peak.width]]);
+	    var p_min = new Matrix([[peak.x-dt],[0.75],[peak.width/4]]);
+	    var p_max = new Matrix([[peak.x+dt],[1.25],[peak.width*4]]);
+	    //var p_min = new Matrix([[peak.x-peak.width/4],[0.75],[peak.width/3]]);
+	    //var p_max = new Matrix([[peak.x+peak.width/4],[1.25],[peak.width*3]]);
+
+	    var p_fit = LM.optimize(singleGaussian,p_init,t,y_data,weight,dx,p_min,p_max,consts,opts);
+	    p_fit = p_fit.p;
+	    return [p_fit[0],[p_fit[1][0]*maxY],p_fit[2]];
+	}
+
+
+	/**
+	 *
+	 * @param xy A two column matrix containing the x and y data to be fitted
+	 * @param group A set of initial lorentzian parameters to be optimized [center, heigth, half_width_at_half_height]
+	 * @returns {Array} A set of final lorentzian parameters [center, heigth, hwhh*2]
+	 */
+	function optimizeLorentzianSum(xy, group, opts){
+	    var xy2 = parseData(xy);
+	    var t = xy2[0];
+	    var y_data = xy2[1];
+	    var maxY = xy2[2];
+	    var nbPoints = t.columns, i;
+
+	    var weight = [nbPoints / math.sqrt(y_data.dot(y_data))];
+	    var opts=Object.create(opts || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ]);
+	    var consts = [ ];// optional vector of constants
+
+	    var nL = group.length;
+	    var p_init = new Matrix(nL*3,1);
+	    var p_min =  new Matrix(nL*3,1);
+	    var p_max =  new Matrix(nL*3,1);
+	    var dx = new Matrix(nL*3,1);
+	    var dt = Math.abs(t[0][0]-t[1][0]);
+	    for( i=0;i<nL;i++){
+	        p_init[i][0] = group[i].x;
+	        p_init[i+nL][0] = 1;
+	        p_init[i+2*nL][0] = group[i].width;
+
+	        p_min[i][0] = group[i].x-dt;//-group[i].width/4;
+	        p_min[i+nL][0] = 0;
+	        p_min[i+2*nL][0] = group[i].width/4;
+
+	        p_max[i][0] = group[i].x+dt;//+group[i].width/4;
+	        p_max[i+nL][0] = 1.5;
+	        p_max[i+2*nL][0] = group[i].width*4;
+
+	        dx[i][0] = -dt/1000;
+	        dx[i+nL][0] = -1e-3;
+	        dx[i+2*nL][0] = -dt/1000;
+	    }
+
+	    var dx = -Math.abs(t[0][0]-t[1][0])/10000;
+	    var p_fit = LM.optimize(sumOfLorentzians, p_init, t, y_data, weight, dx, p_min, p_max, consts, opts);
+	    p_fit=p_fit.p;
+	    //Put back the result in the correct format
+	    var result = new Array(nL);
+	    for( i=0;i<nL;i++){
+	        result[i]=[p_fit[i],[p_fit[i+nL][0]*maxY],p_fit[i+2*nL]];
+	    }
+
+	    return result;
+
+	}
+
+	/**
+	 *
+	 * @param xy A two column matrix containing the x and y data to be fitted
+	 * @param group A set of initial lorentzian parameters to be optimized [center, heigth, half_width_at_half_height]
+	 * @returns {Array} A set of final lorentzian parameters [center, heigth, hwhh*2]
+	 */
+	function optimizeGaussianSum(xy, group, opts){
+	    var xy2 = parseData(xy);
+	    var t = xy2[0];
+	    var y_data = xy2[1];
+	    var maxY = xy2[2];
+	    var nbPoints = t.rows,i;
+
+	    var weight = new Matrix(nbPoints,1);//[nbPoints / math.sqrt(y_data.dot(y_data))];
+	    var k = nbPoints / math.sqrt(y_data.dot(y_data));
+	    for(i=0;i<nbPoints;i++){
+	        weight[i][0]=k;///(y_data[i][0]);
+	        //weight[i][0]=k*(2-y_data[i][0]);
+	    }
+
+	    var opts=Object.create(opts || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        2 ]);
+	    //var opts=[  3,    100, 1e-5, 1e-6, 1e-6, 1e-6, 1e-6,    11,    9,        1 ];
+	    var consts = [ ];// optional vector of constants
+
+	    var nL = group.length;
+	    var p_init = new Matrix(nL*3,1);
+	    var p_min =  new Matrix(nL*3,1);
+	    var p_max =  new Matrix(nL*3,1);
+	    var dx = new Matrix(nL*3,1);
+	    var dt = Math.abs(t[0][0]-t[1][0]);
+	    for( i=0;i<nL;i++){
+	        p_init[i][0] = group[i].x;
+	        p_init[i+nL][0] = group[i].y/maxY;
+	        p_init[i+2*nL][0] = group[i].width;
+
+	        p_min[i][0] = group[i].x-dt;
+	        p_min[i+nL][0] = group[i].y*0.8/maxY;
+	        p_min[i+2*nL][0] = group[i].width/2;
+
+	        p_max[i][0] = group[i].x+dt;
+	        p_max[i+nL][0] = group[i].y*1.2/maxY;
+	        p_max[i+2*nL][0] = group[i].width*2;
+
+	        dx[i][0] = -dt/1000;
+	        dx[i+nL][0] = -1e-3;
+	        dx[i+2*nL][0] = -dt/1000;
+	    }
+	    //console.log(t);
+	    var p_fit = LM.optimize(sumOfLorentzians,p_init,t,y_data,weight,dx,p_min,p_max,consts,opts);
+	    p_fit = p_fit.p;
+	    //Put back the result in the correct format
+	    var result = new Array(nL);
+	    for( i=0;i<nL;i++){
+	        result[i]=[p_fit[i],[p_fit[i+nL][0]*maxY],p_fit[i+2*nL]];
+	    }
+
+	    return result;
+
+	}
+	/**
+	 *
+	 * Converts the given input to the required x, y column matrices. y data is normalized to max(y)=1
+	 * @param xy
+	 * @returns {*[]}
+	 */
+	function parseData(xy){
+	    var nbSeries = xy.length;
+	    var t = null;
+	    var y_data = null, x,y;
+	    var maxY = 0, i,j;
+
+	    if(nbSeries==2){
+	        //Looks like row wise matrix [x,y]
+	        var nbPoints = xy[0].length;
+	        if(nbPoints<3)
+	            throw new SizeException(nbPoints);
+	        else{
+	            t = new Matrix(nbPoints,1);
+	            y_data = new Matrix(nbPoints,1);
+	            x = xy[0];
+	            y = xy[1];
+	            if(typeof x[0] === "number"){
+	                for(i=0;i<nbPoints;i++){
+	                    t[i][0]=x[i];
+	                    y_data[i][0]=y[i];
+	                    if(y[i]>maxY)
+	                        maxY = y[i];
+	                }
+	            }
+	            else{
+	                //It is a colum matrix
+	                if(typeof x[0] === "object"){
+	                    for(i=0;i<nbPoints;i++){
+	                        t[i][0]=x[i][0];
+	                        y_data[i][0]=y[i][0];
+	                        if(y[i][0]>maxY)
+	                            maxY = y[i][0];
+	                    }
+	                }
+
+	            }
+
+	        }
+	    }
+	    else{
+	        //Looks like a column wise matrix [[x],[y]]
+	        var nbPoints = nbSeries;
+	        if(nbPoints<3)
+	            throw new SizeException(nbPoints);
+	        else {
+	            t = new Matrix(nbPoints, 1);
+	            y_data = new Matrix(nbPoints, 1);
+	            for (i = 0; i < nbPoints; i++) {
+	                t[i][0] = xy[i][0];
+	                y_data[i][0] = xy[i][1];
+	                if(y_data[i][0]>maxY)
+	                    maxY = y_data[i][0];
+	            }
+	        }
+	    }
+	    for (i = 0; i < nbPoints; i++) {
+	        y_data[i][0]/=maxY;
+	    }
+	    return [t,y_data,maxY];
+	}
+
+	function sizeException(nbPoints) {
+	    return new RangeError("Not enough points to perform the optimization: "+nbPoints +"< 3");
+	}
+
+	module.exports.optimizeSingleLorentzian = optimizeSingleLorentzian;
+	module.exports.optimizeLorentzianSum = optimizeLorentzianSum;
+	module.exports.optimizeSingleGaussian = optimizeSingleGaussian;
+	module.exports.optimizeGaussianSum = optimizeGaussianSum;
+	module.exports.singleGaussian = singleGaussian;
+	module.exports.singleLorentzian = singleLorentzian;
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	module.exports = __webpack_require__(11);
+	module.exports.Matrix = __webpack_require__(12);
+	module.exports.Matrix.algebra = __webpack_require__(21);
+
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
 	 * Created by acastillo on 8/5/15.
 	 */
-	var Matrix = __webpack_require__(9);
-	var math = __webpack_require__(18);
+	var Matrix = __webpack_require__(12);
+	var math = __webpack_require__(21);
 
 	var DEBUG = false;
 	/** Levenberg Marquardt curve-fitting: minimize sum of weighted squared residuals
@@ -3820,19 +3949,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        }
 	        //p = p(:); y_dat = y_dat(:);		// make column vectors
-
+	        var i,k;
 	        var eps = 2^-52;
 	        var Npar   = p.length;//length(p); 			// number of parameters
 	        var Npnt   = y_dat.length;//length(y_dat);		// number of data points
-	        var p_old  = new Matrix.zeros(Npar,1);		// previous set of parameters
-	        var y_old  = new Matrix.zeros(Npnt,1);		// previous model, y_old = y_hat(t;p_old)
+	        var p_old  = Matrix.zeros(Npar,1);		// previous set of parameters
+	        var y_old  = Matrix.zeros(Npnt,1);		// previous model, y_old = y_hat(t;p_old)
 	        var X2     = 1e-2/eps;			// a really big initial Chi-sq value
 	        var X2_old = 1e-2/eps;			// a really big initial Chi-sq value
-	        var J = new Matrix.zeros(Npnt,Npar);
-	        /*var J      = new Array(Npnt);//zeros(Npnt,Npar);		// Jacobian matrix
-	         for(var  i=0;i<Npnt;i++){
-	         J[i] = new Array(Npar);
-	         }*/
+	        var J =  Matrix.zeros(Npnt,Npar);
+
 
 	        if (t.length != y_dat.length) {
 	            console.log('lm.m error: the length of t must equal the length of y_dat');
@@ -3869,9 +3995,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        if ( tensor_parameter && prnt == 3 ) prnt = 2;
 
-	        //plotcmd='figure(11); plot(t(:,1),y_dat,''og'',t(:,1),y_hat,''-b''); axis tight; drawnow ';
-
-	        //p_min=p_min(:); p_max=p_max(:); 	// make column vectors
 
 	        if(!dp.length || dp.length == 1){
 	            var dp_array = new Array(Npar);
@@ -3882,8 +4005,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        // indices of the parameters to be fit
 	        var idx   = [];
-	        for(var i=0;i<dp.length;i++){
-	            if(dp[i]!=0){
+	        for(i=0;i<dp.length;i++){
+	            if(dp[i][0]!=0){
 	                idx.push(i);
 	            }
 	        }
@@ -3897,7 +4020,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            // squared weighting vector
 	            //weight_sq = ( weight(1)*ones(Npnt,1) ).^2;
 	            //console.log("weight[0] "+typeof weight[0]);
-	            var tmp = math.multiply(new Matrix.ones(Npnt,1),weight[0]);
+	            var tmp = math.multiply(Matrix.ones(Npnt,1),weight[0]);
 	            weight_sq = math.dotMultiply(tmp,tmp);
 	        }
 	        else{
@@ -3931,7 +4054,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        //console.log(X2);
 	        X2_old = X2; // previous value of X2
 	        //console.log(MaxIter+" "+Npar);
-	        var cvg_hst = new Matrix.ones(MaxIter,Npar+3);		// initialize convergence history
+	        //var cvg_hst = Matrix.ones(MaxIter,Npar+3);		// initialize convergence history
 	        var h = null;
 	        while ( !stop && iteration <= MaxIter ) {		// --- Main Loop
 	            iteration = iteration + 1;
@@ -3945,24 +4068,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	                default:					// Quadratic and Nielsen
 	                    //h = ( JtWJ + lambda * math.eye(Npar) ) \ JtWdy;
 
-	                    h = math.solve(math.add(JtWJ,math.multiply(new Matrix.eye(Npar),lambda)),JtWdy);
+	                    h = math.solve(math.add(JtWJ,math.multiply( Matrix.eye(Npar),lambda)),JtWdy);
 	            }
 
 	            /*for(var k=0;k< h.length;k++){
-	                h[k]=[h[k]];
-	            }*/
+	             h[k]=[h[k]];
+	             }*/
 	            //console.log("h "+h);
 	            //h=math.matrix(h);
 	            //  big = max(abs(h./p)) > 2;
 	            //this is a big step
 	            // --- Are parameters [p+h] much better than [p] ?
 	            var hidx = new Array(idx.length);
-	            for(var k=0;k<idx.length;k++){
+	            for(k=0;k<idx.length;k++){
 	                hidx[k]=h[idx[k]];
 	            }
 	            var p_try = math.add(p, hidx);// update the [idx] elements
 
-	            for(var k=0;k<p_try.length;k++){
+	            for(k=0;k<p_try.length;k++){
 	                p_try[k][0]=Math.min(Math.max(p_min[k][0],p_try[k][0]),p_max[k][0]);
 	            }
 	            // p_try = Math.min(Math.max(p_min,p_try),p_max);           // apply constraints
@@ -4041,54 +4164,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        nu = 2 * nu;
 	                        break;
 	                }
-	                if (DEBUG) {
-	                    /*fprintf('>//3d://3d | chi_sq=//10.3e | lambda=//8.1e \n', iteration,func_calls,X2,lambda );
-	                     fprintf('    param:  ');
-	                     for pn=1:Npar
-	                     fprintf(' //10.3e', p(pn) );
-	                     end
-	                     fprintf('\n');
-	                     fprintf('    dp/p :  ');
-	                     for pn=1:Npar
-	                     fprintf(' //10.3e', h(pn) / p(pn) );
-	                     end
-	                     fprintf('\n');
-	                     end
-
-
-	                     cvg_hst(iteration,:) = [ func_calls  p'  X2/2  lambda ];	// update convergence history
-
-
-	                     if ( max(abs(JtWdy)) < epsilon_1  &  iteration > 2 )
-	                     fprintf(' **** Convergence in r.h.s. ("JtWdy")  **** \n')
-	                     fprintf(' **** epsilon_1 = //e\n', epsilon_1);
-	                     stop = 1;
-	                     end
-	                     if ( max(abs(h./p)) < epsilon_2  &  iteration > 2 )
-	                     fprintf(' **** Convergence in Parameters **** \n')
-	                     fprintf(' **** epsilon_2 = //e\n', epsilon_2);
-	                     stop = 1;
-	                     end
-	                     if ( X2/(Npnt-Npar+1) < epsilon_3  &  iteration > 2 )
-	                     fprintf(' **** Convergence in Chi-square  **** \n')
-	                     fprintf(' **** epsilon_3 = //e\n', epsilon_3);
-	                     stop = 1;
-	                     end
-	                     if ( iteration == MaxIter )
-	                     disp(' !! Maximum Number of Iterations Reached Without Convergence !!')
-	                     stop = 1;
-	                     end*/
-	                }
 	            }
 	        }// --- End of Main Loop
 
 	        // --- convergence achieved, find covariance and confidence intervals
 
 	        // equal weights for paramter error analysis
-	        weight_sq = math.multiply(math.multiply(math.transpose(delta_y),delta_y), new Matrix.ones(Npnt,1));
-
-	        //console.log("XX "+(Npnt-Nfit+1));
-	        //console.log(delta_y);
+	        weight_sq = math.multiply(math.multiply(math.transpose(delta_y),delta_y), Matrix.ones(Npnt,1));
 
 	        weight_sq.apply(function(i,j){
 	            weight_sq[i][j] = (Npnt-Nfit+1)/weight_sq[i][j];
@@ -4126,7 +4208,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        // endfunction  # ---------------------------------------------------------- LM
 
-	        return p;
+	        return { p:p, X2:X2};
 	    },
 
 	    lm_FD_J:function(func,t,p,y,dp,c) {
@@ -4157,7 +4239,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var m = y.length;			// number of data points
 	        var n = p.length;			// number of parameters
 
-	        dp = dp || math.multiply(new Matrix.ones(1, n), 0.001);
+	        dp = dp || math.multiply( Matrix.ones(n, 1), 0.001);
 
 	        var ps = p.clone();//JSON.parse(JSON.stringify(p));
 	        //var ps = $.extend(true, [], p);
@@ -4293,7 +4375,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        //console.log(weight_sq);
 
-	        var JtWJ = math.multiply(Jt, math.dotMultiply(J,math.multiply(weight_sq,new Matrix.ones(1,Npar))));
+	        var JtWJ = math.multiply(Jt, math.dotMultiply(J,math.multiply(weight_sq, Matrix.ones(1,Npar))));
 
 	        //JtWdy = J' * ( weight_sq .* delta_y );
 	        var JtWdy = math.multiply(Jt, math.dotMultiply(weight_sq,delta_y));
@@ -4310,17 +4392,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = LM;
 
 /***/ },
-/* 9 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	module.exports = __webpack_require__(10);
-	module.exports.Decompositions = module.exports.DC = __webpack_require__(11);
+	module.exports = __webpack_require__(13);
+	module.exports.Decompositions = module.exports.DC = __webpack_require__(14);
 
 
 /***/ },
-/* 10 */
+/* 13 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -5796,18 +5878,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 11 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(10);
+	var Matrix = __webpack_require__(13);
 
-	var SingularValueDecomposition = __webpack_require__(12);
-	var EigenvalueDecomposition = __webpack_require__(14);
-	var LuDecomposition = __webpack_require__(15);
-	var QrDecomposition = __webpack_require__(16);
-	var CholeskyDecomposition = __webpack_require__(17);
+	var SingularValueDecomposition = __webpack_require__(15);
+	var EigenvalueDecomposition = __webpack_require__(17);
+	var LuDecomposition = __webpack_require__(18);
+	var QrDecomposition = __webpack_require__(19);
+	var CholeskyDecomposition = __webpack_require__(20);
 
 	function inverse(matrix) {
 	    return solve(matrix, Matrix.eye(matrix.rows));
@@ -5842,13 +5924,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 12 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(10);
-	var hypotenuse = __webpack_require__(13).hypotenuse;
+	var Matrix = __webpack_require__(13);
+	var hypotenuse = __webpack_require__(16).hypotenuse;
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/SingularValueDecomposition.cs
 	function SingularValueDecomposition(value, options) {
@@ -6345,7 +6427,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 13 */
+/* 16 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -6365,13 +6447,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 14 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(10);
-	var hypotenuse = __webpack_require__(13).hypotenuse;
+	var Matrix = __webpack_require__(13);
+	var hypotenuse = __webpack_require__(16).hypotenuse;
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/EigenvalueDecomposition.cs
 	function EigenvalueDecomposition(matrix) {
@@ -7137,12 +7219,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 15 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(10);
+	var Matrix = __webpack_require__(13);
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/LuDecomposition.cs
 	function LuDecomposition(matrix) {
@@ -7312,13 +7394,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 16 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(10);
-	var hypotenuse = __webpack_require__(13).hypotenuse;
+	var Matrix = __webpack_require__(13);
+	var hypotenuse = __webpack_require__(16).hypotenuse;
 
 	//https://github.com/lutzroeder/Mapack/blob/master/Source/QrDecomposition.cs
 	function QrDecomposition(value) {
@@ -7468,12 +7550,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 17 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(10);
+	var Matrix = __webpack_require__(13);
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/CholeskyDecomposition.cs
 	function CholeskyDecomposition(value) {
@@ -7563,7 +7645,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 18 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -7575,7 +7657,27 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var Matrix = __webpack_require__(9);
+	var Matrix = __webpack_require__(12);
+
+	function matrix(A,B){
+	    return new Matrix(A,B);
+	}
+
+	function ones(rows, cols){
+	    return Matrix.ones(rows,cols);
+	}
+
+	function eye(rows, cols){
+	    return Matrix.eye(rows, cols);
+	}
+
+	function zeros(rows, cols){
+	    return Matrix.zeros(rows, cols);
+	}
+
+	function random(rows, cols){
+	    return Matrix.rand(rows,cols);
+	}
 
 	function transpose(A){
 	    if(typeof A == 'number')
@@ -7643,14 +7745,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	            rows = A.length;
 	            cols = A[0].length;
 	            r = Math.min(rows,cols);
-	            diag = new Matrix.zeros(cols, cols);
+	            diag = Matrix.zeros(cols, cols);
 	            for (j = 0; j < cols; j++) {
 	                diag[j][j]=A[j][j];
 	            }
 	        }
 	        else{
 	            cols = A.length;
-	            diag = new Matrix.zeros(cols, cols);
+	            diag = Matrix.zeros(cols, cols);
 	            for (j = 0; j < cols; j++) {
 	                diag[j][j]=A[j];
 	            }
@@ -7658,7 +7760,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    }
 	    if(rows == 1){
-	        diag = new Matrix.zeros(cols, cols);
+	        diag = Matrix.zeros(cols, cols);
 	        for (j = 0; j < cols; j++) {
 	            diag[j][j]=A[0][j];
 	        }
@@ -7791,16 +7893,268 @@ return /******/ (function(modules) { // webpackBootstrap
 	    sqrt:sqrt,
 	    exp:exp,
 	    dotPow:dotPow,
-	    abs:abs
+	    abs:abs,
+	    matrix:matrix,
+	    ones:ones,
+	    zeros:zeros,
+	    random:random,
+	    eye:eye
 	};
 
 
 /***/ },
-/* 19 */
+/* 22 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Opt = __webpack_require__(9);
+
+	function gsd(x, y, options){
+	    var options=Object.create(options || {});
+	    if (options.minMaxRatio===undefined) options.minMaxRatio=0.00025;
+	    if (options.broadRatio===undefined) options.broadRatio=0.00;
+	    if (options.noiseLevel===undefined) options.noiseLevel=0;
+	    if (options.maxCriteria===undefined) options.maxCriteria=true;
+	    if (options.smoothY===undefined) options.smoothY=true;
+
+
+	    if (options.noiseLevel>0) {
+	        y=[].concat(y);
+	        for (var i=0; i<y.length; i++){
+	            if(Math.abs(y[i])<options.noiseLevel) {
+	                y[i]=0;
+	            }
+	        }
+	    }
+
+	    // fill convolution frequency axis
+	    var X = [];//x[2:(x.length-2)];
+
+	    // fill Savitzky-Golay polynomes
+	    var size= x.length-4;
+	    var Y = new Array(size);
+	    var dY = new Array(size);
+	    var ddY = new Array(size);
+	    //var dX = new Array(size);
+	    var dx = x[1]-x[0];
+
+	    for (var j = 2; j < size+2; j++) {
+	        dx = x[j]-x[j-1];
+	        if(options.smoothY)
+	            Y[j-2]=(1/35.0)*(-3*y[j-2] + 12*y[j-1] + 17*y[j] + 12*y[j+1] - 3*y[j+2]);
+	        else
+	            Y[j-2]=y[j];
+	        X[j-2]=x[j];
+	        dY[j-2]=(1/(12*dx))*(y[j-2] - 8*y[j-1] + 8*y[j+1] - y[j+2]);
+	        ddY[j-2]=(1/(7*dx*dx))*(2*y[j-2] - y[j-1] - 2*y[j] - y[j+1] + 2*y[j+2]);
+	    }
+
+	    var maxDdy=0;
+	    var maxY = 0;
+	    //console.log(Y.length);
+	    for (var i = 0; i < Y.length ; i++){
+	        if(Math.abs(ddY[i])>maxDdy){
+	            maxDdy = Math.abs(ddY[i]);
+	        }
+	        if(Math.abs(Y[i])>maxY){
+	            maxY = Math.abs(Y[i]);
+	        }
+	    }
+	    //console.log(maxY+"x"+maxDy+"x"+maxDdy);
+	    var minddY = [];
+	    var intervals = [];
+	    var lastMax = null;
+	    var lastMin = null;
+	    var broadMask = new Array();
+	    //console.log(dx);
+	    //By the intermediate value theorem We cannot find 2 consecutive maxima or minima
+	    for (var i = 1; i < Y.length -1 ; i++){
+	        //console.log(dY[i]);
+	        if ((dY[i] < dY[i-1]) && (dY[i] <= dY[i+1])||
+	            (dY[i] <= dY[i-1]) && (dY[i] < dY[i+1])) {
+	            lastMin = X[i];
+	            //console.log("min "+lastMin);
+	            if(dx>0&&lastMax!=null){
+	                intervals.push( [lastMax , lastMin] );
+	            }
+	        }
+
+	        if ((dY[i] >= dY[i-1]) && (dY[i] > dY[i+1])||
+	            (dY[i] > dY[i-1]) && (dY[i] >= dY[i+1])) {
+	            lastMax = X[i];
+	            //console.log("max "+lastMax);
+	            if(dx<0&&lastMin!=null){
+	                intervals.push( [lastMax , lastMin] );
+	            }
+	        }
+
+	        if(options.maxCriteria){
+	            if ((ddY[i] < ddY[i-1]) && (ddY[i] < ddY[i+1])) {
+	                minddY.push( [X[i], Y[i], i] );  // TODO should we change this to have 3 arrays ? Huge overhead creating arrays
+	                if(Math.abs(ddY[i])>options.broadRatio*maxDdy){ // TODO should this be a parameter =
+	                    broadMask.push(false);
+	                }
+	                else{
+	                    broadMask.push(true);
+	                }
+	            }
+	        }
+	        else{
+	            if ((ddY[i] > ddY[i-1]) && (ddY[i] > ddY[i+1])) {
+	                minddY.push( [X[i], Y[i], i] );  // TODO should we change this to have 3 arrays ? Huge overhead creating arrays
+	                if(Math.abs(ddY[i])>options.broadRatio*maxDdy){ // TODO should this be a parameter =
+	                    broadMask.push(false);
+	                }
+	                else{
+	                    broadMask.push(true);
+	                }
+	            }
+	        }
+
+	    }
+	    realTopDetection(minddY,X,Y);
+	    //console.log(intervals);
+	    //console.log(minddY.length);
+	    var signals = [];
+
+	    for (var j = 0; j < minddY.length; j++){
+	        var f = minddY[j];
+	        var frequency = f[0];
+	        var possible = [];
+	        for (var k=0; k<intervals.length; k++){
+	            var i = intervals[k];
+	            if(Math.abs(frequency-(i[0]+i[1])/2)<Math.abs(i[0]-i[1])/2)
+	                possible.push(i);
+	        }
+	        //console.log("possible "+possible.length);
+	        if (possible.length > 0)
+	            if (possible.length == 1)
+	            {
+	                var inter = possible[0];
+	                var linewidth = Math.abs(inter[1] - inter[0]);
+	                var height = f[1];
+	                //console.log(height);
+	                if (Math.abs(height) > options.minMaxRatio*maxY) {
+	                    signals.push({
+	                        x: frequency,
+	                        y: height,
+	                        width: linewidth//*widthCorrection
+	                    })
+	                }
+	            }
+	            else
+	            {
+	                //TODO: nested peaks
+	                // console.log("Nested "+possible);
+	            }
+	    }
+	    if(options.broadRatio>0){
+	        var broadLines=[[Number.MAX_VALUE,0,0]];
+	        //Optimize the possible broad lines
+	        var max=0, maxI=0,count=0;
+	        var candidates = [],broadLinesS=[];
+	        var isPartOf = false;
+
+	        for(var i=broadLines.length-1;i>0;i--){
+	            //console.log(broadLines[i][0]+" "+rangeX+" "+Math.abs(broadLines[i-1][0]-broadLines[i][0]));
+	            if(Math.abs(broadLines[i-1][0]-broadLines[i][0])<rangeX){
+
+	                candidates.push(broadLines[i]);
+	                if(broadLines[i][1]>max){
+	                    max = broadLines[i][1];
+	                    maxI = i;
+	                }
+	                count++;
+	            }
+	            else{
+	                isPartOf = true;
+	                if(count>30){ // TODO, an options ?
+	                    isPartOf = false;
+	                    //for(var j=0;j<signals.length;j++){
+	                    //    if(Math.abs(broadLines[maxI][0]-signals[j][0])<rangeX)
+	                    //       isPartOf = true;
+	                    //    }
+	                    //console.log("Was part of "+isPartOf);
+	                }
+	                if(isPartOf){
+	                    for(var j=0;j<candidates.length;j++){
+	                        signals.push([candidates[j][0], candidates[j][1], dx]);
+	                    }
+	                }
+	                else{
+	                    var fitted =  Opt.optimizeSingleLorentzian(candidates,{x:candidates[maxI][0],
+	                        width:Math.abs(candidates[0][0]-candidates[candidates.length-1][0])},
+	                        []);
+	                    //console.log(fitted);
+	                    signals.push([fitted[0][0],fitted[0][1],fitted[0][2]]);
+	                }
+	                candidates = [];
+	                max = 0;
+	                maxI = 0;
+	                count = 0;
+	            }
+	        }
+	    }
+
+	    signals.sort(function (a, b) {
+	        return a.x - b.x;
+	    });
+
+
+	    return signals;
+	}
+
+	function realTopDetection(peakList, x, y){
+	    var listP = [];
+	    var alpha, beta, gamma, p,currentPoint;
+	    for(var j=0;j<peakList.length;j++){
+	        currentPoint = peakList[j][2];
+	        //The detected peak could be moved 1 or 2 unit to left or right.
+	        if(y[currentPoint-1]>=y[currentPoint-2]
+	            &&y[currentPoint-1]>=y[currentPoint]) {
+	            currentPoint--;
+	        }
+	        else{
+	            if(y[currentPoint+1]>=y[currentPoint]
+	                &&y[currentPoint+1]>=y[currentPoint+2]) {
+	                currentPoint++;
+	            }
+	            else{
+	                if(y[currentPoint-2]>=y[currentPoint-3]
+	                    &&y[currentPoint-2]>=y[currentPoint-1]) {
+	                    currentPoint-=2;
+	                }
+	                else{
+	                    if(y[currentPoint+2]>=y[currentPoint+1]
+	                        &&y[currentPoint+2]>=y[currentPoint+3]) {
+	                        currentPoint+=2;
+	                    }
+	                }
+	            }
+	        }
+	        if(y[currentPoint-1]>0&&y[currentPoint+1]>0
+	            &&y[currentPoint]>=y[currentPoint-1]
+	            &&y[currentPoint]>=y[currentPoint+1]) {
+	            alpha = 20 * Math.log10(y[currentPoint - 1]);
+	            beta = 20 * Math.log10(y[currentPoint]);
+	            gamma = 20 * Math.log10(y[currentPoint + 1]);
+	            p = 0.5 * (alpha - gamma) / (alpha - 2 * beta + gamma);
+
+	            peakList[j][0] = x[currentPoint] + (x[currentPoint]-x[currentPoint-1])*p;
+	            peakList[j][1] = y[currentPoint] - 0.25 * (y[currentPoint - 1]
+	                - [currentPoint + 1]) * p;//signal.peaks[j].intensity);
+	        }
+	    }
+	}
+
+	module.exports=gsd;
+
+
+/***/ },
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var SD = __webpack_require__(1);
-	var PeakPicking2D = __webpack_require__(20);
+	var PeakPicking2D = __webpack_require__(24);
 	var JcampConverter=__webpack_require__(3);
 
 	function NMR2D(sd) {
@@ -7929,13 +8283,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 20 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var FFTUtils = __webpack_require__(21);
-	var PeakOptimizer = __webpack_require__(23);
-	var SimpleClustering =  __webpack_require__(24);
+	var lib = __webpack_require__(25);
+	var PeakOptimizer = __webpack_require__(28);
+	var SimpleClustering =  __webpack_require__(29);
 	var StatArray = __webpack_require__(2);
+	var FFTUtils = lib.FFTUtils;
 
 	var PeakPicking2D= {
 	    DEBUG : false,
@@ -8280,10 +8635,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = PeakPicking2D;
 
 /***/ },
-/* 21 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var FFT = __webpack_require__(22);
+	'use strict';
+
+	exports.FFTUtils = __webpack_require__(26);
+	exports.FFT = __webpack_require__(27);
+
+
+/***/ },
+/* 26 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var FFT = __webpack_require__(27);
 
 	var FFTUtils= {
 	    DEBUG : false,
@@ -8476,6 +8841,47 @@ return /******/ (function(modules) { // webpackBootstrap
 	                ftSignal[(iRow * 2 + 1) * ftCols + iCol] = im;
 	            }
 	        }
+	    },
+	    /**
+	     *
+	     * @param data
+	     * @param kernel
+	     * @param nRows
+	     * @param nCols
+	     * @returns {*}
+	     */
+	    convolute:function(data, kernel, nRows, nCols){
+	        var ftSpectrum = new Array(nCols * nRows);
+	        for (var i = 0; i<nRows * nCols; i++){
+	            ftSpectrum[i] = data[i];
+	        }
+
+	        ftSpectrum = this.fft2DArray(ftSpectrum, nRows, nCols);
+
+	        var dim = kernel.length;
+	        var ftFilterData = new Array(nCols * nRows);
+	        for(var i=0;i<nCols * nRows;i++){
+	            ftFilterData[i]=0;
+	        }
+
+	        var iRow, iCol;
+	        var shift = (dim - 1) / 2;
+	        //console.log(dim);
+	        for (var ir = 0; ir < dim; ir++) {
+	            iRow = (ir - shift + nRows) % nRows;
+	            for (var ic = 0; ic < dim; ic++) {
+	                iCol = (ic - shift + nCols) % nCols;
+	                ftFilterData[iRow * nCols + iCol] = kernel[ir][ic];
+	            }
+	        }
+
+	        ftFilterData = this.fft2DArray(ftFilterData, nRows, nCols);
+
+	        var ftRows = nRows * 2;
+	        var ftCols = nCols / 2 + 1;
+	        this.convolute2DI(ftSpectrum, ftFilterData, ftRows, ftCols);
+
+	        return  this.ifft2DArray(ftSpectrum, ftRows, ftCols);
 	    }
 	}
 
@@ -8483,7 +8889,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 22 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -8720,7 +9126,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 23 */
+/* 28 */
 /***/ function(module, exports) {
 
 	var PeakOptimizer={
@@ -8984,7 +9390,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = PeakOptimizer;
 
 /***/ },
-/* 24 */
+/* 29 */
 /***/ function(module, exports) {
 
 	var SimpleClustering={
@@ -9048,7 +9454,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = SimpleClustering;
 
 /***/ },
-/* 25 */
+/* 30 */
 /***/ function(module, exports) {
 
 	/**
