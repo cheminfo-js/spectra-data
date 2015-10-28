@@ -565,7 +565,8 @@ SD.prototype.getParamInt = function(name, defvalue){
  * Return the y elements of the current spectrum
  * @returns {*}
  */
-SD.prototype.getSpectrumDataY = function(){
+
+SD.prototype.getSpectraDataX = function(){
     return this.getYData();
 }
 

@@ -472,7 +472,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	SD.prototype.shift=function(globalShift) {
 	    for(var i=0;i<this.getNbSubSpectra();i++){
 	        this.setActiveElement(i);
-	        var x = this.getSpectrumData().x;
+	        var x = this.getSpectraData().x;
 	        var length = this.getNbPoints(),i=0;
 	        for(i=0;i<length;i++){
 	            x[i]+=globalShift;

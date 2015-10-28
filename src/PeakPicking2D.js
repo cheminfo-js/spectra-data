@@ -1,7 +1,8 @@
-var FFTUtils = require("./FFTUtils");
+var lib = require("ml-fft");
 var PeakOptimizer = require("./PeakOptimizer");
 var SimpleClustering =  require("./SimpleClustering");
 var StatArray = require('ml-stat/array');
+var FFTUtils = lib.FFTUtils;
 
 var PeakPicking2D= {
     DEBUG : false,
