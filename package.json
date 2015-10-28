@@ -1,6 +1,6 @@
 {
   "name": "spectra-data",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "spectra-data project - manipulate spectra",
   "keywords": [
     "spectra-data",
@@ -36,7 +36,7 @@
     "jcampconverter": "^2.0.8",
     "ml-stat": "^1.0.1",
     "ml-matrix": "^0.1.0",
-    "ml-gsd":"0.0.1",
-    "ml-fft":"1.0.5"
+    "ml-gsd": "0.0.1",
+    "ml-fft": "1.0.5"
   }
 }
