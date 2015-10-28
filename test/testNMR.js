@@ -15,6 +15,10 @@ function createSpectraData(filename, label, data) {
 describe('spectra-data test', function () {
     var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
 
+    it('getVector', function () {
+        spectrum.getVector(0.0,10,4*1024)[0].length.should.equal(4*1024);
+    });
+
     it('getNucleus', function () {
         spectrum.getNucleus().should.equal("1H");
     });

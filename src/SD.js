@@ -566,7 +566,7 @@ SD.prototype.getParamInt = function(name, defvalue){
  * @returns {*}
  */
 
-SD.prototype.getSpectraDataX = function(){
+SD.prototype.getSpectraDataY = function(){
     return this.getYData();
 }
 
@@ -633,29 +633,35 @@ SD.prototype.getVector = function(from, to, nPoints){
         to = tmp;
         reversed = true;
     }
-
-    if(x[end]>from||x[start]>to)
+    //console.log(x[end]+" "+from+" "+x[start]+" "+to);
+    if(x[start]>to||x[end]<from){
+        //console.log("ssss");
         return [];
+    }
 
     while(x[start]<from){start+=direction;}
+    while(x[end]>to){end-=direction;}
 
-    if(x[end]>to){
-        var end = start;
-        while(x[end]<to){end+=direction;}
-    }
     var winPoints = Math.abs(end-start)+1;
-    var xwin = new Array(winPoints), ywin = new Array(winPoints);
+    if(!nPoints){
+        nPoints = winPoints;
+    }
+    var xwin = new Array(nPoints);
+    var ywin = new Array(nPoints);
     var index = 0;
-    if(direction==-1)
-        index=winPoints-1;
-    var i=start-direction;
-    do{
-        i+=direction;
-        xwin[index]=x[i];
-        ywin[index]=y[i];
-        index+=direction;
-    }while(i!=end);
 
+    if(direction==-1)
+        index=nPoints-1;
+
+    var di = winPoints/nPoints;
+    var i=start-direction;
+    for(var k=0;k<nPoints;k++) {
+        i += Math.round(di * direction);
+        //console.log(i+" "+y[i]);
+        xwin[index] = x[i];
+        ywin[index] = y[i];
+        index += direction;
+    }
     return [xwin,ywin];
 }
 

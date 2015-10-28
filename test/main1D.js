@@ -23,10 +23,13 @@ var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
 
 //console.log(spectrum);
 if(true){
-    var d = new Date();
+    /*var d = new Date();
     var n = d.getTime();
     var peakPicking = spectrum.nmrPeakDetection({nH:8,realTop:true,thresholdFactor:1, clean:true, compile:true});
     d = new Date();
+
+    var list = spectrum.getVector(0.0,10);*/
+
     //console.log(d.getTime()-n);
     //console.log(peakPicking);
         /*for(var i=0;i<peakPicking.length;i++){
