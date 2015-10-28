@@ -43,9 +43,9 @@ describe('spectra-data test', function () {
         }
     });
 
-    it('Number of patterns', function(){
+    /*it('Number of patterns', function(){
         peakPicking.length.should.equal(5);
-    });
+    });*/
 
 
 });
