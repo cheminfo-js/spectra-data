@@ -2279,7 +2279,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/*var LM = require('ml-curve-fitting');
 	var Matrix = LM.Matrix;
 	var math = Matrix.algebra;*/
-	var peakPicking = __webpack_require__(7);
+	var GSD = __webpack_require__(7);
 
 	var PeakPicking={
 	    impurities:[],
@@ -2300,9 +2300,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var data = spectrum.getXYData();
 	        //var peakList = this.GSD(spectrum, noiseLevel);
 	        //peakList = Opt.optimizeLorentzianSum(peakList);//this.optmizeSpectrum(peakList,spectrum,noiseLevel);
-	        var peakList = peakPicking.gsd(data[0],data[1], {noiseLevel: noiseLevel, minMaxRatio:0.01, broadRatio:0.0025,smoothY:true});
-	        peakList = peakPicking.optimize(peakList,data[0],data[1],3,"lorentzian");
+	        var peakList = GSD.gsd(data[0],data[1], {noiseLevel: noiseLevel, minMaxRatio:0.01, broadRatio:0.0025,smoothY:true});
+	        //console.log(peakList.length);
+	        //console.log(peakList[0]);
+	        peakList = GSD.optimize(peakList,data[0],data[1],3,"lorentzian");
 	        //console.log(noiseLevel);
+	        //console.log(peakList.length);
 	        peakList = this.clearList(peakList,noiseLevel);
 	        var signals = this.detectSignals(peakList, spectrum, nH, options.integral||0);
 	        //console.log(JSON.stringify(signals));
@@ -3452,29 +3455,30 @@ return /******/ (function(modules) { // webpackBootstrap
 	var Opt = __webpack_require__(9);
 
 	function sampleFunction(from, to, x, y, lastIndex){
-	    //console.log(from+" "+to);
-	    //console.log(lastIndex+" "+x[lastIndex[0]]);
 	    var nbPoints = x.length;
 	    var sampleX = [];
 	    var sampleY = [];
 	    var direction = Math.sign(x[1]-x[0]);//Direction of the derivative
-	    var delta = (to-from)/2;
+	    if(direction==-1){
+	        lastIndex[0]= x.length-1;
+	    }
+
+	    var delta = Math.abs(to-from)/2;
 	    var mid = (from+to)/2;
 	    var stop = false;
 	    var index = lastIndex[0];
-	    while(!stop&&index<nbPoints){
+	    while(!stop&&index<nbPoints&&index>=0){
 	        if(Math.abs(x[index]-mid)<=delta){
 	            sampleX.push(x[index]);
 	            sampleY.push(y[index]);
-	            index++;
-
+	            index+=direction;
 	        }
 	        //It is outside the range.
 	        else{
 
-	            if(Math.sign(mid-x[index])==direction){
+	            if(Math.sign(mid-x[index])==1){
 	                //We'll reach the mid going in the current direction
-	                index++;
+	                index+=direction;
 	            }
 	            else{
 	                //There is not more peaks in the current range
@@ -3494,13 +3498,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var factor = 1;
 	    if(fnType=="gaussian")
 	        factor = 1.17741;//From https://en.wikipedia.org/wiki/Gaussian_function#Properties
-	    //console.log(x[0]+" "+x[1]);
 	    for(i=0;i<groups.length;i++){
-	        //console.log(peakList[i]);
 	        var peaks = groups[i].group;
 	        if(peaks.length>1){
 	            //Multiple peaks
 	            //console.log("Pending group of overlaped peaks "+peaks.length);
+	            //console.log("here1");
 	            //console.log(groups[i].limits);
 	            var sampling = sampleFunction(groups[i].limits[0]-groups[i].limits[1],groups[i].limits[0]+groups[i].limits[1],x,y,lastIndex);
 	            //console.log(sampling);
@@ -3516,8 +3519,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        optPeaks = Opt.optimizeLorentzianSum(sampling, peaks, opts);
 	                    }
 	                }
+	                //console.log(optPeak);
 	                for(j=0;j<optPeaks.length;j++){
-	                    result.push({x:optPeaks[j][0],y:optPeaks[j][1],width:optPeaks[j][2]*factor});
+	                    result.push({x:optPeaks[j][0][0],y:optPeaks[j][1][0],width:optPeaks[j][2][0]*factor});
 	                }
 	            }
 	        }
@@ -3526,7 +3530,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            peaks = peaks[0];
 	            var sampling = sampleFunction(peaks.x-n*peaks.width,
 	                peaks.x+n*peaks.width,x,y,lastIndex);
-	            //console.log(sampling);
+	            //console.log("here2");
+	            //console.log(groups[i].limits);
 	            if(sampling[0].length>5){
 	                var error = peaks.width/1000;
 	                var opts = [  3,    100, error, error, error, error*10, error*10,    11,    9,        1 ];
@@ -3540,7 +3545,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        var optPeak = Opt.optimizeSingleLorentzian([sampling[0],sampling[1]], peaks,  opts);
 	                    }
 	                }
-	                result.push({x:optPeak[0],y:optPeak[1],width:optPeak[2]*factor}); // From https://en.wikipedia.org/wiki/Gaussian_function#Properties}
+	                //console.log(optPeak);
+	                result.push({x:optPeak[0][0],y:optPeak[1][0],width:optPeak[2][0]*factor}); // From https://en.wikipedia.org/wiki/Gaussian_function#Properties}
 	            }
 	        }
 
