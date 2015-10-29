@@ -8,7 +8,7 @@ var JAnalyzer = require('./JAnalyzer');
 /*var LM = require('ml-curve-fitting');
 var Matrix = LM.Matrix;
 var math = Matrix.algebra;*/
-var peakPicking = require("ml-gsd");
+var GSD = require("ml-gsd");
 
 var PeakPicking={
     impurities:[],
@@ -29,9 +29,12 @@ var PeakPicking={
         var data = spectrum.getXYData();
         //var peakList = this.GSD(spectrum, noiseLevel);
         //peakList = Opt.optimizeLorentzianSum(peakList);//this.optmizeSpectrum(peakList,spectrum,noiseLevel);
-        var peakList = peakPicking.gsd(data[0],data[1], {noiseLevel: noiseLevel, minMaxRatio:0.01, broadRatio:0.0025,smoothY:true});
-        peakList = peakPicking.optimize(peakList,data[0],data[1],3,"lorentzian");
+        var peakList = GSD.gsd(data[0],data[1], {noiseLevel: noiseLevel, minMaxRatio:0.01, broadRatio:0.0025,smoothY:true});
+        //console.log(peakList.length);
+        //console.log(peakList[0]);
+        peakList = GSD.optimize(peakList,data[0],data[1],3,"lorentzian");
         //console.log(noiseLevel);
+        //console.log(peakList.length);
         peakList = this.clearList(peakList,noiseLevel);
         var signals = this.detectSignals(peakList, spectrum, nH, options.integral||0);
         //console.log(JSON.stringify(signals));
