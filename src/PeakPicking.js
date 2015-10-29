@@ -9,34 +9,35 @@ var JAnalyzer = require('./JAnalyzer');
 var Matrix = LM.Matrix;
 var math = Matrix.algebra;*/
 var GSD = require("ml-gsd");
+var extend = require("extend");
 
 var PeakPicking={
     impurities:[],
     maxJ:20,
+    defaultOptions:{nH:10, clean:true, realTop:false, thresholdFactor:1, compile:true, integralFn:0},
 
-    peakPicking:function(spectrum, options){
-        options = options||{nH:10, clean:true, realTop:false, thresholdFactor:1, compile:true, integral:0}
+    peakPicking:function(spectrum, optionsEx){
+        var options = extend({}, this.defaultOptions, optionsEx);
 
-        var nH=options.nH||10;
         var i, j, nHi, sum;
-        //options.realTop = options.realTop||false;
-        //options.thresholdFactor = options.thresholdFactor || 1;
-        //options.compile = options.compile || false;
-        //options.clean = options.clean || false;
-        //var tmp = spectrum.clone();
 
-        var noiseLevel = Math.abs(spectrum.getNoiseLevel())*(options.thresholdFactor||1);
+        var noiseLevel = Math.abs(spectrum.getNoiseLevel())*(options.thresholdFactor);
+        var gsdOptions = extend({},
+            {noiseLevel: noiseLevel, minMaxRatio:0.03, broadRatio:0.0025,smoothY:true, nL:4},
+            options.gsdOptions);
+
         var data = spectrum.getXYData();
         //var peakList = this.GSD(spectrum, noiseLevel);
         //peakList = Opt.optimizeLorentzianSum(peakList);//this.optmizeSpectrum(peakList,spectrum,noiseLevel);
-        var peakList = GSD.gsd(data[0],data[1], {noiseLevel: noiseLevel, minMaxRatio:0.01, broadRatio:0.0025,smoothY:true});
+        var peakList = GSD.gsd(data[0],data[1], gsdOptions);
         //console.log(peakList.length);
         //console.log(peakList[0]);
-        peakList = GSD.optimize(peakList,data[0],data[1],3,"lorentzian");
+
+        peakList = GSD.optimize(peakList,data[0],data[1],gsdOptions.nL,"lorentzian");
         //console.log(noiseLevel);
-        //console.log(peakList.length);
+
         peakList = this.clearList(peakList,noiseLevel);
-        var signals = this.detectSignals(peakList, spectrum, nH, options.integral||0);
+        var signals = this.detectSignals(peakList, spectrum, options.nH, options.integralFn);
         //console.log(JSON.stringify(signals));
         //Remove all the signals with small integral
         if(options.clean||false){
@@ -74,14 +75,14 @@ var PeakPicking={
                         var peaks1 = [];
                         for(var j=peaksO.length-1;j>=0;j--)
                             peaks1.push(peaksO[j]);
-                        var newSignals = this.detectSignals(peaks1, spectrum, nHi, options.integral||0);
+                        var newSignals = this.detectSignals(peaks1, spectrum, nHi, options.integral);
                         for(j=0;j<newSignals.length;j++)
                             signals.push(newSignals[j]);
                     }
                 }
             }
             //console.log(signals);
-            this.updateIntegrals(signals, nH);
+            this.updateIntegrals(signals, options.nH);
         }
         signals.sort(function(a,b){
             return a.delta1- b.delta1
