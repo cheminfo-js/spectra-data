@@ -59,8 +59,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	exports.SD = __webpack_require__(1);
 	exports.NMR = __webpack_require__(4);
-	exports.NMR2D = __webpack_require__(23);
-	exports.ACS = __webpack_require__(30);
+	exports.NMR2D = __webpack_require__(24);
+	exports.ACS = __webpack_require__(31);
 	exports.JAnalyzer = __webpack_require__(6);
 	//exports.SD2 = require('/SD2');
 
@@ -2280,34 +2280,35 @@ return /******/ (function(modules) { // webpackBootstrap
 	var Matrix = LM.Matrix;
 	var math = Matrix.algebra;*/
 	var GSD = __webpack_require__(7);
+	var extend = __webpack_require__(23);
 
 	var PeakPicking={
 	    impurities:[],
 	    maxJ:20,
+	    defaultOptions:{nH:10, clean:true, realTop:false, thresholdFactor:1, compile:true, integralFn:0},
 
-	    peakPicking:function(spectrum, options){
-	        options = options||{nH:10, clean:true, realTop:false, thresholdFactor:1, compile:true, integral:0}
+	    peakPicking:function(spectrum, optionsEx){
+	        var options = extend({}, this.defaultOptions, optionsEx);
 
-	        var nH=options.nH||10;
 	        var i, j, nHi, sum;
-	        //options.realTop = options.realTop||false;
-	        //options.thresholdFactor = options.thresholdFactor || 1;
-	        //options.compile = options.compile || false;
-	        //options.clean = options.clean || false;
-	        //var tmp = spectrum.clone();
 
-	        var noiseLevel = Math.abs(spectrum.getNoiseLevel())*(options.thresholdFactor||1);
+	        var noiseLevel = Math.abs(spectrum.getNoiseLevel())*(options.thresholdFactor);
+	        var gsdOptions = extend({},
+	            {noiseLevel: noiseLevel, minMaxRatio:0.03, broadRatio:0.0025,smoothY:true, nL:4},
+	            options.gsdOptions);
+
 	        var data = spectrum.getXYData();
 	        //var peakList = this.GSD(spectrum, noiseLevel);
 	        //peakList = Opt.optimizeLorentzianSum(peakList);//this.optmizeSpectrum(peakList,spectrum,noiseLevel);
-	        var peakList = GSD.gsd(data[0],data[1], {noiseLevel: noiseLevel, minMaxRatio:0.01, broadRatio:0.0025,smoothY:true});
+	        var peakList = GSD.gsd(data[0],data[1], gsdOptions);
 	        //console.log(peakList.length);
 	        //console.log(peakList[0]);
-	        peakList = GSD.optimize(peakList,data[0],data[1],3,"lorentzian");
+
+	        peakList = GSD.optimize(peakList,data[0],data[1],gsdOptions.nL,"lorentzian");
 	        //console.log(noiseLevel);
-	        //console.log(peakList.length);
+
 	        peakList = this.clearList(peakList,noiseLevel);
-	        var signals = this.detectSignals(peakList, spectrum, nH, options.integral||0);
+	        var signals = this.detectSignals(peakList, spectrum, options.nH, options.integralFn);
 	        //console.log(JSON.stringify(signals));
 	        //Remove all the signals with small integral
 	        if(options.clean||false){
@@ -2345,14 +2346,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        var peaks1 = [];
 	                        for(var j=peaksO.length-1;j>=0;j--)
 	                            peaks1.push(peaksO[j]);
-	                        var newSignals = this.detectSignals(peaks1, spectrum, nHi, options.integral||0);
+	                        var newSignals = this.detectSignals(peaks1, spectrum, nHi, options.integral);
 	                        for(j=0;j<newSignals.length;j++)
 	                            signals.push(newSignals[j]);
 	                    }
 	                }
 	            }
 	            //console.log(signals);
-	            this.updateIntegrals(signals, nH);
+	            this.updateIntegrals(signals, options.nH);
 	        }
 	        signals.sort(function(a,b){
 	            return a.delta1- b.delta1
@@ -8250,10 +8251,102 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 23 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	var hasOwn = Object.prototype.hasOwnProperty;
+	var toStr = Object.prototype.toString;
+
+	var isArray = function isArray(arr) {
+		if (typeof Array.isArray === 'function') {
+			return Array.isArray(arr);
+		}
+
+		return toStr.call(arr) === '[object Array]';
+	};
+
+	var isPlainObject = function isPlainObject(obj) {
+		if (!obj || toStr.call(obj) !== '[object Object]') {
+			return false;
+		}
+
+		var hasOwnConstructor = hasOwn.call(obj, 'constructor');
+		var hasIsPrototypeOf = obj.constructor && obj.constructor.prototype && hasOwn.call(obj.constructor.prototype, 'isPrototypeOf');
+		// Not own constructor property must be Object
+		if (obj.constructor && !hasOwnConstructor && !hasIsPrototypeOf) {
+			return false;
+		}
+
+		// Own properties are enumerated firstly, so to speed up,
+		// if last one is own, then all properties are own.
+		var key;
+		for (key in obj) {/**/}
+
+		return typeof key === 'undefined' || hasOwn.call(obj, key);
+	};
+
+	module.exports = function extend() {
+		var options, name, src, copy, copyIsArray, clone,
+			target = arguments[0],
+			i = 1,
+			length = arguments.length,
+			deep = false;
+
+		// Handle a deep copy situation
+		if (typeof target === 'boolean') {
+			deep = target;
+			target = arguments[1] || {};
+			// skip the boolean and the target
+			i = 2;
+		} else if ((typeof target !== 'object' && typeof target !== 'function') || target == null) {
+			target = {};
+		}
+
+		for (; i < length; ++i) {
+			options = arguments[i];
+			// Only deal with non-null/undefined values
+			if (options != null) {
+				// Extend the base object
+				for (name in options) {
+					src = target[name];
+					copy = options[name];
+
+					// Prevent never-ending loop
+					if (target !== copy) {
+						// Recurse if we're merging plain objects or arrays
+						if (deep && copy && (isPlainObject(copy) || (copyIsArray = isArray(copy)))) {
+							if (copyIsArray) {
+								copyIsArray = false;
+								clone = src && isArray(src) ? src : [];
+							} else {
+								clone = src && isPlainObject(src) ? src : {};
+							}
+
+							// Never move original objects, clone them
+							target[name] = extend(deep, clone, copy);
+
+						// Don't bring in undefined values
+						} else if (typeof copy !== 'undefined') {
+							target[name] = copy;
+						}
+					}
+				}
+			}
+		}
+
+		// Return the modified object
+		return target;
+	};
+
+
+
+/***/ },
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var SD = __webpack_require__(1);
-	var PeakPicking2D = __webpack_require__(24);
+	var PeakPicking2D = __webpack_require__(25);
 	var JcampConverter=__webpack_require__(3);
 
 	function NMR2D(sd) {
@@ -8382,12 +8475,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var lib = __webpack_require__(25);
-	var PeakOptimizer = __webpack_require__(28);
-	var SimpleClustering =  __webpack_require__(29);
+	var lib = __webpack_require__(26);
+	var PeakOptimizer = __webpack_require__(29);
+	var SimpleClustering =  __webpack_require__(30);
 	var StatArray = __webpack_require__(2);
 	var FFTUtils = lib.FFTUtils;
 
@@ -8734,20 +8827,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = PeakPicking2D;
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	exports.FFTUtils = __webpack_require__(26);
-	exports.FFT = __webpack_require__(27);
+	exports.FFTUtils = __webpack_require__(27);
+	exports.FFT = __webpack_require__(28);
 
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var FFT = __webpack_require__(27);
+	var FFT = __webpack_require__(28);
 
 	var FFTUtils= {
 	    DEBUG : false,
@@ -8988,7 +9081,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -9225,7 +9318,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 28 */
+/* 29 */
 /***/ function(module, exports) {
 
 	var PeakOptimizer={
@@ -9489,7 +9582,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = PeakOptimizer;
 
 /***/ },
-/* 29 */
+/* 30 */
 /***/ function(module, exports) {
 
 	var SimpleClustering={
@@ -9553,7 +9646,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = SimpleClustering;
 
 /***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports) {
 
 	/**
