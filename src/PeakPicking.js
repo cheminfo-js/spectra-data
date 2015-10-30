@@ -27,14 +27,9 @@ var PeakPicking={
             options.gsdOptions);
 
         var data = spectrum.getXYData();
-        //var peakList = this.GSD(spectrum, noiseLevel);
-        //peakList = Opt.optimizeLorentzianSum(peakList);//this.optmizeSpectrum(peakList,spectrum,noiseLevel);
         var peakList = GSD.gsd(data[0],data[1], gsdOptions);
-        //console.log(peakList.length);
-        //console.log(peakList[0]);
 
         peakList = GSD.optimize(peakList,data[0],data[1],gsdOptions.nL,"lorentzian");
-        //console.log(noiseLevel);
 
         peakList = this.clearList(peakList,noiseLevel);
         var signals = this.detectSignals(peakList, spectrum, options.nH, options.integralFn);
@@ -51,6 +46,7 @@ var PeakPicking={
             for(i=0;i<signals.length;i++){
                 //console.log("Sum "+signals[i].integralData.value);
                 JAnalyzer.compilePattern(signals[i]);
+                //console.log(signals[i])
                 if(signals[i].maskPattern&&signals[i].multiplicity!="m"
                     && signals[i].multiplicity!=""){
                     //Create a new signal with the removed peaks
@@ -61,10 +57,12 @@ var PeakPicking={
                         sum+=this.area(signals[i].peaks[j]);
 
                         if(signals[i].maskPattern[j]===false) {
-                            var peakR = signals[i].peaks.splice(j)[0];
-                            peaksO.push({x:peakR.x,y:peakR.intensity,width:peakR.width});
-                            signals[i].maskPattern.splice(j);
-                            signals[i].peaksComp.splice(j);
+                            var peakR = signals[i].peaks.splice(j,1)[0];
+                            peaksO.push({x:peakR.x, y:peakR.intensity, width:peakR.width});
+                            //peaksO.push(peakR);
+                            signals[i].mask.splice(j,1);
+                            signals[i].mask2.splice(j,1);
+                            signals[i].maskPattern.splice(j,1);
                             signals[i].nbPeaks--;
                             nHi+=this.area(peakR);
                         }
@@ -75,7 +73,8 @@ var PeakPicking={
                         var peaks1 = [];
                         for(var j=peaksO.length-1;j>=0;j--)
                             peaks1.push(peaksO[j]);
-                        var newSignals = this.detectSignals(peaks1, spectrum, nHi, options.integral);
+                        var newSignals = this.detectSignals(peaks1, spectrum, nHi, options.integralFn);
+
                         for(j=0;j<newSignals.length;j++)
                             signals.push(newSignals[j]);
                     }
@@ -85,12 +84,12 @@ var PeakPicking={
             this.updateIntegrals(signals, options.nH);
         }
         signals.sort(function(a,b){
-            return a.delta1- b.delta1
+            return b.delta1- a.delta1
         });
-
         //Remove all the signals with small integral
         if(options.clean||false){
             for(var i=signals.length-1;i>=0;i--){
+                //console.log(signals[i]);
                 if(signals[i].integralData.value<0.5) {
                     signals.splice(i, 1);
                 }
@@ -265,6 +264,7 @@ var PeakPicking={
      }
      */
     detectSignals: function(peakList, spectrum, nH, integralType){
+
         var frequency = spectrum.observeFrequencyX();
         var signals = [];
         var signal1D = {};
@@ -310,6 +310,7 @@ var PeakPicking={
             var integral = signals[i].integralData;
             cs = 0;
             sum = 0;
+
             for(var j=0;j<peaks.length;j++){
                 cs+=peaks[j].x*this.area(peaks[j]);//.intensity;
                 sum+=this.area(peaks[j]);

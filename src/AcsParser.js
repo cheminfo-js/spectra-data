@@ -20,6 +20,17 @@ ACS.formater =(function() {
         if(options&&options.rangeForMultiplet!=undefined)
             rangeForMultiplet = options.rangeForMultiplet;
 
+        if(options&&options.ascending){
+            spectrum.sort(function(a,b){
+                return b.delta1- a.delta1
+            });
+        }
+        else{
+            spectrum.sort(function(a,b){
+                return a.delta1- b.delta1
+            });
+        }
+
         //console.log("Range1: "+options.rangeForMultiplet);
 
         spectrum.type="NMR SPEC";

@@ -25,16 +25,19 @@ var spectrum=createSpectraData("/data/ethylbenzene/h1_0.jdx");
 if(true){
     var d = new Date();
     var n = d.getTime();
-    /*var peakPicking = spectrum.nmrPeakDetection({nH:10,realTop:true,thresholdFactor:1, clean:true, compile:true,
-    gsdOptions:{minMaxRatio:0.03, broadRatio:0.0025,smoothY:true, nL:4}
+    var peakPicking = spectrum.nmrPeakDetection({nH:10,realTop:true,thresholdFactor:1, clean:true, compile:true,
+        gsdOptions:{minMaxRatio:0.03, broadRatio:0.0025,smoothY:true, nL:4}
     });
     d = new Date();
 
     //var list = spectrum.getVector(0.0,10);
 
-
-    console.log(Data.ACS.formater.toACS(peakPicking,{solvent:spectrum.getSolventName()}));
-    */
+    //console.log(d.getTime()-n);
+    //console.log(peakPicking);
+    /*for(var i=0;i<peakPicking.length;i++){
+         console.log(JSON.stringify(peakPicking[i].peaks));
+    }*/
+    //console.log(Data.ACS.formater.toACS(peakPicking,{solvent:spectrum.getSolventName(),ascending:false}));
 }
 
 //console.log(peakPicking);
