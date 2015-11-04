@@ -2285,7 +2285,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var PeakPicking={
 	    impurities:[],
 	    maxJ:20,
-	    defaultOptions:{nH:10, clean:true, realTop:false, thresholdFactor:1, compile:true, integralFn:0},
+	    defaultOptions:{nH:10, clean:true, realTop:false, thresholdFactor:1, compile:true, integralFn:0,optimize:true},
 
 	    peakPicking:function(spectrum, optionsEx){
 	        var options = extend({}, this.defaultOptions, optionsEx);
@@ -2299,8 +2299,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        var data = spectrum.getXYData();
 	        var peakList = GSD.gsd(data[0],data[1], gsdOptions);
-
-	        peakList = GSD.optimize(peakList,data[0],data[1],gsdOptions.nL,"lorentzian");
+	        if(options.optimize)
+	            peakList = GSD.optimize(peakList,data[0],data[1],gsdOptions.nL,"lorentzian");
 
 	        peakList = this.clearList(peakList,noiseLevel);
 	        var signals = this.detectSignals(peakList, spectrum, options.nH, options.integralFn);
