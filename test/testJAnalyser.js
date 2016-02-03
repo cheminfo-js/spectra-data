@@ -14,13 +14,13 @@ function createSpectraData(filename, label, data) {
 };
 
 
-describe('spectra-data test', function () {
+describe('spectra-data test peak picking', function () {
     var nH = 8;
     var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
     var peakPicking = spectrum.nmrPeakDetection({"nH":nH, realTop:true, thresholdFactor:1,clean:true,compile:true});
     //console.log(Data.ACS.formater.toACS(peakPicking,{solvent:spectrum.getSolventName()}));
     //console.log(peakPicking);
-    it('Known patterns', function () {
+    it('Known patterns for ethylvinylether', function () {
 
         //console.log(Data.ACS.formater.toACS(peakPicking,{solvent:spectrum.getSolventName()}));
         for(var i=0;i<peakPicking.length;i++){

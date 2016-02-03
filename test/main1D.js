@@ -13,15 +13,25 @@ function createSpectraData(filename, label, data) {
     return spectrum;
 };
 
-var spectrum=createSpectraData("/data/ethylbenzene/h1_0.jdx");
+//var spectrum=createSpectraData("/data/ethylbenzene/h1_0.jdx");
 //var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
 //var spectrum=createSpectraData("/data/h1_119.jdx");
+var spectrum=createSpectraData("/data/broadPeak.jdx");
+var xy = spectrum.getXYData();
+var x = [],y=[];
+for(var i=0;i< xy[0].length;i++){
+    if(xy[0][i]>3&&xy[0][i]<5){
+        x.push(xy[0][i]);
+        y.push(xy[1][i]);
+    }
+}
+//console.log(JSON.stringify([x,y]));
 
 //console.log(spectrum.getParamString(".PULSE SEQUENCE"));
 //var spectrum=createSpectraData("/data/h1_31.jdx");
 //var spectrum=createSpectraData("/data/h1_14.jdx");
 
-//console.log(spectrum);
+//console.log(JSON.stringify(spectrum.getXYData()));
 if(true){
     var d = new Date();
     var n = d.getTime();

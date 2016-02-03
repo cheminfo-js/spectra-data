@@ -14,7 +14,14 @@ var extend = require("extend");
 var PeakPicking={
     impurities:[],
     maxJ:20,
-    defaultOptions:{nH:10, clean:true, realTop:false, thresholdFactor:1, compile:true, integralFn:0,optimize:true},
+    defaultOptions:{nH:10,
+        clean:true,
+        realTop:false,
+        thresholdFactor:1,
+        compile:true,
+        integralFn:0,
+        optimize:true
+    },
 
     peakPicking:function(spectrum, optionsEx){
         var options = extend({}, this.defaultOptions, optionsEx);
@@ -22,16 +29,25 @@ var PeakPicking={
         var i, j, nHi, sum;
 
         var noiseLevel = Math.abs(spectrum.getNoiseLevel())*(options.thresholdFactor);
+
+        //console.log("noiseLevel "+noiseLevel);
         var gsdOptions = extend({},
-            {noiseLevel: noiseLevel, minMaxRatio:0.03, broadRatio:0.0025,smoothY:true, nL:4},
+            {noiseLevel: noiseLevel,
+                minMaxRatio:0.01,
+                broadRatio:0.0025,
+                smoothY:true,
+                nL:4,
+                sgOptions:{windowSize: 9, polynomial: 3}
+            },
             options.gsdOptions);
 
         var data = spectrum.getXYData();
         var peakList = GSD.gsd(data[0],data[1], gsdOptions);
+        var peakList = GSD.post.joinBroadPeaks(peakList,{width:0.25});
         if(options.optimize)
-            peakList = GSD.optimize(peakList,data[0],data[1],gsdOptions.nL,"lorentzian");
+            peakList = GSD.post.optimizePeaks(peakList,data[0],data[1],gsdOptions.nL,"lorentzian");
 
-        peakList = this.clearList(peakList,noiseLevel);
+        peakList = this.clearList(peakList, noiseLevel);
         var signals = this.detectSignals(peakList, spectrum, options.nH, options.integralFn);
         //console.log(JSON.stringify(signals));
         //Remove all the signals with small integral
