@@ -740,7 +740,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * Is it a 2D spectrum?
 	 */
 	SD.prototype.is2D = function(){
-	    return false;
+	    if(typeof this.sd.twoD == "undefined")
+	        return false;
+	    return this.sd.twoD;
 	}
 
 
