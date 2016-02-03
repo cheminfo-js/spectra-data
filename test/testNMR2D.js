@@ -27,6 +27,9 @@ describe('spectra-data test', function () {
         spectrum.observeFrequencyY().should.equal(100.509649895251);
     });
 
+    it('Checking if is2D is true', function () {
+        spectrum.is2D().should.equal(true);
+    });
 
     it('getFirstX', function () {
         spectrum.getFirstX().should.be.approximately( 13.351190,10e-6);

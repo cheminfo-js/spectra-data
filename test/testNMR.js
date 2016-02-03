@@ -66,6 +66,10 @@ describe('spectra-data test', function () {
         xy[1][0].should.equal(-119886);
     });
 
+    it('Checking if is2D is false', function () {
+        spectrum.is2D().should.equal(false);
+    });
+
 
 });
 
