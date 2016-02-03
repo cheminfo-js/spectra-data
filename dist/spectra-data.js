@@ -1981,7 +1981,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	* Return the observed nucleus 
 	*/
 	NMR.prototype.getNucleus=function(dim){
-	    if(!dim||dim==0)
+	    if(!dim||dim==0||dim==1)
 	        return this.sd.xType;
 	    else{
 	        return "";
