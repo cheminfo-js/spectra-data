@@ -262,11 +262,12 @@ var PeakOptimizer={
 		//For each reference dimension
 		for(var i=0;i<references.length;i++){
 			var ref = references[i];
-			_alignSingleDimension(signals2D,ref);
+			if(ref)
+				alignSingleDimension(signals2D,ref);
 		}
 	},
 
-	_alignSingleDimension: function(signals2D, references){
+	alignSingleDimension: function(signals2D, references){
 		//For each 2D signal
 		var center = 0, width = 0, i, j;
 		for(i=0;i<signals2D.length;i++){
