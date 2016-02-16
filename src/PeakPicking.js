@@ -20,7 +20,8 @@ var PeakPicking={
         thresholdFactor:1,
         compile:true,
         integralFn:0,
-        optimize:true
+        optimize:true,
+        id:""
     },
 
     peakPicking:function(spectrum, optionsEx){
@@ -110,6 +111,11 @@ var PeakPicking={
                     signals.splice(i, 1);
                 }
             }
+        }
+
+        for(var i=0;i<signals.length;i++){
+            signals[i].signalID = options.id+"_"+(i+1);
+            signals[i]._highlight=[signals[i].signalID];
         }
 
         return signals;

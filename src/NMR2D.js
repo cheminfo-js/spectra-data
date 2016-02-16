@@ -1,5 +1,6 @@
 var SD = require('./SD');
 var PeakPicking2D = require('./PeakPicking2D');
+var PeakOptimizer = require("./PeakOptimizer");
 var JcampConverter=require("jcampconverter");
 
 function NMR2D(sd) {
@@ -99,6 +100,9 @@ NMR2D.prototype.nmrPeakDetection2D=function(options){
     for(var i=0;i<peakList.length;i++){
         peakList[i]._highlight=[id+"_"+i];
     }
+    if(options.references)
+        PeakOptimizer.alignDimensions(peakList,options.references);
+
     return peakList;
 }
 

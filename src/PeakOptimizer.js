@@ -253,7 +253,45 @@ var PeakOptimizer={
 			return Math.sqrt(Math.pow(a.shiftX-b.shiftY, 2)
 					+Math.pow(a.shiftY-b.shiftX, 2));
 		}
+	},
+
+	/**
+	 * This function maps the corresponding 2D signals to the given set of 1D signals
+	 */
+	alignDimensions:function(signals2D,references){
+		//For each reference dimension
+		for(var i=0;i<references.length;i++){
+			var ref = references[i];
+			_alignSingleDimension(signals2D,ref);
+		}
+	},
+
+	_alignSingleDimension: function(signals2D, references){
+		//For each 2D signal
+		var center = 0, width = 0, i, j;
+		for(i=0;i<signals2D.length;i++){
+			var signal2D = signals2D[i];
+			//For each reference 1D signal
+			for(j=0;j<references.length;j++){
+				center = (references[j].startX+references[j].stopX)/2;
+				width = Math.abs(references[j].startX-references[j].stopX)/2;
+				if(signal2D.nucleusX==references[j].nucleus){
+					//The 2D peak overlaps with the 1D signal
+					if(Math.abs(signal2D.shiftX-center)<=width){
+						signal2D._highlight.push(references[j]._highlight[0]);
+					}
+
+				}
+				if(signal2D.nucleusY==references[j].nucleus){
+					if(Math.abs(signal2D.shiftY-center)<=width){
+						signal2D._highlight.push(references[j]._highlight[0]);
+					}
+				}
+			}
+
+		}
 	}
+
 };
 
 module.exports = PeakOptimizer;
