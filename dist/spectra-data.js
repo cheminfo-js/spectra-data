@@ -2293,7 +2293,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        thresholdFactor:1,
 	        compile:true,
 	        integralFn:0,
-	        optimize:true
+	        optimize:true,
+	        id:""
 	    },
 
 	    peakPicking:function(spectrum, optionsEx){
@@ -2383,6 +2384,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    signals.splice(i, 1);
 	                }
 	            }
+	        }
+
+	        for(var i=0;i<signals.length;i++){
+	            signals[i].signalID = options.id+"_"+(i+1);
+	            signals[i]._highlight=[signals[i].signalID];
 	        }
 
 	        return signals;
@@ -13868,6 +13874,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var SD = __webpack_require__(1);
 	var PeakPicking2D = __webpack_require__(41);
+	var PeakOptimizer = __webpack_require__(45);
 	var JcampConverter=__webpack_require__(3);
 
 	function NMR2D(sd) {
@@ -13967,6 +13974,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    for(var i=0;i<peakList.length;i++){
 	        peakList[i]._highlight=[id+"_"+i];
 	    }
+	    if(options.references)
+	        PeakOptimizer.alignDimensions(peakList,options.references);
+
 	    return peakList;
 	}
 
@@ -15097,7 +15107,45 @@ return /******/ (function(modules) { // webpackBootstrap
 				return Math.sqrt(Math.pow(a.shiftX-b.shiftY, 2)
 						+Math.pow(a.shiftY-b.shiftX, 2));
 			}
+		},
+
+		/**
+		 * This function maps the corresponding 2D signals to the given set of 1D signals
+		 */
+		alignDimensions:function(signals2D,references){
+			//For each reference dimension
+			for(var i=0;i<references.length;i++){
+				var ref = references[i];
+				_alignSingleDimension(signals2D,ref);
+			}
+		},
+
+		_alignSingleDimension: function(signals2D, references){
+			//For each 2D signal
+			var center = 0, width = 0, i, j;
+			for(i=0;i<signals2D.length;i++){
+				var signal2D = signals2D[i];
+				//For each reference 1D signal
+				for(j=0;j<references.length;j++){
+					center = (references[j].startX+references[j].stopX)/2;
+					width = Math.abs(references[j].startX-references[j].stopX)/2;
+					if(signal2D.nucleusX==references[j].nucleus){
+						//The 2D peak overlaps with the 1D signal
+						if(Math.abs(signal2D.shiftX-center)<=width){
+							signal2D._highlight.push(references[j]._highlight[0]);
+						}
+
+					}
+					if(signal2D.nucleusY==references[j].nucleus){
+						if(Math.abs(signal2D.shiftY-center)<=width){
+							signal2D._highlight.push(references[j]._highlight[0]);
+						}
+					}
+				}
+
+			}
 		}
+
 	};
 
 	module.exports = PeakOptimizer;
