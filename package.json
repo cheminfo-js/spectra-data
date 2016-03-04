@@ -1,6 +1,6 @@
 {
   "name": "spectra-data",
-  "version": "1.3.5",
+  "version": "1.4.0",
   "description": "spectra-data project - manipulate spectra",
   "keywords": [
     "spectra-data",
@@ -30,7 +30,7 @@
     "mocha-better-spec-reporter": "^3.0.1",
     "mocha": "^2.4.5",
     "should": "^8.2.2",
-    "cheminfo-tools":"1.3.4"
+    "cheminfo-tools": "1.3.4"
   },
   "dependencies": {
     "jcampconverter": "^2.2.1",

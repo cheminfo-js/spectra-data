@@ -58,10 +58,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	exports.SD = __webpack_require__(1);
-	exports.NMR = __webpack_require__(4);
-	exports.NMR2D = __webpack_require__(40);
-	exports.ACS = __webpack_require__(47);
-	exports.JAnalyzer = __webpack_require__(6);
+	exports.NMR = __webpack_require__(7);
+	exports.NMR2D = __webpack_require__(42);
+	exports.ACS = __webpack_require__(49);
+	exports.JAnalyzer = __webpack_require__(9);
 	//exports.SD2 = require('/SD2');
 
 /***/ },
@@ -72,7 +72,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	// http://jsperf.com/lp-array-and-loops/2
 
 	var StatArray = __webpack_require__(2);
-	var JcampConverter=__webpack_require__(3);
+	var JcampConverter = __webpack_require__(3);
+	var JcampCreator = __webpack_require__(4);
+	var extend = __webpack_require__(6);
 
 	function SD(sd) {
 	    this.sd=sd;
@@ -137,6 +139,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	SD.prototype.getYUnits = function(){
 	    return this.getSpectrum().yUnit;
+	}
+
+	/**
+	 * This function return the information about the dimensions
+	 * @param dim
+	 */
+	SD.prototype.getSpectraVariable = function(dim){
+	    return this.sd.ntuples[dim];
 	}
 
 	/**
@@ -632,6 +642,30 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	/**
+	 * @function getParam(name, defvalue);
+	 * Get the value of the parameter
+	 * @param  name The parameter name
+	 * @param  defvalue The default value
+	 */
+	SD.prototype.getParam = function(name, defvalue){
+	    var value = this.sd.info[name];
+	    if(!value)
+	        value = defvalue;
+	    return value;
+	}
+
+	/**
+	 *True if the spectrum.info contains the given parameter
+	 * @param name
+	 * @returns {boolean}
+	 */
+	SD.prototype.containsParam = function(name){
+	    if(this.sd.info[name]){
+	        return true;
+	    }
+	    return false;
+	}
+	/**
 	 * Return the y elements of the current spectrum
 	 * @returns {*}
 	 */
@@ -743,6 +777,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if(typeof this.sd.twoD == "undefined")
 	        return false;
 	    return this.sd.twoD;
+	}
+
+	/**
+	 * @function toJcamp(options)
+	 * This function creates a String that represents the given spectraData in the format JCAM-DX 5.0
+	 * The X,Y data can be compressed using one of the methods described in:
+	 * "JCAMP-DX. A STANDARD FORMAT FOR THE EXCHANGE OF ION MOBILITY SPECTROMETRY DATA",
+	 *  http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
+	 * @option encode: ['FIX','SQZ','DIF','DIFDUP','CVS','PAC'] (Default: 'FIX')
+	 * @option yfactor: The YFACTOR. It allows to compress the data by removing digits from the ordinate. (Default: 1)
+	 * @option type: ["NTUPLES", "SIMPLE"] (Default: "SIMPLE")
+	 * @option keep: A set of user defined parameters of the given SpectraData to be stored in the jcamp.
+	 * @example SD.toJcamp(spectraData,{encode:'DIFDUP',yfactor:0.01,type:"SIMPLE",keep:['#batchID','#url']});
+	 */
+	SD.prototype.toJcamp=function(options) {
+	    var defaultOptions = {"encode":"DIFDUP","yFactor":1,"type":"SIMPLE","keep":[]};
+	    options = extend({}, defaultOptions, options);
+	    return JcampCreator.convert(this, options.encode, options.yFactor, options.type, options.keep);
 	}
 
 
@@ -1243,7 +1295,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function convert(jcamp, options) {
 	        options = options || {};
 
-	        var keepRecordsRegExp=/^[A-Z]+$/;
+	        var keepRecordsRegExp=/^$/;
 	        if (options.keepRecordsRegExp) keepRecordsRegExp=options.keepRecordsRegExp;
 
 	        var start = new Date();
@@ -1354,6 +1406,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                spectrum.lastX = parseFloat(dataValue);
 	            } else if (dataLabel === 'FIRSTY') {
 	                spectrum.firstY = parseFloat(dataValue);
+	            } else if (dataLabel === 'LASTY') {
+	                spectrum.lastY = parseFloat(dataValue);
 	            } else if (dataLabel === 'NPOINTS') {
 	                spectrum.nbPoints = parseFloat(dataValue);
 	            } else if (dataLabel === 'XFACTOR') {
@@ -1437,7 +1491,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                spectrum = {};
 	            } else if (isMSField(dataLabel)) {
 	                spectrum[convertMSFieldToLabel(dataLabel)] = dataValue;
-	            } else if (dataLabel.match(keepRecordsRegExp)) {
+	            }
+	            if (dataLabel.match(keepRecordsRegExp)) {
 	                result.info[dataLabel] = dataValue.trim();
 	            }
 	        }
@@ -1474,7 +1529,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	        // maybe it is a GC (HPLC) / MS. In this case we add a new format
-	        if (spectra.length > 1 && (! spectra[0].dataType || spectra[0].dataType.toLowerCase().match(/.*mass./))) {
+	        if (spectra.length > 1 && (! spectra[0].dataType || spectra[0].dataType.match(/.*mass.*/i))) {
 	            addGCMS(result);
 	            if (result.profiling) result.profiling.push({
 	                action: 'Finished GCMS calculation',
@@ -1958,12 +2013,797 @@ return /******/ (function(modules) { // webpackBootstrap
 	    convert: JcampConverter
 	};
 
+
 /***/ },
 /* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/**
+	 * Created by acastillo on 3/2/16.
+	 */
+	/**
+	 * This class converts a SpectraData object into a String that can be stored as a jcamp file.
+	 * The string reflects the current state of the object and not the raw data from where this
+	 * spectrum was initially loaded.
+	 * @author acastillo
+	 *
+	 */
+
+	var Encoder = __webpack_require__(5);
+
+	var JcampCreator = (function(){
+
+	    const Integer = {MAX_VALUE:2e31-1,MIN_VALUE:-2e31};
+	    const CRLF = "\r\n";
+	    const version = "Cheminfo tools, March 2016"
+
+	    /**
+	     * This function creates a String that represents the given spectraData, in the format JCAM-DX 5.0
+	     * The X,Y data can be compressed using one of the methods described in:
+	     * "JCAMP-DX. A STANDARD FORMAT FOR THE EXCHANGE OF ION MOBILITY SPECTROMETRY DATA",
+	     *  http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
+	     * @param spectraData
+	     * @param encodeFormat: ('FIX','SQZ','DIF','DIFDUP','CVS','PAC')
+	     * @return
+	     */
+	    var convert = function(spectraData, encodeFormat, factorY, type, userDefinedParams){
+	        encodeFormat = encodeFormat.toUpperCase().trim();
+
+	        if(type===null||type.length==0)
+	            type="SIMPLE";
+
+	        var outString = "";
+	        spectraData.setActiveElement(0);
+
+	        var scale=factorY/spectraData.getParamDouble("YFACTOR", 1);
+	        if(spectraData.getMaxY()*scale>=Integer.MAX_VALUE/2){
+	            scale=Integer.MAX_VALUE/(spectraData.getMaxY()*2);
+	        }
+	        if(Math.abs(spectraData.getMaxY()-spectraData.getMinY())*scale<16)
+	            scale=16/(Math.abs(spectraData.getMaxY()-spectraData.getMinY()));
+
+	        var scaleX=Math.abs(1.0/spectraData.getDeltaX());
+
+	        outString+=("##TITLE= " + spectraData.getTitle() + CRLF);
+	        outString+=("##JCAMP-DX= 5.00\t$$"+version+ CRLF);
+	        outString+=("##OWNER= " + spectraData.getParamString("##OWNER=", "")+ CRLF);
+	        outString+=("##DATATYPE= " +spectraData.getDataType()+ CRLF);
+
+	        if(type=="NTUPLES") {
+	            outString+=ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams);
+	        }
+
+	        if(type=="SIMPLE"){
+	            outString+=simpleHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams);
+	        }
+	        return outString;
+	    }
+
+	    var ntuplesHead = function(spectraData, scale, scaleX, encodeFormat, userDefinedParams){
+	        var outString="";
+	        var variableX = spectraData.getSpectraVariable(0);
+	        var variableY = spectraData.getSpectraVariable(1);
+	        var variableZ = spectraData.getSpectraVariable(2);
+
+	        outString+="##DATA CLASS= NTUPLES" + CRLF;
+	        outString+="##NUM DIM= 2" + CRLF;
+	        var nTuplesName=spectraData.getDataType().trim();
+	        // we set the VarName parameter to the most common ones.
+	        // These tables contain the number of occurences of each one
+	        var abscVar = {};
+	        var sub;
+	        for ( sub = 0; sub < spectraData.getNbSubSpectra(); sub++) {
+	            spectraData.setActiveElement(sub);
+	            if (abscVar[spectraData.getXUnits()]) {
+	                abscVar[spectraData.getXUnits()].value++;
+	            } else {
+	                abscVar[spectraData.getXUnits()]={value:1, index:sub};
+	            }
+	        }
+
+	        var keys = Object.keys(abscVar);
+	        var mostCommon =keys[0], defaultSub = 0;
+
+	        for(sub=1;sub<keys.length;sub++){
+	            if(abscVar[keys[sub]].value>abscVar[mostCommon].value){
+	                mostCommon = keys[sub];
+	                defaultSub=abscVar[keys[sub]].index;
+	            }
+	        }
+	        var isComplex=false;
+	        spectraData.setActiveElement(defaultSub);
+	        var isNMR = spectraData.getDataType().indexOf("NMR")>=0;
+	        //If it is a NMR spectrum
+	        if(isNMR){
+	            outString+=("##.OBSERVE FREQUENCY= " + spectraData.getParamDouble("observefrequency", 0) + CRLF);
+	            outString+=("##.OBSERVE NUCLEUS= ^" + spectraData.getNucleus()+ CRLF);
+	            outString+=("##$DECIM= " + (spectraData.getParamDouble("$DECIM",0))+ CRLF);
+	            outString+=("##$DSPFVS= " + (spectraData.getParamDouble("$DSPFVS",0))+ CRLF);
+	            outString+=("##$FCOR= " + (Math.floor(spectraData.getParamDouble("$FCOR",0)))+ CRLF);
+	            if(spectraData.containsParam("$SW_h"))
+	                outString+=("##$SW_h= " + (spectraData.getParamDouble("$SW_h",0))+ CRLF);
+	            else
+	            if(spectraData.containsParam("$SW_p"))
+	                outString+=("##$SW_p= " + (spectraData.getParamDouble("$SW_p",0))+ CRLF);
+	            outString+=("##$SW= " + (spectraData.getParamDouble("$SW",0))+ CRLF);
+	            outString+=("##$TD= " + (Math.floor(spectraData.getParamDouble("$TD",0)))+ CRLF);
+	            outString+=("##$BF1= " + (spectraData.getParamDouble("$BF1",0))+ CRLF);
+	            outString+=("##$GRPDLY= " + (spectraData.getParamDouble("$GRPDLY",0))+ CRLF);
+	            outString+=("##.DIGITISER RES= " + (spectraData.getParamInt(".DIGITISER RES",0))+ CRLF);
+	            outString+=("##.PULSE SEQUENCE= " + (spectraData.getParamString(".PULSE SEQUENCE", ""))+ CRLF);
+	            outString+=("##.SOLVENT NAME= " + (spectraData.getSolventName())+ CRLF);
+	            outString+=("##$NUC1= <" +spectraData.getNucleus()+">"+ CRLF);
+	            if(spectraData.containsParam("2D_X_FREQUENCY"))
+	                outString+=("##$SFO1= " + (spectraData.getParamDouble("2D_X_FREQUENCY",0))+ CRLF);
+	            else
+	                outString+=("##$SFO1= " + (spectraData.getParamDouble("$SFO1",0))+ CRLF);
+
+	            if(spectraData.containsParam("2D_X_OFFSET"))
+	                outString+=("##$OFFSET= " +spectraData.getParamDouble("2D_X_OFFSET", 0)+ CRLF);
+
+	            if(spectraData.is2D()){
+	                outString+=("$$Parameters for 2D NMR Spectrum"+ CRLF);
+	                outString+=("##$NUC1= <" +spectraData.getNucleus(2)+">"+ CRLF);
+	                if(spectraData.containsParam("2D_Y_FREQUENCY")){
+	                    outString+=("##$SFO1= " + spectraData.getParamDouble("2D_Y_FREQUENCY", 0)+ CRLF);
+	                    outString+=("##$SFO2= " + spectraData.getParamDouble("2D_Y_FREQUENCY", 0)+ CRLF);
+	                    outString+=("##$BF2= " +spectraData.getParamDouble("2D_Y_FREQUENCY", 0)+ CRLF);
+	                }
+	                if(spectraData.containsParam("2D_Y_OFFSET"))
+	                    outString+=("##$OFFSET= " +spectraData.getParamDouble("2D_Y_OFFSET", 0)+ CRLF);
+
+	                outString+=("$$End of Parameters for 2D NMR Spectrum"+ CRLF);
+	            }
+	        }
+	        outString+=("##NTUPLES=\t" + nTuplesName + CRLF);
+	        var freq1 = 1,freq2=1;//spectraData.getParamDouble("2D_Y_FREQUENCY", 0);
+	        if(!spectraData.is2D()&&spectraData.getNbSubSpectra()>1&& isNMR)
+	            isComplex=true;
+	        if(isComplex){
+	            outString+=("##VAR_NAME=\t" + spectraData.getXUnits() + ",\t"+ nTuplesName.substring(4) +"/REAL,\t"+ nTuplesName.substring(4) +"/IMAG"+CRLF);
+	            outString+=("##SYMBOL=\tX,\tR,\tI" + CRLF);
+	            outString+=("##VAR_TYPE=\tINDEPENDENT,\tDEPENDENT,\tDEPENDENT" + CRLF);
+	            if(encodeFormat!="CSV"||encodeFormat!="PAC")
+	                outString+=("##VAR_FORM=\tAFFN,\tASDF,\tASDF" + CRLF);
+	            else
+	                outString+=("##VAR_FORM=\tAFFN,\tAFFN,\tAFFN" + CRLF);
+	            outString+=("##VAR_DIM=\t" + spectraData.getNbPoints() + ",\t" + spectraData.getNbPoints()+",\t" + spectraData.getNbPoints()+CRLF);
+	            outString+=("##UNITS=\tHZ"+ ",\t"+ spectraData.getYUnits() +",\t"+ variableZ.units + CRLF);
+	            outString+=("##FACTOR=\t" + 1.0/scaleX + ",\t"+1.0/scale+",\t"+1.0/scale+ CRLF);
+
+	            if(spectraData.getXUnits()=="PPM")
+	                freq1 = spectraData.observeFrequencyX();
+
+	            outString+=("##FIRST=\t" + spectraData.getFirstX()*freq1 + ",\t"+spectraData.getY(0)+",\t0" + CRLF);
+	            outString+=("##LAST=\t" + spectraData.getLastX()*freq1 + ",\t"+spectraData.getLastY()+",\t0" + CRLF);
+	        }
+	        else{
+	            freq1 = 1;
+	            if(spectraData.is2D()) {
+	                outString += ("##VAR_NAME=\tFREQUENCY1,\tFREQUENCY2,\tSPECTRUM" + CRLF);
+	                outString += ("##SYMBOL=\tF1,\tF2,\tY" + CRLF);
+	                outString += ("##.NUCLEUS=\t" + spectraData.getNucleus(2) + ",\t" + spectraData.getNucleus(1) + CRLF);
+	                outString += ("##VAR_TYPE=\tINDEPENDENT,\tINDEPENDENT,\tDEPENDENT" + CRLF);
+	                if (encodeFormat != "CSV" || encodeFormat != "PAC")
+	                    outString += ("##VAR_FORM=\tAFFN,\tAFFN,\tASDF" + CRLF);
+	                else
+	                    outString+=("##VAR_FORM=\tAFFN,\tAFFN,\tASDF" + CRLF);
+	                outString+=("##VAR_DIM=\t" + spectraData.getNbSubSpectra() + ",\t" + spectraData.getNbPoints()+ ",\t" + spectraData.getNbPoints() + CRLF);
+	                //We had to change this, for Mestre compatibility
+	                //outString+=("##UNITS=\tHZ,\t"+ spectraData.getXUnits() + ",\t" + spectraData.getYUnits()+CRLF);
+	                outString+=("##UNITS=\tHZ,\tHZ,\t" + spectraData.getYUnits()+CRLF);
+	                if(spectraData.getXUnits()=="PPM")
+	                    freq1 = spectraData.getParamDouble("2D_Y_FREQUENCY", 1);
+	                if(spectraData.getYUnits()=="PPM"){
+	                    freq2 = spectraData.getParamDouble("2D_X_FREQUENCY", 1);
+	                }
+	                outString+=("##FACTOR=\t1,\t"+freq2/scaleX + ",\t"+1.0/scale+ CRLF);
+	                outString+=("##FIRST=\t"+spectraData.getParamDouble("firstY", 0)*freq1+",\t"+ spectraData.getFirstX()*freq2 + ",\t"+spectraData.getY(0) + CRLF);
+	                outString+=("##LAST=\t" +spectraData.getParamDouble("lastY", 0)*freq1+",\t"+ spectraData.getLastX() *freq2
+	                + ",\t"+ spectraData.getY(spectraData.getNbPoints()-1)+ CRLF);
+	            }else{
+	                outString+=("##VAR_NAME=\t" + variableX.varname + ",\t"+ variableY.varname + ",\t"+ variableX.varname + CRLF);
+	                outString+=("##SYMBOL=\t" + variableX.symbol + ",\t"+ variableY.symbol + ",\t"+ variableZ.symbol + CRLF);
+	                outString+=("##VAR_TYPE=\t" + variableX.vartype + ",\t"+ variableY.vartype + ",\t"+ variableZ.vartype + CRLF);
+	                if(encodeFormat!="CSV"||encodeFormat!="PAC")
+	                    outString+=("##VAR_FORM=\tAFFN,\tASDF,\tASDF" + CRLF);
+	                else
+	                    outString+=("##VAR_FORM=\tAFFN,\tAFFN,\tAFFN" + CRLF);
+	                outString+=("##VAR_DIM=\t" + variableX.vardim + ",\t"+ variableY.vardim + ",\t"+ variableZ.vardim + CRLF);
+	                outString+=("##UNITS=\tHZ" + ",\t"+ spectraData.getYUnits() + ",\t"+ variableZ.units + CRLF);
+	                if(spectraData.getXUnits()=="PPM")
+	                    freq1 = spectraData.observeFrequencyX();
+	                outString+=("##FACTOR=\t" + 1.0/scaleX + ",\t"+1.0/scale + CRLF);
+	                outString+=("##FIRST=\t" + variableX.first*freq1 + ",\t"+ variableY.first + ",\t"+ variableZ.first + CRLF);
+	                outString+=("##LAST=\t" + variableX.last*freq1 + ",\t"+ variableY.last + ",\t"+ variableZ.last + CRLF);
+
+	            }
+	        }
+
+	        //Set the user defined parameters
+	        if(userDefinedParams!=null){
+	            for(var i=userDefinedParams.length-1;i>=0;i--){
+	                if(spectraData.containsParam(userDefinedParams[i])){
+	                    outString+=("##"+userDefinedParams[i]+"= "
+	                    + spectraData.getParam(userDefinedParams[i], "")+ CRLF);
+	                }
+	            }
+	        }
+	        //Ordinate of the second dimension in case of 2D NMR spectra
+	        var yUnits = 0, lastY = 0, dy = 0;
+
+	        if(spectraData.is2D()&& isNMR){
+	            yUnits = spectraData.getParamDouble("firstY", 0)*freq1;
+	            lastY = spectraData.getParamDouble("lastY", 0)*freq1;
+	            dy = (lastY-yUnits)/(spectraData.getNbSubSpectra()-1);
+	        }
+
+	        for ( sub = 0; sub < spectraData.getNbSubSpectra(); sub++) {
+	            spectraData.setActiveElement(sub);
+	            outString+=("##PAGE= " + spectraData.page + CRLF);
+	            yUnits+=dy;
+
+	            if(spectraData.is2D()&&isNMR)
+	                outString+=("##FIRST=\t"+spectraData.getParamDouble("firstY", 0)*freq1+",\t"
+	                + spectraData.getFirstX()*freq2 + ",\t"+spectraData.getY(0) + CRLF);
+
+
+	            outString+=("##DATA TABLE= ");
+	            if (spectraData.isDataClassPeak()) {
+	                outString+=("(XY..XY), PEAKS" + CRLF);
+	                for (var point = 0; point < spectraData.getNbPoints(); point++)
+	                    outString+=(spectraData.getX(point) + ", " + spectraData.getY(point)+ CRLF);
+
+	            } else if (spectraData.isDataClassXY()) {
+	                if(isNMR){
+	                    if(spectraData.is2D()){
+	                        outString+=("(F2++(Y..Y)), PROFILE" + CRLF);
+	                    }
+	                    else{
+	                        if(sub%2==0)
+	                            outString+=("(X++(R..R)), XYDATA" + CRLF);
+	                        else
+	                            outString+=("(X++(I..I)), XYDATA" + CRLF);
+	                    }
+	                }
+	                else
+	                    outString+=("(X++(Y..Y)), XYDATA" + CRLF);
+
+	                var tempString = "";
+	                var data = new Array(spectraData.getNbPoints());
+	                for (var point = data.length-1; point >=0; point--) {
+	                    data[point]=Math.round((spectraData.getY(point)*scale));
+	                }
+
+	                tempString+=Encoder.encode(data,
+	                    spectraData.getFirstX()*scaleX,spectraData.getDeltaX()*scaleX,encodeFormat);
+
+	                outString+=(tempString+CRLF);
+	            }
+	        }
+	        outString+=("##END NTUPLES= " + nTuplesName + CRLF);
+	        outString+=("##END= ");
+
+	        spectraData.setActiveElement(0);
+
+	        return outString;
+	    }
+
+	    var simpleHead = function(spectraData, scale, scaleX, encodeFormat, userDefinedParams){
+	        var variableX = spectraData.getSpectraVariable(0);
+	        var variableY = spectraData.getSpectraVariable(1);
+	        var outString="";
+	        if(spectraData.isDataClassPeak())
+	            outString+=("##DATA CLASS= PEAK TABLE"+ CRLF);
+	        if(spectraData.isDataClassXY())
+	            outString+=("##DATA CLASS= XYDATA"+ CRLF);
+
+	        spectraData.setActiveElement(0);
+	        //If it is a NMR spectrum
+	        if(spectraData.getDataType().indexOf("NMR")>=0){
+	            outString+=("##.OBSERVE FREQUENCY= " + spectraData.getParamDouble("observefrequency", 0) + CRLF);
+	            outString+=("##.OBSERVE NUCLEUS= ^" + spectraData.getNucleus()+ CRLF);
+	            outString+=("##$DECIM= " + (Math.round(spectraData.getParamDouble("$DECIM",0)))+ CRLF);
+	            outString+=("##$DSPFVS= " + (Math.round(spectraData.getParamDouble("$DSPFVS",0)))+ CRLF);
+	            outString+=("##$FCOR= " + (Math.round(spectraData.getParamDouble("$FCOR",0)))+ CRLF);
+	            outString+=("##$SW_h= " + (spectraData.getParamDouble("$SW_h",0))+ CRLF);
+	            outString+=("##$SW= " + (spectraData.getParamDouble("$SW",0))+ CRLF);
+	            outString+=("##$TD= " + (Math.round(spectraData.getParamDouble("$TD",0)))+ CRLF);
+	            outString+=("##$GRPDLY= " + (spectraData.getParamDouble("$GRPDLY",0))+ CRLF);
+	            outString+=("##$BF1= " + (spectraData.getParamDouble("$BF1",0))+ CRLF);
+	            outString+=("##$SFO1= " + (spectraData.getParamDouble("$SFO1",0))+ CRLF);
+	            outString+=("##$NUC1= <" +spectraData.getNucleus()+">"+ CRLF);
+	            outString+=("##.SOLVENT NAME= " + (spectraData.getSolventName())+ CRLF);
+
+	        }
+	        outString+=("##XUNITS=\t" + spectraData.getXUnits() + CRLF);
+	        outString+=("##YUNITS=\t" + spectraData.getYUnits() + CRLF);
+	        outString+=("##NPOINTS=\t" + spectraData.getNbPoints() + CRLF);
+	        outString+=("##FIRSTX=\t" + spectraData.getFirstX() + CRLF);
+	        outString+=("##LASTX=\t" + spectraData.getLastX() + CRLF);
+	        outString+=("##FIRSTY=\t" + spectraData.getFirstY() + CRLF);
+	        outString+=("##LASTY=\t" + spectraData.getLastY() + CRLF);
+	        if (spectraData.isDataClassPeak()) {
+	            outString+=("##XFACTOR=1"+ CRLF);
+	            outString+=("##YFACTOR=1"+ CRLF);
+	        } else if (spectraData.isDataClassXY()) {
+	            outString+=("##XFACTOR= "+ 1.0/scaleX+ CRLF);
+	            outString+=("##YFACTOR= "+1.0/scale + CRLF);
+	        }
+	        outString+=("##MAXY= "+ spectraData.getMaxY()+ CRLF);
+	        outString+=("##MINY= "+ spectraData.getMinY()+ CRLF);
+
+	        //Set the user defined parameters
+	        if(userDefinedParams!=null){
+	            for(var i=userDefinedParams.length-1;i>=0;i--){
+	                if(spectraData.containsParam(userDefinedParams[i])){
+	                    outString+=("##"+userDefinedParams[i]+"= "
+	                    + spectraData.getParam(userDefinedParams[i], "")+ CRLF);
+	                }
+	            }
+	        }
+
+
+	        if (spectraData.isDataClassPeak()) {
+	            outString+=("##PEAK TABLE= (XY..XY)" + CRLF);
+	            for (var point = 0; point < spectraData.getNbPoints(); point++)
+	                outString+=(spectraData.getX(point) + ", " + spectraData.getY(point)+ CRLF);
+	            outString+=("##END ");
+
+	        } else if (spectraData.isDataClassXY()) {
+	            outString+=("##DELTAX= "+spectraData.getDeltaX()+CRLF);
+	            outString+=("##XYDATA=(X++(Y..Y))" + CRLF);
+	            var tempString = "";
+	            var data = new Array(spectraData.getNbPoints());
+	            for (var point = data.length-1; point >=0; point--) {
+	                data[point]=Math.round(spectraData.getY(point)*scale);
+	            }
+
+	            tempString+=Encoder.encode(data, spectraData.getFirstX()*scaleX,spectraData.getDeltaX()*scaleX, encodeFormat);
+
+	            outString+=(tempString+CRLF);
+	            outString+=("##END= ");
+	        }
+
+	        spectraData.setActiveElement(0);
+	        return outString;
+	    }
+
+	    return {"convert":convert};
+	})();
+
+	module.exports = JcampCreator;
+
+
+
+/***/ },
+/* 5 */
+/***/ function(module, exports) {
+
+	/**
+	 * class encodes a integer vector as a String in order to store it in a text file.
+	 * The algorithms used to encode the data are describe in:
+	 *            http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
+	 * Created by acastillo on 3/2/16.
+	 */
+	var Encoder = (function(){
+	    var newLine="\r\n";
+
+	    var pseudoDigits=[['0','1','2','3','4','5','6','7','8','9'],
+	                  ['@','A','B','C','D','E','F','G','H','I'],
+	                  ['@','a','b','c','d','e','f','g','h','i'],
+	                  ['%','J','K','L','M','N','O','P','Q','R'],
+	                  ['%','j','k','l','m','n','o','p','q','r'],
+	                  [' ','S','T','U','V','W','X','Y','Z','s']];
+
+	    var SQZ_P= 1, SQZ_N= 2, DIF_P=3, DIF_N=4, DUP=5, MaxLinelength=100;
+
+	    /**
+	     * This function encodes the given vector. The encoding format is specified by the
+	     * encoding option
+	     * @param data
+	     * @param firstX
+	     * @param intervalX
+	     * @param encoding: ('FIX','SQZ','DIF','DIFDUP','CVS','PAC') Default 'DIFDUP'
+	     * @returns {String}
+	     */
+	    var encode = function(data, firstX, intervalX, encoding){
+	        if(encoding==("FIX"))
+	            return FIXencod(data, firstX,intervalX);
+	        if(encoding==("SQZ"))
+	            return SQZencod(data, firstX,intervalX);
+	        if(encoding==("DIF"))
+	            return DIFencod(data, firstX,intervalX);
+	        if(encoding==("DIFDUP"))
+	            return DIFDUPencod(data, firstX,intervalX);
+	        if(encoding==("CSV"))
+	            return CSVencod(data, firstX,intervalX);
+	        if(encoding==("PAC"))
+	            return PACencod(data, firstX,intervalX);
+	        //Default
+	        return DIFencod(data, firstX,intervalX);
+	    }
+
+	    /**
+	     * No data compression used. The data is separated by a comma(',').
+	     * @param data
+	     * @return
+	     */
+	    var CSVencod =  function(data, firstX, intervalX){
+	        return FIXencod(data, firstX, intervalX, ",");
+	    };
+
+	    /**
+	     * No data compression used. The data is separated by the specified separator.
+	     * @param data
+	     * @param separator, The separator character
+	     * @return
+	     */
+	    var FIXencod =  function(data, firstX, intervalX, separator){
+	        if(!separator)
+	            separator = " ";
+	        var outputData = "";
+	        var j=0, TD = data.length, i;
+	        while(j<TD-7){
+	            outputData+=Math.ceil(firstX+j*intervalX);
+	            for(i = 0;i<8;i++)
+	                outputData+=separator+data[j++];
+	            outputData+=newLine;
+	        }
+	        if(j<TD){
+	            //We add last numbers
+	            outputData+=Math.ceil(firstX+j*intervalX);
+	            for(i=j;i<TD;i++)
+	                outputData+=separator + data[i];
+	        }
+	        return outputData;
+	    };
+	    /**
+	     * No data compression used. The data is separated by the sign of the number.
+	     * @param data
+	     * @return
+	     */
+	    var PACencod = function(data, firstX, intervalX){
+	        var outputData = "";
+	        var j=0, TD = data.length, i;
+
+	        while(j<TD-7){
+	            outputData+=Math.ceil(firstX+j*intervalX);
+	            for(i = 0;i<8;i++){
+	                if(data[j]<0)
+	                    outputData+="-"+data[j++];
+	                else
+	                    outputData+="+"+data[j++];
+	            }
+	            outputData+=newLine;
+	        }
+	        if(j<TD){
+	            //We add last numbers
+	            outputData+=Math.ceil(firstX+j*intervalX);
+	            for(i=j;i<TD;i++){
+	                if(data[i]<0)
+	                    outputData+="-"+data[i];
+	                else
+	                    outputData+="+"+data[i];
+	            }
+	        }
+	        return outputData;
+	    };
+	    /**
+	     * Data compression is possible using the squeezed form (SQZ) in which the delimiter, the leading digit,
+	     * and sign are replaced by a pseudo-digit from Table 1. For example, the Y-values 30, 32 would be
+	     * represented as C0C2.
+	     * @param data
+	     * @return String
+	     */
+	    var SQZencod = function(data, firstX, intervalX){
+	        var outputData = "";
+	        //String outputData = new String();
+	        var j=0, TD = data.length, i;
+
+	        while(j<TD-10){
+	            outputData+=Math.ceil(firstX+j*intervalX);
+	            for(i = 0;i<10;i++)
+	                outputData+=SQZDigit(data[j++].toString());
+	            outputData+=newLine;
+	        }
+	        if(j<TD){
+	            //We add last numbers
+	            outputData+=Math.ceil(firstX+j*intervalX);
+	            for(i = j;i<TD;i++)
+	                outputData+=SQZDigit(data[i].toString());
+	        }
+
+	        return outputData;
+	    };
+
+	    /**
+	     * Duplicate suppression encoding
+	     * @param data
+	     * @return
+	     */
+	    var DIFDUPencod = function(data, firstX, intervalX){
+	        var mult=0, index=0, charCount= 0, i;
+	        //We built a string where we store the encoded data.
+	        var encodData = "",encodNumber = "",temp = "";
+
+	        //We calculate the differences vector
+	        var diffData = new Array(data.length-1);
+	        for(i=0;i<diffData.length;i++){
+	            diffData[i]= data[i+1]-data[i];
+	        }
+
+	        //We simulate a line carry
+	        index=0;
+	        var numDiff = diffData.length;
+	        while(index<numDiff){
+	            if(charCount==0){//Start line
+	                encodNumber = Math.ceil(firstX+index*intervalX)+SQZDigit(data[index].toString())+DIFDigit(diffData[index].toString());
+	                encodData+=encodNumber;
+	                charCount+=encodNumber.length;
+	            }
+	            else{
+	                //Try to insert next difference
+	                if(diffData[index-1]==diffData[index]){
+	                    mult++;
+	                }
+	                else{
+	                    if(mult>0){//Now we know that it can be in line
+	                        mult++;
+	                        encodNumber=DUPDigit(mult.toString());
+	                        encodData+=encodNumber;
+	                        charCount+=encodNumber.length;
+	                        mult=0;
+	                        index--;
+	                    }
+	                    else{
+	                        //Mirar si cabe, en caso contrario iniciar una nueva linea
+	                        encodNumber=DIFDigit(diffData[index].toString());
+	                        if(encodNumber.length+charCount<MaxLinelength){
+	                            encodData+=encodNumber;
+	                            charCount+=encodNumber.length;
+	                        }
+	                        else{//Iniciar nueva linea
+	                            encodData+=newLine;
+	                            temp=Math.ceil(firstX+index*intervalX)+SQZDigit(data[index].toString())+encodNumber;
+	                            encodData+=temp;//Each line start with first index number.
+	                            charCount=temp.length;
+	                        }
+	                    }
+	                }
+	            }
+	            index++;
+	        }
+	        if(mult>0)
+	            encodData+=DUPDigit((mult+1).toString());
+	        //We insert the last data from fid. It is done to control of data
+	        //The last line start with the number of datas in the fid.
+	        encodData+=newLine+Math.ceil(firstX+index*intervalX)+SQZDigit(data[index].toString());
+
+	        return encodData;
+	    };
+
+	    /**
+	     * Differential encoding
+	     * @param data
+	     * @return
+	     */
+	    var DIFencod = function(data, firstX, intervalX){
+	        var index=0, charCount= 0,i;
+
+	        var encodData = "";
+	        //String encodData = new String();
+	        var encodNumber = "", temp = "";
+
+	        //We calculate the differences vector
+	        var diffData = new Array(data.length-1);
+	        for(i=0;i<diffData.length;i++){
+	            diffData[i]= data[i+1]-data[i];
+	        }
+
+	        index=0;
+	        var numDiff = diffData.length;
+	        while(index<numDiff){
+	            if(charCount==0){//Iniciar linea
+	                //We convert the first number.
+	                encodNumber = Math.ceil(firstX+index*intervalX)+SQZDigit(data[index].toString())+DIFDigit(diffData[index].toString());
+	                encodData+=encodNumber;
+	                charCount+=encodNumber.length;
+	            }
+	            else{
+	                //Mirar si cabe, en caso contrario iniciar una nueva linea
+	                encodNumber=DIFDigit(diffData[index].toString());
+	                if(encodNumber.length+charCount<MaxLinelength){
+	                    encodData+=encodNumber;
+	                    charCount+=encodNumber.length;
+	                }
+	                else{//Iniciar nueva linea
+	                    encodData+=newLine;
+	                    temp=Math.ceil(firstX+index*intervalX)+SQZDigit(data[index].toString())+encodNumber;
+	                    encodData+=temp;//Each line start with first index number.
+	                    charCount=temp.length;
+	                }
+	            }
+	            index++;
+	        }
+	        //We insert the last number from data. It is done to control of data
+	        encodData+=newLine+Math.ceil(firstX+index*intervalX)+SQZDigit(data[index].toString());
+
+	        return encodData;
+	    };
+
+	    /**
+	     * Convert number to the ZQZ format, using pseudo digits.
+	     * @param num
+	     * @return
+	     */
+	    var SQZDigit = function(num){
+	        //console.log(num+" "+num.length);
+	        var SQZdigit = "";
+	        if(num.charAt(0)=='-'){
+	            SQZdigit+=pseudoDigits[SQZ_N][Number(num.charAt(1))];
+	            if(num.length>2)
+	                SQZdigit+=num.substring(2);
+	        }
+	        else{
+	            SQZdigit+=pseudoDigits[SQZ_P][Number(num.charAt(0))];
+	            if(num.length>1)
+	                SQZdigit+=num.substring(1);
+	        }
+
+	        return SQZdigit;
+	    };
+	    /**
+	     * Convert number to the DIF format, using pseudo digits.
+	     * @param num
+	     * @return
+	     */
+	    var DIFDigit = function(num){
+	        var DIFFdigit = "";
+
+	        if(num.charAt(0)=='-'){
+	            DIFFdigit+=pseudoDigits[DIF_N][Number(num.charAt(1))];
+	            if(num.length>2)
+	                DIFFdigit+=num.substring(2);
+
+	        }
+	        else{
+	            DIFFdigit+=pseudoDigits[DIF_P][Number(num.charAt(0))];
+	            if(num.length>1)
+	                DIFFdigit+=num.substring(1);
+
+	        }
+
+	        return DIFFdigit;
+	    };
+	    /**
+	     * Convert number to the DUP format, using pseudo digits.
+	     * @param num
+	     * @return
+	     */
+	    var DUPDigit = function(num){
+	        var DUPdigit = "";
+	        DUPdigit+=pseudoDigits[DUP][Number(num.charAt(0))];
+	        if(num.length>1)
+	            DUPdigit+=num.substring(1);
+
+	        return DUPdigit;
+	    }
+
+	    return {
+	        encode:encode,
+	        FIXencod:FIXencod,
+	        CSVencod:CSVencod,
+	        PACencod:PACencod,
+	        SQZencod:SQZencod,
+	        DIFDUPencod:DIFDUPencod,
+	        DIFencod:DIFDUPencod
+	    };
+
+	})();
+
+	module.exports = Encoder;
+
+
+
+/***/ },
+/* 6 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	var hasOwn = Object.prototype.hasOwnProperty;
+	var toStr = Object.prototype.toString;
+
+	var isArray = function isArray(arr) {
+		if (typeof Array.isArray === 'function') {
+			return Array.isArray(arr);
+		}
+
+		return toStr.call(arr) === '[object Array]';
+	};
+
+	var isPlainObject = function isPlainObject(obj) {
+		if (!obj || toStr.call(obj) !== '[object Object]') {
+			return false;
+		}
+
+		var hasOwnConstructor = hasOwn.call(obj, 'constructor');
+		var hasIsPrototypeOf = obj.constructor && obj.constructor.prototype && hasOwn.call(obj.constructor.prototype, 'isPrototypeOf');
+		// Not own constructor property must be Object
+		if (obj.constructor && !hasOwnConstructor && !hasIsPrototypeOf) {
+			return false;
+		}
+
+		// Own properties are enumerated firstly, so to speed up,
+		// if last one is own, then all properties are own.
+		var key;
+		for (key in obj) {/**/}
+
+		return typeof key === 'undefined' || hasOwn.call(obj, key);
+	};
+
+	module.exports = function extend() {
+		var options, name, src, copy, copyIsArray, clone,
+			target = arguments[0],
+			i = 1,
+			length = arguments.length,
+			deep = false;
+
+		// Handle a deep copy situation
+		if (typeof target === 'boolean') {
+			deep = target;
+			target = arguments[1] || {};
+			// skip the boolean and the target
+			i = 2;
+		} else if ((typeof target !== 'object' && typeof target !== 'function') || target == null) {
+			target = {};
+		}
+
+		for (; i < length; ++i) {
+			options = arguments[i];
+			// Only deal with non-null/undefined values
+			if (options != null) {
+				// Extend the base object
+				for (name in options) {
+					src = target[name];
+					copy = options[name];
+
+					// Prevent never-ending loop
+					if (target !== copy) {
+						// Recurse if we're merging plain objects or arrays
+						if (deep && copy && (isPlainObject(copy) || (copyIsArray = isArray(copy)))) {
+							if (copyIsArray) {
+								copyIsArray = false;
+								clone = src && isArray(src) ? src : [];
+							} else {
+								clone = src && isPlainObject(src) ? src : {};
+							}
+
+							// Never move original objects, clone them
+							target[name] = extend(deep, clone, copy);
+
+						// Don't bring in undefined values
+						} else if (typeof copy !== 'undefined') {
+							target[name] = copy;
+						}
+					}
+				}
+			}
+		}
+
+		// Return the modified object
+		return target;
+	};
+
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
 	var SD = __webpack_require__(1);
-	var PeakPicking = __webpack_require__(5);
+	var PeakPicking = __webpack_require__(8);
 	var JcampConverter=__webpack_require__(3);
 
 	function NMR(sd) {
@@ -2246,29 +3086,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return PeakPicking.peakPicking(this, parameters);
 	}
 
-	/**
-	 * @function toJcamp(options)
-	 * This function creates a String that represents the given spectraData in the format JCAM-DX 5.0
-	 * The X,Y data can be compressed using one of the methods described in: 
-	 * "JCAMP-DX. A STANDARD FORMAT FOR THE EXCHANGE OF ION MOBILITY SPECTROMETRY DATA", 
-	 *  http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
-	 * @option encode: ['FIX','SQZ','DIF','DIFDUP','CVS','PAC'] (Default: 'FIX')
-	 * @option yfactor: The YFACTOR. It allows to compress the data by removing digits from the ordinate. (Default: 1)
-	 * @option type: ["NTUPLES", "SIMPLE"] (Default: "SIMPLE")
-	 * @option keep: A set of user defined parameters of the given SpectraData to be stored in the jcamp.
-	 * @example SD.toJcamp(spectraData,{encode:'DIFDUP',yfactor:0.01,type:"SIMPLE",keep:['#batchID','#url']});
-	 */ 
-	NMR.prototype.toJcamp=function(options) {
-	     //@TODO Implement toJcamp filter
-	     return "NOT ImplementED"
-	}
 
 
 	module.exports = NMR;
 
 
 /***/ },
-/* 5 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -2277,12 +3101,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * through Global Spectral Deconvolution (GSD)
 	 * http://www.spectroscopyeurope.com/images/stories/ColumnPDFs/TD_23_1.pdf
 	 */
-	var JAnalyzer = __webpack_require__(6);
+	var JAnalyzer = __webpack_require__(9);
 	/*var LM = require('ml-curve-fitting');
 	var Matrix = LM.Matrix;
 	var math = Matrix.algebra;*/
-	var GSD = __webpack_require__(7);
-	var extend = __webpack_require__(35);
+	var GSD = __webpack_require__(10);
+	var extend = __webpack_require__(6);
 
 	var PeakPicking={
 	    impurities:[],
@@ -2387,7 +3211,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 
 	        for(var i=0;i<signals.length;i++){
-	            signals[i].signalID = options.id+"_"+(i+1);
+	            if(options.id&&options.id.length>0)
+	                signals[i].signalID = options.id+"_"+(i+1);
+	            else
+	                signals[i].signalID = (i+1)+"";
 	            signals[i]._highlight=[signals[i].signalID];
 	        }
 
@@ -2887,7 +3714,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 6 */
+/* 9 */
 /***/ function(module, exports) {
 
 	/**
@@ -3463,22 +4290,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = JAnalyzer;
 
 /***/ },
-/* 7 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
-	module.exports.post = __webpack_require__(8);
-	module.exports.gsd = __webpack_require__(31);
+	module.exports.post = __webpack_require__(11);
+	module.exports.gsd = __webpack_require__(34);
 
 
 /***/ },
-/* 8 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
 	 * Created by acastillo on 9/6/15.
 	 */
-	var Opt = __webpack_require__(9);
+	var Opt = __webpack_require__(12);
 
 	function sampleFunction(from, to, x, y, lastIndex){
 	    var nbPoints = x.length;
@@ -3751,14 +4578,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 9 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var LM = __webpack_require__(10);
+	var LM = __webpack_require__(13);
 	var math = LM.Matrix.algebra;
-	var Matrix = __webpack_require__(22);
+	var Matrix = __webpack_require__(25);
 
 	/**
 	 * This function calculates the spectrum as a sum of lorentzian functions. The Lorentzian
@@ -4093,25 +4920,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports.singleLorentzian = singleLorentzian;
 
 /***/ },
-/* 10 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	module.exports = __webpack_require__(11);
-	module.exports.Matrix = __webpack_require__(12);
-	module.exports.Matrix.algebra = __webpack_require__(21);
+	module.exports = __webpack_require__(14);
+	module.exports.Matrix = __webpack_require__(15);
+	module.exports.Matrix.algebra = __webpack_require__(24);
 
 
 /***/ },
-/* 11 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
 	 * Created by acastillo on 8/5/15.
 	 */
-	var Matrix = __webpack_require__(12);
-	var math = __webpack_require__(21);
+	var Matrix = __webpack_require__(15);
+	var math = __webpack_require__(24);
 
 	var DEBUG = false;
 	/** Levenberg Marquardt curve-fitting: minimize sum of weighted squared residuals
@@ -4626,17 +5453,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = LM;
 
 /***/ },
-/* 12 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	module.exports = __webpack_require__(13);
-	module.exports.Decompositions = module.exports.DC = __webpack_require__(14);
+	module.exports = __webpack_require__(16);
+	module.exports.Decompositions = module.exports.DC = __webpack_require__(17);
 
 
 /***/ },
-/* 13 */
+/* 16 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -6112,18 +6939,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 14 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(13);
+	var Matrix = __webpack_require__(16);
 
-	var SingularValueDecomposition = __webpack_require__(15);
-	var EigenvalueDecomposition = __webpack_require__(17);
-	var LuDecomposition = __webpack_require__(18);
-	var QrDecomposition = __webpack_require__(19);
-	var CholeskyDecomposition = __webpack_require__(20);
+	var SingularValueDecomposition = __webpack_require__(18);
+	var EigenvalueDecomposition = __webpack_require__(20);
+	var LuDecomposition = __webpack_require__(21);
+	var QrDecomposition = __webpack_require__(22);
+	var CholeskyDecomposition = __webpack_require__(23);
 
 	function inverse(matrix) {
 	    return solve(matrix, Matrix.eye(matrix.rows));
@@ -6158,13 +6985,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 15 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(13);
-	var hypotenuse = __webpack_require__(16).hypotenuse;
+	var Matrix = __webpack_require__(16);
+	var hypotenuse = __webpack_require__(19).hypotenuse;
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/SingularValueDecomposition.cs
 	function SingularValueDecomposition(value, options) {
@@ -6661,7 +7488,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 16 */
+/* 19 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -6681,13 +7508,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 17 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(13);
-	var hypotenuse = __webpack_require__(16).hypotenuse;
+	var Matrix = __webpack_require__(16);
+	var hypotenuse = __webpack_require__(19).hypotenuse;
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/EigenvalueDecomposition.cs
 	function EigenvalueDecomposition(matrix) {
@@ -7453,12 +8280,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 18 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(13);
+	var Matrix = __webpack_require__(16);
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/LuDecomposition.cs
 	function LuDecomposition(matrix) {
@@ -7628,13 +8455,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 19 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(13);
-	var hypotenuse = __webpack_require__(16).hypotenuse;
+	var Matrix = __webpack_require__(16);
+	var hypotenuse = __webpack_require__(19).hypotenuse;
 
 	//https://github.com/lutzroeder/Mapack/blob/master/Source/QrDecomposition.cs
 	function QrDecomposition(value) {
@@ -7784,12 +8611,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 20 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(13);
+	var Matrix = __webpack_require__(16);
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/CholeskyDecomposition.cs
 	function CholeskyDecomposition(value) {
@@ -7879,7 +8706,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 21 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -7891,7 +8718,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var Matrix = __webpack_require__(12);
+	var Matrix = __webpack_require__(15);
 
 	function matrix(A,B){
 	    return new Matrix(A,B);
@@ -8137,17 +8964,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 22 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	module.exports = __webpack_require__(23);
-	module.exports.Decompositions = module.exports.DC = __webpack_require__(24);
+	module.exports = __webpack_require__(26);
+	module.exports.Decompositions = module.exports.DC = __webpack_require__(27);
 
 
 /***/ },
-/* 23 */
+/* 26 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -9623,18 +10450,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 24 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(23);
+	var Matrix = __webpack_require__(26);
 
-	var SingularValueDecomposition = __webpack_require__(25);
-	var EigenvalueDecomposition = __webpack_require__(27);
-	var LuDecomposition = __webpack_require__(28);
-	var QrDecomposition = __webpack_require__(29);
-	var CholeskyDecomposition = __webpack_require__(30);
+	var SingularValueDecomposition = __webpack_require__(28);
+	var EigenvalueDecomposition = __webpack_require__(30);
+	var LuDecomposition = __webpack_require__(31);
+	var QrDecomposition = __webpack_require__(32);
+	var CholeskyDecomposition = __webpack_require__(33);
 
 	function inverse(matrix) {
 	    return solve(matrix, Matrix.eye(matrix.rows));
@@ -9669,13 +10496,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 25 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(23);
-	var hypotenuse = __webpack_require__(26).hypotenuse;
+	var Matrix = __webpack_require__(26);
+	var hypotenuse = __webpack_require__(29).hypotenuse;
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/SingularValueDecomposition.cs
 	function SingularValueDecomposition(value, options) {
@@ -10172,7 +10999,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 26 */
+/* 29 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -10192,13 +11019,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 27 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(23);
-	var hypotenuse = __webpack_require__(26).hypotenuse;
+	var Matrix = __webpack_require__(26);
+	var hypotenuse = __webpack_require__(29).hypotenuse;
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/EigenvalueDecomposition.cs
 	function EigenvalueDecomposition(matrix) {
@@ -10964,12 +11791,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 28 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(23);
+	var Matrix = __webpack_require__(26);
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/LuDecomposition.cs
 	function LuDecomposition(matrix) {
@@ -11139,13 +11966,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 29 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(23);
-	var hypotenuse = __webpack_require__(26).hypotenuse;
+	var Matrix = __webpack_require__(26);
+	var hypotenuse = __webpack_require__(29).hypotenuse;
 
 	//https://github.com/lutzroeder/Mapack/blob/master/Source/QrDecomposition.cs
 	function QrDecomposition(value) {
@@ -11295,12 +12122,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 30 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(23);
+	var Matrix = __webpack_require__(26);
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/CholeskyDecomposition.cs
 	function CholeskyDecomposition(value) {
@@ -11390,13 +12217,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 31 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Opt = __webpack_require__(9);
-	var stats = __webpack_require__(32);
-	var extend = __webpack_require__(35);
-	var SG = __webpack_require__(36);
+	var Opt = __webpack_require__(12);
+	var stats = __webpack_require__(35);
+	var extend = __webpack_require__(6);
+	var SG = __webpack_require__(38);
 
 	var sgDefOptions = {
 	    windowSize: 5,
@@ -11612,17 +12439,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 32 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	exports.array = __webpack_require__(33);
-	exports.matrix = __webpack_require__(34);
+	exports.array = __webpack_require__(36);
+	exports.matrix = __webpack_require__(37);
 
 
 /***/ },
-/* 33 */
+/* 36 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -12081,11 +12908,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 34 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
-	var arrayStat = __webpack_require__(33);
+	var arrayStat = __webpack_require__(36);
 
 	// https://github.com/accord-net/framework/blob/development/Sources/Accord.Statistics/Tools.cs
 
@@ -12607,104 +13434,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 35 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	var hasOwn = Object.prototype.hasOwnProperty;
-	var toStr = Object.prototype.toString;
-
-	var isArray = function isArray(arr) {
-		if (typeof Array.isArray === 'function') {
-			return Array.isArray(arr);
-		}
-
-		return toStr.call(arr) === '[object Array]';
-	};
-
-	var isPlainObject = function isPlainObject(obj) {
-		if (!obj || toStr.call(obj) !== '[object Object]') {
-			return false;
-		}
-
-		var hasOwnConstructor = hasOwn.call(obj, 'constructor');
-		var hasIsPrototypeOf = obj.constructor && obj.constructor.prototype && hasOwn.call(obj.constructor.prototype, 'isPrototypeOf');
-		// Not own constructor property must be Object
-		if (obj.constructor && !hasOwnConstructor && !hasIsPrototypeOf) {
-			return false;
-		}
-
-		// Own properties are enumerated firstly, so to speed up,
-		// if last one is own, then all properties are own.
-		var key;
-		for (key in obj) {/**/}
-
-		return typeof key === 'undefined' || hasOwn.call(obj, key);
-	};
-
-	module.exports = function extend() {
-		var options, name, src, copy, copyIsArray, clone,
-			target = arguments[0],
-			i = 1,
-			length = arguments.length,
-			deep = false;
-
-		// Handle a deep copy situation
-		if (typeof target === 'boolean') {
-			deep = target;
-			target = arguments[1] || {};
-			// skip the boolean and the target
-			i = 2;
-		} else if ((typeof target !== 'object' && typeof target !== 'function') || target == null) {
-			target = {};
-		}
-
-		for (; i < length; ++i) {
-			options = arguments[i];
-			// Only deal with non-null/undefined values
-			if (options != null) {
-				// Extend the base object
-				for (name in options) {
-					src = target[name];
-					copy = options[name];
-
-					// Prevent never-ending loop
-					if (target !== copy) {
-						// Recurse if we're merging plain objects or arrays
-						if (deep && copy && (isPlainObject(copy) || (copyIsArray = isArray(copy)))) {
-							if (copyIsArray) {
-								copyIsArray = false;
-								clone = src && isArray(src) ? src : [];
-							} else {
-								clone = src && isPlainObject(src) ? src : {};
-							}
-
-							// Never move original objects, clone them
-							target[name] = extend(deep, clone, copy);
-
-						// Don't bring in undefined values
-						} else if (typeof copy !== 'undefined') {
-							target[name] = copy;
-						}
-					}
-				}
-			}
-		}
-
-		// Return the modified object
-		return target;
-	};
-
-
-
-/***/ },
-/* 36 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
 	//Code translate from Pascal source in http://pubs.acs.org/doi/pdf/10.1021/ac00205a007
-	var extend = __webpack_require__(35);
-	var stat = __webpack_require__(37);
+	var extend = __webpack_require__(6);
+	var stat = __webpack_require__(39);
 
 	var defaultOptions = {
 	    windowSize: 11,
@@ -12874,17 +13609,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 37 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	exports.array = __webpack_require__(38);
-	exports.matrix = __webpack_require__(39);
+	exports.array = __webpack_require__(40);
+	exports.matrix = __webpack_require__(41);
 
 
 /***/ },
-/* 38 */
+/* 40 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -13343,11 +14078,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 39 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
-	var arrayStat = __webpack_require__(38);
+	var arrayStat = __webpack_require__(40);
 
 	// https://github.com/accord-net/framework/blob/development/Sources/Accord.Statistics/Tools.cs
 
@@ -13869,12 +14604,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 40 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var SD = __webpack_require__(1);
-	var PeakPicking2D = __webpack_require__(41);
-	var PeakOptimizer = __webpack_require__(45);
+	var PeakPicking2D = __webpack_require__(43);
+	var PeakOptimizer = __webpack_require__(47);
 	var JcampConverter=__webpack_require__(3);
 
 	function NMR2D(sd) {
@@ -13965,7 +14700,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if(!options.thresholdFactor)
 	        options.thresholdFactor=1;
 	    var id = Math.round(Math.random()*255);
-	    if(!options.id){
+	    if(options.id){
 	        id=options.id;
 	    }
 	    var peakList = PeakPicking2D.findPeaks2D(this, options.thresholdFactor);
@@ -14006,12 +14741,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 41 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var lib = __webpack_require__(42);
-	var PeakOptimizer = __webpack_require__(45);
-	var SimpleClustering =  __webpack_require__(46);
+	var lib = __webpack_require__(44);
+	var PeakOptimizer = __webpack_require__(47);
+	var SimpleClustering =  __webpack_require__(48);
 	var StatArray = __webpack_require__(2);
 	var FFTUtils = lib.FFTUtils;
 
@@ -14358,20 +15093,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = PeakPicking2D;
 
 /***/ },
-/* 42 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	exports.FFTUtils = __webpack_require__(43);
-	exports.FFT = __webpack_require__(44);
+	exports.FFTUtils = __webpack_require__(45);
+	exports.FFT = __webpack_require__(46);
 
 
 /***/ },
-/* 43 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var FFT = __webpack_require__(44);
+	var FFT = __webpack_require__(46);
 
 	var FFTUtils= {
 	    DEBUG : false,
@@ -14612,7 +15347,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -14849,7 +15584,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 45 */
+/* 47 */
 /***/ function(module, exports) {
 
 	var PeakOptimizer={
@@ -15152,7 +15887,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = PeakOptimizer;
 
 /***/ },
-/* 46 */
+/* 48 */
 /***/ function(module, exports) {
 
 	var SimpleClustering={
@@ -15216,7 +15951,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = SimpleClustering;
 
 /***/ },
-/* 47 */
+/* 49 */
 /***/ function(module, exports) {
 
 	/**
