@@ -15,7 +15,7 @@ function createSpectraData(filename, label, data) {
 
 var spectrum=createSpectraData("/data/ethylbenzene/hsqc_0.jdx");
 
-console.log(spectrum.sd);
+//console.log(spectrum.sd);
 //console.log(spectrum.observeFrequencyX());
 //console.log(spectrum.observeFrequencyY());
 //var peakPicking = spectrum.nmrPeakDetection2D();
