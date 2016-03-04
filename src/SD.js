@@ -2,7 +2,9 @@
 // http://jsperf.com/lp-array-and-loops/2
 
 var StatArray = require('ml-stat/array');
-var JcampConverter=require("jcampconverter");
+var JcampConverter = require("jcampconverter");
+var JcampCreator = require("./JcampCreator");
+var extend = require("extend");
 
 function SD(sd) {
     this.sd=sd;
@@ -67,6 +69,14 @@ SD.prototype.getXUnits = function(){
  */
 SD.prototype.getYUnits = function(){
     return this.getSpectrum().yUnit;
+}
+
+/**
+ * This function return the information about the dimensions
+ * @param dim
+ */
+SD.prototype.getSpectraVariable = function(dim){
+    return this.sd.ntuples[dim];
 }
 
 /**
@@ -562,6 +572,30 @@ SD.prototype.getParamInt = function(name, defvalue){
 }
 
 /**
+ * @function getParam(name, defvalue);
+ * Get the value of the parameter
+ * @param  name The parameter name
+ * @param  defvalue The default value
+ */
+SD.prototype.getParam = function(name, defvalue){
+    var value = this.sd.info[name];
+    if(!value)
+        value = defvalue;
+    return value;
+}
+
+/**
+ *True if the spectrum.info contains the given parameter
+ * @param name
+ * @returns {boolean}
+ */
+SD.prototype.containsParam = function(name){
+    if(this.sd.info[name]){
+        return true;
+    }
+    return false;
+}
+/**
  * Return the y elements of the current spectrum
  * @returns {*}
  */
@@ -673,6 +707,24 @@ SD.prototype.is2D = function(){
     if(typeof this.sd.twoD == "undefined")
         return false;
     return this.sd.twoD;
+}
+
+/**
+ * @function toJcamp(options)
+ * This function creates a String that represents the given spectraData in the format JCAM-DX 5.0
+ * The X,Y data can be compressed using one of the methods described in:
+ * "JCAMP-DX. A STANDARD FORMAT FOR THE EXCHANGE OF ION MOBILITY SPECTROMETRY DATA",
+ *  http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
+ * @option encode: ['FIX','SQZ','DIF','DIFDUP','CVS','PAC'] (Default: 'FIX')
+ * @option yfactor: The YFACTOR. It allows to compress the data by removing digits from the ordinate. (Default: 1)
+ * @option type: ["NTUPLES", "SIMPLE"] (Default: "SIMPLE")
+ * @option keep: A set of user defined parameters of the given SpectraData to be stored in the jcamp.
+ * @example SD.toJcamp(spectraData,{encode:'DIFDUP',yfactor:0.01,type:"SIMPLE",keep:['#batchID','#url']});
+ */
+SD.prototype.toJcamp=function(options) {
+    var defaultOptions = {"encode":"DIFDUP","yFactor":1,"type":"SIMPLE","keep":[]};
+    options = extend({}, defaultOptions, options);
+    return JcampCreator.convert(this, options.encode, options.yFactor, options.type, options.keep);
 }
 
 

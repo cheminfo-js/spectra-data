@@ -114,7 +114,10 @@ var PeakPicking={
         }
 
         for(var i=0;i<signals.length;i++){
-            signals[i].signalID = options.id+"_"+(i+1);
+            if(options.id&&options.id.length>0)
+                signals[i].signalID = options.id+"_"+(i+1);
+            else
+                signals[i].signalID = (i+1)+"";
             signals[i]._highlight=[signals[i].signalID];
         }
 

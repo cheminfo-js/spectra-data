@@ -282,22 +282,6 @@ NMR.prototype.nmrPeakDetection=function(parameters) {
     return PeakPicking.peakPicking(this, parameters);
 }
 
-/**
- * @function toJcamp(options)
- * This function creates a String that represents the given spectraData in the format JCAM-DX 5.0
- * The X,Y data can be compressed using one of the methods described in: 
- * "JCAMP-DX. A STANDARD FORMAT FOR THE EXCHANGE OF ION MOBILITY SPECTROMETRY DATA", 
- *  http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
- * @option encode: ['FIX','SQZ','DIF','DIFDUP','CVS','PAC'] (Default: 'FIX')
- * @option yfactor: The YFACTOR. It allows to compress the data by removing digits from the ordinate. (Default: 1)
- * @option type: ["NTUPLES", "SIMPLE"] (Default: "SIMPLE")
- * @option keep: A set of user defined parameters of the given SpectraData to be stored in the jcamp.
- * @example SD.toJcamp(spectraData,{encode:'DIFDUP',yfactor:0.01,type:"SIMPLE",keep:['#batchID','#url']});
- */ 
-NMR.prototype.toJcamp=function(options) {
-     //@TODO Implement toJcamp filter
-     return "NOT ImplementED"
-}
 
 
 module.exports = NMR;
