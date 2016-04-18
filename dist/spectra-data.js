@@ -142,7 +142,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	/**
-	 * This function return the information about the dimensions
+	 * This function returns the information about the dimensions
 	 * @param dim
 	 */
 	SD.prototype.getSpectraVariable = function(dim){
@@ -785,7 +785,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * The X,Y data can be compressed using one of the methods described in:
 	 * "JCAMP-DX. A STANDARD FORMAT FOR THE EXCHANGE OF ION MOBILITY SPECTROMETRY DATA",
 	 *  http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
-	 * @option encode: ['FIX','SQZ','DIF','DIFDUP','CVS','PAC'] (Default: 'FIX')
+	 * @option encode: ['FIX','SQZ','DIF','DIFDUP','CVS','PAC'] (Default: 'DIFDUP')
 	 * @option yfactor: The YFACTOR. It allows to compress the data by removing digits from the ordinate. (Default: 1)
 	 * @option type: ["NTUPLES", "SIMPLE"] (Default: "SIMPLE")
 	 * @option keep: A set of user defined parameters of the given SpectraData to be stored in the jcamp.
@@ -1273,6 +1273,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var xyDataSplitRegExp = /[,\t \+-]*(?=[^\d,\t \.])|[ \t]+(?=[\d+\.-])/;
 	    var removeCommentRegExp = /\$\$.*/;
 	    var peakTableSplitRegExp = /[,\t ]+/;
+	    var ntuplesSeparator = /[, \t]{1,}/;
 	    var DEBUG = false;
 
 	    var GC_MS_FIELDS = ['TIC', '.RIC', 'SCANNUMBER'];
@@ -1396,6 +1397,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	                if (dataValue.indexOf('nD') > -1) {
 	                    result.twoD = true;
 	                }
+	            } else if (dataLabel === 'NTUPLES') {
+	                if (dataValue.indexOf('nD') > -1) {
+	                    result.twoD = true;
+	                }
 	            } else if (dataLabel === 'XUNITS') {
 	                spectrum.xUnit = dataValue;
 	            } else if (dataLabel === 'YUNITS') {
@@ -1435,30 +1440,30 @@ return /******/ (function(modules) { // webpackBootstrap
 	                //                 result.shiftOffsetNum = parseInt(parts[2].trim());
 	                //                 result.shiftOffsetVal = parseFloat(parts[3].trim());
 	            } else if (dataLabel === 'VARNAME') {
-	                ntuples.varname = dataValue.split(/[, \t]{2,}/);
+	                ntuples.varname = dataValue.split(ntuplesSeparator);
 	            } else if (dataLabel === 'SYMBOL') {
-	                ntuples.symbol = dataValue.split(/[, \t]{2,}/);
+	                ntuples.symbol = dataValue.split(ntuplesSeparator);
 	            } else if (dataLabel === 'VARTYPE') {
-	                ntuples.vartype = dataValue.split(/[, \t]{2,}/);
+	                ntuples.vartype = dataValue.split(ntuplesSeparator);
 	            } else if (dataLabel === 'VARFORM') {
-	                ntuples.varform = dataValue.split(/[, \t]{2,}/);
+	                ntuples.varform = dataValue.split(ntuplesSeparator);
 	            } else if (dataLabel === 'VARDIM') {
-	                ntuples.vardim = convertToFloatArray(dataValue.split(/[, \t]{2,}/));
+	                ntuples.vardim = convertToFloatArray(dataValue.split(ntuplesSeparator));
 	            } else if (dataLabel === 'UNITS') {
-	                ntuples.units = dataValue.split(/[, \t]{2,}/);
+	                ntuples.units = dataValue.split(ntuplesSeparator);
 	            } else if (dataLabel === 'FACTOR') {
-	                ntuples.factor = convertToFloatArray(dataValue.split(/[, \t]{2,}/));
+	                ntuples.factor = convertToFloatArray(dataValue.split(ntuplesSeparator));
 	            } else if (dataLabel === 'FIRST') {
-	                ntuples.first = convertToFloatArray(dataValue.split(/[, \t]{2,}/));
+	                ntuples.first = convertToFloatArray(dataValue.split(ntuplesSeparator));
 	            } else if (dataLabel === 'LAST') {
-	                ntuples.last = convertToFloatArray(dataValue.split(/[, \t]{2,}/));
+	                ntuples.last = convertToFloatArray(dataValue.split(ntuplesSeparator));
 	            } else if (dataLabel === 'MIN') {
-	                ntuples.min = convertToFloatArray(dataValue.split(/[, \t]{2,}/));
+	                ntuples.min = convertToFloatArray(dataValue.split(ntuplesSeparator));
 	            } else if (dataLabel === 'MAX') {
-	                ntuples.max = convertToFloatArray(dataValue.split(/[, \t]{2,}/));
+	                ntuples.max = convertToFloatArray(dataValue.split(ntuplesSeparator));
 	            } else if (dataLabel === '.NUCLEUS') {
 	                if (result.twoD) {
-	                    result.yType = dataValue.split(/[, \t]{2,}/)[0];
+	                    result.yType = dataValue.split(ntuplesSeparator)[0];
 	                }
 	            } else if (dataLabel === 'PAGE') {
 	                spectrum.page = dataValue.trim();
@@ -1527,16 +1532,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	        }
 
-
-	        // maybe it is a GC (HPLC) / MS. In this case we add a new format
-	        if (spectra.length > 1 && (! spectra[0].dataType || spectra[0].dataType.match(/.*mass.*/i))) {
-	            addGCMS(result);
-	            if (result.profiling) result.profiling.push({
-	                action: 'Finished GCMS calculation',
-	                time: new Date() - start
-	            });
+	        var isGCMS = (spectra.length > 1 && (! spectra[0].dataType || spectra[0].dataType.match(/.*mass.*/i)));
+	        if (isGCMS && options.newGCMS) {
+	            options.xy = true;
 	        }
-
 
 	        if (options.xy) { // the spectraData should not be a oneD array but an object with x and y
 	            if (spectra.length > 0) {
@@ -1545,7 +1544,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    if (spectrum.data.length>0) {
 	                        for (var j=0; j<spectrum.data.length; j++) {
 	                            var data=spectrum.data[j];
-	                            var newData={x:Array(data.length/2), y:Array(data.length/2)};
+	                            var newData={x: new Array(data.length/2), y:new Array(data.length/2)};
 	                            for (var k=0; k<data.length; k=k+2) {
 	                                newData.x[k/2]=data[k];
 	                                newData.y[k/2]=data[k+1];
@@ -1559,14 +1558,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	        }
 
+	        // maybe it is a GC (HPLC) / MS. In this case we add a new format
+	        if (isGCMS) {
+	            if (options.newGCMS) {
+	                addNewGCMS(result);
+	            } else {
+	                addGCMS(result);
+	            }
+	            if (result.profiling) result.profiling.push({
+	                action: 'Finished GCMS calculation',
+	                time: new Date() - start
+	            });
+	        }
+
 	        if (result.profiling) {
 	            result.profiling.push({action: 'Total time', time: new Date() - start});
 	        }
 
-	        //   console.log(result);
-	        //    console.log(JSON.stringify(spectra));
 	        return result;
-
 	    }
 
 
@@ -1575,10 +1584,47 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    function isMSField(dataLabel) {
-	        for (var i = 0; i < GC_MS_FIELDS.length; i++) {
-	            if (dataLabel === GC_MS_FIELDS[i]) return true;
+	        return GC_MS_FIELDS.indexOf(dataLabel) !== -1;
+	    }
+
+	    function addNewGCMS(result) {
+	        var spectra = result.spectra;
+	        var length  = spectra.length;
+	        var gcms = {
+	            times: new Array(length),
+	            series: [{
+	                name: 'ms',
+	                dimension: 2,
+	                data: new Array(length)
+	            }]
+	        };
+
+	        var i;
+	        var existingGCMSFields = [];
+	        for (i = 0; i < GC_MS_FIELDS.length; i++) {
+	            var label = convertMSFieldToLabel(GC_MS_FIELDS[i]);
+	            if (spectra[0][label]) {
+	                existingGCMSFields.push(label);
+	                gcms.series.push({
+	                    name: label,
+	                    dimension: 1,
+	                    data: new Array(length)
+	                });
+	            }
 	        }
-	        return false;
+
+	        for (i = 0; i < length; i++) {
+	            var spectrum = spectra[i];
+	            gcms.times[i] = spectrum.pageValue;
+	            for (var j = 0; j < existingGCMSFields.length; j++) {
+	                gcms.series[j + 1].data[i] = parseFloat(spectrum[existingGCMSFields[j]]);
+	            }
+	            if (spectrum.data) {
+	                gcms.series[0].data[i] = [spectrum.data[0].x, spectrum.data[0].y];
+	            }
+
+	        }
+	        result.gcms = gcms;
 	    }
 
 	    function addGCMS(result) {
@@ -2067,7 +2113,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        outString+=("##TITLE= " + spectraData.getTitle() + CRLF);
 	        outString+=("##JCAMP-DX= 5.00\t$$"+version+ CRLF);
 	        outString+=("##OWNER= " + spectraData.getParamString("##OWNER=", "")+ CRLF);
-	        outString+=("##DATATYPE= " +spectraData.getDataType()+ CRLF);
+	        outString+=("##DATA TYPE= " +spectraData.getDataType()+ CRLF);
 
 	        if(type=="NTUPLES") {
 	            outString+=ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams);
@@ -2534,7 +2580,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 
 	        //We simulate a line carry
-	        index=0;
 	        var numDiff = diffData.length;
 	        while(index<numDiff){
 	            if(charCount==0){//Start line
@@ -14708,6 +14753,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    //lets add an unique ID for each peak.
 	    for(var i=0;i<peakList.length;i++){
 	        peakList[i]._highlight=[id+"_"+i];
+	        peakList[i].id = id+"_"+i;
 	    }
 	    if(options.references)
 	        PeakOptimizer.alignDimensions(peakList,options.references);
