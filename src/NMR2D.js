@@ -99,7 +99,7 @@ NMR2D.prototype.nmrPeakDetection2D=function(options){
     //lets add an unique ID for each peak.
     for(var i=0;i<peakList.length;i++){
         peakList[i]._highlight=[id+"_"+i];
-        peakList[i].id = id+"_"+i;
+        peakList[i].signalID = id+"_"+i;
     }
     if(options.references)
         PeakOptimizer.alignDimensions(peakList,options.references);
