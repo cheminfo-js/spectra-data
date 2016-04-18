@@ -72,7 +72,7 @@ SD.prototype.getYUnits = function(){
 }
 
 /**
- * This function return the information about the dimensions
+ * This function returns the information about the dimensions
  * @param dim
  */
 SD.prototype.getSpectraVariable = function(dim){
@@ -715,7 +715,7 @@ SD.prototype.is2D = function(){
  * The X,Y data can be compressed using one of the methods described in:
  * "JCAMP-DX. A STANDARD FORMAT FOR THE EXCHANGE OF ION MOBILITY SPECTROMETRY DATA",
  *  http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
- * @option encode: ['FIX','SQZ','DIF','DIFDUP','CVS','PAC'] (Default: 'FIX')
+ * @option encode: ['FIX','SQZ','DIF','DIFDUP','CVS','PAC'] (Default: 'DIFDUP')
  * @option yfactor: The YFACTOR. It allows to compress the data by removing digits from the ordinate. (Default: 1)
  * @option type: ["NTUPLES", "SIMPLE"] (Default: "SIMPLE")
  * @option keep: A set of user defined parameters of the given SpectraData to be stored in the jcamp.

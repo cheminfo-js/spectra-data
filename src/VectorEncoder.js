@@ -152,7 +152,6 @@ var Encoder = (function(){
         }
 
         //We simulate a line carry
-        index=0;
         var numDiff = diffData.length;
         while(index<numDiff){
             if(charCount==0){//Start line

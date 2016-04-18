@@ -47,7 +47,7 @@ var JcampCreator = (function(){
         outString+=("##TITLE= " + spectraData.getTitle() + CRLF);
         outString+=("##JCAMP-DX= 5.00\t$$"+version+ CRLF);
         outString+=("##OWNER= " + spectraData.getParamString("##OWNER=", "")+ CRLF);
-        outString+=("##DATATYPE= " +spectraData.getDataType()+ CRLF);
+        outString+=("##DATA TYPE= " +spectraData.getDataType()+ CRLF);
 
         if(type=="NTUPLES") {
             outString+=ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams);
