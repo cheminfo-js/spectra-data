@@ -14,19 +14,18 @@ var extend = require("extend");
 var PeakPicking={
     impurities:[],
     maxJ:20,
-    defaultOptions:{nH:10,
+    defaultOptions:{nH:99,
         clean:true,
         realTop:false,
         thresholdFactor:1,
         compile:true,
         integralFn:0,
         optimize:true,
-        id:""
+        idPrefix:""
     },
 
     peakPicking:function(spectrum, optionsEx){
         var options = extend({}, this.defaultOptions, optionsEx);
-
         var i, j, nHi, sum;
 
         var noiseLevel = Math.abs(spectrum.getNoiseLevel())*(options.thresholdFactor);
@@ -114,8 +113,8 @@ var PeakPicking={
         }
 
         for(var i=0;i<signals.length;i++){
-            if(options.id&&options.id.length>0)
-                signals[i].signalID = options.id+"_"+(i+1);
+            if(options.idPrefix&&options.idPrefix.length>0)
+                signals[i].signalID = options.idPrefix+"_"+(i+1);
             else
                 signals[i].signalID = (i+1)+"";
             signals[i]._highlight=[signals[i].signalID];

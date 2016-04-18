@@ -17,7 +17,7 @@ function createSpectraData(filename, label, data) {
 describe('spectra-data test peak picking', function () {
     var nH = 8;
     var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
-    var peakPicking = spectrum.nmrPeakDetection({"nH":nH, realTop:true, thresholdFactor:1,clean:true,compile:true, id:"1H"});
+    var peakPicking = spectrum.nmrPeakDetection({"nH":nH, realTop:true, thresholdFactor:1,clean:true,compile:true, idPrefix:"1H"});
     //console.log(Data.ACS.formater.toACS(peakPicking,{solvent:spectrum.getSolventName()}));
     //console.log(peakPicking);
     it('Known patterns for ethylvinylether', function () {
@@ -48,7 +48,6 @@ describe('spectra-data test peak picking', function () {
     });
 
     it('Signal DI', function(){
-        console.log(peakPicking[0].signalID);
         peakPicking[0].signalID.substr(0,3).should.equal("1H_");
     });
 

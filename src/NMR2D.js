@@ -91,8 +91,8 @@ NMR2D.prototype.nmrPeakDetection2D=function(options){
     if(!options.thresholdFactor)
         options.thresholdFactor=1;
     var id = Math.round(Math.random()*255);
-    if(options.id){
-        id=options.id;
+    if(options.idPrefix){
+        id=options.idPrefix;
     }
     var peakList = PeakPicking2D.findPeaks2D(this, options.thresholdFactor);
 
