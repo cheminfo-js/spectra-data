@@ -1,7 +1,7 @@
 var SD = require('./SD');
 var PeakPicking = require('./PeakPicking');
 var JcampConverter=require("jcampconverter");
-
+var fft = require("ml-fft");
 function NMR(sd) {
     SD.call(this, sd); // Héritage
 }
@@ -97,6 +97,19 @@ NMR.prototype.autoBaseline=function( ) {
  */
 NMR.prototype.fourierTransform=function( ) {
     //@TODO Implement fourierTransform filter
+    /*var n = 16;
+    var nCols = n;
+    FFT.init(nCols);
+    var re = new Array(nCols);
+    var im = new Array(nCols);
+
+    for(var i=0;i<nCols;i++){
+        re[i]=i;
+        im[i]=nCols-i-1;
+    }
+
+    FFT.fft(re, im);*/
+    //https://github.com/mljs/fft
 }
 
 /**
@@ -122,6 +135,7 @@ NMR.prototype.postFourierTransform=function(ph1corr) {
  */
 NMR.prototype.zeroFilling=function(nPointsX, nPointsY) {
     //@TODO Implement zeroFilling filter
+
 }
 
 /**
@@ -176,6 +190,26 @@ NMR.prototype.brukerSpectra=function(options) {
  */
 NMR.prototype.apodization=function(functionName, lineBroadening) {
     //@TODO Implement apodization filter
+    //org.cheminfo.hook.nemo.filters.ApodizationFilter
+
+    /*public String toString() {
+        switch (this) {
+            case NONE:
+                return "None";
+            case EXPONENTIAL:
+                return "Exponential";
+            case GAUSSIAN:
+                return "Gaussian";
+            case TRAF:
+                return "TRAF";
+            case SINE_BELL:
+                return "Sine Bell";
+            case SINE_BELL_SQUARED:
+                return "Sine Bell Squared";
+            default:
+                return "";
+        }
+    }*/
 }
 
 /**
@@ -247,7 +281,62 @@ NMR.prototype.correlationFilter=function(func) {
  * @param phi1 One order phase correction
 */
 NMR.prototype.phaseCorrection=function(phi0, phi1) {
-    //@TODO Implement phaseCorrection filter
+//System.out.println(spectraData.toString());
+    /*int nbPoints = spectraData.getNbPoints();
+     double[] reData = spectraData.getSubSpectraDataY(0);
+     double[] imData = spectraData.getSubSpectraDataY(1);
+
+     for(int k=this.corrections.size()-toApply;k<this.corrections.size();k++){
+     Point2D phi = this.corrections.elementAt(k);
+
+     double phi0 = phi.getX();
+     double phi1 = phi.getY();
+
+     if(DEBUG) System.out.println(" ph0 = "+phi0);
+     if(DEBUG) System.out.println(" ph1 = "+phi1);
+
+     double delta = phi1 / nbPoints;
+     double alpha = 2 * Math.pow(Math.sin(delta / 2), 2);
+     double beta = Math.sin(delta);
+     double cosTheta = Math.cos(phi0);
+     double sinTheta = Math.sin(phi0);
+     double cosThetaNew, sinThetaNew;
+
+     double reTmp, imTmp;
+     int index;
+     for (int i = 0; i < nbPoints; i++) {
+     index = nbPoints - i - 1;
+     index = i;
+     reTmp = reData[index] * cosTheta - imData[index] * sinTheta;
+     imTmp = reData[index] * sinTheta + imData[index] * cosTheta;
+     reData[index] = reTmp;
+     imData[index] = imTmp;
+     // calculate angles i+1 from i
+     cosThetaNew = cosTheta - (alpha * cosTheta + beta * sinTheta);
+     sinThetaNew = sinTheta - (alpha * sinTheta - beta * cosTheta);
+     cosTheta = cosThetaNew;
+     sinTheta = sinThetaNew;
+     }
+     toApply--;
+     }
+
+     spectraData.resetMinMax();
+     spectraData.updateDefaults();
+     spectraData.updateY();
+     spectraData.putParam("PHC0", getPhi0());
+     spectraData.putParam("PHC1", getPhi1());
+     if (this.jsonResult!=null) {
+     JSONObject jsonObject=new JSONObject();
+     try {
+     jsonObject.put("filter", this.getScriptingCommand());
+     jsonObject.put("status", "OK");
+     jsonObject.put("value", 0);
+     jsonResult.put(jsonResult.length(),jsonObject);
+     } catch (JSONException e) {
+     // TODO Auto-generated catch block
+     e.printStackTrace();
+     }
+     }}*/
 }
 
 /**
