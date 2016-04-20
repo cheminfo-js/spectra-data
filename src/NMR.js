@@ -2,6 +2,8 @@ var SD = require('./SD');
 var PeakPicking = require('./PeakPicking');
 var JcampConverter=require("jcampconverter");
 var fft = require("ml-fft");
+var Filters = require("./filters/Filter.js");
+
 function NMR(sd) {
     SD.call(this, sd); // Héritage
 }
@@ -96,20 +98,7 @@ NMR.prototype.autoBaseline=function( ) {
  * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be of type NMR_FID or 2DNMR_FID
  */
 NMR.prototype.fourierTransform=function( ) {
-    //@TODO Implement fourierTransform filter
-    /*var n = 16;
-    var nCols = n;
-    FFT.init(nCols);
-    var re = new Array(nCols);
-    var im = new Array(nCols);
-
-    for(var i=0;i<nCols;i++){
-        re[i]=i;
-        im[i]=nCols-i-1;
-    }
-
-    FFT.fft(re, im);*/
-    //https://github.com/mljs/fft
+    return Filters.fourierTransform(this);
 }
 
 /**
