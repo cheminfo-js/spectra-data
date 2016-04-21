@@ -2,7 +2,7 @@ var SD = require('./SD');
 var PeakPicking = require('./PeakPicking');
 var JcampConverter=require("jcampconverter");
 var fft = require("ml-fft");
-var Filters = require("./filters/Filter.js");
+var Filters = require("./filters/Filters.js");
 
 function NMR(sd) {
     SD.call(this, sd); // Héritage
@@ -123,8 +123,7 @@ NMR.prototype.postFourierTransform=function(ph1corr) {
  * @param nPointsY Number of new zero points in the indirect dimension
  */
 NMR.prototype.zeroFilling=function(nPointsX, nPointsY) {
-    //@TODO Implement zeroFilling filter
-
+    return Filters.zeroFilling(this,nPointsX, nPointsY);
 }
 
 /**
