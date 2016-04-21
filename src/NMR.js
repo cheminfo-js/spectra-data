@@ -3,6 +3,7 @@ var PeakPicking = require('./PeakPicking');
 var JcampConverter=require("jcampconverter");
 var fft = require("ml-fft");
 var Filters = require("./filters/Filter.js");
+var fftfilter = require("./filters/fourierTransform.js");
 
 function NMR(sd) {
     SD.call(this, sd); // Héritage

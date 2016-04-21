@@ -9,24 +9,6 @@ var extend = require("extend");
 function SD(sd) {
     this.sd=sd;
     this.activeElement=0;
-
-    this.DATACLASS_XY = 1;
-    this.DATACLASS_PEAK = 2;
-
-    this.TYPE_NMR_SPECTRUM = 'NMR Spectrum';
-    this.TYPE_NMR_FID = 'NMR FID';
-    this.TYPE_IR = 'IR';
-    this.TYPE_RAMAN = 'RAMAN';
-    this.TYPE_UV = 'UV';
-    this.TYPE_MASS = 'MASS';
-    this.TYPE_HPLC = 'HPLC';
-    this.TYPE_GC = 'GC';
-    this.TYPE_CD = 'CD';
-    this.TYPE_2DNMR_SPECTRUM = 'nD NMR SPECTRUM';
-    this.TYPE_2DNMR_FID = 'nD NMR FID';
-    this.TYPE_XY_DEC = 'XY DEC';
-    this.TYPE_XY_INC= 'XY INC';
-    this.TYPE_IV = 'IV';
 }
 
 SD.fromJcamp = function(jcamp, options) {
@@ -55,12 +37,21 @@ SD.prototype.setActiveElement = function(nactiveSpectrum){
 SD.prototype.getActiveElement = function(){
     return this.activeElement;
 }
+
 /**
  * This function returns the units of the independent dimension.
  * @returns {xUnit|*|M.xUnit}
  */
 SD.prototype.getXUnits = function(){
     return this.getSpectrum().xUnit;
+}
+
+/**
+ * This function returns the units of the independent dimension.
+ * @returns {xUnit|*|M.xUnit}
+ */
+SD.prototype.setXUnits = function(units){
+    this.getSpectrum().xUnit=units;
 }
 
 /**
@@ -95,11 +86,27 @@ SD.prototype.getFirstX=function(i) {
 }
 
 /**
+ * Set the first value of the direct dimension
+ */
+SD.prototype.setFirstX=function(x, i) {
+    i=i||this.activeElement;
+    this.sd.spectra[i].firstX=x;
+}
+
+/**
  * Return the last value of the direct dimension
  */
 SD.prototype.getLastX=function(i) {
     i=i||this.activeElement;
     return this.sd.spectra[i].lastX;
+}
+
+/**
+ * Set the last value of the direct dimension
+ */
+SD.prototype.setLastX=function(x, i) {
+    i=i||this.activeElement;
+    this.sd.spectra[i].lastX=x;
 }
 
 /**
@@ -111,11 +118,27 @@ SD.prototype.getFirstY=function(i) {
 }
 
 /**
+ * Set the first value of the direct dimension
+ */
+SD.prototype.setFirstY=function(y, i) {
+    i=i||this.activeElement;
+    this.sd.spectra[i].firstY = y;
+}
+
+/**
  * Return the first value of the direct dimension
  */
 SD.prototype.getLastY = function(i){
     i=i||this.activeElement;
     return this.sd.spectra[i].lastY;
+}
+
+/**
+ * Return the first value of the direct dimension
+ */
+SD.prototype.setLastY = function(y, i){
+    i=i||this.activeElement;
+    this.sd.spectra[i].lastY = y;
 }
 
 SD.prototype.setDataClass = function(dataClass){
@@ -610,6 +633,14 @@ SD.prototype.getSpectraDataY = function(){
  */
 SD.prototype.getSpectraDataX = function(){
     return this.getXData();
+}
+
+/**
+ * Update min max values
+ * @returns {*}
+ */
+SD.prototype.resetMinMax = function(){
+    //TODO Impelement this function
 }
 
 /**

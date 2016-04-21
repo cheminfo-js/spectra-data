@@ -1,6 +1,8 @@
 /**
  * Created by abol on 4/20/16.
  */
+
+
 function fourierTransform(spectraData){
     var nbPoints = spectraData.getNbPoints();
     var nSubSpectra = spectraData.getNbSubSpectra() / 2;
