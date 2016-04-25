@@ -1,31 +1,25 @@
 /**
  * Created by abol on 4/20/16.
  */
-<<<<<<< HEAD
-var fft = require("ml-fft");
-=======
 
 
->>>>>>> 46eb0c6d3912159dd1822ede11b6e953a996d701
 function fourierTransform(spectraData){
-    console.log(spectraData);
-
     var nbPoints = spectraData.getNbPoints();
     var nSubSpectra = spectraData.getNbSubSpectra() / 2;
-    var spectraType = spectraData.TYPE_NMR_SPECTRUM;
+    var spectraType = this.TYPE_NMR_SPECTRUM;
     var FFT = fft.FFT;
     if (nSubSpectra > 1)
-        spectraType = spectraData.TYPE_2DNMR_SPECTRUM;
+        spectraType = this.TYPE_2DNMR_SPECTRUM;
 
     FFT.init(nbPoints);
 
 
-    var fcor = spectraData.getParamDouble("$FCOR", 0.0);
+    var fcor = this.getParamDouble("$FCOR", 0.0);
     var tempArray = new Array(nbPoints / 2);
     for (var iSubSpectra = 0; iSubSpectra < nSubSpectra; iSubSpectra++)
     {
-        var re = spectraData.getYData(2 * iSubSpectra);
-        var im = spectraData.getYData(2 * iSubSpectra + 1);
+        var re = this.getYData(2 * iSubSpectra);
+        var im = this.getYData(2 * iSubSpectra + 1);
         if (true) {
             console.log("firstPoint: (" + re[0] + "," + im[0] + ")");
             console.log("fcor: " + fcor);
@@ -40,9 +34,9 @@ function fourierTransform(spectraData){
     re.splice(0, (nbPoints+1)/2);
     im = im.concat(im.slice(0,(nbPoints+1)/2));
     im.splice(0, (nbPoints+1)/2);
-    var baseFrequency = spectraData.getParamDouble("$BF1", NaN);
-    var spectralFrequency = spectraData.getParamDouble("$SFO1", NaN);
-    var spectralWidth = spectraData.getParamDouble("$SW", NaN);
+    var baseFrequency = this.getParamDouble("$BF1", NaN);
+    var spectralFrequency = this.getParamDouble("$SFO1", NaN);
+    var spectralWidth = this.getParamDouble("$SW", NaN);
     var xMiddle = ((spectralFrequency - baseFrequency) / baseFrequency )* 1e6;
     var dx = 0.5 * spectralWidth * spectralFrequency / baseFrequency;
     return spectraData;
