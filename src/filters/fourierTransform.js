@@ -1,12 +1,8 @@
 /**
  * Created by abol on 4/20/16.
  */
-<<<<<<< HEAD
 var fft = require("ml-fft");
-=======
 
-
->>>>>>> 46eb0c6d3912159dd1822ede11b6e953a996d701
 function fourierTransform(spectraData){
     console.log(spectraData);
 
