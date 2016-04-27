@@ -11,6 +11,7 @@ function digitalFilter(spectraData, options){
     else{
         if(options.brukerFilter){
             //TODO Determine the number of points to shift, or the ph1 correction
+            //based on DECIM and DSPSVF parameters
             nbPoints = 0;
         }
     }

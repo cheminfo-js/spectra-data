@@ -22,7 +22,7 @@ describe('spectra-data test Filters', function () {
         var spectrum=createSpectraData("/data/fftTest/FID.dx");
         //console.log(spectrum.getNbPoints());
         //spectrum.digitalFilter({nbPoints:-67}).fourierTransform();
-        spectrum.zeroFilling(spectrum.getNbPoints()*2).digitalFilter({nPoints:67}).fourierTransform();
+        spectrum.zeroFilling(spectrum.getNbPoints()*2).digitalFilter({nbPoints:67}).fourierTransform();
         spectrum.phaseCorrection(-Math.PI/2, 0);
         //console.log(JSON.stringify((spectrum.getVector(spectrum.getFirstX(),spectrum.getLastY(),1024))[1]));
         spectrum.getXUnits().should.equal("PPM");
