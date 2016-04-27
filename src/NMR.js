@@ -4,6 +4,11 @@ var JcampConverter=require("jcampconverter");
 var fft = require("ml-fft");
 var Filters = require("./filters/Filters.js");
 
+/**
+ * Contructs the object from the given sd object(output of the jcampconverter or brukerconverter filter)
+ * @param sd
+ * @constructor
+ */
 function NMR(sd) {
     SD.call(this, sd); // Héritage
 }
@@ -11,6 +16,13 @@ function NMR(sd) {
 NMR.prototype = Object.create(SD.prototype);
 NMR.prototype.constructor = NMR;
 
+/**
+ * @function fromJcamp
+ * Contructs the object from the given jcamp.
+ * @param jcamp
+ * @param options
+ * @returns {NMR}
+ */
 NMR.fromJcamp = function(jcamp,options) {
     options = options || {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/};
     var spectrum= JcampConverter.convert(jcamp,options);
@@ -18,8 +30,11 @@ NMR.fromJcamp = function(jcamp,options) {
 }
 
 /**
-* Return the observed nucleus 
-*/
+ * @function getNucleus()
+ * Returns the observed nucleus. A dimension parameter is accepted for compatibility with 2DNMR
+ * @param dim
+ * @returns {*}
+ */
 NMR.prototype.getNucleus=function(dim){
     if(!dim||dim==0||dim==1)
         return this.sd.xType;
@@ -29,20 +44,29 @@ NMR.prototype.getNucleus=function(dim){
 }
 
 /**
-* Returns the solvent name
-*/
+ * @function getSolventName()
+ * Returns the solvent name.
+ * @returns {string|XML}
+ */
 NMR.prototype.getSolventName=function(){
     return (this.sd.info[".SOLVENTNAME"]||this.sd.info["$SOLVENT"]||"").replace("<","").replace(">","");
 }
 
-//Returns the observe frequency in the direct dimension
+/**
+ * @function observeFrequencyX()
+ * Returns the observe frequency in the direct dimension
+ * @returns {number}
+ */
 NMR.prototype.observeFrequencyX=function(){
     return this.sd.spectra[0].observeFrequency;
 }
 
 /**
-* Returns the noise factor depending on the nucleus.
-*/
+ * @function getNMRPeakThreshold(nucleus)
+ * Returns the noise factor depending on the nucleus.
+ * @param nucleus
+ * @returns {number}
+ */
 NMR.prototype.getNMRPeakThreshold=function(nucleus) {
     if (nucleus == "1H")
         return 3.0;
@@ -58,6 +82,7 @@ NMR.prototype.getNMRPeakThreshold=function(nucleus) {
  * This function adds white noise to the the given spectraData. The intensity of the noise is 
  * calculated from the given signal to noise ratio.
  * @param SNR Signal to noise ratio
+ * @returns this object
  */
  NMR.prototype.addNoise=function(SNR) {
      //@TODO Implement addNoise filter
@@ -78,16 +103,19 @@ NMR.prototype.getNMRPeakThreshold=function(nucleus) {
  * @param factor1 linear factor for spec1
  * @param factor2 linear factor for spec2
  * @param autoscale Auto-adjust scales before combine the spectraDatas
+ * @returns this object
  * @example spec1 = addSpectraDatas(spec1,spec2,1,-1, false) This subtract spec2 from spec1
 */
 NMR.prototype.addSpectraDatas=function(spec2,factor1,factor2,autoscale ) {
     //@TODO Implement addSpectraDatas filter
+
 }
 
 /**
  * @function autoBaseline()
  * Automatically corrects the base line of a given spectraData. After this process the spectraData
  * should have meaningful integrals.
+ * @returns this object
  */
 NMR.prototype.autoBaseline=function( ) {
     //@TODO Implement autoBaseline filter
@@ -96,6 +124,7 @@ NMR.prototype.autoBaseline=function( ) {
 /**
  * @function fourierTransform()
  * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be of type NMR_FID or 2DNMR_FID
+ * @returns this object
  */
 NMR.prototype.fourierTransform=function( ) {
     return Filters.fourierTransform(this);
@@ -110,6 +139,7 @@ NMR.prototype.fourierTransform=function( ) {
  * correcting the problem of the Bruker digital filters.
  * @param spectraData A fourier transformed spectraData.
  * @param ph1corr Phase 1 correction value in radians.
+ * @returns this object
  */
 NMR.prototype.postFourierTransform=function(ph1corr) {
     //@TODO Implement postFourierTransform filter
@@ -121,6 +151,7 @@ NMR.prototype.postFourierTransform=function(ph1corr) {
  * could increase artificially the spectral resolution.
  * @param nPointsX Number of new zero points in the direct dimension
  * @param nPointsY Number of new zero points in the indirect dimension
+ * @returns this object
  */
 NMR.prototype.zeroFilling=function(nPointsX, nPointsY) {
     return Filters.zeroFilling(this,nPointsX, nPointsY);
@@ -132,6 +163,7 @@ NMR.prototype.zeroFilling=function(nPointsX, nPointsY) {
  * The needed parameters are the wavelet scale and the lambda used in the whittaker smoother.
  * @param waveletScale To be described
  * @param whittakerLambda To be described
+ * @returns this object
  */
 NMR.prototype.haarWhittakerBaselineCorrection=function(waveletScale,whittakerLambda) {
     //@TODO Implement haarWhittakerBaselineCorrection filter
@@ -144,23 +176,32 @@ NMR.prototype.haarWhittakerBaselineCorrection=function(waveletScale,whittakerLam
  * @param waveletScale To be described
  * @param whittakerLambda To be described
  * @param ranges A string containing the ranges of no signal.
+ * @returns this object
  */
 NMR.prototype.whittakerBaselineCorrection=function(whittakerLambda,ranges) {
     //@TODO Implement whittakerBaselineCorrection filter
 }
 
 /**
- * @function brukerSpectra(options)
+ * @function brukerFilter()
  * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that 
  * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the 
  * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
- * @option DECIM: Acquisition parameter
- * @option DSPFVS: Acquisition parameter
+ * @returns this object
  */
-NMR.prototype.brukerSpectra=function(options) {
-    return Filters.digitalFilter(this, options);
+NMR.prototype.brukerFilter=function() {
+    return Filters.digitalFilter(this, {"brukerFilter":true});
 }
 
+/**
+ * @function digitalFilter(options)
+ * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
+ * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
+ * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
+ * @option nbPoints: The number of points to shift. Positive values will shift the values to the rigth
+ * and negative values will do to the left.
+ * @returns this object
+ */
 NMR.prototype.digitalFilter=function(options) {
     return Filters.digitalFilter(this, options);
 }
@@ -178,6 +219,7 @@ NMR.prototype.digitalFilter=function(options) {
  *  Sine Bell Squared, sb2
  * @param lineBroadening The parameter LB should either be a line broadening factor in Hz 
  * or alternatively an angle given by degrees for sine bell functions and the like.
+ * @returns this object
  * @example SD.apodization(, lineBroadening)
  */
 NMR.prototype.apodization=function(functionName, lineBroadening) {
@@ -189,6 +231,7 @@ NMR.prototype.apodization=function(functionName, lineBroadening) {
 /**
  * @function echoAntiechoFilter();
  * That decodes an Echo-Antiecho 2D spectrum.
+ * @returns this object
  */
 NMR.prototype.echoAntiechoFilter=function() {
     //@TODO Implement echoAntiechoFilter filter
@@ -197,6 +240,7 @@ NMR.prototype.echoAntiechoFilter=function() {
 /**
  * @function SNVFilter()
  * This function apply a Standard Normal Variate Transformation over the given spectraData. Mainly used for IR spectra.
+ * @returns this object
  */
 NMR.prototype.SNVFilter=function() {
     //@TODO Implement SNVFilter
@@ -206,6 +250,7 @@ NMR.prototype.SNVFilter=function() {
  * @function powerFilter(power)
  * This function applies a power to all the Y values.<br>If the power is less than 1 and the spectrum has negative values, it will be shifted so that the lowest value is zero 
  * @param   power   The power to apply
+ * @returns this object
  */
 NMR.prototype.powerFilter=function(power) {
     var minY=this.getMinY();
@@ -220,6 +265,7 @@ NMR.prototype.powerFilter=function(power) {
  * @function logarithmFilter(base)
  * This function applies a log to all the Y values.<br>If the spectrum has negative or zero values, it will be shifted so that the lowest value is 1 
  * @param   base    The base to use
+ * @returns this object
  */
 NMR.prototype.logarithmFilter=function(base) {
     var minY=this.getMinY();
@@ -241,6 +287,7 @@ NMR.prototype.logarithmFilter=function(base) {
  *                   ./    
  *                    -- i=-inf
  * @param func A double array containing the function to correlates the spectraData
+ * @returns this object
  * @example var smoothedSP = SD.correlationFilter(spectraData,[1,1]) returns a smoothed version of the
  * given spectraData. 
  */
@@ -253,6 +300,7 @@ NMR.prototype.correlationFilter=function(func) {
  * Applies the phase correction (phi0,phi1) to a Fourier transformed spectraData. The angles must be given in radians.
  * @param phi0 Zero order phase correction
  * @param phi1 One order phase correction
+ * @returns this object
 */
 NMR.prototype.phaseCorrection=function(phi0, phi1) {
     return Filters.phaseCorrection(this, phi0, phi1);
@@ -262,20 +310,12 @@ NMR.prototype.phaseCorrection=function(phi0, phi1) {
  * @function automaticPhase() 
  * This function determines automatically the correct parameters phi0 and phi1 for a phaseCorrection
  * function and applies it.
+ * @returns this object
  */ 
 NMR.prototype.automaticPhase=function() {
     //@TODO Implement automaticPhase filter
 }
 
-/**
- *  @function useBrukerPhase()
- *  This function extract the parameters of the phaseCorrection from the jcamp-dx parameters
- *  if the spectrum was acquired in Bruker spectrometers . Basically it will look for the parameters
- *  $PHC0 and $PHC1, and will use it to call the phaseCorrection function.
- */
-NMR.prototype.useBrukerPhase=function() {
-   //@TODO Implement useBrukerPhase filter
-}
 
 /**
  * @function nmrPeakDetection(parameters);
@@ -285,6 +325,7 @@ NMR.prototype.useBrukerPhase=function() {
  * @option toX:     Upper limit.
  * @option threshold: The minimum intensity to consider a peak as a signal, expressed as a percentage of the highest peak. 
  * @option stdev: Number of standard deviation of the noise for the threshold calculation if a threshold is not specified.
+ * @returns {*}
  */
 NMR.prototype.nmrPeakDetection=function(parameters) {
     return PeakPicking.peakPicking(this, parameters);
