@@ -17,7 +17,7 @@ function fourierTransform(spectraData){
 
 
     var fcor = spectraData.getParamDouble("$FCOR", 0.0);
-    var tempArray = new Array(nbPoints / 2);
+    //var tempArray = new Array(nbPoints / 2);
     for (var iSubSpectra = 0; iSubSpectra < nSubSpectra; iSubSpectra++)
     {
         var re = spectraData.getYData(2 * iSubSpectra);
@@ -34,11 +34,6 @@ function fourierTransform(spectraData){
         re.splice(0, (nbPoints+1)/2);
         im = im.concat(im.slice(0,(nbPoints+1)/2));
         im.splice(0, (nbPoints+1)/2);
-        var baseFrequency = spectraData.getParamDouble("$BF1", NaN);
-        var spectralFrequency = spectraData.getParamDouble("$SFO1", NaN);
-        var spectralWidth = spectraData.getParamDouble("$SW", NaN);
-        var xMiddle = ((spectralFrequency - baseFrequency) / baseFrequency )* 1e6;
-        var dx = 0.5 * spectralWidth * spectralFrequency / baseFrequency;
 
         spectraData.setActiveElement(2 * iSubSpectra);
         updateSpectra(spectraData, spectraType);
@@ -46,7 +41,7 @@ function fourierTransform(spectraData){
         spectraData.setActiveElement(2 * iSubSpectra + 1);
         updateSpectra(spectraData, spectraType);
     }
-
+    spectraData.setActiveElement(0);
     return spectraData;
 }
 

@@ -721,9 +721,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	SD.prototype.getVector = function(from, to, nPoints){
 	    var x = this.getSpectraDataX();
 	    var y = this.getSpectraDataY();
-	    var result = [];
 	    var start = 0, end = x.length- 1,direction=1;
-	    var reversed = false;
 
 	    if(x[0]>x[1]){
 	        direction = -1;
@@ -735,7 +733,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var tmp = from;
 	        from = to;
 	        to = tmp;
-	        reversed = true;
 	    }
 	    //console.log(x[end]+" "+from+" "+x[start]+" "+to);
 	    if(x[start]>to||x[end]<from){
@@ -758,12 +755,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        index=nPoints-1;
 
 	    var di = winPoints/nPoints;
-	    var i=start-direction;
+	    var i=start;
 	    for(var k=0;k<nPoints;k++) {
-	        i += Math.round(di * direction);
-	        //console.log(i+" "+y[i]);
-	        xwin[index] = x[i];
-	        ywin[index] = y[i];
+	        xwin[index] = x[Math.round(i)];
+	        ywin[index] = y[Math.round(i)];
+			i += di*direction;
 	        index += direction;
 	    }
 	    return [xwin,ywin];

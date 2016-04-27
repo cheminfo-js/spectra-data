@@ -3,22 +3,30 @@
  */
 
 function zeroFilling(spectraData, zeroFillingX, zeroFillingY){
-    var nbXPoints = spectraData.getNbPoints();
-    var nNewXPoints = nbXPoints + this.zeroFillingX;
     var nbSubSpectra = spectraData.getNbSubSpectra();
-    var zeroPadding = spectraData.getParamDouble("$$ZEROPADDING", 0);
+    //var zeroPadding = spectraData.getParamDouble("$$ZEROPADDING", 0);
+    var nbXPoints, lastX, deltaX, k, x, y;
     if (zeroFillingX != 0){
         for (var iSubSpectra = 0 ; iSubSpectra < nbSubSpectra; iSubSpectra++){
             spectraData.setActiveElement(iSubSpectra);
-            var y = spectraData.getYData();
-            for (var k = nbXPoints; k < zeroFillingX; k++){
-                y.push(0)
+            nbXPoints = spectraData.getNbPoints();
+            y = spectraData.getYData();
+            x = spectraData.getXData();
+            lastX = spectraData.getLastX();
+            deltaX = (lastX-x[0])/(nbXPoints-1);
+            for (k = nbXPoints; k < zeroFillingX; k++){
+                y.push(0);
+                x.push(lastX+deltaX);
             }
             if (zeroFillingX < nbXPoints){
                 y.splice(zeroFillingX, y.length-1);
+                x.splice(zeroFillingX, x.length-1);
             }
+            spectraData.setFirstX(x[0]);
+            spectraData.setLastX(x[x.length-1]);
         }
     }
+    spectraData.setActiveElement(0);
     return spectraData;
     // @TODO implement zeroFillingY
 }

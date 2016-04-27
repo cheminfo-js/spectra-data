@@ -43,8 +43,6 @@ function rotate(array,shift){
     }
 }
 
-module.exports = rotate;
-/*
 function putInRange(value, nbPoints){
     if(value<0)
         value+=nbPoints;
@@ -53,6 +51,9 @@ function putInRange(value, nbPoints){
     return value;
 }
 
-var foo = [1,2,3,4,5,6];
+module.exports = rotate;
+
+
+/*var foo = [1,2,3,4,5,6];
 rotate(foo,-4);
 console.log(foo);*/

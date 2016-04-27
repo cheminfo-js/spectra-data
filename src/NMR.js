@@ -255,7 +255,7 @@ NMR.prototype.correlationFilter=function(func) {
  * @param phi1 One order phase correction
 */
 NMR.prototype.phaseCorrection=function(phi0, phi1) {
-
+    return Filters.phaseCorrection(this, phi0, phi1);
 }
 
 /**
