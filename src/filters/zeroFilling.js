@@ -8,7 +8,7 @@ function zeroFilling(spectraData, zeroFillingX, zeroFillingY){
     var nbSubSpectra = spectraData.getNbSubSpectra();
     var zeroPadding = spectraData.getParamDouble("$$ZEROPADDING", 0);
     if (zeroFillingX != 0){
-        for (iSubSpectra = 0 ; iSubSpectra < nbSubSpectra; iSubSpectra++){
+        for (var iSubSpectra = 0 ; iSubSpectra < nbSubSpectra; iSubSpectra++){
             spectraData.setActiveElement(iSubSpectra);
             var y = spectraData.getYData();
             for (var k = nbXPoints; k < zeroFillingX; k++){

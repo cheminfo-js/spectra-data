@@ -20,7 +20,10 @@ describe('spectra-data test Filters', function () {
     //console.log(peakPicking);
     it('fourier Tranformation', function () {
         var spectrum=createSpectraData("/data/FID.dx");
-        //spectrum.fourierTransform().getXUnits().should.equal("ppm");
+        //console.log(spectrum.spectra);
+        spectrum.fourierTransform().getXUnits().should.equal("PPM");
+        console.log(spectrum.getFirstX()+" "+spectrum.getLastX());
+        console.log(spectrum.getX(0)+" "+spectrum.getX(spectrum.getNbPoints()-1));
     });
     it('zeroFilling nbPoints', function () {
         var spectrum=createSpectraData("/data/FID.dx");
