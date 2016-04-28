@@ -4,8 +4,6 @@
  make basic processing for IR, MASS, UV and GC spectra. 
  There are tow specialization of the SD library for NMR and NMR2D. In this document you will find the documentation for those 3 classes.
  
- ##Index
- 
 [SD](#SD)  
 [NMR](#NMR)  
 [NMR2D](#NMR2D)
