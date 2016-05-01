@@ -7,6 +7,8 @@
 
 spectra-data project
 
+## [Documentation](./Documentation.md)
+
 ## Development
 
 ### Install dev dependencies
