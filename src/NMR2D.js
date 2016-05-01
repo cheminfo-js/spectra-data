@@ -4,7 +4,7 @@ var PeakOptimizer = require("./PeakOptimizer");
 var JcampConverter=require("jcampconverter");
 
 /**
- * Contructs the object from the given sd object(output of the jcampconverter or brukerconverter filter)
+ * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
  * @param sd
  * @constructor
  */
@@ -16,10 +16,13 @@ NMR2D.prototype = Object.create(SD.prototype);
 NMR2D.prototype.constructor = NMR2D;
 
 /**
- * @function fromJcamp
- * Contructs the object from the given jcamp.
+ * @function fromJcamp(jcamp,options)
+ * Construct the object from the given jcamp.
  * @param jcamp
  * @param options
+ * @option xy
+ * @option keepSpectra
+ * @option keepRecordsRegExp
  * @returns {NMR2D}
  */
 NMR2D.fromJcamp = function(jcamp,options) {
@@ -118,7 +121,7 @@ NMR2D.prototype.getDeltaY=function(){
  + Returns an NMRSignal2D array containing all the detected 2D-NMR Signals
  * @param	options:+Object			Object containing the options
  * @option	thresholdFactor:number	A factor to scale the automatically determined noise threshold.
- * @returns	+Object	set of NMRSignal2D
+ * @returns [*]	set of NMRSignal2D
  */
 NMR2D.prototype.nmrPeakDetection2D=function(options){
     options = options||{};
@@ -144,7 +147,9 @@ NMR2D.prototype.nmrPeakDetection2D=function(options){
 /**
  * @function getNMRPeakThreshold(nucleus)
  * Returns the noise factor depending on the nucleus.
-*/
+ * @param nucleus
+ * @returns {number}
+ */
 NMR2D.prototype.getNMRPeakThreshold=function(nucleus) {
     if (nucleus == "1H")
         return 3.0;
@@ -156,7 +161,9 @@ NMR2D.prototype.getNMRPeakThreshold=function(nucleus) {
 /**
  * @function getNucleus(dim)
  * Returns the observed nucleus in the specified dimension
-*/
+ * @param dim
+ * @returns {string}
+ */
 NMR2D.prototype.getNucleus=function(dim){
     if(dim==1)
         return this.sd.xType;

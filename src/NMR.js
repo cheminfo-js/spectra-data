@@ -5,7 +5,7 @@ var fft = require("ml-fft");
 var Filters = require("./filters/Filters.js");
 
 /**
- * Contructs the object from the given sd object(output of the jcampconverter or brukerconverter filter)
+ * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
  * @param sd
  * @constructor
  */
@@ -17,10 +17,13 @@ NMR.prototype = Object.create(SD.prototype);
 NMR.prototype.constructor = NMR;
 
 /**
- * @function fromJcamp
- * Contructs the object from the given jcamp.
+ * @function fromJcamp(jcamp,options)
+ * Construct the object from the given jcamp.
  * @param jcamp
  * @param options
+ * @option xy
+ * @option keepSpectra
+ * @option keepRecordsRegExp
  * @returns {NMR}
  */
 NMR.fromJcamp = function(jcamp,options) {
@@ -30,7 +33,7 @@ NMR.fromJcamp = function(jcamp,options) {
 }
 
 /**
- * @function getNucleus()
+ * @function getNucleus(dim)
  * Returns the observed nucleus. A dimension parameter is accepted for compatibility with 2DNMR
  * @param dim
  * @returns {*}
@@ -142,7 +145,7 @@ NMR.prototype.fourierTransform=function( ) {
  * @returns this object
  */
 NMR.prototype.postFourierTransform=function(ph1corr) {
-    //@TODO Implement postFourierTransform filter
+    return Filters.phaseCorrection(0,ph1corr);
 }
 
 /**
@@ -200,6 +203,7 @@ NMR.prototype.brukerFilter=function() {
  * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
  * @option nbPoints: The number of points to shift. Positive values will shift the values to the rigth
  * and negative values will do to the left.
+ * @option brukerSpectra
  * @returns this object
  */
 NMR.prototype.digitalFilter=function(options) {
@@ -220,7 +224,7 @@ NMR.prototype.digitalFilter=function(options) {
  * @param lineBroadening The parameter LB should either be a line broadening factor in Hz 
  * or alternatively an angle given by degrees for sine bell functions and the like.
  * @returns this object
- * @example SD.apodization(, lineBroadening)
+ * @example SD.apodization("exp", lineBroadening)
  */
 NMR.prototype.apodization=function(functionName, lineBroadening) {
     return Filters.apodization(this,{"functionName":functionName,

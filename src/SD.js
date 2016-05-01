@@ -7,7 +7,7 @@ var JcampCreator = require("./JcampCreator");
 var extend = require("extend");
 
 /**
- * Contructs the object from the given sd object(output of the jcampconverter or brukerconverter filter)
+ * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
  * @param sd
  * @constructor
  */
@@ -20,17 +20,17 @@ function SD(sd) {
 }
 
 /**
- * @function fromJcamp
- * Contructs the object from the given jcamp.
+ * @function fromJcamp(jcamp,options)
+ * Construct the object from the given jcamp.
  * @param jcamp
  * @param options
- * @returns {NMR2D}
+ * @option xy
+ * @option keepSpectra
+ * @option keepRecordsRegExp
+ * @returns {SD}
  */
 SD.fromJcamp = function(jcamp, options) {
-    options = options ||{};
-    if(typeof options.xy ==="undefined")
-        options.xy=true;
-
+    options = options || {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/};
     var spectrum= JcampConverter.convert(jcamp,options);
     return new SD(spectrum);
 }
@@ -722,7 +722,7 @@ SD.prototype.getParam = function(name, defvalue){
 }
 
 /**
- * @function containsParam
+ * @function containsParam(name)
  *True if the spectrum.info contains the given parameter
  * @param name
  * @returns {boolean}
@@ -761,7 +761,7 @@ SD.prototype.resetMinMax = function(){
 }
 
 /**
- * @function putParam
+ * @function putParam(name, value)
  * Set a new parameter to this spectrum
  * @param name
  * @param value
@@ -771,7 +771,7 @@ SD.prototype.putParam = function(name, value){
 }
 
 /**
- * @function getArea()
+ * @function getArea(from, to)
  * This function returns the area under the spectrum in the given window
  * @param from in spectrum units
  * @param to in spectrum units
@@ -795,7 +795,7 @@ SD.prototype.getArea = function(from, to){
 },
 
 /**
- * @function getVector()
+ * @function getVector(from, to, nPoints)
  * Returns a equally spaced vector within the given window.
  * @param from in spectrum units
  * @param to in spectrum units
