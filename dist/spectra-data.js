@@ -59,8 +59,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	exports.SD = __webpack_require__(1);
 	exports.NMR = __webpack_require__(7);
-	exports.NMR2D = __webpack_require__(42);
-	exports.ACS = __webpack_require__(49);
+	exports.NMR2D = __webpack_require__(52);
+	exports.ACS = __webpack_require__(56);
 	exports.JAnalyzer = __webpack_require__(9);
 	//exports.SD2 = require('/SD2');
 
@@ -76,34 +76,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	var JcampCreator = __webpack_require__(4);
 	var extend = __webpack_require__(6);
 
+	/**
+	 * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
+	 * @param sd
+	 * @constructor
+	 */
 	function SD(sd) {
+	    this.DATACLASS_XY=1;
+	    this.DATACLASS_PEAK=2;
+
 	    this.sd=sd;
 	    this.activeElement=0;
-
-	    this.DATACLASS_XY = 1;
-	    this.DATACLASS_PEAK = 2;
-
-	    this.TYPE_NMR_SPECTRUM = 'NMR Spectrum';
-	    this.TYPE_NMR_FID = 'NMR FID';
-	    this.TYPE_IR = 'IR';
-	    this.TYPE_RAMAN = 'RAMAN';
-	    this.TYPE_UV = 'UV';
-	    this.TYPE_MASS = 'MASS';
-	    this.TYPE_HPLC = 'HPLC';
-	    this.TYPE_GC = 'GC';
-	    this.TYPE_CD = 'CD';
-	    this.TYPE_2DNMR_SPECTRUM = 'nD NMR SPECTRUM';
-	    this.TYPE_2DNMR_FID = 'nD NMR FID';
-	    this.TYPE_XY_DEC = 'XY DEC';
-	    this.TYPE_XY_INC= 'XY INC';
-	    this.TYPE_IV = 'IV';
 	}
 
+	/**
+	 * @function fromJcamp(jcamp,options)
+	 * Construct the object from the given jcamp.
+	 * @param jcamp
+	 * @param options
+	 * @option xy
+	 * @option keepSpectra
+	 * @option keepRecordsRegExp
+	 * @returns {SD}
+	 */
 	SD.fromJcamp = function(jcamp, options) {
-	    options = options ||{};
-	    if(typeof options.xy ==="undefined")
-	        options.xy=true;
-
+	    options = options || {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/};
 	    var spectrum= JcampConverter.convert(jcamp,options);
 	    return new SD(spectrum);
 	}
@@ -112,7 +109,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/**
 	 * @function setActiveElement(nactiveSpectrum);
 	 * This function sets the nactiveSpectrum sub-spectrum as active
-	 * 
+	 * @param index of the sub-spectrum to set as active
 	 */
 	SD.prototype.setActiveElement = function(nactiveSpectrum){
 	    this.activeElement=nactiveSpectrum;
@@ -121,11 +118,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	/**
 	 * @function getActiveElement();
 	 * This function returns the index of the active sub-spectrum.
+	 * @returns {number|*}
 	 */
 	SD.prototype.getActiveElement = function(){
 	    return this.activeElement;
 	}
+
 	/**
+	 * @function getXUnits()
 	 * This function returns the units of the independent dimension.
 	 * @returns {xUnit|*|M.xUnit}
 	 */
@@ -134,6 +134,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	/**
+	 * @function setXUnits()
+	 * This function returns the units of the independent dimension.
+	 * @returns {xUnit|*|M.xUnit}
+	 */
+	SD.prototype.setXUnits = function(units){
+	    this.getSpectrum().xUnit=units;
+	}
+
+	/**
+	 * @function getYUnits()
 	 * * This function returns the units of the dependent variable.
 	 * @returns {yUnit|*|M.yUnit}
 	 */
@@ -142,22 +152,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	/**
+	 * @function getSpectraVariable()
 	 * This function returns the information about the dimensions
-	 * @param dim
+	 * @returns {*}
 	 */
 	SD.prototype.getSpectraVariable = function(dim){
 	    return this.sd.ntuples[dim];
 	}
 
 	/**
-	*   Returns the number of points in the current spectrum
-	*/
+	 * @function getNbPoints()
+	 * Return the number of points in the current spectrum
+	 * @param i sub-spectrum
+	 * @returns {*}
+	 */
 	SD.prototype.getNbPoints=function(i){
 	    return this.getSpectrumData(i).y.length;
 	}
 
 	/**
+	 * @function getFirstX()
 	 * Return the first value of the direct dimension
+	 * @param i sub-spectrum
+	 * @returns {number}
 	 */
 	SD.prototype.getFirstX=function(i) {
 	    i=i||this.activeElement;
@@ -165,7 +182,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	/**
+	 * @function setFirstX()
+	 * Set the firstX for this spectrum. You have to force and update of the xAxis after!!!
+	 * @param x
+	 * @param i sub-spectrum
+	 */
+	SD.prototype.setFirstX=function(x, i) {
+	    i=i||this.activeElement;
+	    this.sd.spectra[i].firstX=x;
+	}
+
+	/**
+	 * @function getLastX()
 	 * Return the last value of the direct dimension
+	 * @param i sub-spectrum
+	 * @returns {number}
 	 */
 	SD.prototype.getLastX=function(i) {
 	    i=i||this.activeElement;
@@ -173,7 +204,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	/**
+	 * @function setLastX()
+	 * Set the last value of the direct dimension. You have to force and update of the xAxis after!!!
+	 * @param x
+	 * @param i sub-spectrum
+	 */
+	SD.prototype.setLastX=function(x, i) {
+	    i=i||this.activeElement;
+	    this.sd.spectra[i].lastX=x;
+	}
+
+	/**
+	 */
+	/**
 	 * Return the first value of the direct dimension
+	 * @param i sub-spectrum
+	 * @returns {number}
 	 */
 	SD.prototype.getFirstY=function(i) {
 	    i=i||this.activeElement;
@@ -181,13 +227,42 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	/**
-	 * Return the first value of the direct dimension
+	 * @function setFirstY()
+	 * Set the first value of the indirect dimension. Only valid for 2D spectra.
+	 * @param y
+	 * @param i sub-spectrum
+	 */
+	SD.prototype.setFirstY=function(y, i) {
+	    i=i||this.activeElement;
+	    this.sd.spectra[i].firstY = y;
+	}
+
+	/**
+	 * @function getLastY
+	 * Return the first value of the indirect dimension. Only valid for 2D spectra.
+	 * @returns {number}
 	 */
 	SD.prototype.getLastY = function(i){
 	    i=i||this.activeElement;
 	    return this.sd.spectra[i].lastY;
 	}
 
+	/**
+	 * @function setLastY()
+	 * Return the first value of the indirect dimension
+	 * @param y
+	 * @param i sub-spectrum
+	 */
+	SD.prototype.setLastY = function(y, i){
+	    i=i||this.activeElement;
+	    this.sd.spectra[i].lastY = y;
+	}
+
+	/**
+	 * @function setDataClass()
+	 * Set the spectrum data_class. It could be DATACLASS_PEAK=1 or DATACLASS_XY=2
+	 * @param dataClass
+	 */
 	SD.prototype.setDataClass = function(dataClass){
 	    if(dataClass==this.DATACLASS_PEAK) {
 	        this.getSpectrum().isPeaktable = true;
@@ -202,6 +277,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/**
 	 * @function isDataClassPeak();
 	 * Is this a PEAKTABLE spectrum?
+	 * @returns {*}
 	 */
 	SD.prototype.isDataClassPeak = function(){
 	    if(this.getSpectrum().isPeaktable)
@@ -212,6 +288,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/**
 	 * @function isDataClassXY();
 	 * Is this a XY spectrum?
+	 * @returns {*}
 	 */
 	SD.prototype.isDataClassXY = function(){
 	    if(this.getSpectrum().isXYdata)
@@ -219,24 +296,42 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return false
 	}
 
+	/**
+	 * @function setDataType()
+	 * Set the data type for this spectrum. It could be one of the following:
+	 ["INFRARED"||"IR","IV","NDNMRSPEC","NDNMRFID","NMRSPEC","NMRFID","HPLC","MASS"
+	 * "UV", "RAMAN" "GC"|| "GASCHROMATOGRAPH","CD"|| "DICHRO","XY","DEC"]
+	 * @param dataType
+	 */
 	SD.prototype.setDataType = function(dataType){
 	    this.getSpectrum().dataType=dataType;
 	}
 
+	/**
+	 * @function getDataType()
+	 * Return the dataType(see: setDataType )
+	 * @returns {string|string|*|string}
+	 */
 	SD.prototype.getDataType = function(){
 	    return this.getSpectrum().dataType;
 	}
 
 	/**
-	* Return the i-th sub-spectra in the current spectrum
-	*/
+	 * @function getSpectrumData()
+	 * Return the i-th sub-spectrum data in the current spectrum
+	 * @param i
+	 * @returns {this.sd.spectra[i].data[0]}
+	 */
 	SD.prototype.getSpectrumData=function(i) {
 	    i=i||this.activeElement;
 	    return this.sd.spectra[i].data[0];
 	}
 
 	/**
+	 * @function getSpectrum()
 	 * Return the i-th sub-spectra in the current spectrum
+	 * @param i
+	 * @returns {this.sd.spectra[i]}
 	 */
 	SD.prototype.getSpectrum=function(i) {
 	    i=i||this.activeElement;
@@ -244,53 +339,79 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	/**
-	 * Returns the number of sub-spectra in this object
+	 * @function getNbSubSpectra()
+	 * Return the amount of sub-spectra in this object
+	 * @returns {*}
 	 */
 	SD.prototype.getNbSubSpectra=function(){
 	    return this.sd.spectra.length;
 	}
 
-
 	/**
-	 *   Returns an array containing the x values of the spectrum
+	 * @function getXData()
+	 *  Returns an array containing the x values of the spectrum
+	 * @param i sub-spectrum Default:activeSpectrum
+	 * @returns {Array}
 	 */
 	SD.prototype.getXData=function(i){
 	    return this.getSpectrumData(i).x;
 	}
 
 	/**
-	 * @function getYData();
-	 * This function returns a double array containing the values of the intensity for the current sub-spectrum.
+	 * @function getYData()
+	 * This function returns a double array containing the values with the intensities for the current sub-spectrum.
+	 * @param i sub-spectrum Default:activeSpectrum
+	 * @returns {Array}
 	 */
 	SD.prototype.getYData=function(i){
 	    return this.getSpectrumData(i).y;
 	}
 
+	/**
+	 * @function getX()
+	 * Returns the x value at the specified index for the active sub-spectrum.
+	 * @param i array index between 0 and spectrum.getNbPoints()-1
+	 * @returns {number}
+	 */
 	SD.prototype.getX=function(i){
 	    return this.getXData()[i];
 	}
 
+	/**
+	 * @function getY()
+	 * Returns the y value at the specified index for the active sub-spectrum.
+	 * @param i array index between 0 and spectrum.getNbPoints()-1
+	 * @returns {number}
+	 */
 	SD.prototype.getY=function(i){
 	    return this.getYData()[i];
 	}
 
 	/**
 	 * @function getXYData();
-	 * To get a 2 dimensional array with the x and y of this spectraData( Only for 1D spectra).
 	 * Returns a double[2][nbPoints] where the first row contains the x values and the second row the y values.
+	 * @param i sub-spectrum Default:activeSpectrum
+	 * @returns {*[]}
 	 */
 	SD.prototype.getXYData=function(i){
 	    return [this.getXData(i),this.getYData(i)];
 	}
 
+	/**
+	 * @function getTitle
+	 * Return the title of the current spectrum.
+	 * @param i sub-spectrum Default:activeSpectrum
+	 * @returns {*}
+	 */
 	SD.prototype.getTitle=function(i) {
 	    return this.getSpectrum(i).title;
 	}
 
 	/**
 	 * @function setTitle(newTitle);
-	 * To set the title of this spectraData.
+	 * Set the title of this spectrum.
 	 * @param newTitle The new title
+	 * @param i sub-spectrum Default:activeSpectrum
 	 */
 	SD.prototype.setTitle=function(newTitle,i) {
 	    this.getSpectrum(i).title=newTitle;
@@ -299,6 +420,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	/**
 	 * @function getMinY(i)
 	 * This function returns the minimal value of Y
+	 * @param i sub-spectrum Default:activeSpectrum
+	 * @returns {number}
 	 */
 	SD.prototype.getMinY=function(i) {
 	    return  StatArray.min(this.getYData(i));
@@ -307,6 +430,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	/**
 	 * @function getMaxY(i)
 	 * This function returns the maximal value of Y
+	 * @param i sub-spectrum Default:activeSpectrum
+	 * @returns {number}
 	 */
 	SD.prototype.getMaxY=function(i) {
 	    return  StatArray.max(this.getYData(i));
@@ -314,6 +439,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	/**
 	 * @function getMinMax(i)
+	 * Return the min and max value of Y
+	 * @param i sub-spectrum Default:activeSpectrum
+	 * @returns {{min, max}|*}
 	 */
 	SD.prototype.getMinMaxY=function(i) {
 	    return  StatArray.minMax(this.getYData(i));
@@ -321,8 +449,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	/**
-	* Get the noise threshold level of the current spectrum. It uses median instead of the mean
-	*/
+	 * @function getNoiseLevel()
+	 * Get the noise threshold level of the current spectrum. It uses median instead of the mean
+	 * @returns {number}
+	 */
 	SD.prototype.getNoiseLevel=function(){
 	    var mean = 0,stddev=0;
 	    var y = this.getYData();
@@ -344,24 +474,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return stddev*this.getNMRPeakThreshold(this.getNucleus(1));
 	}
 
-
 	/**
-	* Return the xValue for the given index
-	*/
+	 * @function arrayPointToUnits(doublePoint)
+	 * Return the xValue for the given index.
+	 * @param doublePoint
+	 * @returns {number}
+	 */
 	SD.prototype.arrayPointToUnits=function(doublePoint){
 	    return (this.getFirstX() - (doublePoint* (this.getFirstX() - this.getLastX()) / (this.getNbPoints()-1)));
 	}
 
 	/**
+	 * @function unitsToArrayPoint(inValue)
 	 * Returns the index-value for the data array corresponding to a X-value in
 	 * units for the element of spectraData to which it is linked (spectraNb).
 	 * This method makes use of spectraData.getFirstX(), spectraData.getLastX()
 	 * and spectraData.getNbPoints() to derive the return value if it of data class XY
 	 * It performs a binary search if the spectrum is a peak table
-	 *
 	 * @param inValue
 	 *            (value in Units to be converted)
-	 * @return an integer representing the index value of the inValue
+	 * @return {number} An integer representing the index value of the inValue
 	 */
 	SD.prototype.unitsToArrayPoint=function(inValue){
 	    if (this.isDataClassXY()) {
@@ -406,11 +538,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	}
 
-
-
 	/**
-	* Returns the separation between 2 consecutive points in the spectra domain
-	*/
+	 * @function getDeltaX()
+	 * Returns the separation between 2 consecutive points in the spectrum domain
+	 * @returns {number}
+	 */
 	SD.prototype.getDeltaX=function(){
 	    return (this.getLastX()-this.getFirstX()) / (this.getNbPoints()-1);
 	}
@@ -575,7 +707,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * Returns a two dimensional array of double specifying [x,y] of the detected peaks.
 	 * @option from:    Lower limit.
 	 * @option to:      Upper limit.
-	 * @option threshold: The minimum intensity to consider a peak as a signal, expressed as a percentage of the highest peak. 
+	 * @option threshold: The minimum intensity to consider a peak as a signal, expressed as a percentage of the highest peak.
 	 * @option stdev: Number of standard deviation of the noise for the threshold calculation if a threshold is not specified.
 	 * @option resolution: The maximum resolution of the spectrum for considering peaks.
 	 * @option yInverted: Is it a Y inverted spectrum?(like an IR spectrum)
@@ -587,8 +719,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	/**
-	 * @function getMaxPeak();
+	 * @function getMaxPeak()
 	 * Get the maximum peak
+	 * @returns {[x, y]}
 	 */
 	SD.prototype.getMaxPeak = function(){
 	    var y = this.getSpectraDataY();
@@ -599,7 +732,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            index=i;
 	        }
 	    }
-	    return [this.getSpectraDataX()[index],max];
+	    return [this.getX(index),max];
 	}
 
 	/**
@@ -607,6 +740,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * Get the value of the parameter
 	 * @param  name The parameter name
 	 * @param  defvalue The default value
+	 * @returns {number}
 	 */
 	SD.prototype.getParamDouble = function(name, defvalue){
 	    var value = this.sd.info[name];
@@ -620,6 +754,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * Get the value of the parameter
 	 * @param  name The parameter name
 	 * @param  defvalue The default value
+	 * @returns {string}
 	 */
 	SD.prototype.getParamString = function(name, defvalue){
 	    var value = this.sd.info[name];
@@ -633,6 +768,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * Get the value of the parameter
 	 * @param  name The parameter name
 	 * @param  defvalue The default value
+	 * @returns {number}
 	 */
 	SD.prototype.getParamInt = function(name, defvalue){
 	    var value = this.sd.info[name];
@@ -646,6 +782,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * Get the value of the parameter
 	 * @param  name The parameter name
 	 * @param  defvalue The default value
+	 * @returns {*}
 	 */
 	SD.prototype.getParam = function(name, defvalue){
 	    var value = this.sd.info[name];
@@ -655,6 +792,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	/**
+	 * @function containsParam(name)
 	 *True if the spectrum.info contains the given parameter
 	 * @param name
 	 * @returns {boolean}
@@ -665,24 +803,35 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    return false;
 	}
-	/**
-	 * Return the y elements of the current spectrum
-	 * @returns {*}
-	 */
 
+	/**
+	 * @function getSpectraDataY()
+	 * Return the y elements of the current spectrum. Same as getYData. Kept for backward compatibility.
+	 * @returns {Array}
+	 */
 	SD.prototype.getSpectraDataY = function(){
 	    return this.getYData();
 	}
 
 	/**
-	 * Return the x elements of the current spectrum
-	 * @returns {*}
+	 * @function getSpectraDataX()
+	 * Return the x elements of the current spectrum. Same as getXData. Kept for backward compatibility.
+	 * @returns {Array}
 	 */
 	SD.prototype.getSpectraDataX = function(){
 	    return this.getXData();
 	}
 
 	/**
+	 * @function resetMinMax()
+	 * Update min max values of X and Yaxis.
+	 */
+	SD.prototype.resetMinMax = function(){
+	    //TODO Impelement this function
+	}
+
+	/**
+	 * @function putParam(name, value)
 	 * Set a new parameter to this spectrum
 	 * @param name
 	 * @param value
@@ -692,7 +841,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	/**
+	 * @function getArea(from, to)
 	 * This function returns the area under the spectrum in the given window
+	 * @param from in spectrum units
+	 * @param to in spectrum units
+	 * @returns {number}
 	 */
 	SD.prototype.getArea = function(from, to){
 	    var i0 = this.unitsToArrayPoint(from);
@@ -712,16 +865,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	},
 
 	/**
+	 * @function getVector(from, to, nPoints)
 	 * Returns a equally spaced vector within the given window.
-	 * @param from
-	 * @param to
-	 * @param nPoints
-	 * @returns {*}
+	 * @param from in spectrum units
+	 * @param to in spectrum units
+	 * @param nPoints number of points to return(!!!sometimes it is not possible to return exactly the required nbPoints)
+	 * @returns [x,y]
 	 */
 	SD.prototype.getVector = function(from, to, nPoints){
 	    var x = this.getSpectraDataX();
 	    var y = this.getSpectraDataY();
+	    var result = [];
 	    var start = 0, end = x.length- 1,direction=1;
+	    var reversed = false;
 
 	    if(x[0]>x[1]){
 	        direction = -1;
@@ -733,6 +889,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var tmp = from;
 	        from = to;
 	        to = tmp;
+	        reversed = true;
 	    }
 	    //console.log(x[end]+" "+from+" "+x[start]+" "+to);
 	    if(x[start]>to||x[end]<from){
@@ -755,19 +912,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	        index=nPoints-1;
 
 	    var di = winPoints/nPoints;
-	    var i=start;
+	    var i=start-direction;
 	    for(var k=0;k<nPoints;k++) {
-	        xwin[index] = x[Math.round(i)];
-	        ywin[index] = y[Math.round(i)];
-			i += di*direction;
+	        i += Math.round(di * direction);
+	        //console.log(i+" "+y[i]);
+	        xwin[index] = x[i];
+	        ywin[index] = y[i];
 	        index += direction;
 	    }
 	    return [xwin,ywin];
 	}
 
 	/**
-	 * @function is2D();
+	 * @function is2D()
 	 * Is it a 2D spectrum?
+	 * @returns {boolean}
 	 */
 	SD.prototype.is2D = function(){
 	    if(typeof this.sd.twoD == "undefined")
@@ -785,6 +944,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @option yfactor: The YFACTOR. It allows to compress the data by removing digits from the ordinate. (Default: 1)
 	 * @option type: ["NTUPLES", "SIMPLE"] (Default: "SIMPLE")
 	 * @option keep: A set of user defined parameters of the given SpectraData to be stored in the jcamp.
+	 * @returns a string containing the jcamp-DX file
 	 * @example SD.toJcamp(spectraData,{encode:'DIFDUP',yfactor:0.01,type:"SIMPLE",keep:['#batchID','#url']});
 	 */
 	SD.prototype.toJcamp=function(options) {
@@ -2846,7 +3006,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	var SD = __webpack_require__(1);
 	var PeakPicking = __webpack_require__(8);
 	var JcampConverter=__webpack_require__(3);
+	var fft = __webpack_require__(42);
+	var Filters = __webpack_require__(45);
 
+	/**
+	 * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
+	 * @param sd
+	 * @constructor
+	 */
 	function NMR(sd) {
 	    SD.call(this, sd); // Héritage
 	}
@@ -2854,6 +3021,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	NMR.prototype = Object.create(SD.prototype);
 	NMR.prototype.constructor = NMR;
 
+	/**
+	 * @function fromJcamp(jcamp,options)
+	 * Construct the object from the given jcamp.
+	 * @param jcamp
+	 * @param options
+	 * @option xy
+	 * @option keepSpectra
+	 * @option keepRecordsRegExp
+	 * @returns {NMR}
+	 */
 	NMR.fromJcamp = function(jcamp,options) {
 	    options = options || {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/};
 	    var spectrum= JcampConverter.convert(jcamp,options);
@@ -2861,8 +3038,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	/**
-	* Return the observed nucleus 
-	*/
+	 * @function getNucleus(dim)
+	 * Returns the observed nucleus. A dimension parameter is accepted for compatibility with 2DNMR
+	 * @param dim
+	 * @returns {*}
+	 */
 	NMR.prototype.getNucleus=function(dim){
 	    if(!dim||dim==0||dim==1)
 	        return this.sd.xType;
@@ -2872,20 +3052,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	/**
-	* Returns the solvent name
-	*/
+	 * @function getSolventName()
+	 * Returns the solvent name.
+	 * @returns {string|XML}
+	 */
 	NMR.prototype.getSolventName=function(){
 	    return (this.sd.info[".SOLVENTNAME"]||this.sd.info["$SOLVENT"]||"").replace("<","").replace(">","");
 	}
 
-	//Returns the observe frequency in the direct dimension
+	/**
+	 * @function observeFrequencyX()
+	 * Returns the observe frequency in the direct dimension
+	 * @returns {number}
+	 */
 	NMR.prototype.observeFrequencyX=function(){
 	    return this.sd.spectra[0].observeFrequency;
 	}
 
 	/**
-	* Returns the noise factor depending on the nucleus.
-	*/
+	 * @function getNMRPeakThreshold(nucleus)
+	 * Returns the noise factor depending on the nucleus.
+	 * @param nucleus
+	 * @returns {number}
+	 */
 	NMR.prototype.getNMRPeakThreshold=function(nucleus) {
 	    if (nucleus == "1H")
 	        return 3.0;
@@ -2901,6 +3090,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * This function adds white noise to the the given spectraData. The intensity of the noise is 
 	 * calculated from the given signal to noise ratio.
 	 * @param SNR Signal to noise ratio
+	 * @returns this object
 	 */
 	 NMR.prototype.addNoise=function(SNR) {
 	     //@TODO Implement addNoise filter
@@ -2921,16 +3111,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @param factor1 linear factor for spec1
 	 * @param factor2 linear factor for spec2
 	 * @param autoscale Auto-adjust scales before combine the spectraDatas
+	 * @returns this object
 	 * @example spec1 = addSpectraDatas(spec1,spec2,1,-1, false) This subtract spec2 from spec1
 	*/
 	NMR.prototype.addSpectraDatas=function(spec2,factor1,factor2,autoscale ) {
 	    //@TODO Implement addSpectraDatas filter
+
 	}
 
 	/**
 	 * @function autoBaseline()
 	 * Automatically corrects the base line of a given spectraData. After this process the spectraData
 	 * should have meaningful integrals.
+	 * @returns this object
 	 */
 	NMR.prototype.autoBaseline=function( ) {
 	    //@TODO Implement autoBaseline filter
@@ -2939,9 +3132,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	/**
 	 * @function fourierTransform()
 	 * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be of type NMR_FID or 2DNMR_FID
+	 * @returns this object
 	 */
 	NMR.prototype.fourierTransform=function( ) {
-	    //@TODO Implement fourierTransform filter
+	    return Filters.fourierTransform(this);
 	}
 
 	/**
@@ -2953,9 +3147,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * correcting the problem of the Bruker digital filters.
 	 * @param spectraData A fourier transformed spectraData.
 	 * @param ph1corr Phase 1 correction value in radians.
+	 * @returns this object
 	 */
 	NMR.prototype.postFourierTransform=function(ph1corr) {
-	    //@TODO Implement postFourierTransform filter
+	    return Filters.phaseCorrection(0,ph1corr);
 	}
 
 	/**
@@ -2964,9 +3159,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * could increase artificially the spectral resolution.
 	 * @param nPointsX Number of new zero points in the direct dimension
 	 * @param nPointsY Number of new zero points in the indirect dimension
+	 * @returns this object
 	 */
 	NMR.prototype.zeroFilling=function(nPointsX, nPointsY) {
-	    //@TODO Implement zeroFilling filter
+	    return Filters.zeroFilling(this,nPointsX, nPointsY);
 	}
 
 	/**
@@ -2975,6 +3171,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * The needed parameters are the wavelet scale and the lambda used in the whittaker smoother.
 	 * @param waveletScale To be described
 	 * @param whittakerLambda To be described
+	 * @returns this object
 	 */
 	NMR.prototype.haarWhittakerBaselineCorrection=function(waveletScale,whittakerLambda) {
 	    //@TODO Implement haarWhittakerBaselineCorrection filter
@@ -2987,21 +3184,35 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @param waveletScale To be described
 	 * @param whittakerLambda To be described
 	 * @param ranges A string containing the ranges of no signal.
+	 * @returns this object
 	 */
 	NMR.prototype.whittakerBaselineCorrection=function(whittakerLambda,ranges) {
 	    //@TODO Implement whittakerBaselineCorrection filter
 	}
 
 	/**
-	 * @function brukerSpectra(options)
+	 * @function brukerFilter()
 	 * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that 
 	 * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the 
 	 * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
-	 * @option DECIM: Acquisition parameter
-	 * @option DSPFVS: Acquisition parameter
+	 * @returns this object
 	 */
-	NMR.prototype.brukerSpectra=function(options) {
-	    //@TODO Implement brukerSpectra filter
+	NMR.prototype.brukerFilter=function() {
+	    return Filters.digitalFilter(this, {"brukerFilter":true});
+	}
+
+	/**
+	 * @function digitalFilter(options)
+	 * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
+	 * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
+	 * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
+	 * @option nbPoints: The number of points to shift. Positive values will shift the values to the rigth
+	 * and negative values will do to the left.
+	 * @option brukerSpectra
+	 * @returns this object
+	 */
+	NMR.prototype.digitalFilter=function(options) {
+	    return Filters.digitalFilter(this, options);
 	}
 
 	/**
@@ -3017,15 +3228,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *  Sine Bell Squared, sb2
 	 * @param lineBroadening The parameter LB should either be a line broadening factor in Hz 
 	 * or alternatively an angle given by degrees for sine bell functions and the like.
-	 * @example SD.apodization(, lineBroadening)
+	 * @returns this object
+	 * @example SD.apodization("exp", lineBroadening)
 	 */
 	NMR.prototype.apodization=function(functionName, lineBroadening) {
-	    //@TODO Implement apodization filter
+	    return Filters.apodization(this,{"functionName":functionName,
+	                            "lineBroadening":lineBroadening});
+
 	}
 
 	/**
 	 * @function echoAntiechoFilter();
 	 * That decodes an Echo-Antiecho 2D spectrum.
+	 * @returns this object
 	 */
 	NMR.prototype.echoAntiechoFilter=function() {
 	    //@TODO Implement echoAntiechoFilter filter
@@ -3034,6 +3249,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/**
 	 * @function SNVFilter()
 	 * This function apply a Standard Normal Variate Transformation over the given spectraData. Mainly used for IR spectra.
+	 * @returns this object
 	 */
 	NMR.prototype.SNVFilter=function() {
 	    //@TODO Implement SNVFilter
@@ -3043,6 +3259,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @function powerFilter(power)
 	 * This function applies a power to all the Y values.<br>If the power is less than 1 and the spectrum has negative values, it will be shifted so that the lowest value is zero 
 	 * @param   power   The power to apply
+	 * @returns this object
 	 */
 	NMR.prototype.powerFilter=function(power) {
 	    var minY=this.getMinY();
@@ -3057,6 +3274,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @function logarithmFilter(base)
 	 * This function applies a log to all the Y values.<br>If the spectrum has negative or zero values, it will be shifted so that the lowest value is 1 
 	 * @param   base    The base to use
+	 * @returns this object
 	 */
 	NMR.prototype.logarithmFilter=function(base) {
 	    var minY=this.getMinY();
@@ -3078,6 +3296,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *                   ./    
 	 *                    -- i=-inf
 	 * @param func A double array containing the function to correlates the spectraData
+	 * @returns this object
 	 * @example var smoothedSP = SD.correlationFilter(spectraData,[1,1]) returns a smoothed version of the
 	 * given spectraData. 
 	 */
@@ -3090,29 +3309,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * Applies the phase correction (phi0,phi1) to a Fourier transformed spectraData. The angles must be given in radians.
 	 * @param phi0 Zero order phase correction
 	 * @param phi1 One order phase correction
+	 * @returns this object
 	*/
 	NMR.prototype.phaseCorrection=function(phi0, phi1) {
-	    //@TODO Implement phaseCorrection filter
+	    return Filters.phaseCorrection(this, phi0, phi1);
 	}
 
 	/**
 	 * @function automaticPhase() 
 	 * This function determines automatically the correct parameters phi0 and phi1 for a phaseCorrection
 	 * function and applies it.
+	 * @returns this object
 	 */ 
 	NMR.prototype.automaticPhase=function() {
 	    //@TODO Implement automaticPhase filter
 	}
 
-	/**
-	 *  @function useBrukerPhase()
-	 *  This function extract the parameters of the phaseCorrection from the jcamp-dx parameters
-	 *  if the spectrum was acquired in Bruker spectrometers . Basically it will look for the parameters
-	 *  $PHC0 and $PHC1, and will use it to call the phaseCorrection function.
-	 */
-	NMR.prototype.useBrukerPhase=function() {
-	   //@TODO Implement useBrukerPhase filter
-	}
 
 	/**
 	 * @function nmrPeakDetection(parameters);
@@ -3122,6 +3334,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @option toX:     Upper limit.
 	 * @option threshold: The minimum intensity to consider a peak as a signal, expressed as a percentage of the highest peak. 
 	 * @option stdev: Number of standard deviation of the noise for the threshold calculation if a threshold is not specified.
+	 * @returns {*}
 	 */
 	NMR.prototype.nmrPeakDetection=function(parameters) {
 	    return PeakPicking.peakPicking(this, parameters);
@@ -3152,19 +3365,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	var PeakPicking={
 	    impurities:[],
 	    maxJ:20,
-	    defaultOptions:{nH:10,
+	    defaultOptions:{nH:99,
 	        clean:true,
 	        realTop:false,
 	        thresholdFactor:1,
 	        compile:true,
 	        integralFn:0,
 	        optimize:true,
-	        id:""
+	        idPrefix:""
 	    },
 
 	    peakPicking:function(spectrum, optionsEx){
 	        var options = extend({}, this.defaultOptions, optionsEx);
-
 	        var i, j, nHi, sum;
 
 	        var noiseLevel = Math.abs(spectrum.getNoiseLevel())*(options.thresholdFactor);
@@ -3252,8 +3464,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 
 	        for(var i=0;i<signals.length;i++){
-	            if(options.id&&options.id.length>0)
-	                signals[i].signalID = options.id+"_"+(i+1);
+	            if(options.idPrefix&&options.idPrefix.length>0)
+	                signals[i].signalID = options.idPrefix+"_"+(i+1);
 	            else
 	                signals[i].signalID = (i+1)+"";
 	            signals[i]._highlight=[signals[i].signalID];
@@ -14648,11 +14860,829 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
+
+	exports.FFTUtils = __webpack_require__(43);
+	exports.FFT = __webpack_require__(44);
+
+
+/***/ },
+/* 43 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var FFT = __webpack_require__(44);
+
+	var FFTUtils= {
+	    DEBUG : false,
+
+	    /**
+	     * Calculates the inverse of a 2D Fourier transform
+	     *
+	     * @param ft
+	     * @param ftRows
+	     * @param ftCols
+	     * @return
+	     */
+	    ifft2DArray : function(ft, ftRows, ftCols){
+	        var tempTransform = new Array(ftRows * ftCols);
+	        var nRows = ftRows / 2;
+	        var nCols = (ftCols - 1) * 2;
+	        // reverse transform columns
+	        FFT.init(nRows);
+	        var tmpCols = {re: new Array(nRows), im: new Array(nRows)};
+	        for (var iCol = 0; iCol < ftCols; iCol++) {
+	            for (var iRow = nRows - 1; iRow >= 0; iRow--) {
+	                tmpCols.re[iRow] = ft[(iRow * 2) * ftCols + iCol];
+	                tmpCols.im[iRow] = ft[(iRow * 2 + 1) * ftCols + iCol];
+	            }
+	            //Unnormalized inverse transform
+	            FFT.bt(tmpCols.re, tmpCols.im);
+	            for (var iRow = nRows - 1; iRow >= 0; iRow--) {
+	                tempTransform[(iRow * 2) * ftCols + iCol] = tmpCols.re[iRow];
+	                tempTransform[(iRow * 2 + 1) * ftCols + iCol] = tmpCols.im[iRow];
+	            }
+	        }
+
+	        // reverse row transform
+	        var finalTransform = new Array(nRows * nCols);
+	        FFT.init(nCols);
+	        var tmpRows = {re: new Array(nCols), im: new Array(nCols)};
+	        var scale = nCols * nRows;
+	        for (var iRow = 0; iRow < ftRows; iRow += 2) {
+	            tmpRows.re[0] = tempTransform[iRow * ftCols];
+	            tmpRows.im[0] = tempTransform[(iRow + 1) * ftCols];
+	            for (var iCol = 1; iCol < ftCols; iCol++) {
+	                tmpRows.re[iCol] = tempTransform[iRow * ftCols + iCol];
+	                tmpRows.im[iCol] = tempTransform[(iRow + 1) * ftCols + iCol];
+	                tmpRows.re[nCols - iCol] = tempTransform[iRow * ftCols + iCol];
+	                tmpRows.im[nCols - iCol] = -tempTransform[(iRow + 1) * ftCols + iCol];
+	            }
+	            //Unnormalized inverse transform
+	            FFT.bt(tmpRows.re, tmpRows.im);
+
+	            var indexB = (iRow / 2) * nCols;
+	            for (var iCol = nCols - 1; iCol >= 0; iCol--) {
+	                finalTransform[indexB + iCol] = tmpRows.re[iCol] / scale;
+	            }
+	        }
+	        return finalTransform;
+	    },
+	    /**
+	     * Calculates the fourier transform of a matrix of size (nRows,nCols) It is
+	     * assumed that both nRows and nCols are a power of two
+	     *
+	     * On exit the matrix has dimensions (nRows * 2, nCols / 2 + 1) where the
+	     * even rows contain the real part and the odd rows the imaginary part of the
+	     * transform
+	     * @param data
+	     * @param nRows
+	     * @param nCols
+	     * @return
+	     */
+	    fft2DArray:function(data, nRows, nCols) {
+	        var ftCols = (nCols / 2 + 1);
+	        var ftRows = nRows * 2;
+	        var tempTransform = new Array(ftRows * ftCols);
+	        FFT.init(nCols);
+	        // transform rows
+	        var tmpRows = {re: new Array(nCols), im: new Array(nCols)};
+	        var row1 = {re: new Array(nCols), im: new Array(nCols)}
+	        var row2 = {re: new Array(nCols), im: new Array(nCols)}
+	        var index, iRow0, iRow1, iRow2, iRow3;
+	        for (var iRow = 0; iRow < nRows / 2; iRow++) {
+	            index = (iRow * 2) * nCols;
+	            tmpRows.re = data.slice(index, index + nCols);
+
+	            index = (iRow * 2 + 1) * nCols;
+	            tmpRows.im = data.slice(index, index + nCols);
+
+	            FFT.fft1d(tmpRows.re, tmpRows.im);
+
+	            this.reconstructTwoRealFFT(tmpRows, row1, row2);
+	            //Now lets put back the result into the output array
+	            iRow0 = (iRow * 4) * ftCols;
+	            iRow1 = (iRow * 4 + 1) * ftCols;
+	            iRow2 = (iRow * 4 + 2) * ftCols;
+	            iRow3 = (iRow * 4 + 3) * ftCols;
+	            for (var k = ftCols - 1; k >= 0; k--) {
+	                tempTransform[iRow0 + k] = row1.re[k];
+	                tempTransform[iRow1 + k] = row1.im[k];
+	                tempTransform[iRow2 + k] = row2.re[k];
+	                tempTransform[iRow3 + k] = row2.im[k];
+	            }
+	        }
+
+	        //console.log(tempTransform);
+	        row1 = null;
+	        row2 = null;
+	        // transform columns
+	        var finalTransform = new Array(ftRows * ftCols);
+	        FFT.init(nRows);
+	        var tmpCols = {re: new Array(nRows), im: new Array(nRows)};
+	        for (var iCol = ftCols - 1; iCol >= 0; iCol--) {
+	            for (var iRow = nRows - 1; iRow >= 0; iRow--) {
+	                tmpCols.re[iRow] = tempTransform[(iRow * 2) * ftCols + iCol];
+	                tmpCols.im[iRow] = tempTransform[(iRow * 2 + 1) * ftCols + iCol];
+	            }
+	            FFT.fft1d(tmpCols.re, tmpCols.im);
+	            for (var iRow = nRows - 1; iRow >= 0; iRow--) {
+	                finalTransform[(iRow * 2) * ftCols + iCol] = tmpCols.re[iRow];
+	                finalTransform[(iRow * 2 + 1) * ftCols + iCol] = tmpCols.im[iRow];
+	            }
+	        }
+
+	        //console.log(finalTransform);
+	        return finalTransform;
+
+	    },
+	    /**
+	     *
+	     * @param fourierTransform
+	     * @param realTransform1
+	     * @param realTransform2
+	     *
+	     * Reconstructs the individual Fourier transforms of two simultaneously
+	     * transformed series. Based on the Symmetry relationships (the asterisk
+	     * denotes the complex conjugate)
+	     *
+	     * F_{N-n} = F_n^{*} for a purely real f transformed to F
+	     *
+	     * G_{N-n} = G_n^{*} for a purely imaginary g transformed to G
+	     *
+	     */
+	    reconstructTwoRealFFT:function(fourierTransform, realTransform1, realTransform2) {
+	        var length = fourierTransform.re.length;
+
+	        // the components n=0 are trivial
+	        realTransform1.re[0] = fourierTransform.re[0];
+	        realTransform1.im[0] = 0.0;
+	        realTransform2.re[0] = fourierTransform.im[0];
+	        realTransform2.im[0] = 0.0;
+	        var rm, rp, im, ip, j;
+	        for (var i = length / 2; i > 0; i--) {
+	            j = length - i;
+	            rm = 0.5 * (fourierTransform.re[i] - fourierTransform.re[j]);
+	            rp = 0.5 * (fourierTransform.re[i] + fourierTransform.re[j]);
+	            im = 0.5 * (fourierTransform.im[i] - fourierTransform.im[j]);
+	            ip = 0.5 * (fourierTransform.im[i] + fourierTransform.im[j]);
+	            realTransform1.re[i] = rp;
+	            realTransform1.im[i] = im;
+	            realTransform1.re[j] = rp;
+	            realTransform1.im[j] = -im;
+	            realTransform2.re[i] = ip;
+	            realTransform2.im[i] = -rm;
+	            realTransform2.re[j] = ip;
+	            realTransform2.im[j] = rm;
+	        }
+	    },
+
+	    /**
+	     * In place version of convolute 2D
+	     *
+	     * @param ftSignal
+	     * @param ftFilter
+	     * @param ftRows
+	     * @param ftCols
+	     * @return
+	     */
+	    convolute2DI:function(ftSignal, ftFilter, ftRows, ftCols) {
+	        var re, im;
+	        for (var iRow = 0; iRow < ftRows / 2; iRow++) {
+	            for (var iCol = 0; iCol < ftCols; iCol++) {
+	                //
+	                re = ftSignal[(iRow * 2) * ftCols + iCol]
+	                * ftFilter[(iRow * 2) * ftCols + iCol]
+	                - ftSignal[(iRow * 2 + 1) * ftCols + iCol]
+	                * ftFilter[(iRow * 2 + 1) * ftCols + iCol];
+	                im = ftSignal[(iRow * 2) * ftCols + iCol]
+	                * ftFilter[(iRow * 2 + 1) * ftCols + iCol]
+	                + ftSignal[(iRow * 2 + 1) * ftCols + iCol]
+	                * ftFilter[(iRow * 2) * ftCols + iCol];
+	                //
+	                ftSignal[(iRow * 2) * ftCols + iCol] = re;
+	                ftSignal[(iRow * 2 + 1) * ftCols + iCol] = im;
+	            }
+	        }
+	    },
+	    /**
+	     *
+	     * @param data
+	     * @param kernel
+	     * @param nRows
+	     * @param nCols
+	     * @returns {*}
+	     */
+	    convolute:function(data, kernel, nRows, nCols){
+	        var ftSpectrum = new Array(nCols * nRows);
+	        for (var i = 0; i<nRows * nCols; i++){
+	            ftSpectrum[i] = data[i];
+	        }
+
+	        ftSpectrum = this.fft2DArray(ftSpectrum, nRows, nCols);
+
+	        var dim = kernel.length;
+	        var ftFilterData = new Array(nCols * nRows);
+	        for(var i=0;i<nCols * nRows;i++){
+	            ftFilterData[i]=0;
+	        }
+
+	        var iRow, iCol;
+	        var shift = (dim - 1) / 2;
+	        //console.log(dim);
+	        for (var ir = 0; ir < dim; ir++) {
+	            iRow = (ir - shift + nRows) % nRows;
+	            for (var ic = 0; ic < dim; ic++) {
+	                iCol = (ic - shift + nCols) % nCols;
+	                ftFilterData[iRow * nCols + iCol] = kernel[ir][ic];
+	            }
+	        }
+
+	        ftFilterData = this.fft2DArray(ftFilterData, nRows, nCols);
+
+	        var ftRows = nRows * 2;
+	        var ftCols = nCols / 2 + 1;
+	        this.convolute2DI(ftSpectrum, ftFilterData, ftRows, ftCols);
+
+	        return  this.ifft2DArray(ftSpectrum, ftRows, ftCols);
+	    }
+	}
+
+	module.exports = FFTUtils;
+
+
+/***/ },
+/* 44 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Fast Fourier Transform module
+	 * 1D-FFT/IFFT, 2D-FFT/IFFT (radix-2)
+	 */
+	var FFT = (function(){
+	  var FFT;  
+	  
+	  if(true) {
+	    FFT = exports;   // for CommonJS
+	  } else {
+	    FFT = {};
+	  }
+	  
+	  var version = {
+	    release: '0.3.0',
+	    date: '2013-03'
+	  };
+	  FFT.toString = function() {
+	    return "version " + version.release + ", released " + version.date;
+	  };
+
+	  // core operations
+	  var _n = 0,          // order
+	      _bitrev = null,  // bit reversal table
+	      _cstb = null;    // sin/cos table
+
+	  var core = {
+	    init : function(n) {
+	      if(n !== 0 && (n & (n - 1)) === 0) {
+	        _n = n;
+	        core._initArray();
+	        core._makeBitReversalTable();
+	        core._makeCosSinTable();
+	      } else {
+	        throw new Error("init: radix-2 required");
+	      }
+	    },
+	    // 1D-FFT
+	    fft1d : function(re, im) {
+	      core.fft(re, im, 1);
+	    },
+	    // 1D-IFFT
+	    ifft1d : function(re, im) {
+	      var n = 1/_n;
+	      core.fft(re, im, -1);
+	      for(var i=0; i<_n; i++) {
+	        re[i] *= n;
+	        im[i] *= n;
+	      }
+	    },
+	     // 1D-IFFT
+	    bt1d : function(re, im) {
+	      core.fft(re, im, -1);
+	    },
+	    // 2D-FFT Not very useful if the number of rows have to be equal to cols
+	    fft2d : function(re, im) {
+	      var tre = [],
+	          tim = [],
+	          i = 0;
+	      // x-axis
+	      for(var y=0; y<_n; y++) {
+	        i = y*_n;
+	        for(var x1=0; x1<_n; x1++) {
+	          tre[x1] = re[x1 + i];
+	          tim[x1] = im[x1 + i];
+	        }
+	        core.fft1d(tre, tim);
+	        for(var x2=0; x2<_n; x2++) {
+	          re[x2 + i] = tre[x2];
+	          im[x2 + i] = tim[x2];
+	        }
+	      }
+	      // y-axis
+	      for(var x=0; x<_n; x++) {
+	        for(var y1=0; y1<_n; y1++) {
+	          i = x + y1*_n;
+	          tre[y1] = re[i];
+	          tim[y1] = im[i];
+	        }
+	        core.fft1d(tre, tim);
+	        for(var y2=0; y2<_n; y2++) {
+	          i = x + y2*_n;
+	          re[i] = tre[y2];
+	          im[i] = tim[y2];
+	        }
+	      }
+	    },
+	    // 2D-IFFT
+	    ifft2d : function(re, im) {
+	      var tre = [],
+	          tim = [],
+	          i = 0;
+	      // x-axis
+	      for(var y=0; y<_n; y++) {
+	        i = y*_n;
+	        for(var x1=0; x1<_n; x1++) {
+	          tre[x1] = re[x1 + i];
+	          tim[x1] = im[x1 + i];
+	        }
+	        core.ifft1d(tre, tim);
+	        for(var x2=0; x2<_n; x2++) {
+	          re[x2 + i] = tre[x2];
+	          im[x2 + i] = tim[x2];
+	        }
+	      }
+	      // y-axis
+	      for(var x=0; x<_n; x++) {
+	        for(var y1=0; y1<_n; y1++) {
+	          i = x + y1*_n;
+	          tre[y1] = re[i];
+	          tim[y1] = im[i];
+	        }
+	        core.ifft1d(tre, tim);
+	        for(var y2=0; y2<_n; y2++) {
+	          i = x + y2*_n;
+	          re[i] = tre[y2];
+	          im[i] = tim[y2];
+	        }
+	      }
+	    },
+	    // core operation of FFT
+	    fft : function(re, im, inv) {
+	      var d, h, ik, m, tmp, wr, wi, xr, xi,
+	          n4 = _n >> 2;
+	      // bit reversal
+	      for(var l=0; l<_n; l++) {
+	        m = _bitrev[l];
+	        if(l < m) {
+	          tmp = re[l];
+	          re[l] = re[m];
+	          re[m] = tmp;
+	          tmp = im[l];
+	          im[l] = im[m];
+	          im[m] = tmp;
+	        }
+	      }
+	      // butterfly operation
+	      for(var k=1; k<_n; k<<=1) {
+	        h = 0;
+	        d = _n/(k << 1);
+	        for(var j=0; j<k; j++) {
+	          wr = _cstb[h + n4];
+	          wi = inv*_cstb[h];
+	          for(var i=j; i<_n; i+=(k<<1)) {
+	            ik = i + k;
+	            xr = wr*re[ik] + wi*im[ik];
+	            xi = wr*im[ik] - wi*re[ik];
+	            re[ik] = re[i] - xr;
+	            re[i] += xr;
+	            im[ik] = im[i] - xi;
+	            im[i] += xi;
+	          }
+	          h += d;
+	        }
+	      }
+	    },
+	    // initialize the array (supports TypedArray)
+	    _initArray : function() {
+	      if(typeof Uint32Array !== 'undefined') {
+	        _bitrev = new Uint32Array(_n);
+	      } else {
+	        _bitrev = [];
+	      }
+	      if(typeof Float64Array !== 'undefined') {
+	        _cstb = new Float64Array(_n*1.25);
+	      } else {
+	        _cstb = [];
+	      }
+	    },
+	    // zero padding
+	    _paddingZero : function() {
+	      // TODO
+	    },
+	    // makes bit reversal table
+	    _makeBitReversalTable : function() {
+	      var i = 0,
+	          j = 0,
+	          k = 0;
+	      _bitrev[0] = 0;
+	      while(++i < _n) {
+	        k = _n >> 1;
+	        while(k <= j) {
+	          j -= k;
+	          k >>= 1;
+	        }
+	        j += k;
+	        _bitrev[i] = j;
+	      }
+	    },
+	    // makes trigonometiric function table
+	    _makeCosSinTable : function() {
+	      var n2 = _n >> 1,
+	          n4 = _n >> 2,
+	          n8 = _n >> 3,
+	          n2p4 = n2 + n4,
+	          t = Math.sin(Math.PI/_n),
+	          dc = 2*t*t,
+	          ds = Math.sqrt(dc*(2 - dc)),
+	          c = _cstb[n4] = 1,
+	          s = _cstb[0] = 0;
+	      t = 2*dc;
+	      for(var i=1; i<n8; i++) {
+	        c -= dc;
+	        dc += t*c;
+	        s += ds;
+	        ds -= t*s;
+	        _cstb[i] = s;
+	        _cstb[n4 - i] = c;
+	      }
+	      if(n8 !== 0) {
+	        _cstb[n8] = Math.sqrt(0.5);
+	      }
+	      for(var j=0; j<n4; j++) {
+	        _cstb[n2 - j]  = _cstb[j];
+	      }
+	      for(var k=0; k<n2p4; k++) {
+	        _cstb[k + n2] = -_cstb[k];
+	      }
+	    }
+	  };
+	  // aliases (public APIs)
+	  var apis = ['init', 'fft1d', 'ifft1d', 'fft2d', 'ifft2d'];
+	  for(var i=0; i<apis.length; i++) {
+	    FFT[apis[i]] = core[apis[i]];
+	  }
+	  FFT.bt = core.bt1d;
+	  FFT.fft = core.fft1d;
+	  FFT.ifft = core.ifft1d;
+	  
+	  return FFT;
+	}).call(this);
+
+
+/***/ },
+/* 45 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Created by abol on 4/20/16.
+	 */
+	module.exports.fourierTransform = __webpack_require__(46);
+	module.exports.zeroFilling = __webpack_require__(47);
+	module.exports.apodization = __webpack_require__(48);
+	module.exports.phaseCorrection = __webpack_require__(49);
+	module.exports.digitalFilter = __webpack_require__(50);
+
+
+/***/ },
+/* 46 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Created by abol on 4/20/16.
+	 */
+	var fft = __webpack_require__(42);
+
+	function fourierTransform(spectraData){
+	    //console.log(spectraData);
+
+	    var nbPoints = spectraData.getNbPoints();
+	    var nSubSpectra = spectraData.getNbSubSpectra() / 2;
+	    var spectraType = "NMR SPECTRUM";//spectraData.TYPE_NMR_SPECTRUM;
+	    var FFT = fft.FFT;
+	    if (nSubSpectra > 1)
+	        spectraType = "nD NMR SPECTRUM";//spectraData.TYPE_2DNMR_SPECTRUM;
+
+	    FFT.init(nbPoints);
+
+
+	    var fcor = spectraData.getParamDouble("$FCOR", 0.0);
+	    //var tempArray = new Array(nbPoints / 2);
+	    for (var iSubSpectra = 0; iSubSpectra < nSubSpectra; iSubSpectra++)
+	    {
+	        var re = spectraData.getYData(2 * iSubSpectra);
+	        var im = spectraData.getYData(2 * iSubSpectra + 1);
+	        if (false) {
+	            console.log("firstPoint: (" + re[0] + "," + im[0] + ")");
+	            console.log("fcor: " + fcor);
+	        }
+	        re[0] *= fcor;
+	        im[0] *= fcor;
+
+	        FFT.fft(re, im);
+	        re = re.concat(re.slice(0,(nbPoints+1)/2));
+	        re.splice(0, (nbPoints+1)/2);
+	        im = im.concat(im.slice(0,(nbPoints+1)/2));
+	        im.splice(0, (nbPoints+1)/2);
+
+	        spectraData.setActiveElement(2 * iSubSpectra);
+	        updateSpectra(spectraData, spectraType);
+
+	        spectraData.setActiveElement(2 * iSubSpectra + 1);
+	        updateSpectra(spectraData, spectraType);
+	    }
+	    spectraData.setActiveElement(0);
+	    return spectraData;
+	}
+
+	function updateSpectra(spectraData, spectraType){
+	    var baseFrequency = spectraData.getParamDouble("$BF1", NaN);
+	    var spectralFrequency = spectraData.getParamDouble("$SFO1", NaN);
+	    var spectralWidth = spectraData.getParamDouble("$SW", NaN);
+	    var xMiddle = ((spectralFrequency - baseFrequency) / baseFrequency )* 1e6;
+	    var dx = 0.5 * spectralWidth * spectralFrequency / baseFrequency;
+
+	    spectraData.setDataType(spectraType);
+	    spectraData.setFirstX(xMiddle + dx);
+	    spectraData.setLastX(xMiddle - dx);
+	    spectraData.setXUnits("PPM");
+
+	    var x = spectraData.getXData();
+	    var tmp = xMiddle + dx;
+	    dx = -2*dx/(x.length-1);
+	    for(var i=0;i< x.length;i++){
+	        x[i]= tmp;
+	        tmp+=dx;
+	    }
+
+	    //TODO update minmax in Y axis
+	}
+
+	module.exports = fourierTransform;
+
+/***/ },
+/* 47 */
+/***/ function(module, exports) {
+
+	/**
+	 * Created by abol on 4/20/16.
+	 */
+
+	function zeroFilling(spectraData, zeroFillingX, zeroFillingY){
+	    var nbSubSpectra = spectraData.getNbSubSpectra();
+	    //var zeroPadding = spectraData.getParamDouble("$$ZEROPADDING", 0);
+	    var nbXPoints, lastX, deltaX, k, x, y;
+	    if (zeroFillingX != 0){
+	        for (var iSubSpectra = 0 ; iSubSpectra < nbSubSpectra; iSubSpectra++){
+	            spectraData.setActiveElement(iSubSpectra);
+	            nbXPoints = spectraData.getNbPoints();
+	            y = spectraData.getYData();
+	            x = spectraData.getXData();
+	            lastX = spectraData.getLastX();
+	            deltaX = (lastX-x[0])/(nbXPoints-1);
+	            for (k = nbXPoints; k < zeroFillingX; k++){
+	                y.push(0);
+	                x.push(lastX+deltaX);
+	            }
+	            if (zeroFillingX < nbXPoints){
+	                y.splice(zeroFillingX, y.length-1);
+	                x.splice(zeroFillingX, x.length-1);
+	            }
+	            spectraData.setFirstX(x[0]);
+	            spectraData.setLastX(x[x.length-1]);
+	        }
+	    }
+	    spectraData.setActiveElement(0);
+	    return spectraData;
+	    // @TODO implement zeroFillingY
+	}
+	module.exports = zeroFilling;
+
+/***/ },
+/* 48 */
+/***/ function(module, exports) {
+
+	/**
+	 * Created by acastillo on 4/26/16.
+	 */
+
+	function apodization(spectraData, parameters){
+	    //org.cheminfo.hook.nemo.filters.ApodizationFilter
+
+	    /*public String toString() {
+	     switch (this) {
+	     case NONE:
+	     return "None";
+	     case EXPONENTIAL:
+	     return "Exponential";
+	     case GAUSSIAN:
+	     return "Gaussian";
+	     case TRAF:
+	     return "TRAF";
+	     case SINE_BELL:
+	     return "Sine Bell";
+	     case SINE_BELL_SQUARED:
+	     return "Sine Bell Squared";
+	     default:
+	     return "";
+	     }
+	     }*/
+	}
+
+	module.exports = apodization;
+
+/***/ },
+/* 49 */
+/***/ function(module, exports) {
+
+	/**
+	 * Created by acastillo on 4/26/16.
+	 */
+	function phaseCorrection(spectraData, phi0, phi1){
+	    //System.out.println(spectraData.toString());
+	    var nbPoints = spectraData.getNbPoints();
+	    var reData = spectraData.getYData(0);
+	    var imData = spectraData.getYData(1);
+	    //var corrections = spectraData.getParam("corrections");
+
+	    //for(var k=0;k<corrections.length;k++){
+	    //    Point2D phi = corrections.elementAt(k);
+
+	        //double phi0 = phi.getX();
+	        //double phi1 = phi.getY();
+
+	    if(false) System.out.println(" ph0 = "+phi0);
+	    if(false) System.out.println(" ph1 = "+phi1);
+
+	    var delta = phi1 / nbPoints;
+	    var alpha = 2 * Math.pow(Math.sin(delta / 2), 2);
+	    var beta = Math.sin(delta);
+	    var cosTheta = Math.cos(phi0);
+	    var sinTheta = Math.sin(phi0);
+	    var cosThetaNew, sinThetaNew;
+
+	    var reTmp, imTmp;
+	    var index;
+	        for (var i = 0; i < nbPoints; i++) {
+	            index = nbPoints - i - 1;
+	            index = i;
+	            reTmp = reData[index] * cosTheta - imData[index] * sinTheta;
+	            imTmp = reData[index] * sinTheta + imData[index] * cosTheta;
+	            reData[index] = reTmp;
+	            imData[index] = imTmp;
+	            // calculate angles i+1 from i
+	            cosThetaNew = cosTheta - (alpha * cosTheta + beta * sinTheta);
+	            sinThetaNew = sinTheta - (alpha * sinTheta - beta * cosTheta);
+	            cosTheta = cosThetaNew;
+	            sinTheta = sinThetaNew;
+	        }
+	        //toApply--;
+	    //}
+
+	    spectraData.resetMinMax();
+	    //spectraData.updateDefaults();
+	    //spectraData.updateY();
+	    spectraData.putParam("PHC0", phi0);
+	    spectraData.putParam("PHC1", phi1);
+	}
+
+	module.exports = phaseCorrection;
+
+/***/ },
+/* 50 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Created by acastillo on 4/26/16.
+	 */
+	var rotate = __webpack_require__(51);
+
+	function digitalFilter(spectraData, options){
+	    var nbPoints = 0;
+	    if(options.nbPoints){
+	        nbPoints = options.nbPoints;
+	    }
+	    else{
+	        if(options.brukerFilter){
+	            //TODO Determine the number of points to shift, or the ph1 correction
+	            //based on DECIM and DSPSVF parameters
+	            nbPoints = 0;
+	        }
+	    }
+
+	    var nbSubSpectra = spectraData.getNbSubSpectra();
+	    if (nbPoints != 0){
+	        for (var iSubSpectra = 0 ; iSubSpectra < nbSubSpectra; iSubSpectra++){
+	            spectraData.setActiveElement(iSubSpectra);
+	            rotate(spectraData.getYData(),nbPoints);
+	            if(options.rotateX){
+	                rotate(spectraData.getXData(),nbPoints);
+	                spectraData.setFirstX(spectraData.getX(0));
+	                spectraData.setLastX(spectraData.getX(spectraData.getNbPoints()-1));
+	            }
+	        }
+	    }
+	    spectraData.setActiveElement(0);
+	    return spectraData;
+	}
+
+	module.exports = digitalFilter;
+
+/***/ },
+/* 51 */
+/***/ function(module, exports) {
+
+	/**
+	 * Created by acastillo on 4/26/16.
+	 */
+	/**
+	 * This function performs a circular shift of the input object without realocating memory.
+	 * Positive values of shifts will shift to the right and negative values will do to the left
+	 * @example rotate([1,2,3,4],1) -> [4,1,2,3]
+	 * @example rotate([1,2,3,4],-1) -> [2,3,4,1]
+	 * @param array
+	 */
+	function rotate(array,shift){
+	    var nbPoints = array.length;
+	    //Lets calculate the lest amount of points to shift.
+	    //It decreases the amount of validations in the loop
+	    shift = shift%nbPoints;
+
+	    if(Math.abs(shift)>nbPoints/2){
+	        shift = shift>0?shift-nbPoints:shift+nbPoints;
+	    }
+
+	    if(shift!=0){
+	        var currentIndex=0, nextIndex=shift;
+	        var toMove = nbPoints;
+	        var current = array[currentIndex], next;
+	        var lastFirstIndex = shift;
+	        var direction = shift>0?1:-1;
+
+	        while(toMove>0){
+	            nextIndex = putInRange(nextIndex,nbPoints);
+	            next = array[nextIndex];
+	            array[nextIndex] = current;
+	            nextIndex+=shift;
+	            current = next;
+	            toMove--;
+
+	            if(nextIndex==lastFirstIndex){
+	                nextIndex = putInRange(nextIndex+direction,nbPoints);
+	                lastFirstIndex = nextIndex;
+	                currentIndex = putInRange(nextIndex-shift,nbPoints);
+	                current = array[currentIndex];
+	            }
+	        }
+	    }
+	}
+
+	function putInRange(value, nbPoints){
+	    if(value<0)
+	        value+=nbPoints;
+	    if(value>=nbPoints)
+	        value-=nbPoints;
+	    return value;
+	}
+
+	module.exports = rotate;
+
+
+	/*var foo = [1,2,3,4,5,6];
+	rotate(foo,-4);
+	console.log(foo);*/
+
+/***/ },
+/* 52 */
+/***/ function(module, exports, __webpack_require__) {
+
 	var SD = __webpack_require__(1);
-	var PeakPicking2D = __webpack_require__(43);
-	var PeakOptimizer = __webpack_require__(47);
+	var PeakPicking2D = __webpack_require__(53);
+	var PeakOptimizer = __webpack_require__(54);
 	var JcampConverter=__webpack_require__(3);
 
+	/**
+	 * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
+	 * @param sd
+	 * @constructor
+	 */
 	function NMR2D(sd) {
 	    SD.call(this, sd); // Héritage
 	}
@@ -14660,34 +15690,59 @@ return /******/ (function(modules) { // webpackBootstrap
 	NMR2D.prototype = Object.create(SD.prototype);
 	NMR2D.prototype.constructor = NMR2D;
 
+	/**
+	 * @function fromJcamp(jcamp,options)
+	 * Construct the object from the given jcamp.
+	 * @param jcamp
+	 * @param options
+	 * @option xy
+	 * @option keepSpectra
+	 * @option keepRecordsRegExp
+	 * @returns {NMR2D}
+	 */
 	NMR2D.fromJcamp = function(jcamp,options) {
 	    options = options || {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/};
 	    var spectrum= JcampConverter.convert(jcamp,options);
 	    return new NMR2D(spectrum);
 	}
 
+	/**
+	 * @function isHomoNuclear()
+	 * Returns true if the it is an homo-nuclear experiment
+	 * @returns {boolean}
+	 */
 	NMR2D.prototype.isHomoNuclear=function(){
 	    return this.sd.xType==this.sd.yType;
 	}
 
-	//Returns the observe frequency in the direct dimension
+	/**
+	 * @function observeFrequencyX()
+	 * Returns the observe frequency in the direct dimension
+	 * @returns {*}
+	 */
 	NMR2D.prototype.observeFrequencyX=function(){
 	    return this.sd.spectra[0].observeFrequency;
 	}
-
-	//Returns the observe frequency in the indirect dimension
+	/**
+	 * @function observeFrequencyY()
+	 * Returns the observe frequency in the indirect dimension
+	 * @returns {*}
+	 */
 	NMR2D.prototype.observeFrequencyY=function(){
 	    return this.sd.indirectFrequency;
 	}
 
 	/**
-	 * Returns the solvent name
+	 * @function getSolventName()
+	 * Returns the solvent name.
+	 * @returns {string|XML}
 	 */
 	NMR2D.prototype.getSolventName=function(){
 	    return (this.sd.info[".SOLVENTNAME"]||this.sd.info["$SOLVENT"]).replace("<","").replace(">","");
 	}
 
 	/**
+	 * @function getXUnits()
 	 * This function returns the units of the direct dimension. It overrides the SD getXUnits function
 	 * @returns {ntuples.units|*|b.units}
 	 */
@@ -14695,6 +15750,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return this.sd.ntuples[1].units;
 	}
 	/**
+	 * @function getYUnits()
 	 * This function returns the units of the indirect dimension. It overrides the SD getYUnits function
 	 * @returns {ntuples.units|*|b.units}
 	 */
@@ -14702,6 +15758,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return this.sd.ntuples[0].units;
 	}
 	/**
+	 * @function getZUnits()
 	 * Returns the units of the dependent variable
 	 * @returns {ntuples.units|*|b.units}
 	 */
@@ -14709,21 +15766,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return this.sd.ntuples[2].units;
 	}
 	/**
-	 * Overwrite this function. Now, the Y axe refers to the indirect dimension
+	 * @function getLastY()
+	 * Returns the min value in the indirect dimension.
 	 * @returns {sd.minMax.maxY}
 	 */
 	NMR2D.prototype.getLastY = function(){
 	    return this.sd.minMax.maxY;
 	}
 	/**
-	 * * Overwrite this function. Now, the Y axe refers to the indirect dimension
+	 * @function getFirstY()
+	 * Returns the min value in the indirect dimension.
 	 * @returns {sd.minMax.minY}
 	 */
 	NMR2D.prototype.getFirstY = function(){
 	    return this.sd.minMax.minY;
 	}
-
-	//Returns the separation between 2 consecutive points in the indirect domain
+	/**
+	 * @function getDeltaY()
+	 * Returns the separation between 2 consecutive points in the indirect domain
+	 * @returns {number}
+	 */
 	NMR2D.prototype.getDeltaY=function(){
 	    return ( this.getLastY()-this.getFirstY()) / (this.getNbSubSpectra()-1);
 	}
@@ -14734,15 +15796,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	 + Returns an NMRSignal2D array containing all the detected 2D-NMR Signals
 	 * @param	options:+Object			Object containing the options
 	 * @option	thresholdFactor:number	A factor to scale the automatically determined noise threshold.
-	 * @returns	+Object	set of NMRSignal2D
+	 * @returns [*]	set of NMRSignal2D
 	 */
 	NMR2D.prototype.nmrPeakDetection2D=function(options){
 	    options = options||{};
 	    if(!options.thresholdFactor)
 	        options.thresholdFactor=1;
 	    var id = Math.round(Math.random()*255);
-	    if(options.id){
-	        id=options.id;
+	    if(options.idPrefix){
+	        id=options.idPrefix;
 	    }
 	    var peakList = PeakPicking2D.findPeaks2D(this, options.thresholdFactor);
 
@@ -14758,8 +15820,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	/**
-	* Returns the noise factor depending on the nucleus.
-	*/
+	 * @function getNMRPeakThreshold(nucleus)
+	 * Returns the noise factor depending on the nucleus.
+	 * @param nucleus
+	 * @returns {number}
+	 */
 	NMR2D.prototype.getNMRPeakThreshold=function(nucleus) {
 	    if (nucleus == "1H")
 	        return 3.0;
@@ -14769,8 +15834,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	/**
-	* Returns the nucleus in the specified dimension
-	*/
+	 * @function getNucleus(dim)
+	 * Returns the observed nucleus in the specified dimension
+	 * @param dim
+	 * @returns {string}
+	 */
 	NMR2D.prototype.getNucleus=function(dim){
 	    if(dim==1)
 	        return this.sd.xType;
@@ -14783,12 +15851,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 43 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var lib = __webpack_require__(44);
-	var PeakOptimizer = __webpack_require__(47);
-	var SimpleClustering =  __webpack_require__(48);
+	var lib = __webpack_require__(42);
+	var PeakOptimizer = __webpack_require__(54);
+	var SimpleClustering =  __webpack_require__(55);
 	var StatArray = __webpack_require__(2);
 	var FFTUtils = lib.FFTUtils;
 
@@ -15135,498 +16203,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = PeakPicking2D;
 
 /***/ },
-/* 44 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	exports.FFTUtils = __webpack_require__(45);
-	exports.FFT = __webpack_require__(46);
-
-
-/***/ },
-/* 45 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var FFT = __webpack_require__(46);
-
-	var FFTUtils= {
-	    DEBUG : false,
-
-	    /**
-	     * Calculates the inverse of a 2D Fourier transform
-	     *
-	     * @param ft
-	     * @param ftRows
-	     * @param ftCols
-	     * @return
-	     */
-	    ifft2DArray : function(ft, ftRows, ftCols){
-	        var tempTransform = new Array(ftRows * ftCols);
-	        var nRows = ftRows / 2;
-	        var nCols = (ftCols - 1) * 2;
-	        // reverse transform columns
-	        FFT.init(nRows);
-	        var tmpCols = {re: new Array(nRows), im: new Array(nRows)};
-	        for (var iCol = 0; iCol < ftCols; iCol++) {
-	            for (var iRow = nRows - 1; iRow >= 0; iRow--) {
-	                tmpCols.re[iRow] = ft[(iRow * 2) * ftCols + iCol];
-	                tmpCols.im[iRow] = ft[(iRow * 2 + 1) * ftCols + iCol];
-	            }
-	            //Unnormalized inverse transform
-	            FFT.bt(tmpCols.re, tmpCols.im);
-	            for (var iRow = nRows - 1; iRow >= 0; iRow--) {
-	                tempTransform[(iRow * 2) * ftCols + iCol] = tmpCols.re[iRow];
-	                tempTransform[(iRow * 2 + 1) * ftCols + iCol] = tmpCols.im[iRow];
-	            }
-	        }
-
-	        // reverse row transform
-	        var finalTransform = new Array(nRows * nCols);
-	        FFT.init(nCols);
-	        var tmpRows = {re: new Array(nCols), im: new Array(nCols)};
-	        var scale = nCols * nRows;
-	        for (var iRow = 0; iRow < ftRows; iRow += 2) {
-	            tmpRows.re[0] = tempTransform[iRow * ftCols];
-	            tmpRows.im[0] = tempTransform[(iRow + 1) * ftCols];
-	            for (var iCol = 1; iCol < ftCols; iCol++) {
-	                tmpRows.re[iCol] = tempTransform[iRow * ftCols + iCol];
-	                tmpRows.im[iCol] = tempTransform[(iRow + 1) * ftCols + iCol];
-	                tmpRows.re[nCols - iCol] = tempTransform[iRow * ftCols + iCol];
-	                tmpRows.im[nCols - iCol] = -tempTransform[(iRow + 1) * ftCols + iCol];
-	            }
-	            //Unnormalized inverse transform
-	            FFT.bt(tmpRows.re, tmpRows.im);
-
-	            var indexB = (iRow / 2) * nCols;
-	            for (var iCol = nCols - 1; iCol >= 0; iCol--) {
-	                finalTransform[indexB + iCol] = tmpRows.re[iCol] / scale;
-	            }
-	        }
-	        return finalTransform;
-	    },
-	    /**
-	     * Calculates the fourier transform of a matrix of size (nRows,nCols) It is
-	     * assumed that both nRows and nCols are a power of two
-	     *
-	     * On exit the matrix has dimensions (nRows * 2, nCols / 2 + 1) where the
-	     * even rows contain the real part and the odd rows the imaginary part of the
-	     * transform
-	     * @param data
-	     * @param nRows
-	     * @param nCols
-	     * @return
-	     */
-	    fft2DArray:function(data, nRows, nCols) {
-	        var ftCols = (nCols / 2 + 1);
-	        var ftRows = nRows * 2;
-	        var tempTransform = new Array(ftRows * ftCols);
-	        FFT.init(nCols);
-	        // transform rows
-	        var tmpRows = {re: new Array(nCols), im: new Array(nCols)};
-	        var row1 = {re: new Array(nCols), im: new Array(nCols)}
-	        var row2 = {re: new Array(nCols), im: new Array(nCols)}
-	        var index, iRow0, iRow1, iRow2, iRow3;
-	        for (var iRow = 0; iRow < nRows / 2; iRow++) {
-	            index = (iRow * 2) * nCols;
-	            tmpRows.re = data.slice(index, index + nCols);
-
-	            index = (iRow * 2 + 1) * nCols;
-	            tmpRows.im = data.slice(index, index + nCols);
-
-	            FFT.fft1d(tmpRows.re, tmpRows.im);
-
-	            this.reconstructTwoRealFFT(tmpRows, row1, row2);
-	            //Now lets put back the result into the output array
-	            iRow0 = (iRow * 4) * ftCols;
-	            iRow1 = (iRow * 4 + 1) * ftCols;
-	            iRow2 = (iRow * 4 + 2) * ftCols;
-	            iRow3 = (iRow * 4 + 3) * ftCols;
-	            for (var k = ftCols - 1; k >= 0; k--) {
-	                tempTransform[iRow0 + k] = row1.re[k];
-	                tempTransform[iRow1 + k] = row1.im[k];
-	                tempTransform[iRow2 + k] = row2.re[k];
-	                tempTransform[iRow3 + k] = row2.im[k];
-	            }
-	        }
-
-	        //console.log(tempTransform);
-	        row1 = null;
-	        row2 = null;
-	        // transform columns
-	        var finalTransform = new Array(ftRows * ftCols);
-	        FFT.init(nRows);
-	        var tmpCols = {re: new Array(nRows), im: new Array(nRows)};
-	        for (var iCol = ftCols - 1; iCol >= 0; iCol--) {
-	            for (var iRow = nRows - 1; iRow >= 0; iRow--) {
-	                tmpCols.re[iRow] = tempTransform[(iRow * 2) * ftCols + iCol];
-	                tmpCols.im[iRow] = tempTransform[(iRow * 2 + 1) * ftCols + iCol];
-	            }
-	            FFT.fft1d(tmpCols.re, tmpCols.im);
-	            for (var iRow = nRows - 1; iRow >= 0; iRow--) {
-	                finalTransform[(iRow * 2) * ftCols + iCol] = tmpCols.re[iRow];
-	                finalTransform[(iRow * 2 + 1) * ftCols + iCol] = tmpCols.im[iRow];
-	            }
-	        }
-
-	        //console.log(finalTransform);
-	        return finalTransform;
-
-	    },
-	    /**
-	     *
-	     * @param fourierTransform
-	     * @param realTransform1
-	     * @param realTransform2
-	     *
-	     * Reconstructs the individual Fourier transforms of two simultaneously
-	     * transformed series. Based on the Symmetry relationships (the asterisk
-	     * denotes the complex conjugate)
-	     *
-	     * F_{N-n} = F_n^{*} for a purely real f transformed to F
-	     *
-	     * G_{N-n} = G_n^{*} for a purely imaginary g transformed to G
-	     *
-	     */
-	    reconstructTwoRealFFT:function(fourierTransform, realTransform1, realTransform2) {
-	        var length = fourierTransform.re.length;
-
-	        // the components n=0 are trivial
-	        realTransform1.re[0] = fourierTransform.re[0];
-	        realTransform1.im[0] = 0.0;
-	        realTransform2.re[0] = fourierTransform.im[0];
-	        realTransform2.im[0] = 0.0;
-	        var rm, rp, im, ip, j;
-	        for (var i = length / 2; i > 0; i--) {
-	            j = length - i;
-	            rm = 0.5 * (fourierTransform.re[i] - fourierTransform.re[j]);
-	            rp = 0.5 * (fourierTransform.re[i] + fourierTransform.re[j]);
-	            im = 0.5 * (fourierTransform.im[i] - fourierTransform.im[j]);
-	            ip = 0.5 * (fourierTransform.im[i] + fourierTransform.im[j]);
-	            realTransform1.re[i] = rp;
-	            realTransform1.im[i] = im;
-	            realTransform1.re[j] = rp;
-	            realTransform1.im[j] = -im;
-	            realTransform2.re[i] = ip;
-	            realTransform2.im[i] = -rm;
-	            realTransform2.re[j] = ip;
-	            realTransform2.im[j] = rm;
-	        }
-	    },
-
-	    /**
-	     * In place version of convolute 2D
-	     *
-	     * @param ftSignal
-	     * @param ftFilter
-	     * @param ftRows
-	     * @param ftCols
-	     * @return
-	     */
-	    convolute2DI:function(ftSignal, ftFilter, ftRows, ftCols) {
-	        var re, im;
-	        for (var iRow = 0; iRow < ftRows / 2; iRow++) {
-	            for (var iCol = 0; iCol < ftCols; iCol++) {
-	                //
-	                re = ftSignal[(iRow * 2) * ftCols + iCol]
-	                * ftFilter[(iRow * 2) * ftCols + iCol]
-	                - ftSignal[(iRow * 2 + 1) * ftCols + iCol]
-	                * ftFilter[(iRow * 2 + 1) * ftCols + iCol];
-	                im = ftSignal[(iRow * 2) * ftCols + iCol]
-	                * ftFilter[(iRow * 2 + 1) * ftCols + iCol]
-	                + ftSignal[(iRow * 2 + 1) * ftCols + iCol]
-	                * ftFilter[(iRow * 2) * ftCols + iCol];
-	                //
-	                ftSignal[(iRow * 2) * ftCols + iCol] = re;
-	                ftSignal[(iRow * 2 + 1) * ftCols + iCol] = im;
-	            }
-	        }
-	    },
-	    /**
-	     *
-	     * @param data
-	     * @param kernel
-	     * @param nRows
-	     * @param nCols
-	     * @returns {*}
-	     */
-	    convolute:function(data, kernel, nRows, nCols){
-	        var ftSpectrum = new Array(nCols * nRows);
-	        for (var i = 0; i<nRows * nCols; i++){
-	            ftSpectrum[i] = data[i];
-	        }
-
-	        ftSpectrum = this.fft2DArray(ftSpectrum, nRows, nCols);
-
-	        var dim = kernel.length;
-	        var ftFilterData = new Array(nCols * nRows);
-	        for(var i=0;i<nCols * nRows;i++){
-	            ftFilterData[i]=0;
-	        }
-
-	        var iRow, iCol;
-	        var shift = (dim - 1) / 2;
-	        //console.log(dim);
-	        for (var ir = 0; ir < dim; ir++) {
-	            iRow = (ir - shift + nRows) % nRows;
-	            for (var ic = 0; ic < dim; ic++) {
-	                iCol = (ic - shift + nCols) % nCols;
-	                ftFilterData[iRow * nCols + iCol] = kernel[ir][ic];
-	            }
-	        }
-
-	        ftFilterData = this.fft2DArray(ftFilterData, nRows, nCols);
-
-	        var ftRows = nRows * 2;
-	        var ftCols = nCols / 2 + 1;
-	        this.convolute2DI(ftSpectrum, ftFilterData, ftRows, ftCols);
-
-	        return  this.ifft2DArray(ftSpectrum, ftRows, ftCols);
-	    }
-	}
-
-	module.exports = FFTUtils;
-
-
-/***/ },
-/* 46 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Fast Fourier Transform module
-	 * 1D-FFT/IFFT, 2D-FFT/IFFT (radix-2)
-	 */
-	var FFT = (function(){
-	  var FFT;  
-	  
-	  if(true) {
-	    FFT = exports;   // for CommonJS
-	  } else {
-	    FFT = {};
-	  }
-	  
-	  var version = {
-	    release: '0.3.0',
-	    date: '2013-03'
-	  };
-	  FFT.toString = function() {
-	    return "version " + version.release + ", released " + version.date;
-	  };
-
-	  // core operations
-	  var _n = 0,          // order
-	      _bitrev = null,  // bit reversal table
-	      _cstb = null;    // sin/cos table
-
-	  var core = {
-	    init : function(n) {
-	      if(n !== 0 && (n & (n - 1)) === 0) {
-	        _n = n;
-	        core._initArray();
-	        core._makeBitReversalTable();
-	        core._makeCosSinTable();
-	      } else {
-	        throw new Error("init: radix-2 required");
-	      }
-	    },
-	    // 1D-FFT
-	    fft1d : function(re, im) {
-	      core.fft(re, im, 1);
-	    },
-	    // 1D-IFFT
-	    ifft1d : function(re, im) {
-	      var n = 1/_n;
-	      core.fft(re, im, -1);
-	      for(var i=0; i<_n; i++) {
-	        re[i] *= n;
-	        im[i] *= n;
-	      }
-	    },
-	     // 1D-IFFT
-	    bt1d : function(re, im) {
-	      core.fft(re, im, -1);
-	    },
-	    // 2D-FFT Not very useful if the number of rows have to be equal to cols
-	    fft2d : function(re, im) {
-	      var tre = [],
-	          tim = [],
-	          i = 0;
-	      // x-axis
-	      for(var y=0; y<_n; y++) {
-	        i = y*_n;
-	        for(var x1=0; x1<_n; x1++) {
-	          tre[x1] = re[x1 + i];
-	          tim[x1] = im[x1 + i];
-	        }
-	        core.fft1d(tre, tim);
-	        for(var x2=0; x2<_n; x2++) {
-	          re[x2 + i] = tre[x2];
-	          im[x2 + i] = tim[x2];
-	        }
-	      }
-	      // y-axis
-	      for(var x=0; x<_n; x++) {
-	        for(var y1=0; y1<_n; y1++) {
-	          i = x + y1*_n;
-	          tre[y1] = re[i];
-	          tim[y1] = im[i];
-	        }
-	        core.fft1d(tre, tim);
-	        for(var y2=0; y2<_n; y2++) {
-	          i = x + y2*_n;
-	          re[i] = tre[y2];
-	          im[i] = tim[y2];
-	        }
-	      }
-	    },
-	    // 2D-IFFT
-	    ifft2d : function(re, im) {
-	      var tre = [],
-	          tim = [],
-	          i = 0;
-	      // x-axis
-	      for(var y=0; y<_n; y++) {
-	        i = y*_n;
-	        for(var x1=0; x1<_n; x1++) {
-	          tre[x1] = re[x1 + i];
-	          tim[x1] = im[x1 + i];
-	        }
-	        core.ifft1d(tre, tim);
-	        for(var x2=0; x2<_n; x2++) {
-	          re[x2 + i] = tre[x2];
-	          im[x2 + i] = tim[x2];
-	        }
-	      }
-	      // y-axis
-	      for(var x=0; x<_n; x++) {
-	        for(var y1=0; y1<_n; y1++) {
-	          i = x + y1*_n;
-	          tre[y1] = re[i];
-	          tim[y1] = im[i];
-	        }
-	        core.ifft1d(tre, tim);
-	        for(var y2=0; y2<_n; y2++) {
-	          i = x + y2*_n;
-	          re[i] = tre[y2];
-	          im[i] = tim[y2];
-	        }
-	      }
-	    },
-	    // core operation of FFT
-	    fft : function(re, im, inv) {
-	      var d, h, ik, m, tmp, wr, wi, xr, xi,
-	          n4 = _n >> 2;
-	      // bit reversal
-	      for(var l=0; l<_n; l++) {
-	        m = _bitrev[l];
-	        if(l < m) {
-	          tmp = re[l];
-	          re[l] = re[m];
-	          re[m] = tmp;
-	          tmp = im[l];
-	          im[l] = im[m];
-	          im[m] = tmp;
-	        }
-	      }
-	      // butterfly operation
-	      for(var k=1; k<_n; k<<=1) {
-	        h = 0;
-	        d = _n/(k << 1);
-	        for(var j=0; j<k; j++) {
-	          wr = _cstb[h + n4];
-	          wi = inv*_cstb[h];
-	          for(var i=j; i<_n; i+=(k<<1)) {
-	            ik = i + k;
-	            xr = wr*re[ik] + wi*im[ik];
-	            xi = wr*im[ik] - wi*re[ik];
-	            re[ik] = re[i] - xr;
-	            re[i] += xr;
-	            im[ik] = im[i] - xi;
-	            im[i] += xi;
-	          }
-	          h += d;
-	        }
-	      }
-	    },
-	    // initialize the array (supports TypedArray)
-	    _initArray : function() {
-	      if(typeof Uint32Array !== 'undefined') {
-	        _bitrev = new Uint32Array(_n);
-	      } else {
-	        _bitrev = [];
-	      }
-	      if(typeof Float64Array !== 'undefined') {
-	        _cstb = new Float64Array(_n*1.25);
-	      } else {
-	        _cstb = [];
-	      }
-	    },
-	    // zero padding
-	    _paddingZero : function() {
-	      // TODO
-	    },
-	    // makes bit reversal table
-	    _makeBitReversalTable : function() {
-	      var i = 0,
-	          j = 0,
-	          k = 0;
-	      _bitrev[0] = 0;
-	      while(++i < _n) {
-	        k = _n >> 1;
-	        while(k <= j) {
-	          j -= k;
-	          k >>= 1;
-	        }
-	        j += k;
-	        _bitrev[i] = j;
-	      }
-	    },
-	    // makes trigonometiric function table
-	    _makeCosSinTable : function() {
-	      var n2 = _n >> 1,
-	          n4 = _n >> 2,
-	          n8 = _n >> 3,
-	          n2p4 = n2 + n4,
-	          t = Math.sin(Math.PI/_n),
-	          dc = 2*t*t,
-	          ds = Math.sqrt(dc*(2 - dc)),
-	          c = _cstb[n4] = 1,
-	          s = _cstb[0] = 0;
-	      t = 2*dc;
-	      for(var i=1; i<n8; i++) {
-	        c -= dc;
-	        dc += t*c;
-	        s += ds;
-	        ds -= t*s;
-	        _cstb[i] = s;
-	        _cstb[n4 - i] = c;
-	      }
-	      if(n8 !== 0) {
-	        _cstb[n8] = Math.sqrt(0.5);
-	      }
-	      for(var j=0; j<n4; j++) {
-	        _cstb[n2 - j]  = _cstb[j];
-	      }
-	      for(var k=0; k<n2p4; k++) {
-	        _cstb[k + n2] = -_cstb[k];
-	      }
-	    }
-	  };
-	  // aliases (public APIs)
-	  var apis = ['init', 'fft1d', 'ifft1d', 'fft2d', 'ifft2d'];
-	  for(var i=0; i<apis.length; i++) {
-	    FFT[apis[i]] = core[apis[i]];
-	  }
-	  FFT.bt = core.bt1d;
-	  FFT.fft = core.fft1d;
-	  FFT.ifft = core.ifft1d;
-	  
-	  return FFT;
-	}).call(this);
-
-
-/***/ },
-/* 47 */
+/* 54 */
 /***/ function(module, exports) {
 
 	var PeakOptimizer={
@@ -15929,7 +16506,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = PeakOptimizer;
 
 /***/ },
-/* 48 */
+/* 55 */
 /***/ function(module, exports) {
 
 	var SimpleClustering={
@@ -15993,7 +16570,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = SimpleClustering;
 
 /***/ },
-/* 49 */
+/* 56 */
 /***/ function(module, exports) {
 
 	/**
