@@ -41,6 +41,7 @@ function fourierTransform(spectraData){
         spectraData.setActiveElement(2 * iSubSpectra + 1);
         updateSpectra(spectraData, spectraType);
     }
+    //TODO For Alejandro
     //Now we can try to apply the FFt on the second dimension
     if(spectraData.is2D()){
         var mode = spectraData.getParam(".ACQUISITION SCHEME");
