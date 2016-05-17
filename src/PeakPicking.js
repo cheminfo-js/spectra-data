@@ -10,6 +10,7 @@ var Matrix = LM.Matrix;
 var math = Matrix.algebra;*/
 var GSD = require("ml-gsd");
 var extend = require("extend");
+var removeImpurities = require("impurityRemover");
 
 var PeakPicking={
     impurities:[],
@@ -120,7 +121,10 @@ var PeakPicking={
             signals[i]._highlight=[signals[i].signalID];
         }
 
+        removeImpurities
+
         return signals;
+
 
         /*var frequency = spectrum.observeFrequencyX();//getParamDouble("$BF1",400);
         var imp = this.labelPeaks(peakList, solvent, frequency);

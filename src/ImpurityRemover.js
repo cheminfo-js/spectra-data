@@ -78,3 +78,5 @@ function removeImpurities(peakList, solvent, nH){
         }
     }
 }
+
+module.exports = removeImpurities;
