@@ -41,6 +41,23 @@ function fourierTransform(spectraData){
         spectraData.setActiveElement(2 * iSubSpectra + 1);
         updateSpectra(spectraData, spectraType);
     }
+    //Now we can try to apply the FFt on the second dimension
+    if(spectraData.is2D()){
+        var mode = spectraData.getParam(".ACQUISITION SCHEME");
+        switch(mode){
+            case 1://"State-TPP"
+                break;
+            case 2://State
+                break;
+            case 3://Echo-Antiecho
+                break;
+            defaut:
+                //QF
+                //Does not transform in the indirect dimension
+            break;
+
+        }
+    }
     spectraData.setActiveElement(0);
     return spectraData;
 }
