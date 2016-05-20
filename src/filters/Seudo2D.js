@@ -3,13 +3,14 @@
  */
 
 
-var Bruker = require("/home/abol/git/brukerconverter/src/brukerconverter");
-
+var convertZip = require("/home/abol/git/brukerconverter/src/brukerconverter").convertZip;
+var fs = require('fs');
 
 
 //var zipFile = get("zipFile");
 
-var result = Bruker.convertZip("../../test/21-BOMA-new.zip", {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/, base64: true});
+var zip = fs.readFileSync("../../test/21-BOMA-new.zip");
+var result = convertZip(zip, {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/, base64: true});
 console.log(result);
 /*
 for(var i=0;i<result.length;i++){
