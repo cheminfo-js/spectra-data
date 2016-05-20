@@ -10,6 +10,7 @@ function phaseCorrection(spectraData, phi0, phi1){
 
     //for(var k=0;k<corrections.length;k++){
     //    Point2D phi = corrections.elementAt(k);
+    
 
         //double phi0 = phi.getX();
         //double phi1 = phi.getY();
