@@ -172,4 +172,13 @@ NMR2D.prototype.getNucleus=function(dim){
     return this.sd.xType;
 }
 
+/**
+ * @function fourierTransform()
+ * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be of type NMR_FID or 2DNMR_FID
+ * @returns this object
+ */
+NMR2D.prototype.fourierTransform=function( ) {
+    return Filters.fourierTransform(this);
+}
+
 module.exports = NMR2D;
