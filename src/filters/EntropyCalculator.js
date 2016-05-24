@@ -2,6 +2,9 @@
  * Created by Abol on 5/23/2016.
  */
 
+var fft = require("ml-fft");
+var FFT = fft.FFT;
+
 var nmrSpectrum;
 var nDerivative = 1;
 var gamma = 5e-5;
@@ -117,14 +120,14 @@ function calculateBitmask() {
 
 }
 
-private void genPeakDetBitmask() {
+function genPeakDetBitmask() {
     var baseline1 = BaselineCorrection.haarWhittakerBaselineCorrection(this.nmrSpectrum[0],100,10000);
     var baseline2 = BaselineCorrection.haarWhittakerBaselineCorrection(this.nmrSpectrum[1],100,10000);
     for (var i = 0; i < baseline1.length; i++) {
         baseline1[i] = this.nmrSpectrum[0][i] - baseline1[i];
         baseline2[i] = this.nmrSpectrum[1][i] - baseline2[i];
     }
-    var stats1 = MathUtils.getRobustMeanAndStddev(baseline1, 0, baseline1.length);
+    var stats1 = MathUtils.getRobustMeanAndStddev(baseline1, 0, baseline1.length);//@TODO HAY QUE MIRAR LA TRADUCCION
     var stats2 = MathUtils.getRobustMeanAndStddev(baseline2, 0, baseline2.length);
     var thresh1 = stats1[1]*3;
     var thresh2 = stats2[1]*3;
@@ -200,7 +203,7 @@ function convolute( dataIn){
         newSpectrum[i] = (data[i]);
     }
 
-    Complex1D ftSpectrum = FTUtils.fourierTransformRealData(newSpectrum);
+    var ftSpectrum = FFT.fft(newSpectrum);
 
     var dim = smallFilter.length;
     var filterData = new Array(nRows * nCols).fill(0);
@@ -214,11 +217,12 @@ function convolute( dataIn){
         filterData[iCol] = smallFilter[ic];
     }
 
-    var ftFilterData = FTUtils.fourierTransformRealData(filterData);
+    FFT.init(nbPoints)
+    var ftFilterData = FFT.fft(filterData);
 
     filterData = null;
     Convolution.convolute(ftSpectrum, ftFilterData);
-    var convolutedSpectrum = FTUtils.fourierBackTransformRealData(ftSpectrum); //@TODO mirar que pasa ak
+    var convolutedSpectrum = FFT.ifft(ftSpectrum); //@TODO mirar que pasa ak
 
     return convolutedSpectrum;
 }
