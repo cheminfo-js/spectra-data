@@ -2,8 +2,9 @@
  * Created by Abol on 5/23/2016.
  */
 
-var fft = require("ml-fft");
-var FFT = fft.FFT;
+var lib = require("ml-fft");
+var FFT = lib.FFT;
+var FFTUtils = lib.FFTUtils
 
 var nmrSpectrum;
 var nDerivative = 1;
@@ -217,7 +218,7 @@ function convolute( dataIn){
         filterData[iCol] = smallFilter[ic];
     }
 
-    FFT.init(nbPoints)
+    FFT.init(nbPoints);
     var ftFilterData = FFT.fft(filterData);
 
     filterData = null;
@@ -225,4 +226,22 @@ function convolute( dataIn){
     var convolutedSpectrum = FFT.ifft(ftSpectrum); //@TODO mirar que pasa ak
 
     return convolutedSpectrum;
+}
+
+function RealFFT(data){
+    var
+        nbPoints = data.length,
+        re = new Array(nbPoints/=2-1),
+        im = new Array(nbPoints/=2-1).fill(0);
+
+    for (var i=0; i<re.length;i++){
+        re[i] = data[i];
+    }
+    FFT.fft(re,im);
+    var tempRe = new Array(re.length);
+    var tempIm = new Array(im.length);
+    for(var i=0; i<newData.length;i++){
+        tempRe[(re.length-1)-i] = re[i];
+        tempIm[(re.length-1)-i] = -im[i];
+    }
 }
