@@ -72,7 +72,8 @@ describe('spectra-data test', function () {
 
     it('Check peakpicking in the new format', function () {
         var peakPicking = spectrum.nmrPeakDetection({"nH":8, realTop:true, thresholdFactor:1,clean:true,compile:true, idPrefix:"1H",format:"new"});
-        peakPicking.signal[0].peak.length.should.equal(3);
+        //console.log(peakPicking[0]);
+        peakPicking[0].signal[0].peak.length.should.equal(4);
     });
     
     

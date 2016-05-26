@@ -129,7 +129,7 @@ var PeakPicking={
             var newSignals = new Array(signals.length);
             for(var i=0;i<signals.length;i++){
                 var signal = signals[i];
-                newSignals = {
+                newSignals[i] = {
                     from : signal.integralData.from,
                     to : signal.integralData.to,
                     integral : signal.integralData.value,
@@ -147,7 +147,7 @@ var PeakPicking={
 
                 };
                 if(signal.nmrJs){
-                    newSignals.signal[0].j = signal.nmrJs;
+                    newSignals[i].signal[0].j = signal.nmrJs;
                 }
             }
             signals = newSignals;
