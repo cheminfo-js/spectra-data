@@ -1,3 +1,5 @@
+'use strict';
+
 var SD = require('./SD');
 var PeakPicking = require('./PeakPicking');
 var JcampConverter=require("jcampconverter");

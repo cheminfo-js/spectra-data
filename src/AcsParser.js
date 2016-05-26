@@ -1,3 +1,4 @@
+'use strict';
 /**
  * This library formats a set of nmr1D signals to the ACS format.
  * Created by acastillo on 3/11/15. p
@@ -7,7 +8,7 @@ ACS.formater =(function() {
     var acsString="";
     var parenthesis="";
     var spectro="";
-    rangeForMultiplet=false;
+    var rangeForMultiplet=false;
 
     function fromNMRSignal1D2ACS(spectrum, options){
         acsString="";

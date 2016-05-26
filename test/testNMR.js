@@ -70,6 +70,14 @@ describe('spectra-data test', function () {
         spectrum.is2D().should.equal(false);
     });
 
+    it('Check peakpicking in the new format', function () {
+        var peakPicking = spectrum.nmrPeakDetection({"nH":8, realTop:true, thresholdFactor:1,clean:true,compile:true, idPrefix:"1H",format:"new"});
+        peakPicking.signal[0].peak.length.should.equal(3);
+    });
+    
+    
+
+
 
 });
 

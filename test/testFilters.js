@@ -1,3 +1,5 @@
+'use strict';
+
 var Data = require('..');
 var FS = require('fs');
 var lib = require("ml-fft");

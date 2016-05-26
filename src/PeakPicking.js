@@ -1,3 +1,4 @@
+'use strict';
 /**
  * Implementation of the peak pickig method described by Cobas in:
  * A new approach to improving automated analysis of proton NMR spectra
@@ -10,7 +11,7 @@ var Matrix = LM.Matrix;
 var math = Matrix.algebra;*/
 var GSD = require("ml-gsd");
 var extend = require("extend");
-var removeImpurities = require("impurityRemover");
+var removeImpurities = require("./ImpurityRemover");
 
 var PeakPicking={
     impurities:[],
@@ -22,7 +23,8 @@ var PeakPicking={
         compile:true,
         integralFn:0,
         optimize:true,
-        idPrefix:""
+        idPrefix:"",
+        format:"old"
     },
 
     peakPicking:function(spectrum, optionsEx){
@@ -121,7 +123,35 @@ var PeakPicking={
             signals[i]._highlight=[signals[i].signalID];
         }
 
-        removeImpurities
+        removeImpurities(signals, spectrum.getSolventName(),options.nH);
+
+        if(options.format==="new"){
+            var newSignals = new Array(signals.length);
+            for(var i=0;i<signals.length;i++){
+                var signal = signals[i];
+                newSignals = {
+                    from : signal.integralData.from,
+                    to : signal.integralData.to,
+                    integral : signal.integralData.value,
+                    signal:[{
+                        delta:signal.delta1,
+                        nbAtoms:0,
+                        diaID:[],
+                        multiplicity:signal.multiplicity,
+                        peak:signal.peaks,
+                        kind:"",
+                        remark:""
+                    }],
+                    signalID:signal.signalID,
+                    _highlight:signal._highlight
+
+                };
+                if(signal.nmrJs){
+                    newSignals.signal[0].j = signal.nmrJs;
+                }
+            }
+            signals = newSignals;
+        }
 
         return signals;
 
@@ -365,103 +395,7 @@ var PeakPicking={
     area: function(peak){
         return Math.abs(peak.intensity*peak.width*1.57)//1.772453851);
     },
-    /**
-     This function tries to determine which peaks belongs to common laboratory solvents
-     as trace impurities from DOI:10.1021/jo971176v. The only parameter of the table is
-     the solvent name.
-     */
-    labelPeaks:function(peakList, solvent, frequency){
-        var column = 0;
-        //console.log(this.impurities[0]);
-        for(column=4;column<this.impurities.length;column++){
-            //console.log("sss".contains);
-            if(this.impurities[0][column].indexOf(solvent)>=0){
-                break;
-            }
-        }
-        //console.log("labelPeaks "+column);
-        var nImpurities = this.impurities.length-1;
-        var nPeaks = peakList.length;
-        //Scores matrix
-        //console.log(nImpurities);
-        var scores = new Array(nImpurities);
-        var max = 0, diff=0, score=0;
-        var gamma = 0.2;//ppm
-        var impurityID=-1;
-        var prevImp = "";
-        var maxIntensity = 0,i;
-        for(var j=nPeaks-1;j>=0;j--){
-            if(peakList[j][1]>maxIntensity)
-                maxIntensity = peakList[j][1];
-        }
 
-        for(i=nImpurities-1;i>=0;i--){
-            if(this.impurities[i+1][0]!=prevImp){
-                impurityID++;
-                prevImp=this.impurities[i+1][0];
-            }
-
-            //impID, max, maxIndex, average
-            scores[i]=[impurityID,this.impurities[i+1][2],
-                this.impurities[i+1][3],0,[],0];
-            max = 0;
-            for(var j=nPeaks-1;j>=0;j--){
-                diff = 10000;//Big numnber
-                if(this.impurities[i+1][column]>0)
-                    diff = Math.abs(peakList[j][0]-this.impurities[i+1][column]);
-                if(diff<gamma*3){
-                    score=this.score(diff,gamma);
-                    if(score>max){
-                        max=score;
-                        scores[i][3]=max;
-                        scores[i][4]=[j];
-                    }
-                }
-            }
-        }
-        //Calculate the average score for each impurity set of signals
-        var prevIndex = -1, sum=0, count = 0;
-        var candidates=[];
-        var impuritiesPeaks = [];
-        var i=nImpurities-1;
-        while(i>=-1){
-            if(i==-1||scores[i][0]!=prevIndex&&prevIndex!=-1){
-                if(prevIndex!=-1){
-                    scores[i+1][5]=sum/count;
-                    //Now, lets chech the multiplicities
-                    if(scores[i+1][5]>0.9){
-                        //console.log(scores[i+1][0]+" SS ");
-                        score=this.updateScore(candidates, peakList, maxIntensity, frequency);
-                        if(score>0.9){
-                            //console.log(candidates);
-                            //TODO: Remove peaks and add it do impuritiesPeaks
-                            for(var j=0;j<candidates.length;j++){
-                                for(var k=candidates[j][4].length-1;k>=0;k--){
-                                    impuritiesPeaks.push(peakList[candidates[j][4][k]]);
-                                }
-                            }
-                        }
-                    }
-                }
-                if(i>=0){
-                    prevIndex=scores[i][0];
-                    sum=scores[i][3];
-                    count=1;
-                    candidates=[scores[i]];
-                }
-
-            }else{
-                prevIndex=scores[i][0];
-                candidates.push(scores[i]);
-                sum+=scores[i][3];
-                count++;
-            }
-            i--;
-        }
-        //console.log(impuritiesPeaks.length);
-
-        return impuritiesPeaks;
-    },
     /**
      Updates the score that a given impurity is present in the current spectrum. In this part I would expect
      to have into account the multiplicity of the signal. Also the relative intensity of the signals.
@@ -585,8 +519,6 @@ var PeakPicking={
                     }
                 }
             }
-
-
         }
 
         //console.log(score/candidates.length+ " -> "+candidates);
@@ -604,13 +536,6 @@ var PeakPicking={
 
     score:function(value, gamma){
         return Math.exp(-Math.pow(value/gamma,2)/2.0);
-    },
-    /**
-     This function joint all the nearby peaks into single signals. We may try to
-     determine the J-couplings and the multiplicity here.
-     */
-    createSignals:function(){
-
     }
 
 }

@@ -1,7 +1,10 @@
+'use strict';
+
 var SD = require('./SD');
 var PeakPicking2D = require('./PeakPicking2D');
 var PeakOptimizer = require("./PeakOptimizer");
 var JcampConverter=require("jcampconverter");
+var stat = require("ml-stat");
 
 /**
  * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
@@ -141,6 +144,27 @@ NMR2D.prototype.nmrPeakDetection2D=function(options){
     if(options.references)
         PeakOptimizer.alignDimensions(peakList,options.references);
 
+    if(options.format==="new"){
+        var newSignals = new Array(peakList.length);
+        var minMax1, minMax2;
+        for(var k=peakList.length-1;k>=0;k--){
+            var signal = peakList[k];
+            newSignals[k]={
+                fromTo:signal.fromTo,
+                integral:signal.intensity||1,
+                remark:"",
+                signal:[{
+                    peak:signal.peaks,
+                    delta:[signal.shiftX, signal.shiftY]
+                }],
+                _highlight:signal._highlight,
+                signalID:signal.signalID,
+            };
+        }
+        peakList = newSignals;
+    }
+
+
     return peakList;
 }
 
@@ -170,6 +194,69 @@ NMR2D.prototype.getNucleus=function(dim){
     if(dim==2)
         return this.sd.yType;
     return this.sd.xType;
+}
+
+
+/**
+ * @function zeroFilling(nPointsX [,nPointsY])
+ * This function increase the size of the spectrum, filling the new positions with zero values. Doing it one
+ * could increase artificially the spectral resolution.
+ * @param nPointsX Number of new zero points in the direct dimension
+ * @param nPointsY Number of new zero points in the indirect dimension
+ * @returns this object
+ */
+NMR2D.prototype.zeroFilling=function(nPointsX, nPointsY) {
+    return Filters.zeroFilling(this,nPointsX, nPointsY);
+}
+
+/**
+ * @function brukerFilter()
+ * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
+ * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
+ * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
+ * @returns this object
+ */
+NMR2D.prototype.brukerFilter=function() {
+    return Filters.digitalFilter(this, {"brukerFilter":true});
+}
+
+/**
+ * @function digitalFilter(options)
+ * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
+ * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
+ * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
+ * @option nbPoints: The number of points to shift. Positive values will shift the values to the rigth
+ * and negative values will do to the left.
+ * @option brukerSpectra
+ * @returns this object
+ */
+NMR2D.prototype.digitalFilter=function(options) {
+    return Filters.digitalFilter(this, options);
+}
+
+
+/**
+ * @function fourierTransform()
+ * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be of type NMR_FID or 2DNMR_FID
+ * @returns this object
+ */
+NMR2D.prototype.fourierTransform=function( ) {
+    return Filters.fourierTransform(this);
+}
+
+/**
+ * @function postFourierTransform(ph1corr)
+ * This filter makes an phase 1 correction that corrects the problem of the spectra that has been obtained
+ * on spectrometers using the Bruker digital filters. This method is used in cases when the BrukerSpectra
+ * filter could not find the correct number of points to perform a circular shift.
+ * The actual problem is that not all of the spectra has the necessary parameters for use only one method for
+ * correcting the problem of the Bruker digital filters.
+ * @param spectraData A fourier transformed spectraData.
+ * @param ph1corr Phase 1 correction value in radians.
+ * @returns this object
+ */
+NMR2D.prototype.postFourierTransform=function(ph1corr) {
+    return Filters.phaseCorrection(0,ph1corr);
 }
 
 module.exports = NMR2D;

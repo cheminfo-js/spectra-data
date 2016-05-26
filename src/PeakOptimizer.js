@@ -1,3 +1,5 @@
+'use strict';
+
 var PeakOptimizer={
 	diagonalError:0.05,
 	tolerance:0.05,

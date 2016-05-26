@@ -1,3 +1,5 @@
+'use strict';
+
 var SimpleClustering={
 
 	/*This function returns the cluster list for a given connectivity matrix.

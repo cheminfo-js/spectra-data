@@ -76,6 +76,16 @@ describe('spectra-data test', function () {
         xy[1][0].should.equal(5108);
     });
 
+    it('Peak picking 2D', function () {
+        var signals2D = spectrum.nmrPeakDetection2D(
+            {"thresholdFactor":1,
+                "idPrefix":"hmbc_",
+                "format":"new"
+            });
+        signals2D.length.should.greaterThan(1);
+        //console.log(signals2D[1].signal[0].peak);
+    });
+
 });
 
 

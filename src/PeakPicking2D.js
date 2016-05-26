@@ -1,3 +1,5 @@
+'use strict';
+
 var lib = require("ml-fft");
 var PeakOptimizer = require("./PeakOptimizer");
 var SimpleClustering =  require("./SimpleClustering");
@@ -324,15 +326,37 @@ var PeakPicking2D= {
                 var peaks2D = [];
                 signal.shiftX = 0;
                 signal.shiftY = 0;
+                var minMax1 = [Number.MAX_VALUE,0];
+                var minMax2 = [Number.MAX_VALUE,0];
                 var sumZ = 0;
                 for(var jPeak = clusters[iCluster].length-1;jPeak>=0;jPeak--){
                     if(clusters[iCluster][jPeak]==1){
-                        peaks2D.push(peaks[jPeak]);
+                        peaks2D.push({
+                            x: peaks[jPeak].x,
+                            y: peaks[jPeak].y,
+                            z: peaks[jPeak].z
+
+                        }  );
                         signal.shiftX+=peaks[jPeak].x*peaks[jPeak].z;
                         signal.shiftY+=peaks[jPeak].y*peaks[jPeak].z;
                         sumZ+=peaks[jPeak].z;
+                        if(peaks[jPeak].x<minMax1[0]){
+                            minMax1[0]=peaks[jPeak].x;
+                        }
+                        if(peaks[jPeak].x>minMax1[1]){
+                            minMax1[1]=peaks[jPeak].x;
+                        }
+                        if(peaks[jPeak].y<minMax2[0]){
+                            minMax2[0]=peaks[jPeak].y
+                        }
+                        if(peaks[jPeak].y>minMax2[1]){
+                            minMax2[1]=peaks[jPeak].y;
+                        }
+
                     }
                 }
+                signal.fromTo = [{from:minMax1[0],to:minMax1[1]},
+                                {from:minMax2[0],to:minMax2[1]}];
                 signal.shiftX/=sumZ;
                 signal.shiftY/=sumZ;
                 signal.peaks = peaks2D;

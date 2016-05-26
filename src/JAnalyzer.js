@@ -1,3 +1,4 @@
+'use strict';
 /**
  * This library implements the J analyser described by Cobas et al in the paper:
  * A two-stage approach to automatic determination of 1H NMR coupling constants
@@ -30,12 +31,12 @@ var JAnalyzer = {
         if(signal.symRank>=0.95&&signal.peaksComp.length<32){
             if(this.DEBUG)console.log(signal.delta1+ " nbPeaks "+signal.peaksComp.length);
             signal.asymmetric = false;
-            var i,j,min,max,k=1,P1,Jc=[],n2,maxFlagged;
+            var i,j,n,k=1,P1,Jc=[],n2,maxFlagged;
             //Loop over the possible number of coupling contributing to the multiplet
-            for(var n=0;n<9;n++){
+            for(n=0;n<9;n++){
                 if(this.DEBUG)console.log("Trying "+n+" couplings");
                 //1.2 Normalize. It makes a deep copy of the peaks before to modify them.
-                peaks = this.normalize(signal,n);
+                var peaks = this.normalize(signal,n);
                 //signal.peaksCompX = peaks;
                 var validPattern = false;//It will change to true, when we find the good patter
                 //Lets check if the signal could be a singulet.
@@ -196,7 +197,7 @@ var JAnalyzer = {
         else{
             pattern="s";
             if(Math.abs(signal.startX-signal.stopX)*signal.observe>16){
-                pattern="bs"
+                pattern="br s"
             }
         }
         return pattern;
@@ -233,7 +234,7 @@ var JAnalyzer = {
      */
     getNextCombination : function(ranges, value){
         var half = Math.ceil(ranges.values.length/2), lng = ranges.values.length;
-        var sum = 0,i;
+        var sum = 0,i,ok;
         while(sum!=value){
             //Update the indexes to point at the next possible combination
             ok = false;
@@ -338,7 +339,7 @@ var JAnalyzer = {
      */
     symmetrize : function(signal, maxError, iteration){
         //Before to symmetrize we need to keep only the peaks that possibly conforms the multiplete
-        var max, min, avg, ratio, avgWidth;
+        var max, min, avg, ratio, avgWidth, j;
         var peaks = new Array(signal.peaks.length);
         //Make a deep copy of the peaks and convert PPM ot HZ
         for(j=0;j<peaks.length;j++){
