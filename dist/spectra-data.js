@@ -58,23 +58,24 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	exports.SD = __webpack_require__(1);
-	exports.NMR = __webpack_require__(7);
-	exports.NMR2D = __webpack_require__(52);
-	exports.ACS = __webpack_require__(56);
-	exports.JAnalyzer = __webpack_require__(9);
+	exports.NMR = __webpack_require__(8);
+	exports.NMR2D = __webpack_require__(50);
+	exports.ACS = __webpack_require__(54);
+	exports.JAnalyzer = __webpack_require__(10);
 	//exports.SD2 = require('/SD2');
 
 /***/ },
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
 	// small note on the best way to define array
 	// http://jsperf.com/lp-array-and-loops/2
 
 	var StatArray = __webpack_require__(2);
 	var JcampConverter = __webpack_require__(3);
-	var JcampCreator = __webpack_require__(4);
-	var extend = __webpack_require__(6);
+	var JcampCreator = __webpack_require__(5);
+	var extend = __webpack_require__(7);
 
 	/**
 	 * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
@@ -1419,18 +1420,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 3 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
+
+	var parseXYDataRegExp = __webpack_require__(4);
+
 
 	function getConverter() {
 
 	    // the following RegExp can only be used for XYdata, some peakTables have values with a "E-5" ...
-	    var xyDataSplitRegExp = /[,\t \+-]*(?=[^\d,\t \.])|[ \t]+(?=[\d+\.-])/;
-	    var removeCommentRegExp = /\$\$.*/;
-	    var peakTableSplitRegExp = /[,\t ]+/;
 	    var ntuplesSeparator = /[, \t]{1,}/;
-	    var DEBUG = false;
 
 	    var GC_MS_FIELDS = ['TIC', '.RIC', 'SCANNUMBER'];
 
@@ -1442,6 +1442,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        return floatArray;
 	    }
+	    
+	    function Spectrum() {
+	        
+	    }
 
 	    /*
 	     options.keepSpectra: keep the original spectra for a 2D
@@ -1452,10 +1456,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function convert(jcamp, options) {
 	        options = options || {};
 
-	        var keepRecordsRegExp=/^$/;
-	        if (options.keepRecordsRegExp) keepRecordsRegExp=options.keepRecordsRegExp;
+	        var keepRecordsRegExp = /^$/;
+	        if (options.keepRecordsRegExp) keepRecordsRegExp = options.keepRecordsRegExp;
 
-	        var start = new Date();
+	        var start = Date.now();
 
 	        var ntuples = {},
 	            ldr,
@@ -1470,16 +1474,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var spectra = [];
 	        result.spectra = spectra;
 	        result.info = {};
-	        var spectrum = {};
+	        var spectrum = new Spectrum();
 
 	        if (!(typeof jcamp === 'string')) return result;
 	        // console.time('start');
 
-	        if (result.profiling) result.profiling.push({action: 'Before split to LDRS', time: new Date() - start});
+	        if (result.profiling) result.profiling.push({
+	            action: 'Before split to LDRS',
+	            time: Date.now() - start
+	        });
 
 	        ldrs = jcamp.split(/[\r\n]+##/);
 
-	        if (result.profiling) result.profiling.push({action: 'Split to LDRS', time: new Date() - start});
+	        if (result.profiling) result.profiling.push({
+	            action: 'Split to LDRS',
+	            time: Date.now() - start
+	        });
 
 	        if (ldrs[0]) ldrs[0] = ldrs[0].replace(/^[\r\n ]*##/, '');
 
@@ -1639,17 +1649,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	                prepareSpectrum(result, spectrum);
 	                // well apparently we should still consider it is a PEAK TABLE if there are no '++' after
 	                if (dataValue.match(/.*\+\+.*/)) {
-	                    parseXYData(spectrum, dataValue, result);
+	                    if (options.fastParse === false) {
+	                        parseXYDataRegExp(spectrum, dataValue, result);
+	                    } else {
+	                        if (!spectrum.deltaX) {
+	                            spectrum.deltaX = (spectrum.lastX - spectrum.firstX) / (spectrum.nbPoints - 1);
+	                        }
+	                        fastParseXYData(spectrum, dataValue, result);
+	                    }
 	                } else {
 	                    parsePeakTable(spectrum, dataValue, result);
 	                }
 	                spectra.push(spectrum);
-	                spectrum = {};
+	                spectrum = new Spectrum();
 	            } else if (dataLabel === 'PEAKTABLE') {
 	                prepareSpectrum(result, spectrum);
 	                parsePeakTable(spectrum, dataValue, result);
 	                spectra.push(spectrum);
-	                spectrum = {};
+	                spectrum = new Spectrum();
 	            } else if (isMSField(dataLabel)) {
 	                spectrum[convertMSFieldToLabel(dataLabel)] = dataValue;
 	            }
@@ -1658,54 +1675,57 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	        }
 
-	        // Currently disabled
-	        //    if (options && options.lowRes) addLowRes(spectra,options);
+	        if (result.profiling) result.profiling.push({
+	            action: 'Finished parsing',
+	            time: Date.now() - start
+	        });
 
-	        if (result.profiling) result.profiling.push({action: 'Finished parsing', time: new Date() - start});
-
-	        if (Object.keys(ntuples).length>0) {
-	            var newNtuples=[];
-	            var keys=Object.keys(ntuples);
-	            for (var i=0; i<keys.length; i++) {
-	                var key=keys[i];
-	                var values=ntuples[key];
-	                for (var j=0; j<values.length; j++) {
-	                    if (! newNtuples[j]) newNtuples[j]={};
-	                    newNtuples[j][key]=values[j];
+	        if (Object.keys(ntuples).length > 0) {
+	            var newNtuples = [];
+	            var keys = Object.keys(ntuples);
+	            for (var i = 0; i < keys.length; i++) {
+	                var key = keys[i];
+	                var values = ntuples[key];
+	                for (var j = 0; j < values.length; j++) {
+	                    if (!newNtuples[j]) newNtuples[j] = {};
+	                    newNtuples[j][key] = values[j];
 	                }
 	            }
-	            result.ntuples=newNtuples;
+	            result.ntuples = newNtuples;
 	        }
 
 	        if (result.twoD) {
-	            add2D(result);
+	            add2D(result, options);
 	            if (result.profiling) result.profiling.push({
 	                action: 'Finished countour plot calculation',
-	                time: new Date() - start
+	                time: Date.now() - start
 	            });
 	            if (!options.keepSpectra) {
 	                delete result.spectra;
 	            }
 	        }
 
-	        var isGCMS = (spectra.length > 1 && (! spectra[0].dataType || spectra[0].dataType.match(/.*mass.*/i)));
+	        var isGCMS = (spectra.length > 1 && (!spectra[0].dataType || spectra[0].dataType.match(/.*mass.*/i)));
 	        if (isGCMS && options.newGCMS) {
 	            options.xy = true;
 	        }
 
 	        if (options.xy) { // the spectraData should not be a oneD array but an object with x and y
 	            if (spectra.length > 0) {
-	                for (var i=0; i<spectra.length; i++) {
-	                    var spectrum=spectra[i];
-	                    if (spectrum.data.length>0) {
-	                        for (var j=0; j<spectrum.data.length; j++) {
-	                            var data=spectrum.data[j];
-	                            var newData={x: new Array(data.length/2), y:new Array(data.length/2)};
-	                            for (var k=0; k<data.length; k=k+2) {
-	                                newData.x[k/2]=data[k];
-	                                newData.y[k/2]=data[k+1];
+	                for (var i = 0; i < spectra.length; i++) {
+	                    var spectrum = spectra[i];
+	                    if (spectrum.data.length > 0) {
+	                        for (var j = 0; j < spectrum.data.length; j++) {
+	                            var data = spectrum.data[j];
+	                            var newData = {
+	                                x: new Array(data.length / 2),
+	                                y: new Array(data.length / 2)
+	                            };
+	                            for (var k = 0; k < data.length; k = k + 2) {
+	                                newData.x[k / 2] = data[k];
+	                                newData.y[k / 2] = data[k + 1];
 	                            }
-	                            spectrum.data[j]=newData;
+	                            spectrum.data[j] = newData;
 	                        }
 
 	                    }
@@ -1723,12 +1743,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            if (result.profiling) result.profiling.push({
 	                action: 'Finished GCMS calculation',
-	                time: new Date() - start
+	                time: Date.now() - start
 	            });
 	        }
 
 	        if (result.profiling) {
-	            result.profiling.push({action: 'Total time', time: new Date() - start});
+	            result.profiling.push({
+	                action: 'Total time',
+	                time: Date.now() - start
+	            });
 	        }
 
 	        return result;
@@ -1745,7 +1768,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    function addNewGCMS(result) {
 	        var spectra = result.spectra;
-	        var length  = spectra.length;
+	        var length = spectra.length;
 	        var gcms = {
 	            times: new Array(length),
 	            series: [{
@@ -1793,7 +1816,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                existingGCMSFields.push(label);
 	            }
 	        }
-	        if (existingGCMSFields.length===0) return;
+	        if (existingGCMSFields.length === 0) return;
 	        var gcms = {};
 	        gcms.gc = {};
 	        gcms.ms = [];
@@ -1806,7 +1829,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                gcms.gc[existingGCMSFields[j]].push(spectrum.pageValue);
 	                gcms.gc[existingGCMSFields[j]].push(parseFloat(spectrum[existingGCMSFields[j]]));
 	            }
-	          if (spectrum.data) gcms.ms[i] = spectrum.data[0];
+	            if (spectrum.data) gcms.ms[i] = spectrum.data[0];
 
 	        }
 	        result.gcms = gcms;
@@ -1831,154 +1854,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	    }
 
-	    function parsePeakTable(spectrum, value, result) {
-	        spectrum.isPeaktable=true;
-	        var i, ii, j, jj, values;
-	        var currentData = [];
-	        spectrum.data = [currentData];
-
-	        // counts for around 20% of the time
-	        var lines = value.split(/,? *,?[;\r\n]+ */);
-
-	        var k = 0;
-	        for (i = 1, ii = lines.length; i < ii; i++) {
-	            values = lines[i].trim().replace(removeCommentRegExp, '').split(peakTableSplitRegExp);
-	            if (values.length % 2 === 0) {
-	                for (j = 0, jj = values.length; j < jj; j = j + 2) {
-	                    // takes around 40% of the time to add and parse the 2 values nearly exclusively because of parseFloat
-	                    currentData[k++] = (parseFloat(values[j]) * spectrum.xFactor);
-	                    currentData[k++] = (parseFloat(values[j + 1]) * spectrum.yFactor);
-	                }
-	            } else {
-	                result.logs.push('Format error: ' + values);
-	            }
-	        }
-	    }
-
-	    function parseXYData(spectrum, value, result) {
-	        // we check if deltaX is defined otherwise we calculate it
-	        if (!spectrum.deltaX) {
-	            spectrum.deltaX = (spectrum.lastX - spectrum.firstX) / (spectrum.nbPoints - 1);
-	        }
-
-	        spectrum.isXYdata=true;
-
-	        var currentData = [];
-	        spectrum.data = [currentData];
-
-	        var currentX = spectrum.firstX;
-	        var currentY = spectrum.firstY;
-	        var lines = value.split(/[\r\n]+/);
-	        var lastDif, values, ascii, expectedY;
-	        values = [];
-	        for (var i = 1, ii = lines.length; i < ii; i++) {
-	            //var previousValues=JSON.parse(JSON.stringify(values));
-	            values = lines[i].trim().replace(removeCommentRegExp, '').split(xyDataSplitRegExp);
-	            if (values.length > 0) {
-	                if (DEBUG) {
-	                    if (!spectrum.firstPoint) {
-	                        spectrum.firstPoint = parseFloat(values[0]);
-	                    }
-	                    var expectedCurrentX = parseFloat(values[0] - spectrum.firstPoint) * spectrum.xFactor + spectrum.firstX;
-	                    if ((lastDif || lastDif === 0)) {
-	                        expectedCurrentX += spectrum.deltaX;
-	                    }
-	                    result.logs.push('Checking X value: currentX: ' + currentX + ' - expectedCurrentX: ' + expectedCurrentX);
-	                }
-	                for (var j = 1, jj = values.length; j < jj; j++) {
-	                    if (j === 1 && (lastDif || lastDif === 0)) {
-	                        lastDif = null; // at the beginning of each line there should be the full value X / Y so the diff is always undefined
-	                        // we could check if we have the expected Y value
-	                        ascii = values[j].charCodeAt(0);
-
-	                        if (false) { // this code is just to check the jcamp DIFDUP and the next line repeat of Y value
-	                            // + - . 0 1 2 3 4 5 6 7 8 9
-	                            if ((ascii === 43) || (ascii === 45) || (ascii === 46) || ((ascii > 47) && (ascii < 58))) {
-	                                expectedY = parseFloat(values[j]);
-	                            } else
-	                            // positive SQZ digits @ A B C D E F G H I (ascii 64-73)
-	                            if ((ascii > 63) && (ascii < 74)) {
-	                                // we could use parseInt but parseFloat is faster at least in Chrome
-	                                expectedY = parseFloat(String.fromCharCode(ascii - 16) + values[j].substring(1));
-	                            } else
-	                            // negative SQZ digits a b c d e f g h i (ascii 97-105)
-	                            if ((ascii > 96) && (ascii < 106)) {
-	                                // we could use parseInt but parseFloat is faster at least in Chrome
-	                                expectedY = -parseFloat(String.fromCharCode(ascii - 48) + values[j].substring(1));
-	                            }
-	                            if (expectedY !== currentY) {
-	                                result.logs.push('Y value check error: Found: ' + expectedY + ' - Current: ' + currentY);
-	                                result.logs.push('Previous values: ' + previousValues.length);
-	                                result.logs.push(previousValues);
-	                            }
-	                        }
-	                    } else {
-	                        if (values[j].length > 0) {
-	                            ascii = values[j].charCodeAt(0);
-	                            // + - . 0 1 2 3 4 5 6 7 8 9
-	                            if ((ascii === 43) || (ascii === 45) || (ascii === 46) || ((ascii > 47) && (ascii < 58))) {
-	                                lastDif = null;
-	                                currentY = parseFloat(values[j]);
-	                                currentData.push(currentX, currentY * spectrum.yFactor);;
-	                                currentX += spectrum.deltaX;
-	                            } else
-	                            // positive SQZ digits @ A B C D E F G H I (ascii 64-73)
-	                            if ((ascii > 63) && (ascii < 74)) {
-	                                lastDif = null;
-	                                currentY = parseFloat(String.fromCharCode(ascii - 16) + values[j].substring(1));
-	                                currentData.push(currentX, currentY * spectrum.yFactor);;
-	                                currentX += spectrum.deltaX;
-	                            } else
-	                            // negative SQZ digits a b c d e f g h i (ascii 97-105)
-	                            if ((ascii > 96) && (ascii < 106)) {
-	                                lastDif = null;
-	                                currentY = -parseFloat(String.fromCharCode(ascii - 48) + values[j].substring(1));
-	                                currentData.push(currentX, currentY * spectrum.yFactor);;
-	                                currentX += spectrum.deltaX;
-	                            } else
-
-
-
-	                            // DUP digits S T U V W X Y Z s (ascii 83-90, 115)
-	                            if (((ascii > 82) && (ascii < 91)) || (ascii === 115)) {
-	                                var dup = parseFloat(String.fromCharCode(ascii - 34) + values[j].substring(1)) - 1;
-	                                if (ascii === 115) {
-	                                    dup = parseFloat('9' + values[j].substring(1)) - 1;
-	                                }
-	                                for (var l = 0; l < dup; l++) {
-	                                    if (lastDif) {
-	                                        currentY = currentY + lastDif;
-	                                    }
-	                                    currentData.push(currentX, currentY * spectrum.yFactor);;
-	                                    currentX += spectrum.deltaX;
-	                                }
-	                            } else
-	                            // positive DIF digits % J K L M N O P Q R (ascii 37, 74-82)
-	                            if (ascii === 37) {
-	                                lastDif = parseFloat('0' + values[j].substring(1));
-	                                currentY += lastDif;
-	                                currentData.push(currentX, currentY * spectrum.yFactor);;
-	                                currentX += spectrum.deltaX;
-	                            } else if ((ascii > 73) && (ascii < 83)) {
-	                                lastDif = parseFloat(String.fromCharCode(ascii - 25) + values[j].substring(1));
-	                                currentY += lastDif;
-	                                currentData.push(currentX, currentY * spectrum.yFactor);;
-	                                currentX += spectrum.deltaX;
-	                            } else
-	                            // negative DIF digits j k l m n o p q r (ascii 106-114)
-	                            if ((ascii > 105) && (ascii < 115)) {
-	                                lastDif = -parseFloat(String.fromCharCode(ascii - 57) + values[j].substring(1));
-	                                currentY += lastDif;
-	                                currentData.push(currentX, currentY * spectrum.yFactor);;
-	                                currentX += spectrum.deltaX;
-	                            }
-	                        }
-	                    }
-	                }
-	            }
-	        }
-
-	    }
 
 	    function convertTo3DZ(spectra) {
 	        var noise = 0;
@@ -1989,19 +1864,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var z = new Array(ySize);
 	        for (var i = 0; i < ySize; i++) {
 	            z[i] = new Array(xSize);
+	            var xVector = spectra[i].data[0];
 	            for (var j = 0; j < xSize; j++) {
-	                z[i][j] = spectra[i].data[0][j * 2 + 1];
-	                if (z[i][j] < minZ) minZ = spectra[i].data[0][j * 2 + 1];
-	                if (z[i][j] > maxZ) maxZ = spectra[i].data[0][j * 2 + 1];
+	                var value = xVector[j * 2 + 1];
+	                z[i][j] = value;
+	                if (value < minZ) minZ = value;
+	                if (value > maxZ) maxZ = value;
 	                if (i !== 0 && j !== 0) {
-	                    noise += Math.abs(z[i][j] - z[i][j - 1]) + Math.abs(z[i][j] - z[i - 1][j]);
+	                    noise += Math.abs(value - z[i][j - 1]) + Math.abs(value - z[i - 1][j]);
 	                }
 	            }
 	        }
 	        return {
 	            z: z,
 	            minX: spectra[0].data[0][0],
-	            maxX: spectra[0].data[0][spectra[0].data[0].length - 2],
+	            maxX: spectra[0].data[0][spectra[0].data[0].length - 2], // has to be -2 because it is a 1D array [x,y,x,y,...]
 	            minY: spectra[0].pageValue,
 	            maxY: spectra[ySize - 1].pageValue,
 	            minZ: minZ,
@@ -2011,22 +1888,22 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    }
 
-	    function add2D(result) {
+	    function add2D(result, options) {
 	        var zData = convertTo3DZ(result.spectra);
-	        result.contourLines = generateContourLines(zData);
+	        result.contourLines = generateContourLines(zData, options);
 	        delete zData.z;
 	        result.minMax = zData;
 	    }
 
 
 	    function generateContourLines(zData, options) {
-	        //console.time('generateContourLines');
 	        var noise = zData.noise;
 	        var z = zData.z;
 	        var contourLevels = [];
-	        var nbLevels = 7;
-	        var povarHeight = new Float32Array(4);
-	        var isOver = [];
+	        var nbLevels = options.nbContourLevels || 7;
+	        var noiseMultiplier = options.noiseMultiplier === undefined ? 5 : options.noiseMultiplier;
+	        var povarHeight0, povarHeight1, povarHeight2, povarHeight3;
+	        var isOver0, isOver1, isOver2, isOver3;
 	        var nbSubSpectra = z.length;
 	        var nbPovars = z[0].length;
 	        var pAx, pAy, pBx, pBy;
@@ -2054,12 +1931,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var lineZValue;
 	        for (var level = 0; level < nbLevels * 2; level++) { // multiply by 2 for positif and negatif
 	            var contourLevel = {};
-	            contourLevels.push(contourLevel);
+	            contourLevels[level] = contourLevel;
 	            var side = level % 2;
+	            var factor = (maxZ - noiseMultiplier * noise) * Math.exp((level >> 1) - nbLevels);
 	            if (side === 0) {
-	                lineZValue = (maxZ - 5 * noise) * Math.exp(level / 2 - nbLevels) + 5 * noise;
+	                lineZValue = factor + noiseMultiplier * noise;
 	            } else {
-	                lineZValue = -(maxZ - 5 * noise) * Math.exp(level / 2 - nbLevels) - 5 * noise;
+	                lineZValue = -factor - noiseMultiplier * noise;
 	            }
 	            var lines = [];
 	            contourLevel.zValue = lineZValue;
@@ -2068,62 +1946,84 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (lineZValue <= minZ || lineZValue >= maxZ) continue;
 
 	            for (var iSubSpectra = 0; iSubSpectra < nbSubSpectra - 1; iSubSpectra++) {
+	                var subSpectra = z[iSubSpectra];
+	                var subSpectraAfter = z[iSubSpectra + 1];
 	                for (var povar = 0; povar < nbPovars - 1; povar++) {
-	                    povarHeight[0] = z[iSubSpectra][povar];
-	                    povarHeight[1] = z[iSubSpectra][povar + 1];
-	                    povarHeight[2] = z[(iSubSpectra + 1)][povar];
-	                    povarHeight[3] = z[(iSubSpectra + 1)][(povar + 1)];
+	                    povarHeight0 = subSpectra[povar];
+	                    povarHeight1 = subSpectra[povar + 1];
+	                    povarHeight2 = subSpectraAfter[povar];
+	                    povarHeight3 = subSpectraAfter[povar + 1];
 
-	                    for (var i = 0; i < 4; i++) {
-	                        isOver[i] = (povarHeight[i] > lineZValue);
-	                    }
+	                    isOver0 = (povarHeight0 > lineZValue);
+	                    isOver1 = (povarHeight1 > lineZValue);
+	                    isOver2 = (povarHeight2 > lineZValue);
+	                    isOver3 = (povarHeight3 > lineZValue);
 
 	                    // Example povar0 is over the plane and povar1 and
 	                    // povar2 are below, we find the varersections and add
 	                    // the segment
-	                    if (isOver[0] !== isOver[1] && isOver[0] !== isOver[2]) {
-	                        pAx = povar + (lineZValue - povarHeight[0]) / (povarHeight[1] - povarHeight[0]);
+	                    if (isOver0 !== isOver1 && isOver0 !== isOver2) {
+	                        pAx = povar + (lineZValue - povarHeight0) / (povarHeight1 - povarHeight0);
 	                        pAy = iSubSpectra;
 	                        pBx = povar;
-	                        pBy = iSubSpectra + (lineZValue - povarHeight[0]) / (povarHeight[2] - povarHeight[0]);
-	                        lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
+	                        pBy = iSubSpectra + (lineZValue - povarHeight0) / (povarHeight2 - povarHeight0);
+	                        lines.push(pAx * dx + x0);
+	                        lines.push(pAy * dy + y0);
+	                        lines.push(pBx * dx + x0);
+	                        lines.push(pBy * dy + y0);
 	                    }
-	                    if (isOver[3] !== isOver[1] && isOver[3] !== isOver[2]) {
+	                    // remove push does not help !!!!
+	                    if (isOver3 !== isOver1 && isOver3 !== isOver2) {
 	                        pAx = povar + 1;
-	                        pAy = iSubSpectra + 1 - (lineZValue - povarHeight[3]) / (povarHeight[1] - povarHeight[3]);
-	                        pBx = povar + 1 - (lineZValue - povarHeight[3]) / (povarHeight[2] - povarHeight[3]);
+	                        pAy = iSubSpectra + 1 - (lineZValue - povarHeight3) / (povarHeight1 - povarHeight3);
+	                        pBx = povar + 1 - (lineZValue - povarHeight3) / (povarHeight2 - povarHeight3);
 	                        pBy = iSubSpectra + 1;
-	                        lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
+	                        lines.push(pAx * dx + x0);
+	                        lines.push(pAy * dy + y0);
+	                        lines.push(pBx * dx + x0);
+	                        lines.push(pBy * dy + y0);
 	                    }
 	                    // test around the diagonal
-	                    if (isOver[1] !== isOver[2]) {
-	                        pAx = povar + 1 - (lineZValue - povarHeight[1]) / (povarHeight[2] - povarHeight[1]);
-	                        pAy = iSubSpectra + (lineZValue - povarHeight[1]) / (povarHeight[2] - povarHeight[1]);
-	                        if (isOver[1] !== isOver[0]) {
-	                            pBx = povar + 1 - (lineZValue - povarHeight[1]) / (povarHeight[0] - povarHeight[1]);
+	                    if (isOver1 !== isOver2) {
+	                        pAx = (povar + 1 - (lineZValue - povarHeight1) / (povarHeight2 - povarHeight1)) * dx + x0;
+	                        pAy = (iSubSpectra + (lineZValue - povarHeight1) / (povarHeight2 - povarHeight1)) * dy + y0;
+	                        if (isOver1 !== isOver0) {
+	                            pBx = povar + 1 - (lineZValue - povarHeight1) / (povarHeight0 - povarHeight1);
 	                            pBy = iSubSpectra;
-	                            lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
+	                            lines.push(pAx);
+	                            lines.push(pAy);
+	                            lines.push(pBx * dx + x0);
+	                            lines.push(pBy * dy + y0);
 	                        }
-	                        if (isOver[2] !== isOver[0]) {
+	                        if (isOver2 !== isOver0) {
 	                            pBx = povar;
-	                            pBy = iSubSpectra + 1 - (lineZValue - povarHeight[2]) / (povarHeight[0] - povarHeight[2]);
-	                            lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
+	                            pBy = iSubSpectra + 1 - (lineZValue - povarHeight2) / (povarHeight0 - povarHeight2);
+	                            lines.push(pAx);
+	                            lines.push(pAy);
+	                            lines.push(pBx * dx + x0);
+	                            lines.push(pBy * dy + y0);
 	                        }
-	                        if (isOver[1] !== isOver[3]) {
+	                        if (isOver1 !== isOver3) {
 	                            pBx = povar + 1;
-	                            pBy = iSubSpectra + (lineZValue - povarHeight[1]) / (povarHeight[3] - povarHeight[1]);
-	                            lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
+	                            pBy = iSubSpectra + (lineZValue - povarHeight1) / (povarHeight3 - povarHeight1);
+	                            lines.push(pAx);
+	                            lines.push(pAy);
+	                            lines.push(pBx * dx + x0);
+	                            lines.push(pBy * dy + y0);
 	                        }
-	                        if (isOver[2] !== isOver[3]) {
-	                            pBx = povar + (lineZValue - povarHeight[2]) / (povarHeight[3] - povarHeight[2]);
+	                        if (isOver2 !== isOver3) {
+	                            pBx = povar + (lineZValue - povarHeight2) / (povarHeight3 - povarHeight2);
 	                            pBy = iSubSpectra + 1;
-	                            lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
+	                            lines.push(pAx);
+	                            lines.push(pAy);
+	                            lines.push(pBx * dx + x0);
+	                            lines.push(pBy * dy + y0);
 	                        }
 	                    }
 	                }
 	            }
 	        }
-	        // console.timeEnd('generateContourLines');
+
 	        return {
 	            minX: zData.minX,
 	            maxX: zData.maxX,
@@ -2131,39 +2031,217 @@ return /******/ (function(modules) { // webpackBootstrap
 	            maxY: zData.maxY,
 	            segments: contourLevels
 	        };
-	        //return contourLevels;
 	    }
 
+	    function fastParseXYData(spectrum, value) {
+	        // TODO need to deal with result
+	        //  console.log(value);
+	        // we check if deltaX is defined otherwise we calculate it
 
-	    function addLowRes(spectra, options) {
-	        var spectrum;
-	        var averageX, averageY;
-	        var targetNbPoints = options.lowRes;
-	        var highResData;
-	        for (var i = 0; i < spectra.length; i++) {
-	            spectrum = spectra[i];
-	            // we need to find the current higher resolution
-	            if (spectrum.data.length > 0) {
-	                highResData = spectrum.data[0];
-	                for (var j = 1; j < spectrum.data.length; j++) {
-	                    if (spectrum.data[j].length > highResData.length) {
-	                        highResData = spectrum.data[j];
-	                    }
-	                }
+	        var yFactor = spectrum.yFactor;
+	        var deltaX = spectrum.deltaX;
 
-	                if (targetNbPoints > (highResData.length / 2)) return;
-	                var i, ii;
-	                var lowResData = [];
-	                var modulo = Math.ceil(highResData.length / (targetNbPoints * 2));
-	                for (i = 0, ii = highResData.length; i < ii; i = i + 2) {
-	                    if (i % modulo === 0) {
-	                        lowResData.push(highResData[i], highResData[i + 1])
-	                    }
+
+	        spectrum.isXYdata = true;
+	        // TODO to be improved using 2 array {x:[], y:[]}
+	        var currentData = [];
+	        var currentPosition = 0;
+	        spectrum.data = [currentData];
+
+
+	        var currentX = spectrum.firstX;
+	        var currentY = spectrum.firstY;
+
+	        // we skip the first line
+	        //
+	        var endLine = false;
+	        for (var i = 0; i < value.length; i++) {
+	            var ascii = value.charCodeAt(i);
+	            if (ascii === 13 || ascii === 10) {
+	                endLine = true;
+	            } else {
+	                if (endLine) break;
+	            }
+	        }
+
+	        // we proceed taking the i after the first line
+	        var newLine = true;
+	        var isDifference = false;
+	        var isLastDifference = false;
+	        var lastDifference = 0;
+	        var isDuplicate = false;
+	        var inComment = false;
+	        var currentValue = 0;
+	        var isNegative = false;
+	        var inValue = false;
+	        var skipFirstValue = false;
+	        var decimalPosition = 0;
+	        var ascii;
+	        for (; i <= value.length; i++) {
+	            if (i === value.length) ascii = 13;
+	            else ascii = value.charCodeAt(i);
+	            if (inComment) {
+	                // we should ignore the text if we are after $$
+	                if (ascii === 13 || ascii === 10) {
+	                    newLine = true;
+	                    inComment = false;
 	                }
-	                spectrum.data.push(lowResData);
+	            } else {
+	                // when is it a new value ?
+	                // when it is not a digit, . or comma
+	                // it is a number that is either new or we continue
+	                if (ascii <= 57 && ascii >= 48) { // a number
+	                    inValue = true;
+	                    if (decimalPosition > 0) {
+	                        currentValue += (ascii - 48) / Math.pow(10, decimalPosition++);
+	                    } else {
+	                        currentValue *= 10;
+	                        currentValue += ascii - 48;
+	                    }
+	                } else if (ascii === 44 || ascii === 46) { // a "," or "."
+	                    inValue = true;
+	                    decimalPosition++;
+	                } else {
+	                    if (inValue) {
+	                        // need to process the previous value
+	                        if (newLine) {
+	                            newLine = false; // we don't check the X value
+	                            // console.log("NEW LINE",isDifference, lastDifference);
+	                            // if new line and lastDifference, the first value is just a check !
+	                            // that we don't check ...
+	                            if (isLastDifference) skipFirstValue = true;
+	                        } else {
+	                            // need to deal with duplicate and differences
+	                            if (skipFirstValue) {
+	                                skipFirstValue = false;
+	                            } else {
+	                                if (isDifference) {
+	                                    if (currentValue === 0) lastDifference = 0;
+	                                    else lastDifference = isNegative ? -currentValue : currentValue;
+	                                    isLastDifference = true;
+	                                    isDifference = false;
+	                                }
+	                                var duplicate = isDuplicate ? currentValue - 1 : 1;
+	                                for (var j = 0; j < duplicate; j++) {
+	                                    if (isLastDifference) {
+	                                        currentY += lastDifference;
+	                                    } else {
+	                                        if (currentValue === 0) currentY = 0;
+	                                        else currentY = isNegative ? -currentValue : currentValue;
+	                                    }
+
+	                                    //  console.log("Separator",isNegative ?
+	                                    //          -currentValue : currentValue,
+	                                    //      "isDiff", isDifference, "isDup", isDuplicate,
+	                                    //      "lastDif", lastDifference, "dup:", duplicate, "y", currentY);
+
+	                                    // push is slightly slower ... (we loose 10%)
+	                                    currentData[currentPosition++] = currentX;
+	                                    currentData[currentPosition++] = currentY * yFactor;
+	                                    currentX += deltaX;
+	                                }
+	                            }
+	                        }
+	                        isNegative = false;
+	                        currentValue = 0;
+	                        decimalPosition = 0;
+	                        inValue = false;
+	                        isDuplicate = false;
+	                    }
+
+	                    // positive SQZ digits @ A B C D E F G H I (ascii 64-73)
+	                    if ((ascii < 74) && (ascii > 63)) {
+	                        inValue = true;
+	                        isLastDifference = false;
+	                        currentValue = ascii - 64;
+	                    } else
+	                    // negative SQZ digits a b c d e f g h i (ascii 97-105)
+	                    if ((ascii > 96) && (ascii < 106)) {
+	                        inValue = true;
+	                        isLastDifference = false;
+	                        currentValue = ascii - 96;
+	                        isNegative = true;
+	                    } else
+	                    // DUP digits S T U V W X Y Z s (ascii 83-90, 115)
+	                    if (ascii === 115) {
+	                        inValue = true;
+	                        isDuplicate = true;
+	                        currentValue = 9;
+	                    } else if ((ascii > 82) && (ascii < 91)) {
+	                        inValue = true;
+	                        isDuplicate = true;
+	                        currentValue = ascii - 82;
+	                    } else
+	                    // positive DIF digits % J K L M N O P Q R (ascii 37, 74-82)
+	                    if ((ascii > 73) && (ascii < 83)) {
+	                        inValue = true;
+	                        isDifference = true;
+	                        currentValue = ascii - 73;
+	                    } else
+	                    // negative DIF digits j k l m n o p q r (ascii 106-114)
+	                    if ((ascii > 105) && (ascii < 115)) {
+	                        inValue = true;
+	                        isDifference = true;
+	                        currentValue = ascii - 105;
+	                        isNegative = true;
+	                    } else
+	                    // $ sign, we need to check the next one
+	                    if (ascii === 36 && value.charCodeAt(i + 1) === 36) {
+	                        inValue = true;
+	                        inComment = true;
+	                    } else
+	                    // positive DIF digits % J K L M N O P Q R (ascii 37, 74-82)
+	                    if (ascii === 37) {
+	                        inValue = true;
+	                        isDifference = true;
+	                        currentValue = 0;
+	                        isNegative = false;
+	                    } else if (ascii === 45) { // a "-"
+	                        // check if after there is a number, decimal or comma
+	                        var ascii2 = value.charCodeAt(i + 1);
+	                        if ((ascii2 >= 48 && ascii2 <= 57) || ascii2 === 44 || ascii2 === 46) {
+	                            inValue = true;
+	                            isLastDifference = false;
+	                            isNegative = true;
+	                        }
+	                    } else if (ascii === 13 || ascii === 10) {
+	                        newLine = true;
+	                        inComment = false;
+	                    }
+	                    // and now analyse the details ... space or tabulation
+	                    // if "+" we just don't care
+	                }
 	            }
 	        }
 	    }
+
+	    function parsePeakTable(spectrum, value, result) {
+	        var removeCommentRegExp = /\$\$.*/;
+	        var peakTableSplitRegExp = /[,\t ]+/;
+
+	        spectrum.isPeaktable = true;
+	        var i, ii, j, jj, values;
+	        var currentData = [];
+	        spectrum.data = [currentData];
+
+	        // counts for around 20% of the time
+	        var lines = value.split(/,? *,?[;\r\n]+ */);
+
+	        var k = 0;
+	        for (i = 1, ii = lines.length; i < ii; i++) {
+	            values = lines[i].trim().replace(removeCommentRegExp, '').split(peakTableSplitRegExp);
+	            if (values.length % 2 === 0) {
+	                for (j = 0, jj = values.length; j < jj; j = j + 2) {
+	                    // takes around 40% of the time to add and parse the 2 values nearly exclusively because of parseFloat
+	                    currentData[k++] = (parseFloat(values[j]) * spectrum.xFactor);
+	                    currentData[k++] = (parseFloat(values[j + 1]) * spectrum.yFactor);
+	                }
+	            } else {
+	                result.logs.push('Format error: ' + values);
+	            }
+	        }
+	    }
+
 
 	    return convert;
 
@@ -2193,20 +2271,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return new Promise(function (resolve) {
 	        var stamp = Date.now() + '' + Math.random();
 	        stamps[stamp] = resolve;
-	        worker.postMessage({stamp: stamp, input: input, options: options});
+	        worker.postMessage(JSON.stringify({
+	            stamp: stamp,
+	            input: input,
+	            options: options
+	        }));
 	    });
 	}
 
 	function createWorker() {
 	    var workerURL = URL.createObjectURL(new Blob([
-	        'var getConverter =' + getConverter.toString() + ';var convert = getConverter(); onmessage = function (event) { postMessage({stamp: event.data.stamp, output: convert(event.data.input, event.data.options)}); };'
+	        'var getConverter =' + getConverter.toString() + ';var convert = getConverter(); onmessage = function (event) { var data = JSON.parse(event.data); postMessage(JSON.stringify({stamp: data.stamp, output: convert(data.input, data.options)})); };'
 	    ], {type: 'application/javascript'}));
 	    worker = new Worker(workerURL);
 	    URL.revokeObjectURL(workerURL);
 	    worker.addEventListener('message', function (event) {
-	        var stamp = event.data.stamp;
+	        var data = JSON.parse(event.data);
+	        var stamp = data.stamp;
 	        if (stamps[stamp]) {
-	            stamps[stamp](event.data.output);
+	            stamps[stamp](data.output);
 	        }
 	    });
 	}
@@ -2218,8 +2301,159 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 4 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+
+	var xyDataSplitRegExp = /[,\t \+-]*(?=[^\d,\t \.])|[ \t]+(?=[\d+\.-])/;
+	var removeCommentRegExp = /\$\$.*/;
+	var DEBUG=false;
+
+	module.exports=function(spectrum, value, result) {
+	    // we check if deltaX is defined otherwise we calculate it
+	    if (!spectrum.deltaX) {
+	        spectrum.deltaX = (spectrum.lastX - spectrum.firstX) / (spectrum.nbPoints - 1);
+	    }
+
+	    spectrum.isXYdata=true;
+
+	    var currentData = [];
+	    var currentPosition=0;
+	    spectrum.data = [currentData];
+
+	    var currentX = spectrum.firstX;
+	    var currentY = spectrum.firstY;
+	    var lines = value.split(/[\r\n]+/);
+	    var lastDif, values, ascii, expectedY;
+	    values = [];
+	    for (var i = 1, ii = lines.length; i < ii; i++) {
+	        //var previousValues=JSON.parse(JSON.stringify(values));
+	        values = lines[i].trim().replace(removeCommentRegExp, '').split(xyDataSplitRegExp);
+	        if (values.length > 0) {
+	            if (DEBUG) {
+	                if (!spectrum.firstPoint) {
+	                    spectrum.firstPoint = +values[0];
+	                }
+	                var expectedCurrentX = (values[0] - spectrum.firstPoint) * spectrum.xFactor + spectrum.firstX;
+	                if ((lastDif || lastDif === 0)) {
+	                    expectedCurrentX += spectrum.deltaX;
+	                }
+	                result.logs.push('Checking X value: currentX: ' + currentX + ' - expectedCurrentX: ' + expectedCurrentX);
+	            }
+	            for (var j = 1, jj = values.length; j < jj; j++) {
+	                if (j === 1 && (lastDif || lastDif === 0)) {
+	                    lastDif = null; // at the beginning of each line there should be the full value X / Y so the diff is always undefined
+	                    // we could check if we have the expected Y value
+	                    ascii = values[j].charCodeAt(0);
+
+	                    if (false) { // this code is just to check the jcamp DIFDUP and the next line repeat of Y value
+	                        // + - . 0 1 2 3 4 5 6 7 8 9
+	                        if ((ascii === 43) || (ascii === 45) || (ascii === 46) || ((ascii > 47) && (ascii < 58))) {
+	                            expectedY = +values[j];
+	                        } else
+	                        // positive SQZ digits @ A B C D E F G H I (ascii 64-73)
+	                        if ((ascii > 63) && (ascii < 74)) {
+	                            expectedY = +(String.fromCharCode(ascii - 16) + values[j].substring(1));
+	                        } else
+	                        // negative SQZ digits a b c d e f g h i (ascii 97-105)
+	                        if ((ascii > 96) && (ascii < 106)) {
+	                            expectedY = -(String.fromCharCode(ascii - 48) + values[j].substring(1));
+	                        }
+	                        if (expectedY !== currentY) {
+	                            result.logs.push('Y value check error: Found: ' + expectedY + ' - Current: ' + currentY);
+	                            result.logs.push('Previous values: ' + previousValues.length);
+	                            result.logs.push(previousValues);
+	                        }
+	                    }
+	                } else {
+	                    if (values[j].length > 0) {
+	                        ascii = values[j].charCodeAt(0);
+	                        // + - . 0 1 2 3 4 5 6 7 8 9
+	                        if ((ascii === 43) || (ascii === 45) || (ascii === 46) || ((ascii > 47) && (ascii < 58))) {
+	                            lastDif = null;
+	                            currentY = +values[j];
+	                            // currentData.push(currentX, currentY * spectrum.yFactor);
+	                            currentData[currentPosition++]=currentX;
+	                            currentData[currentPosition++]=currentY * spectrum.yFactor;
+	                            currentX += spectrum.deltaX;
+	                        } else
+	                        // positive SQZ digits @ A B C D E F G H I (ascii 64-73)
+	                        if ((ascii > 63) && (ascii < 74)) {
+	                            lastDif = null;
+	                            currentY = +(String.fromCharCode(ascii - 16) + values[j].substring(1));
+	                            // currentData.push(currentX, currentY * spectrum.yFactor);
+	                            currentData[currentPosition++] = currentX;
+	                            currentData[currentPosition++] = currentY * spectrum.yFactor;
+	                            currentX += spectrum.deltaX;
+	                        } else
+	                        // negative SQZ digits a b c d e f g h i (ascii 97-105)
+	                        if ((ascii > 96) && (ascii < 106)) {
+	                            lastDif = null;
+	                            // we can multiply the string by 1 because if may not contain decimal (is this correct ????)
+	                            currentY = -(String.fromCharCode(ascii - 48) + values[j].substring(1))*1;
+	                            //currentData.push(currentX, currentY * spectrum.yFactor);
+	                            currentData[currentPosition++]=currentX;
+	                            currentData[currentPosition++]=currentY * spectrum.yFactor;
+	                            currentX += spectrum.deltaX;
+	                        } else
+
+
+
+	                        // DUP digits S T U V W X Y Z s (ascii 83-90, 115)
+	                        if (((ascii > 82) && (ascii < 91)) || (ascii === 115)) {
+	                            var dup = (String.fromCharCode(ascii - 34) + values[j].substring(1)) - 1;
+	                            if (ascii === 115) {
+	                                dup = ('9' + values[j].substring(1)) - 1;
+	                            }
+	                            for (var l = 0; l < dup; l++) {
+	                                if (lastDif) {
+	                                    currentY = currentY + lastDif;
+	                                }
+	                                // currentData.push(currentX, currentY * spectrum.yFactor);
+	                                currentData[currentPosition++]=currentX;
+	                                currentData[currentPosition++]=currentY * spectrum.yFactor;
+	                                currentX += spectrum.deltaX;
+	                            }
+	                        } else
+	                        // positive DIF digits % J K L M N O P Q R (ascii 37, 74-82)
+	                        if (ascii === 37) {
+	                            lastDif = +('0' + values[j].substring(1));
+	                            currentY += lastDif;
+	                            // currentData.push(currentX, currentY * spectrum.yFactor);
+	                            currentData[currentPosition++]=currentX;
+	                            currentData[currentPosition++]=currentY * spectrum.yFactor;
+	                            currentX += spectrum.deltaX;
+	                        } else if ((ascii > 73) && (ascii < 83)) {
+	                            lastDif = (String.fromCharCode(ascii - 25) + values[j].substring(1))*1;
+	                            currentY += lastDif;
+	                            // currentData.push(currentX, currentY * spectrum.yFactor);
+	                            currentData[currentPosition++]=currentX;
+	                            currentData[currentPosition++]=currentY * spectrum.yFactor;
+	                            currentX += spectrum.deltaX;
+	                        } else
+	                        // negative DIF digits j k l m n o p q r (ascii 106-114)
+	                        if ((ascii > 105) && (ascii < 115)) {
+	                            lastDif = -(String.fromCharCode(ascii - 57) + values[j].substring(1))*1;
+	                            currentY += lastDif;
+	                            // currentData.push(currentX, currentY * spectrum.yFactor);
+	                            currentData[currentPosition++]=currentX;
+	                            currentData[currentPosition++]=currentY * spectrum.yFactor;
+	                            currentX += spectrum.deltaX;
+	                        }
+	                    }
+	                }
+	            }
+	        }
+	    }
+	}
+
+
+/***/ },
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
 	/**
 	 * Created by acastillo on 3/2/16.
 	 */
@@ -2231,7 +2465,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 */
 
-	var Encoder = __webpack_require__(5);
+	var Encoder = __webpack_require__(6);
 
 	var JcampCreator = (function(){
 
@@ -2579,9 +2813,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports) {
 
+	'use strict';
 	/**
 	 * class encodes a integer vector as a String in order to store it in a text file.
 	 * The algorithms used to encode the data are describe in:
@@ -2908,7 +3143,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -3000,14 +3235,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
+
 	var SD = __webpack_require__(1);
-	var PeakPicking = __webpack_require__(8);
+	var PeakPicking = __webpack_require__(9);
 	var JcampConverter=__webpack_require__(3);
-	var fft = __webpack_require__(42);
-	var Filters = __webpack_require__(45);
+	var fft = __webpack_require__(40);
+	var Filters = __webpack_require__(43);
 
 	/**
 	 * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
@@ -3346,21 +3583,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
 	/**
 	 * Implementation of the peak pickig method described by Cobas in:
 	 * A new approach to improving automated analysis of proton NMR spectra
 	 * through Global Spectral Deconvolution (GSD)
 	 * http://www.spectroscopyeurope.com/images/stories/ColumnPDFs/TD_23_1.pdf
 	 */
-	var JAnalyzer = __webpack_require__(9);
+	var JAnalyzer = __webpack_require__(10);
 	/*var LM = require('ml-curve-fitting');
 	var Matrix = LM.Matrix;
 	var math = Matrix.algebra;*/
-	var GSD = __webpack_require__(10);
-	var extend = __webpack_require__(6);
+	var GSD = __webpack_require__(11);
+	var extend = __webpack_require__(7);
+	var removeImpurities = __webpack_require__(39);
 
 	var PeakPicking={
 	    impurities:[],
@@ -3372,7 +3611,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        compile:true,
 	        integralFn:0,
 	        optimize:true,
-	        idPrefix:""
+	        idPrefix:"",
+	        format:"old"
 	    },
 
 	    peakPicking:function(spectrum, optionsEx){
@@ -3471,7 +3711,38 @@ return /******/ (function(modules) { // webpackBootstrap
 	            signals[i]._highlight=[signals[i].signalID];
 	        }
 
+	        removeImpurities(signals, spectrum.getSolventName(),options.nH);
+
+	        if(options.format==="new"){
+	            var newSignals = new Array(signals.length);
+	            for(var i=0;i<signals.length;i++){
+	                var signal = signals[i];
+	                newSignals = {
+	                    from : signal.integralData.from,
+	                    to : signal.integralData.to,
+	                    integral : signal.integralData.value,
+	                    signal:[{
+	                        delta:signal.delta1,
+	                        nbAtoms:0,
+	                        diaID:[],
+	                        multiplicity:signal.multiplicity,
+	                        peak:signal.peaks,
+	                        kind:"",
+	                        remark:""
+	                    }],
+	                    signalID:signal.signalID,
+	                    _highlight:signal._highlight
+
+	                };
+	                if(signal.nmrJs){
+	                    newSignals.signal[0].j = signal.nmrJs;
+	                }
+	            }
+	            signals = newSignals;
+	        }
+
 	        return signals;
+
 
 	        /*var frequency = spectrum.observeFrequencyX();//getParamDouble("$BF1",400);
 	        var imp = this.labelPeaks(peakList, solvent, frequency);
@@ -3712,103 +3983,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    area: function(peak){
 	        return Math.abs(peak.intensity*peak.width*1.57)//1.772453851);
 	    },
-	    /**
-	     This function tries to determine which peaks belongs to common laboratory solvents
-	     as trace impurities from DOI:10.1021/jo971176v. The only parameter of the table is
-	     the solvent name.
-	     */
-	    labelPeaks:function(peakList, solvent, frequency){
-	        var column = 0;
-	        //console.log(this.impurities[0]);
-	        for(column=4;column<this.impurities.length;column++){
-	            //console.log("sss".contains);
-	            if(this.impurities[0][column].indexOf(solvent)>=0){
-	                break;
-	            }
-	        }
-	        //console.log("labelPeaks "+column);
-	        var nImpurities = this.impurities.length-1;
-	        var nPeaks = peakList.length;
-	        //Scores matrix
-	        //console.log(nImpurities);
-	        var scores = new Array(nImpurities);
-	        var max = 0, diff=0, score=0;
-	        var gamma = 0.2;//ppm
-	        var impurityID=-1;
-	        var prevImp = "";
-	        var maxIntensity = 0,i;
-	        for(var j=nPeaks-1;j>=0;j--){
-	            if(peakList[j][1]>maxIntensity)
-	                maxIntensity = peakList[j][1];
-	        }
 
-	        for(i=nImpurities-1;i>=0;i--){
-	            if(this.impurities[i+1][0]!=prevImp){
-	                impurityID++;
-	                prevImp=this.impurities[i+1][0];
-	            }
-
-	            //impID, max, maxIndex, average
-	            scores[i]=[impurityID,this.impurities[i+1][2],
-	                this.impurities[i+1][3],0,[],0];
-	            max = 0;
-	            for(var j=nPeaks-1;j>=0;j--){
-	                diff = 10000;//Big numnber
-	                if(this.impurities[i+1][column]>0)
-	                    diff = Math.abs(peakList[j][0]-this.impurities[i+1][column]);
-	                if(diff<gamma*3){
-	                    score=this.score(diff,gamma);
-	                    if(score>max){
-	                        max=score;
-	                        scores[i][3]=max;
-	                        scores[i][4]=[j];
-	                    }
-	                }
-	            }
-	        }
-	        //Calculate the average score for each impurity set of signals
-	        var prevIndex = -1, sum=0, count = 0;
-	        var candidates=[];
-	        var impuritiesPeaks = [];
-	        var i=nImpurities-1;
-	        while(i>=-1){
-	            if(i==-1||scores[i][0]!=prevIndex&&prevIndex!=-1){
-	                if(prevIndex!=-1){
-	                    scores[i+1][5]=sum/count;
-	                    //Now, lets chech the multiplicities
-	                    if(scores[i+1][5]>0.9){
-	                        //console.log(scores[i+1][0]+" SS ");
-	                        score=this.updateScore(candidates, peakList, maxIntensity, frequency);
-	                        if(score>0.9){
-	                            //console.log(candidates);
-	                            //TODO: Remove peaks and add it do impuritiesPeaks
-	                            for(var j=0;j<candidates.length;j++){
-	                                for(var k=candidates[j][4].length-1;k>=0;k--){
-	                                    impuritiesPeaks.push(peakList[candidates[j][4][k]]);
-	                                }
-	                            }
-	                        }
-	                    }
-	                }
-	                if(i>=0){
-	                    prevIndex=scores[i][0];
-	                    sum=scores[i][3];
-	                    count=1;
-	                    candidates=[scores[i]];
-	                }
-
-	            }else{
-	                prevIndex=scores[i][0];
-	                candidates.push(scores[i]);
-	                sum+=scores[i][3];
-	                count++;
-	            }
-	            i--;
-	        }
-	        //console.log(impuritiesPeaks.length);
-
-	        return impuritiesPeaks;
-	    },
 	    /**
 	     Updates the score that a given impurity is present in the current spectrum. In this part I would expect
 	     to have into account the multiplicity of the signal. Also the relative intensity of the signals.
@@ -3932,8 +4107,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    }
 	                }
 	            }
-
-
 	        }
 
 	        //console.log(score/candidates.length+ " -> "+candidates);
@@ -3951,13 +4124,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    score:function(value, gamma){
 	        return Math.exp(-Math.pow(value/gamma,2)/2.0);
-	    },
-	    /**
-	     This function joint all the nearby peaks into single signals. We may try to
-	     determine the J-couplings and the multiplicity here.
-	     */
-	    createSignals:function(){
-
 	    }
 
 	}
@@ -3967,9 +4133,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports) {
 
+	'use strict';
 	/**
 	 * This library implements the J analyser described by Cobas et al in the paper:
 	 * A two-stage approach to automatic determination of 1H NMR coupling constants
@@ -4002,12 +4169,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if(signal.symRank>=0.95&&signal.peaksComp.length<32){
 	            if(this.DEBUG)console.log(signal.delta1+ " nbPeaks "+signal.peaksComp.length);
 	            signal.asymmetric = false;
-	            var i,j,min,max,k=1,P1,Jc=[],n2,maxFlagged;
+	            var i,j,n,k=1,P1,Jc=[],n2,maxFlagged;
 	            //Loop over the possible number of coupling contributing to the multiplet
-	            for(var n=0;n<9;n++){
+	            for(n=0;n<9;n++){
 	                if(this.DEBUG)console.log("Trying "+n+" couplings");
 	                //1.2 Normalize. It makes a deep copy of the peaks before to modify them.
-	                peaks = this.normalize(signal,n);
+	                var peaks = this.normalize(signal,n);
 	                //signal.peaksCompX = peaks;
 	                var validPattern = false;//It will change to true, when we find the good patter
 	                //Lets check if the signal could be a singulet.
@@ -4168,7 +4335,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        else{
 	            pattern="s";
 	            if(Math.abs(signal.startX-signal.stopX)*signal.observe>16){
-	                pattern="bs"
+	                pattern="br s"
 	            }
 	        }
 	        return pattern;
@@ -4205,7 +4372,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    getNextCombination : function(ranges, value){
 	        var half = Math.ceil(ranges.values.length/2), lng = ranges.values.length;
-	        var sum = 0,i;
+	        var sum = 0,i,ok;
 	        while(sum!=value){
 	            //Update the indexes to point at the next possible combination
 	            ok = false;
@@ -4310,7 +4477,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	     */
 	    symmetrize : function(signal, maxError, iteration){
 	        //Before to symmetrize we need to keep only the peaks that possibly conforms the multiplete
-	        var max, min, avg, ratio, avgWidth;
+	        var max, min, avg, ratio, avgWidth, j;
 	        var peaks = new Array(signal.peaks.length);
 	        //Make a deep copy of the peaks and convert PPM ot HZ
 	        for(j=0;j<peaks.length;j++){
@@ -4543,22 +4710,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = JAnalyzer;
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
-	module.exports.post = __webpack_require__(11);
-	module.exports.gsd = __webpack_require__(34);
+	module.exports.post = __webpack_require__(12);
+	module.exports.gsd = __webpack_require__(35);
 
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
 	 * Created by acastillo on 9/6/15.
 	 */
-	var Opt = __webpack_require__(12);
+	var Opt = __webpack_require__(13);
 
 	function sampleFunction(from, to, x, y, lastIndex){
 	    var nbPoints = x.length;
@@ -4831,14 +4998,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var LM = __webpack_require__(13);
+	var LM = __webpack_require__(14);
 	var math = LM.Matrix.algebra;
-	var Matrix = __webpack_require__(25);
+	var Matrix = __webpack_require__(26);
 
 	/**
 	 * This function calculates the spectrum as a sum of lorentzian functions. The Lorentzian
@@ -5173,25 +5340,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports.singleLorentzian = singleLorentzian;
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	module.exports = __webpack_require__(14);
-	module.exports.Matrix = __webpack_require__(15);
-	module.exports.Matrix.algebra = __webpack_require__(24);
+	module.exports = __webpack_require__(15);
+	module.exports.Matrix = __webpack_require__(16);
+	module.exports.Matrix.algebra = __webpack_require__(25);
 
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
 	 * Created by acastillo on 8/5/15.
 	 */
-	var Matrix = __webpack_require__(15);
-	var math = __webpack_require__(24);
+	var Matrix = __webpack_require__(16);
+	var math = __webpack_require__(25);
 
 	var DEBUG = false;
 	/** Levenberg Marquardt curve-fitting: minimize sum of weighted squared residuals
@@ -5706,17 +5873,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = LM;
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	module.exports = __webpack_require__(16);
-	module.exports.Decompositions = module.exports.DC = __webpack_require__(17);
+	module.exports = __webpack_require__(17);
+	module.exports.Decompositions = module.exports.DC = __webpack_require__(18);
 
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -7192,18 +7359,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(16);
+	var Matrix = __webpack_require__(17);
 
-	var SingularValueDecomposition = __webpack_require__(18);
-	var EigenvalueDecomposition = __webpack_require__(20);
-	var LuDecomposition = __webpack_require__(21);
-	var QrDecomposition = __webpack_require__(22);
-	var CholeskyDecomposition = __webpack_require__(23);
+	var SingularValueDecomposition = __webpack_require__(19);
+	var EigenvalueDecomposition = __webpack_require__(21);
+	var LuDecomposition = __webpack_require__(22);
+	var QrDecomposition = __webpack_require__(23);
+	var CholeskyDecomposition = __webpack_require__(24);
 
 	function inverse(matrix) {
 	    return solve(matrix, Matrix.eye(matrix.rows));
@@ -7238,13 +7405,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(16);
-	var hypotenuse = __webpack_require__(19).hypotenuse;
+	var Matrix = __webpack_require__(17);
+	var hypotenuse = __webpack_require__(20).hypotenuse;
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/SingularValueDecomposition.cs
 	function SingularValueDecomposition(value, options) {
@@ -7741,7 +7908,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -7761,13 +7928,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(16);
-	var hypotenuse = __webpack_require__(19).hypotenuse;
+	var Matrix = __webpack_require__(17);
+	var hypotenuse = __webpack_require__(20).hypotenuse;
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/EigenvalueDecomposition.cs
 	function EigenvalueDecomposition(matrix) {
@@ -8533,12 +8700,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(16);
+	var Matrix = __webpack_require__(17);
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/LuDecomposition.cs
 	function LuDecomposition(matrix) {
@@ -8708,13 +8875,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(16);
-	var hypotenuse = __webpack_require__(19).hypotenuse;
+	var Matrix = __webpack_require__(17);
+	var hypotenuse = __webpack_require__(20).hypotenuse;
 
 	//https://github.com/lutzroeder/Mapack/blob/master/Source/QrDecomposition.cs
 	function QrDecomposition(value) {
@@ -8864,12 +9031,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(16);
+	var Matrix = __webpack_require__(17);
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/CholeskyDecomposition.cs
 	function CholeskyDecomposition(value) {
@@ -8959,7 +9126,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -8971,7 +9138,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var Matrix = __webpack_require__(15);
+	var Matrix = __webpack_require__(16);
 
 	function matrix(A,B){
 	    return new Matrix(A,B);
@@ -9217,17 +9384,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	module.exports = __webpack_require__(26);
-	module.exports.Decompositions = module.exports.DC = __webpack_require__(27);
+	module.exports = __webpack_require__(27);
+	module.exports.Decompositions = module.exports.DC = __webpack_require__(28);
 
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -10703,18 +10870,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(26);
+	var Matrix = __webpack_require__(27);
 
-	var SingularValueDecomposition = __webpack_require__(28);
-	var EigenvalueDecomposition = __webpack_require__(30);
-	var LuDecomposition = __webpack_require__(31);
-	var QrDecomposition = __webpack_require__(32);
-	var CholeskyDecomposition = __webpack_require__(33);
+	var SingularValueDecomposition = __webpack_require__(29);
+	var EigenvalueDecomposition = __webpack_require__(31);
+	var LuDecomposition = __webpack_require__(32);
+	var QrDecomposition = __webpack_require__(33);
+	var CholeskyDecomposition = __webpack_require__(34);
 
 	function inverse(matrix) {
 	    return solve(matrix, Matrix.eye(matrix.rows));
@@ -10749,13 +10916,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 28 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(26);
-	var hypotenuse = __webpack_require__(29).hypotenuse;
+	var Matrix = __webpack_require__(27);
+	var hypotenuse = __webpack_require__(30).hypotenuse;
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/SingularValueDecomposition.cs
 	function SingularValueDecomposition(value, options) {
@@ -11252,7 +11419,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 29 */
+/* 30 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -11272,13 +11439,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(26);
-	var hypotenuse = __webpack_require__(29).hypotenuse;
+	var Matrix = __webpack_require__(27);
+	var hypotenuse = __webpack_require__(30).hypotenuse;
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/EigenvalueDecomposition.cs
 	function EigenvalueDecomposition(matrix) {
@@ -12044,12 +12211,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 31 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(26);
+	var Matrix = __webpack_require__(27);
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/LuDecomposition.cs
 	function LuDecomposition(matrix) {
@@ -12219,13 +12386,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 32 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(26);
-	var hypotenuse = __webpack_require__(29).hypotenuse;
+	var Matrix = __webpack_require__(27);
+	var hypotenuse = __webpack_require__(30).hypotenuse;
 
 	//https://github.com/lutzroeder/Mapack/blob/master/Source/QrDecomposition.cs
 	function QrDecomposition(value) {
@@ -12375,12 +12542,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 33 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(26);
+	var Matrix = __webpack_require__(27);
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/CholeskyDecomposition.cs
 	function CholeskyDecomposition(value) {
@@ -12470,16 +12637,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 34 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Opt = __webpack_require__(12);
-	var stats = __webpack_require__(35);
-	var extend = __webpack_require__(6);
+	var Opt = __webpack_require__(13);
+	var stats = __webpack_require__(36);
+	var extend = __webpack_require__(7);
 	var SG = __webpack_require__(38);
 
 	var sgDefOptions = {
-	    windowSize: 5,
+	    windowSize: 9,
 	    polynomial: 3
 	};
 
@@ -12489,56 +12656,70 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var options=Object.create(options || {});
 	    if (options.minMaxRatio===undefined) options.minMaxRatio=0.00025;
 	    if (options.broadRatio===undefined) options.broadRatio=0.00;
-	    if (options.noiseLevel===undefined) options.noiseLevel=0;
+	    if (options.noiseLevel===undefined) options.noiseLevel=undefined;
+	    if (options.noiseFactor===undefined) options.noiseFactor=3;
 	    if (options.maxCriteria===undefined) options.maxCriteria=true;
 	    if (options.smoothY===undefined) options.smoothY=true;
 	    if (options.realTopDetection===undefined) options.realTopDetection=false;
 
 	    var sgOptions = extend({}, sgDefOptions, options.sgOptions);
 
-	    //Transform y to use the standard algorithm.
-	    var yCorrection = {m:1, b:0};
-	    if(!options.maxCriteria||options.noiseLevel>0){
-	        y=[].concat(y);
-	        if(!options.maxCriteria){
-	            yCorrection = {m:-1, b:stats.array.max(y)};
-	            for (var i=0; i<y.length; i++){
-	                y[i]=-y[i]+yCorrection.b;
+	    //console.log(JSON.stringify(stats.array.minMax(y)));
+	    if(options.noiseLevel===undefined){
+	        //We have to know if x is equally spaced
+	        var maxDx=0, minDx=Number.MAX_VALUE,tmp;
+	        for(var i=0;i< x.length-1;i++){
+	            var tmp = Math.abs(x[i+1]-x[i]);
+	            if(tmp<minDx){
+	                minDx = tmp;
 	            }
-	            options.noiseLevel=-options.noiseLevel+yCorrection.b;
+	            if(tmp>maxDx){
+	                maxDx = tmp;
+	            }
 	        }
-	        if (options.noiseLevel>0) {
-	            for (var i=0; i<y.length; i++){
-	                if(Math.abs(y[i])<options.noiseLevel) {
-	                    y[i]=0;
-	                }
-	            }
+
+	        if((maxDx-minDx)/maxDx<0.05){
+
+	            options.noiseLevel = getNoiseLevel(y);
+	            //console.log(options.noiseLevel+" "+stats.array.median(y));
+	        }
+	        else{
+	            options.noiseLevel = 0;
+	        }
+	    }
+	    //console.log("options.noiseLevel "+options.noiseLevel);
+	    y=[].concat(y);
+	    var yCorrection = {m:1, b:options.noiseLevel};
+	    if(!options.maxCriteria){
+	        yCorrection.m =-1;
+	        yCorrection.b*=-1;
+	    }
+
+	    for (var i=0; i<y.length; i++){
+	        y[i]=yCorrection.m*y[i]-yCorrection.b;
+	    }
+
+	    for (var i=0; i<y.length; i++) {
+	        if (y[i] < 0) {
+	            y[i] = 0;
 	        }
 	    }
 
-	    //We have to know if x is equally spaced
-	    var maxDx=0, minDx=Number.MAX_VALUE,tmp;
-	    for(var i=0;i< x.length-1;i++){
-	        var tmp = Math.abs(x[i+1]-x[i]);
-	        if(tmp<minDx){
-	            minDx = tmp;
-	        }
-	        if(tmp>maxDx){
-	            maxDx = tmp;
-	        }
-	    }
 	    //If the max difference between delta x is less than 5%, then, we can assume it to be equally spaced variable
+	    var Y = y;
 	    if((maxDx-minDx)/maxDx<0.05){
-	        var Y = SG(y, x[1]-x[0], {windowSize:sgOptions.windowSize, polynomial:sgOptions.polynomial,derivative:0});
+	        if(options.smoothY)
+	            Y = SG(y, x[1]-x[0], {windowSize:sgOptions.windowSize, polynomial:sgOptions.polynomial,derivative:0});
 	        var dY = SG(y, x[1]-x[0], {windowSize:sgOptions.windowSize, polynomial:sgOptions.polynomial,derivative:1});
 	        var ddY = SG(y, x[1]-x[0], {windowSize:sgOptions.windowSize, polynomial:sgOptions.polynomial,derivative:2});
 	    }
 	    else{
-	        var Y = SG(y, x, {windowSize:sgOptions.windowSize, polynomial:sgOptions.polynomial,derivative:0});
+	        if(options.smoothY)
+	            Y = SG(y, x, {windowSize:sgOptions.windowSize, polynomial:sgOptions.polynomial,derivative:0});
 	        var dY = SG(y, x, {windowSize:sgOptions.windowSize, polynomial:sgOptions.polynomial,derivative:1});
 	        var ddY = SG(y, x, {windowSize:sgOptions.windowSize, polynomial:sgOptions.polynomial,derivative:2});
 	    }
-	    
+
 	    var X = x;
 	    var dx = x[1]-x[0];
 	    var maxDdy=0;
@@ -12594,9 +12775,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	        }
 	    }
-	    if(options.realTopDetection){
-	        realTopDetection(minddY,X,Y);
-	    }
 	    //
 	    //console.log(intervalL.length+" "+minddY.length+" "+broadMask.length);
 	    var signals = [];
@@ -12628,6 +12806,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            //console.log(height);
 	            if (Math.abs(Y[minddY[j]]) > options.minMaxRatio*maxY) {
 	                signals.push({
+	                    i:minddY[j],
 	                    x: frequency,
 	                    y: (Y[minddY[j]]-yCorrection.b)/yCorrection.m,
 	                    width:Math.abs(intervalR[possible] - intervalL[possible]),//widthCorrection
@@ -12635,6 +12814,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	                })
 	            }
 	        }
+	    }
+
+
+	    if(options.realTopDetection){
+	        realTopDetection(signals,X,Y);
+	    }
+
+	    //Correct the values to fit the original spectra data
+	    for(var j=0;j<signals.length;j++){
+	        signals[j].base=options.noiseLevel;
 	    }
 
 	    signals.sort(function (a, b) {
@@ -12645,11 +12834,35 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	}
 
+	function getNoiseLevel(y){
+	    var mean = 0,stddev=0;
+	    var length = y.length,i=0;
+	    for(i = 0; i < length; i++){
+	        mean+=y[i];
+	    }
+	    mean/=length;
+	    var averageDeviations = new Array(length);
+	    for (i = 0; i < length; i++)
+	        averageDeviations[i] = Math.abs(y[i] - mean);
+	    averageDeviations.sort();
+	    if (length % 2 == 1) {
+	        stddev = averageDeviations[(length-1)/2] / 0.6745;
+	    } else {
+	        stddev = 0.5*(averageDeviations[length/2]+averageDeviations[length/2-1]) / 0.6745;
+	    }
+
+	    return stddev;
+	}
+
 	function realTopDetection(peakList, x, y){
+	    //console.log(peakList);
+	    //console.log(x);
+	    //console.log(y);
 	    var listP = [];
 	    var alpha, beta, gamma, p,currentPoint;
 	    for(var j=0;j<peakList.length;j++){
-	        currentPoint = peakList[j];//peakList[j][2];
+	        currentPoint = peakList[j].i;//peakList[j][2];
+	        var tmp = currentPoint;
 	        //The detected peak could be moved 1 or 2 unit to left or right.
 	        if(y[currentPoint-1]>=y[currentPoint-2]
 	            &&y[currentPoint-1]>=y[currentPoint]) {
@@ -12680,10 +12893,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	            beta = 20 * Math.log10(y[currentPoint]);
 	            gamma = 20 * Math.log10(y[currentPoint + 1]);
 	            p = 0.5 * (alpha - gamma) / (alpha - 2 * beta + gamma);
-
-	            x[peakList[j]] = x[currentPoint] + (x[currentPoint]-x[currentPoint-1])*p;
-	            y[peakList[j]] = y[currentPoint] - 0.25 * (y[currentPoint - 1]
-	                - [currentPoint + 1]) * p;//signal.peaks[j].intensity);
+	            //console.log("p: "+p);
+	            //console.log(x[currentPoint]+" "+tmp+" "+currentPoint);
+	            peakList[j].x = x[currentPoint] + (x[currentPoint]-x[currentPoint-1])*p;
+	            peakList[j].y = y[currentPoint] - 0.25 * (y[currentPoint - 1]
+	                - y[currentPoint + 1]) * p;//signal.peaks[j].intensity);
+	            //console.log(y[tmp]+" "+peakList[j].y);
 	        }
 	    }
 	}
@@ -12692,472 +12907,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 35 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	exports.array = __webpack_require__(36);
+	exports.array = __webpack_require__(2);
 	exports.matrix = __webpack_require__(37);
-
-
-/***/ },
-/* 36 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	function compareNumbers(a, b) {
-	    return a - b;
-	}
-
-	/**
-	 * Computes the sum of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.sum = function sum(values) {
-	    var sum = 0;
-	    for (var i = 0; i < values.length; i++) {
-	        sum += values[i];
-	    }
-	    return sum;
-	};
-
-	/**
-	 * Computes the maximum of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.max = function max(values) {
-	    var max = -Infinity;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        if (values[i] > max) max = values[i];
-	    }
-	    return max;
-	};
-
-	/**
-	 * Computes the minimum of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.min = function min(values) {
-	    var min = Infinity;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        if (values[i] < min) min = values[i];
-	    }
-	    return min;
-	};
-
-	/**
-	 * Computes the min and max of the given values
-	 * @param {Array} values
-	 * @returns {{min: number, max: number}}
-	 */
-	exports.minMax = function minMax(values) {
-	    var min = Infinity;
-	    var max = -Infinity;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        if (values[i] < min) min = values[i];
-	        if (values[i] > max) max = values[i];
-	    }
-	    return {
-	        min: min,
-	        max: max
-	    };
-	};
-
-	/**
-	 * Computes the arithmetic mean of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.arithmeticMean = function arithmeticMean(values) {
-	    var sum = 0;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        sum += values[i];
-	    }
-	    return sum / l;
-	};
-
-	/**
-	 * {@link arithmeticMean}
-	 */
-	exports.mean = exports.arithmeticMean;
-
-	/**
-	 * Computes the geometric mean of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.geometricMean = function geometricMean(values) {
-	    var mul = 1;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        mul *= values[i];
-	    }
-	    return Math.pow(mul, 1 / l);
-	};
-
-	/**
-	 * Computes the mean of the log of the given values
-	 * If the return value is exponentiated, it gives the same result as the
-	 * geometric mean.
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.logMean = function logMean(values) {
-	    var lnsum = 0;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        lnsum += Math.log(values[i]);
-	    }
-	    return lnsum / l;
-	};
-
-	/**
-	 * Computes the weighted grand mean for a list of means and sample sizes
-	 * @param {Array} means - Mean values for each set of samples
-	 * @param {Array} samples - Number of original values for each set of samples
-	 * @returns {number}
-	 */
-	exports.grandMean = function grandMean(means, samples) {
-	    var sum = 0;
-	    var n = 0;
-	    var l = means.length;
-	    for (var i = 0; i < l; i++) {
-	        sum += samples[i] * means[i];
-	        n += samples[i];
-	    }
-	    return sum / n;
-	};
-
-	/**
-	 * Computes the truncated mean of the given values using a given percentage
-	 * @param {Array} values
-	 * @param {number} percent - The percentage of values to keep (range: [0,1])
-	 * @param {boolean} [alreadySorted=false]
-	 * @returns {number}
-	 */
-	exports.truncatedMean = function truncatedMean(values, percent, alreadySorted) {
-	    if (alreadySorted === undefined) alreadySorted = false;
-	    if (!alreadySorted) {
-	        values = values.slice().sort(compareNumbers);
-	    }
-	    var l = values.length;
-	    var k = Math.floor(l * percent);
-	    var sum = 0;
-	    for (var i = k; i < (l - k); i++) {
-	        sum += values[i];
-	    }
-	    return sum / (l - 2 * k);
-	};
-
-	/**
-	 * Computes the harmonic mean of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.harmonicMean = function harmonicMean(values) {
-	    var sum = 0;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        if (values[i] === 0) {
-	            throw new RangeError('value at index ' + i + 'is zero');
-	        }
-	        sum += 1 / values[i];
-	    }
-	    return l / sum;
-	};
-
-	/**
-	 * Computes the contraharmonic mean of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.contraHarmonicMean = function contraHarmonicMean(values) {
-	    var r1 = 0;
-	    var r2 = 0;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        r1 += values[i] * values[i];
-	        r2 += values[i];
-	    }
-	    if (r2 < 0) {
-	        throw new RangeError('sum of values is negative');
-	    }
-	    return r1 / r2;
-	};
-
-	/**
-	 * Computes the median of the given values
-	 * @param {Array} values
-	 * @param {boolean} [alreadySorted=false]
-	 * @returns {number}
-	 */
-	exports.median = function median(values, alreadySorted) {
-	    if (alreadySorted === undefined) alreadySorted = false;
-	    if (!alreadySorted) {
-	        values = values.slice().sort(compareNumbers);
-	    }
-	    var l = values.length;
-	    var half = Math.floor(l / 2);
-	    if (l % 2 === 0) {
-	        return (values[half - 1] + values[half]) * 0.5;
-	    } else {
-	        return values[half];
-	    }
-	};
-
-	/**
-	 * Computes the variance of the given values
-	 * @param {Array} values
-	 * @param {boolean} [unbiased=true] - if true, divide by (n-1); if false, divide by n.
-	 * @returns {number}
-	 */
-	exports.variance = function variance(values, unbiased) {
-	    if (unbiased === undefined) unbiased = true;
-	    var theMean = exports.mean(values);
-	    var theVariance = 0;
-	    var l = values.length;
-
-	    for (var i = 0; i < l; i++) {
-	        var x = values[i] - theMean;
-	        theVariance += x * x;
-	    }
-
-	    if (unbiased) {
-	        return theVariance / (l - 1);
-	    } else {
-	        return theVariance / l;
-	    }
-	};
-
-	/**
-	 * Computes the standard deviation of the given values
-	 * @param {Array} values
-	 * @param {boolean} [unbiased=true] - if true, divide by (n-1); if false, divide by n.
-	 * @returns {number}
-	 */
-	exports.standardDeviation = function standardDeviation(values, unbiased) {
-	    return Math.sqrt(exports.variance(values, unbiased));
-	};
-
-	exports.standardError = function standardError(values) {
-	    return exports.standardDeviation(values) / Math.sqrt(values.length);
-	};
-
-	exports.quartiles = function quartiles(values, alreadySorted) {
-	    if (typeof(alreadySorted) === 'undefined') alreadySorted = false;
-	    if (!alreadySorted) {
-	        values = values.slice();
-	        values.sort(compareNumbers);
-	    }
-
-	    var quart = values.length / 4;
-	    var q1 = values[Math.ceil(quart) - 1];
-	    var q2 = exports.median(values, true);
-	    var q3 = values[Math.ceil(quart * 3) - 1];
-
-	    return {q1: q1, q2: q2, q3: q3};
-	};
-
-	exports.pooledStandardDeviation = function pooledStandardDeviation(samples, unbiased) {
-	    return Math.sqrt(exports.pooledVariance(samples, unbiased));
-	};
-
-	exports.pooledVariance = function pooledVariance(samples, unbiased) {
-	    if (typeof(unbiased) === 'undefined') unbiased = true;
-	    var sum = 0;
-	    var length = 0, l = samples.length;
-	    for (var i = 0; i < l; i++) {
-	        var values = samples[i];
-	        var vari = exports.variance(values);
-
-	        sum += (values.length - 1) * vari;
-
-	        if (unbiased)
-	            length += values.length - 1;
-	        else
-	            length += values.length;
-	    }
-	    return sum / length;
-	};
-
-	exports.mode = function mode(values) {
-	    var l = values.length,
-	        itemCount = new Array(l),
-	        i;
-	    for (i = 0; i < l; i++) {
-	        itemCount[i] = 0;
-	    }
-	    var itemArray = new Array(l);
-	    var count = 0;
-
-	    for (i = 0; i < l; i++) {
-	        var index = itemArray.indexOf(values[i]);
-	        if (index >= 0)
-	            itemCount[index]++;
-	        else {
-	            itemArray[count] = values[i];
-	            itemCount[count] = 1;
-	            count++;
-	        }
-	    }
-
-	    var maxValue = 0, maxIndex = 0;
-	    for (i = 0; i < count; i++) {
-	        if (itemCount[i] > maxValue) {
-	            maxValue = itemCount[i];
-	            maxIndex = i;
-	        }
-	    }
-
-	    return itemArray[maxIndex];
-	};
-
-	exports.covariance = function covariance(vector1, vector2, unbiased) {
-	    if (typeof(unbiased) === 'undefined') unbiased = true;
-	    var mean1 = exports.mean(vector1);
-	    var mean2 = exports.mean(vector2);
-
-	    if (vector1.length !== vector2.length)
-	        throw "Vectors do not have the same dimensions";
-
-	    var cov = 0, l = vector1.length;
-	    for (var i = 0; i < l; i++) {
-	        var x = vector1[i] - mean1;
-	        var y = vector2[i] - mean2;
-	        cov += x * y;
-	    }
-
-	    if (unbiased)
-	        return cov / (l - 1);
-	    else
-	        return cov / l;
-	};
-
-	exports.skewness = function skewness(values, unbiased) {
-	    if (typeof(unbiased) === 'undefined') unbiased = true;
-	    var theMean = exports.mean(values);
-
-	    var s2 = 0, s3 = 0, l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        var dev = values[i] - theMean;
-	        s2 += dev * dev;
-	        s3 += dev * dev * dev;
-	    }
-	    var m2 = s2 / l;
-	    var m3 = s3 / l;
-
-	    var g = m3 / (Math.pow(m2, 3 / 2.0));
-	    if (unbiased) {
-	        var a = Math.sqrt(l * (l - 1));
-	        var b = l - 2;
-	        return (a / b) * g;
-	    }
-	    else {
-	        return g;
-	    }
-	};
-
-	exports.kurtosis = function kurtosis(values, unbiased) {
-	    if (typeof(unbiased) === 'undefined') unbiased = true;
-	    var theMean = exports.mean(values);
-	    var n = values.length, s2 = 0, s4 = 0;
-
-	    for (var i = 0; i < n; i++) {
-	        var dev = values[i] - theMean;
-	        s2 += dev * dev;
-	        s4 += dev * dev * dev * dev;
-	    }
-	    var m2 = s2 / n;
-	    var m4 = s4 / n;
-
-	    if (unbiased) {
-	        var v = s2 / (n - 1);
-	        var a = (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3));
-	        var b = s4 / (v * v);
-	        var c = ((n - 1) * (n - 1)) / ((n - 2) * (n - 3));
-
-	        return a * b - 3 * c;
-	    }
-	    else {
-	        return m4 / (m2 * m2) - 3;
-	    }
-	};
-
-	exports.entropy = function entropy(values, eps) {
-	    if (typeof(eps) === 'undefined') eps = 0;
-	    var sum = 0, l = values.length;
-	    for (var i = 0; i < l; i++)
-	        sum += values[i] * Math.log(values[i] + eps);
-	    return -sum;
-	};
-
-	exports.weightedMean = function weightedMean(values, weights) {
-	    var sum = 0, l = values.length;
-	    for (var i = 0; i < l; i++)
-	        sum += values[i] * weights[i];
-	    return sum;
-	};
-
-	exports.weightedStandardDeviation = function weightedStandardDeviation(values, weights) {
-	    return Math.sqrt(exports.weightedVariance(values, weights));
-	};
-
-	exports.weightedVariance = function weightedVariance(values, weights) {
-	    var theMean = exports.weightedMean(values, weights);
-	    var vari = 0, l = values.length;
-	    var a = 0, b = 0;
-
-	    for (var i = 0; i < l; i++) {
-	        var z = values[i] - theMean;
-	        var w = weights[i];
-
-	        vari += w * (z * z);
-	        b += w;
-	        a += w * w;
-	    }
-
-	    return vari * (b / (b * b - a));
-	};
-
-	exports.center = function center(values, inPlace) {
-	    if (typeof(inPlace) === 'undefined') inPlace = false;
-
-	    var result = values;
-	    if (!inPlace)
-	        result = values.slice();
-
-	    var theMean = exports.mean(result), l = result.length;
-	    for (var i = 0; i < l; i++)
-	        result[i] -= theMean;
-	};
-
-	exports.standardize = function standardize(values, standardDev, inPlace) {
-	    if (typeof(standardDev) === 'undefined') standardDev = exports.standardDeviation(values);
-	    if (typeof(inPlace) === 'undefined') inPlace = false;
-	    var l = values.length;
-	    var result = inPlace ? values : new Array(l);
-	    for (var i = 0; i < l; i++)
-	        result[i] = values[i] / standardDev;
-	    return result;
-	};
-
-	exports.cumulativeSum = function cumulativeSum(array) {
-	    var l = array.length;
-	    var result = new Array(l);
-	    result[0] = array[0];
-	    for (var i = 1; i < l; i++)
-	        result[i] = result[i - 1] + array[i];
-	    return result;
-	};
 
 
 /***/ },
@@ -13165,7 +12921,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
-	var arrayStat = __webpack_require__(36);
+	var arrayStat = __webpack_require__(2);
 
 	// https://github.com/accord-net/framework/blob/development/Sources/Accord.Statistics/Tools.cs
 
@@ -13691,13 +13447,13 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
 	//Code translate from Pascal source in http://pubs.acs.org/doi/pdf/10.1021/ac00205a007
-	var extend = __webpack_require__(6);
-	var stat = __webpack_require__(39);
+	var extend = __webpack_require__(7);
+	var stat = __webpack_require__(36);
 
 	var defaultOptions = {
-	    windowSize: 11,
+	    windowSize: 9,
 	    derivative: 0,
-	    polynomial: 2,
+	    polynomial: 3,
 	};
 
 
@@ -13863,1014 +13619,108 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 39 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	exports.array = __webpack_require__(40);
-	exports.matrix = __webpack_require__(41);
-
-
-/***/ },
-/* 40 */
 /***/ function(module, exports) {
 
 	'use strict';
 
-	function compareNumbers(a, b) {
-	    return a - b;
+	var impuritiesList = [
+	    {"solvent":"CDCl3","impurities":[{"shifts":[{"proton":"X","coupling":0,"multiplicity":"ds","shift":7.26}],"name":"solvent_residual_peak"},{"shifts":[{"proton":"H2O","coupling":0,"multiplicity":"bs","shift":1.56}],"name":"H2O"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.1}],"name":"acetic_acid"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.17}],"name":"acetone"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.1}],"name":"acetonitrile"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.36}],"name":"benzene"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.28}],"name":"tert-butyl_alcohol"},{"shifts":[{"proton":"CCH3","coupling":0,"multiplicity":"s","shift":1.19},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.22}],"name":"tert-butyl_methyl_ether"},{"shifts":[{"proton":"ArH","coupling":0,"multiplicity":"s","shift":6.98},{"proton":"OHc","coupling":0,"multiplicity":"s","shift":5.01},{"proton":"ArCH3","coupling":0,"multiplicity":"s","shift":2.27},{"proton":"ArC(CH3)3","coupling":0,"multiplicity":"s","shift":1.43}],"name":"BHTb"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.26}],"name":"chloroform"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":1.43}],"name":"cyclohexane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.73}],"name":"1,2-dichloroethane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":5.3}],"name":"dichloromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.21},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.48}],"name":"diethyl_ether"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.65},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.57},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.39}],"name":"diglyme"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.4},{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.55}],"name":"1,2-dimethoxyethane"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.09},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":3.02},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.94}],"name":"dimethylacetamide"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":8.02},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.96},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.88}],"name":"dimethylformamide"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.62}],"name":"dimethyl_sulfoxide"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.71}],"name":"dioxane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.25},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.72},{"proton":"OH","coupling":5,"multiplicity":"s,t","shift":1.32}],"name":"ethanol"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.05},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":4.12},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.26}],"name":"ethyl_acetate"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.14},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":2.46},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.06}],"name":"ethyl_methyl_ketone"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":3.76}],"name":"ethylene_glycol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"m","shift":0.86},{"proton":"CH2","coupling":0,"multiplicity":"br_s","shift":1.26}],"name":"grease^f"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"t","shift":0.88},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.26}],"name":"n-hexane"},{"shifts":[{"proton":"CH3","coupling":9.5,"multiplicity":"d","shift":2.65}],"name":"HMPAg"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.49},{"proton":"OH","coupling":0,"multiplicity":"s","shift":1.09}],"name":"methanol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":4.33}],"name":"nitromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":7},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.27}],"name":"n-pentane"},{"shifts":[{"proton":"CH3","coupling":6,"multiplicity":"d","shift":1.22},{"proton":"CH","coupling":6,"multiplicity":"sep","shift":4.04}],"name":"2-propanol"},{"shifts":[{"proton":"CH(2)","coupling":0,"multiplicity":"m","shift":8.62},{"proton":"CH(3)","coupling":0,"multiplicity":"m","shift":7.29},{"proton":"CH(4)","coupling":0,"multiplicity":"m","shift":7.68}],"name":"pyridine"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":0.07}],"name":"silicone_greasei"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.85},{"proton":"CH2O","coupling":0,"multiplicity":"m","shift":3.76}],"name":"tetrahydrofuran"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.36},{"proton":"CH(o/p)","coupling":0,"multiplicity":"m","shift":7.17},{"proton":"CH(m)","coupling":0,"multiplicity":"m","shift":7.25}],"name":"toluene"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.03},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":2.53}],"name":"triethylamine"}]},
+	    {"solvent":"(CD3)2CO","impurities":[{"shifts":[{"proton":"X","coupling":0,"multiplicity":"","shift":2.05}],"name":"solvent_residual_peak"},{"shifts":[{"proton":"H2O","coupling":0,"multiplicity":"s","shift":2.84}],"name":"H2O"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.96}],"name":"acetic_acid"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.09}],"name":"acetone"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.05}],"name":"acetonitrile"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.36}],"name":"benzene"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.18}],"name":"tert-butyl_alcohol"},{"shifts":[{"proton":"CCH3","coupling":0,"multiplicity":"s","shift":1.13},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.13}],"name":"tert-butyl_methyl_ether"},{"shifts":[{"proton":"ArH","coupling":0,"multiplicity":"s","shift":6.96},{"proton":"ArCH3","coupling":0,"multiplicity":"s","shift":2.22},{"proton":"ArC(CH3)3","coupling":0,"multiplicity":"s","shift":1.41}],"name":"BHTb"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":8.02}],"name":"chloroform"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":1.43}],"name":"cyclohexane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.87}],"name":"1,2-dichloroethane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":5.63}],"name":"dichloromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.11},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.41}],"name":"diethyl_ether"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.56},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.47},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.28}],"name":"diglyme"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.28},{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.46}],"name":"1,2-dimethoxyethane"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.97},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":3},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.83}],"name":"dimethylacetamide"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.96},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.94},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.78}],"name":"dimethylformamide"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.52}],"name":"dimethyl_sulfoxide"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.59}],"name":"dioxane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.12},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.57},{"proton":"OH","coupling":5,"multiplicity":"s,t","shift":3.39}],"name":"ethanol"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.97},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":4.05},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.2}],"name":"ethyl_acetate"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.07},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":2.45},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":0.96}],"name":"ethyl_methyl_ketone"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":3.28}],"name":"ethylene_glycol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"m","shift":0.87},{"proton":"CH2","coupling":0,"multiplicity":"br_s","shift":1.29}],"name":"grease^f"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"t","shift":0.88},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.28}],"name":"n-hexane"},{"shifts":[{"proton":"CH3","coupling":9.5,"multiplicity":"d","shift":2.59}],"name":"HMPAg"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.31},{"proton":"OH","coupling":0,"multiplicity":"s","shift":3.12}],"name":"methanol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":4.43}],"name":"nitromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.88},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.27}],"name":"n-pentane"},{"shifts":[{"proton":"CH3","coupling":6,"multiplicity":"d","shift":1.1},{"proton":"CH","coupling":6,"multiplicity":"sep","shift":3.9}],"name":"2-propanol"},{"shifts":[{"proton":"CH(2)","coupling":0,"multiplicity":"m","shift":8.58},{"proton":"CH(3)","coupling":0,"multiplicity":"m","shift":7.35},{"proton":"CH(4)","coupling":0,"multiplicity":"m","shift":7.76}],"name":"pyridine"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":0.13}],"name":"silicone_greasei"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.79},{"proton":"CH2O","coupling":0,"multiplicity":"m","shift":3.63}],"name":"tetrahydrofuran"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.32},{"proton":"CH(o/p)","coupling":0,"multiplicity":"m","shift":7.5},{"proton":"CH(m)","coupling":0,"multiplicity":"m","shift":7.5}],"name":"toluene"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.96},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":2.45}],"name":"triethylamine"}]},
+	    {"solvent":"(CD3)2SO/DMSO","impurities":[{"shifts":[{"proton":"X","coupling":0,"multiplicity":"quint","shift":2.5}],"name":"solvent_residual_peak"},{"shifts":[{"proton":"H2O","coupling":0,"multiplicity":"s","shift":3.33}],"name":"H2O"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.91}],"name":"acetic_acid"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.09}],"name":"acetone"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.07}],"name":"acetonitrile"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.37}],"name":"benzene"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.11},{"proton":"OHc","coupling":0,"multiplicity":"s","shift":4.19}],"name":"tert-butyl_alcohol"},{"shifts":[{"proton":"CCH3","coupling":0,"multiplicity":"s","shift":1.11},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.08}],"name":"tert-butyl_methyl_ether"},{"shifts":[{"proton":"ArH","coupling":0,"multiplicity":"s","shift":6.87},{"proton":"OHc","coupling":0,"multiplicity":"s","shift":6.65},{"proton":"ArCH3","coupling":0,"multiplicity":"s","shift":2.18},{"proton":"ArC(CH3)3","coupling":0,"multiplicity":"s","shift":1.36}],"name":"BHTb"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":8.32}],"name":"chloroform"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":1.4}],"name":"cyclohexane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.9}],"name":"1,2-dichloroethane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":5.76}],"name":"dichloromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.09},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.38}],"name":"diethyl_ether"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.51},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.38},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.24}],"name":"diglyme"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.24},{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.43}],"name":"1,2-dimethoxyethane"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.96},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.94},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.78}],"name":"dimethylacetamide"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.95},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.89},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.73}],"name":"dimethylformamide"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.54}],"name":"dimethyl_sulfoxide"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.57}],"name":"dioxane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.06},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.44},{"proton":"OH","coupling":5,"multiplicity":"s,t","shift":4.63}],"name":"ethanol"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.99},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":4.03},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.17}],"name":"ethyl_acetate"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.07},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":2.43},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":0.91}],"name":"ethyl_methyl_ketone"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":3.34}],"name":"ethylene_glycol"},{"shifts":[],"name":"grease^f"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"t","shift":0.86},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.25}],"name":"n-hexane"},{"shifts":[{"proton":"CH3","coupling":9.5,"multiplicity":"d","shift":2.53}],"name":"HMPAg"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.16},{"proton":"OH","coupling":0,"multiplicity":"s","shift":4.01}],"name":"methanol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":4.42}],"name":"nitromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.88},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.27}],"name":"n-pentane"},{"shifts":[{"proton":"CH3","coupling":6,"multiplicity":"d","shift":1.04},{"proton":"CH","coupling":6,"multiplicity":"sep","shift":3.78}],"name":"2-propanol"},{"shifts":[{"proton":"CH(2)","coupling":0,"multiplicity":"m","shift":8.58},{"proton":"CH(3)","coupling":0,"multiplicity":"m","shift":7.39},{"proton":"CH(4)","coupling":0,"multiplicity":"m","shift":7.79}],"name":"pyridine"},{"shifts":[],"name":"silicone_greasei"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.76},{"proton":"CH2O","coupling":0,"multiplicity":"m","shift":3.6}],"name":"tetrahydrofuran"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.3},{"proton":"CH(o/p)","coupling":0,"multiplicity":"m","shift":7.18},{"proton":"CH(m)","coupling":0,"multiplicity":"m","shift":7.25}],"name":"toluene"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.93},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":2.43}],"name":"triethylamine"}]},
+	    {"solvent":"C6D6","impurities":[{"shifts":[{"proton":"X","coupling":0,"multiplicity":"","shift":7.16}],"name":"solvent_residual_peak"},{"shifts":[{"proton":"H2O","coupling":0,"multiplicity":"s","shift":0.4}],"name":"H2O"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.55}],"name":"acetic_acid"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.55}],"name":"acetone"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.55}],"name":"acetonitrile"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.15}],"name":"benzene"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.05},{"proton":"OHc","coupling":0,"multiplicity":"s","shift":1.55}],"name":"tert-butyl_alcohol"},{"shifts":[{"proton":"CCH3","coupling":0,"multiplicity":"s","shift":1.07},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.04}],"name":"tert-butyl_methyl_ether"},{"shifts":[{"proton":"ArH","coupling":0,"multiplicity":"s","shift":7.05},{"proton":"OHc","coupling":0,"multiplicity":"s","shift":4.79},{"proton":"ArCH3","coupling":0,"multiplicity":"s","shift":2.24},{"proton":"ArC(CH3)3","coupling":0,"multiplicity":"s","shift":1.38}],"name":"BHTb"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":6.15}],"name":"chloroform"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":1.4}],"name":"cyclohexane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":2.9}],"name":"1,2-dichloroethane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":4.27}],"name":"dichloromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.11},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.26}],"name":"diethyl_ether"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.46},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.34},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.11}],"name":"diglyme"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.12},{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.33}],"name":"1,2-dimethoxyethane"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.6},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.57},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.05}],"name":"dimethylacetamide"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.63},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.36},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.86}],"name":"dimethylformamide"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.68}],"name":"dimethyl_sulfoxide"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.35}],"name":"dioxane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.96},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.34}],"name":"ethanol"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.65},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":3.89},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":0.92}],"name":"ethyl_acetate"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.58},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":1.81},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":0.85}],"name":"ethyl_methyl_ketone"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":3.41}],"name":"ethylene_glycol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"m","shift":0.92},{"proton":"CH2","coupling":0,"multiplicity":"br_s","shift":1.36}],"name":"grease^f"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"t","shift":0.89},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.24}],"name":"n-hexane"},{"shifts":[{"proton":"CH3","coupling":9.5,"multiplicity":"d","shift":2.4}],"name":"HMPAg"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.07}],"name":"methanol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.94}],"name":"nitromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.86},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.23}],"name":"n-pentane"},{"shifts":[{"proton":"CH3","coupling":6,"multiplicity":"d","shift":0.95},{"proton":"CH","coupling":6,"multiplicity":"sep","shift":3.67}],"name":"2-propanol"},{"shifts":[{"proton":"CH(2)","coupling":0,"multiplicity":"m","shift":8.53},{"proton":"CH(3)","coupling":0,"multiplicity":"m","shift":6.66},{"proton":"CH(4)","coupling":0,"multiplicity":"m","shift":6.98}],"name":"pyridine"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":0.29}],"name":"silicone_greasei"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.4},{"proton":"CH2O","coupling":0,"multiplicity":"m","shift":3.57}],"name":"tetrahydrofuran"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.11},{"proton":"CH(o/p)","coupling":0,"multiplicity":"m","shift":7.02},{"proton":"CH(m)","coupling":0,"multiplicity":"m","shift":7.13}],"name":"toluene"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.96},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":2.4}],"name":"triethylamine"}]},
+	    {"solvent":"CD3CN","impurities":[{"shifts":[{"proton":"X","coupling":0,"multiplicity":"","shift":1.94}],"name":"solvent_residual_peak"},{"shifts":[{"proton":"H2O","coupling":0,"multiplicity":"s","shift":2.13}],"name":"H2O"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.96}],"name":"acetic_acid"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.08}],"name":"acetone"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.96}],"name":"acetonitrile"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.37}],"name":"benzene"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.16},{"proton":"OHc","coupling":0,"multiplicity":"s","shift":2.18}],"name":"tert-butyl_alcohol"},{"shifts":[{"proton":"CCH3","coupling":0,"multiplicity":"s","shift":1.14},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.13}],"name":"tert-butyl_methyl_ether"},{"shifts":[{"proton":"ArH","coupling":0,"multiplicity":"s","shift":6.97},{"proton":"OHc","coupling":0,"multiplicity":"s","shift":5.2},{"proton":"ArCH3","coupling":0,"multiplicity":"s","shift":2.22},{"proton":"ArC(CH3)3","coupling":0,"multiplicity":"s","shift":1.39}],"name":"BHTb"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.58}],"name":"chloroform"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":1.44}],"name":"cyclohexane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.81}],"name":"1,2-dichloroethane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":5.44}],"name":"dichloromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.12},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.42}],"name":"diethyl_ether"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.53},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.45},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.29}],"name":"diglyme"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.28},{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.45}],"name":"1,2-dimethoxyethane"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.97},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.96},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.83}],"name":"dimethylacetamide"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.92},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.89},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.77}],"name":"dimethylformamide"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.5}],"name":"dimethyl_sulfoxide"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.6}],"name":"dioxane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.12},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.54},{"proton":"OH","coupling":5,"multiplicity":"s,t","shift":2.47}],"name":"ethanol"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.97},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":4.06},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.2}],"name":"ethyl_acetate"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.06},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":2.43},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":0.96}],"name":"ethyl_methyl_ketone"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":3.51}],"name":"ethylene_glycol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"m","shift":0.86},{"proton":"CH2","coupling":0,"multiplicity":"br_s","shift":1.27}],"name":"grease^f"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"t","shift":0.89},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.28}],"name":"n-hexane"},{"shifts":[{"proton":"CH3","coupling":9.5,"multiplicity":"d","shift":2.57}],"name":"HMPAg"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.28},{"proton":"OH","coupling":0,"multiplicity":"s","shift":2.16}],"name":"methanol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":4.31}],"name":"nitromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.87},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.29}],"name":"n-pentane"},{"shifts":[{"proton":"CH3","coupling":6,"multiplicity":"d","shift":1.09},{"proton":"CH","coupling":6,"multiplicity":"sep","shift":3.87}],"name":"2-propanol"},{"shifts":[{"proton":"CH(2)","coupling":0,"multiplicity":"m","shift":8.57},{"proton":"CH(3)","coupling":0,"multiplicity":"m","shift":7.33},{"proton":"CH(4)","coupling":0,"multiplicity":"m","shift":7.73}],"name":"pyridine"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":0.08}],"name":"silicone_greasei"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.8},{"proton":"CH2O","coupling":0,"multiplicity":"m","shift":3.64}],"name":"tetrahydrofuran"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.33},{"proton":"CH(o/p)","coupling":0,"multiplicity":"m","shift":7.2},{"proton":"CH(m)","coupling":0,"multiplicity":"m","shift":7.2}],"name":"toluene"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.96},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":2.45}],"name":"triethylamine"}]},
+	    {"solvent":"CD3OD","impurities":[{"shifts":[{"proton":"X","coupling":0,"multiplicity":"","shift":3.31}],"name":"solvent_residual_peak"},{"shifts":[{"proton":"H2O","coupling":0,"multiplicity":"s","shift":4.87}],"name":"H2O"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.99}],"name":"acetic_acid"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.15}],"name":"acetone"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.03}],"name":"acetonitrile"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.33}],"name":"benzene"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.4}],"name":"tert-butyl_alcohol"},{"shifts":[{"proton":"CCH3","coupling":0,"multiplicity":"s","shift":1.15},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.2}],"name":"tert-butyl_methyl_ether"},{"shifts":[{"proton":"ArH","coupling":0,"multiplicity":"s","shift":6.92},{"proton":"ArCH3","coupling":0,"multiplicity":"s","shift":2.21},{"proton":"ArC(CH3)3","coupling":0,"multiplicity":"s","shift":1.4}],"name":"BHTb"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.9}],"name":"chloroform"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":1.45}],"name":"cyclohexane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.78}],"name":"1,2-dichloroethane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":5.49}],"name":"dichloromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.18},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.49}],"name":"diethyl_ether"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.61},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.58},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.35}],"name":"diglyme"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.35},{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.52}],"name":"1,2-dimethoxyethane"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.07},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":3.31},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.92}],"name":"dimethylacetamide"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.97},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.99},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.86}],"name":"dimethylformamide"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.65}],"name":"dimethyl_sulfoxide"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.66}],"name":"dioxane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.19},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.6}],"name":"ethanol"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.01},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":4.09},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.24}],"name":"ethyl_acetate"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.12},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":2.5},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.01}],"name":"ethyl_methyl_ketone"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":3.59}],"name":"ethylene_glycol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"m","shift":0.88},{"proton":"CH2","coupling":0,"multiplicity":"br_s","shift":1.29}],"name":"grease^f"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"t","shift":0.9},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.29}],"name":"n-hexane"},{"shifts":[{"proton":"CH3","coupling":9.5,"multiplicity":"d","shift":2.64}],"name":"HMPAg"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.34}],"name":"methanol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":4.34}],"name":"nitromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.89},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.29}],"name":"n-pentane"},{"shifts":[{"proton":"CH3","coupling":6,"multiplicity":"d","shift":1.5},{"proton":"CH","coupling":6,"multiplicity":"sep","shift":3.92}],"name":"2-propanol"},{"shifts":[{"proton":"CH(2)","coupling":0,"multiplicity":"m","shift":8.53},{"proton":"CH(3)","coupling":0,"multiplicity":"m","shift":7.44},{"proton":"CH(4)","coupling":0,"multiplicity":"m","shift":7.85}],"name":"pyridine"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":0.1}],"name":"silicone_greasei"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.87},{"proton":"CH2O","coupling":0,"multiplicity":"m","shift":3.71}],"name":"tetrahydrofuran"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.32},{"proton":"CH(o/p)","coupling":0,"multiplicity":"m","shift":7.16},{"proton":"CH(m)","coupling":0,"multiplicity":"m","shift":7.16}],"name":"toluene"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.05},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":2.58}],"name":"triethylamine"}]},
+	    {"solvent":"D2O","impurities":[{"shifts":[{"proton":"X","coupling":0,"multiplicity":"","shift":4.79}],"name":"solvent_residual_peak"},{"shifts":[],"name":"H2O"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.08}],"name":"acetic_acid"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.22}],"name":"acetone"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.06}],"name":"acetonitrile"},{"shifts":[],"name":"benzene"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.24}],"name":"tert-butyl_alcohol"},{"shifts":[{"proton":"CCH3","coupling":0,"multiplicity":"s","shift":1.21},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.22}],"name":"tert-butyl_methyl_ether"},{"shifts":[],"name":"BHTb"},{"shifts":[],"name":"chloroform"},{"shifts":[],"name":"cyclohexane"},{"shifts":[],"name":"1,2-dichloroethane"},{"shifts":[],"name":"dichloromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.17},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.56}],"name":"diethyl_ether"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.67},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.61},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.37}],"name":"diglyme"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.37},{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.6}],"name":"1,2-dimethoxyethane"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.08},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":3.06},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.9}],"name":"dimethylacetamide"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.92},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.01},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.85}],"name":"dimethylformamide"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.71}],"name":"dimethyl_sulfoxide"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.75}],"name":"dioxane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.17},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.65}],"name":"ethanol"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.07},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":4.14},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.24}],"name":"ethyl_acetate"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.19},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":3.18},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.26}],"name":"ethyl_methyl_ketone"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":3.65}],"name":"ethylene_glycol"},{"shifts":[],"name":"grease^f"},{"shifts":[],"name":"n-hexane"},{"shifts":[{"proton":"CH3","coupling":9.5,"multiplicity":"d","shift":2.61}],"name":"HMPAg"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.34}],"name":"methanol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":4.4}],"name":"nitromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.9}],"name":"n-pentane"},{"shifts":[{"proton":"CH3","coupling":6,"multiplicity":"d","shift":1.17},{"proton":"CH","coupling":6,"multiplicity":"sep","shift":4.02}],"name":"2-propanol"},{"shifts":[{"proton":"CH(2)","coupling":0,"multiplicity":"m","shift":8.52},{"proton":"CH(3)","coupling":0,"multiplicity":"m","shift":7.45},{"proton":"CH(4)","coupling":0,"multiplicity":"m","shift":7.87}],"name":"pyridine"},{"shifts":[],"name":"silicone_greasei"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.88},{"proton":"CH2O","coupling":0,"multiplicity":"m","shift":3.74}],"name":"tetrahydrofuran"},{"shifts":[],"name":"toluene"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.99},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":2.57}],"name":"triethylamine"}]}];
+
+	var look4 = "solvent_residual_peak"+"H2O"+"TMS";
+	var pascalTriangle = [[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1],[1,5,10,10,5,1],[1,6,15,20,15,6,1]];
+	var patterns = ["s","d","t","q","quint","h","sept","o","n"];
+
+	function removeSignal(peak, noiseSignal){
+
 	}
 
-	/**
-	 * Computes the sum of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.sum = function sum(values) {
-	    var sum = 0;
-	    for (var i = 0; i < values.length; i++) {
-	        sum += values[i];
-	    }
-	    return sum;
-	};
-
-	/**
-	 * Computes the maximum of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.max = function max(values) {
-	    var max = -Infinity;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        if (values[i] > max) max = values[i];
-	    }
-	    return max;
-	};
-
-	/**
-	 * Computes the minimum of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.min = function min(values) {
-	    var min = Infinity;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        if (values[i] < min) min = values[i];
-	    }
-	    return min;
-	};
-
-	/**
-	 * Computes the min and max of the given values
-	 * @param {Array} values
-	 * @returns {{min: number, max: number}}
-	 */
-	exports.minMax = function minMax(values) {
-	    var min = Infinity;
-	    var max = -Infinity;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        if (values[i] < min) min = values[i];
-	        if (values[i] > max) max = values[i];
-	    }
-	    return {
-	        min: min,
-	        max: max
-	    };
-	};
-
-	/**
-	 * Computes the arithmetic mean of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.arithmeticMean = function arithmeticMean(values) {
-	    var sum = 0;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        sum += values[i];
-	    }
-	    return sum / l;
-	};
-
-	/**
-	 * {@link arithmeticMean}
-	 */
-	exports.mean = exports.arithmeticMean;
-
-	/**
-	 * Computes the geometric mean of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.geometricMean = function geometricMean(values) {
-	    var mul = 1;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        mul *= values[i];
-	    }
-	    return Math.pow(mul, 1 / l);
-	};
-
-	/**
-	 * Computes the mean of the log of the given values
-	 * If the return value is exponentiated, it gives the same result as the
-	 * geometric mean.
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.logMean = function logMean(values) {
-	    var lnsum = 0;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        lnsum += Math.log(values[i]);
-	    }
-	    return lnsum / l;
-	};
-
-	/**
-	 * Computes the weighted grand mean for a list of means and sample sizes
-	 * @param {Array} means - Mean values for each set of samples
-	 * @param {Array} samples - Number of original values for each set of samples
-	 * @returns {number}
-	 */
-	exports.grandMean = function grandMean(means, samples) {
-	    var sum = 0;
-	    var n = 0;
-	    var l = means.length;
-	    for (var i = 0; i < l; i++) {
-	        sum += samples[i] * means[i];
-	        n += samples[i];
-	    }
-	    return sum / n;
-	};
-
-	/**
-	 * Computes the truncated mean of the given values using a given percentage
-	 * @param {Array} values
-	 * @param {number} percent - The percentage of values to keep (range: [0,1])
-	 * @param {boolean} [alreadySorted=false]
-	 * @returns {number}
-	 */
-	exports.truncatedMean = function truncatedMean(values, percent, alreadySorted) {
-	    if (alreadySorted === undefined) alreadySorted = false;
-	    if (!alreadySorted) {
-	        values = values.slice().sort(compareNumbers);
-	    }
-	    var l = values.length;
-	    var k = Math.floor(l * percent);
-	    var sum = 0;
-	    for (var i = k; i < (l - k); i++) {
-	        sum += values[i];
-	    }
-	    return sum / (l - 2 * k);
-	};
-
-	/**
-	 * Computes the harmonic mean of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.harmonicMean = function harmonicMean(values) {
-	    var sum = 0;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        if (values[i] === 0) {
-	            throw new RangeError('value at index ' + i + 'is zero');
+	function checkImpurity(peakList, impurity){
+	    var error = 0.025,i;
+	    var found = false;
+	    var indexes = new Array(impurity.length);
+	    for(i=0;i<impurity.length;i++){
+	        found=false;
+	        for(var j=0;j<peakList.length;j++){
+	            if(Math.abs(impurity[i].shift-peakList[j].delta1)<
+	                (error+Math.abs(peakList[j].startX-peakList[j].stopX)/2)&&
+	                (impurity[i].multiplicity===""||
+	                (impurity[i].multiplicity.indexOf(peakList[j].multiplicity)>=0&&!peakList[j].asymmetric))){
+	                found = true;
+	                indexes[i]=j;
+	                break;
+	            }
 	        }
-	        sum += 1 / values[i];
-	    }
-	    return l / sum;
-	};
-
-	/**
-	 * Computes the contraharmonic mean of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.contraHarmonicMean = function contraHarmonicMean(values) {
-	    var r1 = 0;
-	    var r2 = 0;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        r1 += values[i] * values[i];
-	        r2 += values[i];
-	    }
-	    if (r2 < 0) {
-	        throw new RangeError('sum of values is negative');
-	    }
-	    return r1 / r2;
-	};
-
-	/**
-	 * Computes the median of the given values
-	 * @param {Array} values
-	 * @param {boolean} [alreadySorted=false]
-	 * @returns {number}
-	 */
-	exports.median = function median(values, alreadySorted) {
-	    if (alreadySorted === undefined) alreadySorted = false;
-	    if (!alreadySorted) {
-	        values = values.slice().sort(compareNumbers);
-	    }
-	    var l = values.length;
-	    var half = Math.floor(l / 2);
-	    if (l % 2 === 0) {
-	        return (values[half - 1] + values[half]) * 0.5;
-	    } else {
-	        return values[half];
-	    }
-	};
-
-	/**
-	 * Computes the variance of the given values
-	 * @param {Array} values
-	 * @param {boolean} [unbiased=true] - if true, divide by (n-1); if false, divide by n.
-	 * @returns {number}
-	 */
-	exports.variance = function variance(values, unbiased) {
-	    if (unbiased === undefined) unbiased = true;
-	    var theMean = exports.mean(values);
-	    var theVariance = 0;
-	    var l = values.length;
-
-	    for (var i = 0; i < l; i++) {
-	        var x = values[i] - theMean;
-	        theVariance += x * x;
+	        if(!found)
+	            break;
 	    }
 
-	    if (unbiased) {
-	        return theVariance / (l - 1);
-	    } else {
-	        return theVariance / l;
-	    }
-	};
-
-	/**
-	 * Computes the standard deviation of the given values
-	 * @param {Array} values
-	 * @param {boolean} [unbiased=true] - if true, divide by (n-1); if false, divide by n.
-	 * @returns {number}
-	 */
-	exports.standardDeviation = function standardDeviation(values, unbiased) {
-	    return Math.sqrt(exports.variance(values, unbiased));
-	};
-
-	exports.standardError = function standardError(values) {
-	    return exports.standardDeviation(values) / Math.sqrt(values.length);
-	};
-
-	exports.quartiles = function quartiles(values, alreadySorted) {
-	    if (typeof(alreadySorted) === 'undefined') alreadySorted = false;
-	    if (!alreadySorted) {
-	        values = values.slice();
-	        values.sort(compareNumbers);
-	    }
-
-	    var quart = values.length / 4;
-	    var q1 = values[Math.ceil(quart) - 1];
-	    var q2 = exports.median(values, true);
-	    var q3 = values[Math.ceil(quart * 3) - 1];
-
-	    return {q1: q1, q2: q2, q3: q3};
-	};
-
-	exports.pooledStandardDeviation = function pooledStandardDeviation(samples, unbiased) {
-	    return Math.sqrt(exports.pooledVariance(samples, unbiased));
-	};
-
-	exports.pooledVariance = function pooledVariance(samples, unbiased) {
-	    if (typeof(unbiased) === 'undefined') unbiased = true;
-	    var sum = 0;
-	    var length = 0, l = samples.length;
-	    for (var i = 0; i < l; i++) {
-	        var values = samples[i];
-	        var vari = exports.variance(values);
-
-	        sum += (values.length - 1) * vari;
-
-	        if (unbiased)
-	            length += values.length - 1;
-	        else
-	            length += values.length;
-	    }
-	    return sum / length;
-	};
-
-	exports.mode = function mode(values) {
-	    var l = values.length,
-	        itemCount = new Array(l),
-	        i;
-	    for (i = 0; i < l; i++) {
-	        itemCount[i] = 0;
-	    }
-	    var itemArray = new Array(l);
-	    var count = 0;
-
-	    for (i = 0; i < l; i++) {
-	        var index = itemArray.indexOf(values[i]);
-	        if (index >= 0)
-	            itemCount[index]++;
-	        else {
-	            itemArray[count] = values[i];
-	            itemCount[count] = 1;
-	            count++;
+	    var toRemove = [];
+	    if(found){
+	        for(i=0;i<impurity.length;i++){
+	            toRemove.push(indexes[i]);
 	        }
 	    }
-
-	    var maxValue = 0, maxIndex = 0;
-	    for (i = 0; i < count; i++) {
-	        if (itemCount[i] > maxValue) {
-	            maxValue = itemCount[i];
-	            maxIndex = i;
-	        }
-	    }
-
-	    return itemArray[maxIndex];
-	};
-
-	exports.covariance = function covariance(vector1, vector2, unbiased) {
-	    if (typeof(unbiased) === 'undefined') unbiased = true;
-	    var mean1 = exports.mean(vector1);
-	    var mean2 = exports.mean(vector2);
-
-	    if (vector1.length !== vector2.length)
-	        throw "Vectors do not have the same dimensions";
-
-	    var cov = 0, l = vector1.length;
-	    for (var i = 0; i < l; i++) {
-	        var x = vector1[i] - mean1;
-	        var y = vector2[i] - mean2;
-	        cov += x * y;
-	    }
-
-	    if (unbiased)
-	        return cov / (l - 1);
 	    else
-	        return cov / l;
-	};
-
-	exports.skewness = function skewness(values, unbiased) {
-	    if (typeof(unbiased) === 'undefined') unbiased = true;
-	    var theMean = exports.mean(values);
-
-	    var s2 = 0, s3 = 0, l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        var dev = values[i] - theMean;
-	        s2 += dev * dev;
-	        s3 += dev * dev * dev;
+	        return 0;
+	    for(i=0;i<toRemove.length;i++){
+	        peakList[toRemove[i]].integralData.value = 0;
 	    }
-	    var m2 = s2 / l;
-	    var m3 = s3 / l;
+	    return 1;
+	}
 
-	    var g = m3 / (Math.pow(m2, 3 / 2.0));
-	    if (unbiased) {
-	        var a = Math.sqrt(l * (l - 1));
-	        var b = l - 2;
-	        return (a / b) * g;
+	function removeImpurities(peakList, solvent, nH){
+	    var impurities = null, i;
+	    for(i=0;i<impuritiesList.length;i++){
+	        if(impuritiesList[i].solvent.indexOf(solvent)>=0){
+	            impurities = impuritiesList[i].impurities;
+	            break;
+	        }
 	    }
-	    else {
-	        return g;
+	    impurities.push({"shifts":[{"proton":"X","coupling":0,"multiplicity":"","shift":0.0}],"name":"TMS"});
+	    var nCols = peakList.length;
+	    var nRows = impurities.length;
+	    var scores = new Array(nRows);
+	    for(i=0;i<nRows;i++){
+	        if( look4.indexOf(impurities[i].name)>=0){
+	            scores[i]=checkImpurity(peakList, impurities[i].shifts);
+	        }
 	    }
-	};
-
-	exports.kurtosis = function kurtosis(values, unbiased) {
-	    if (typeof(unbiased) === 'undefined') unbiased = true;
-	    var theMean = exports.mean(values);
-	    var n = values.length, s2 = 0, s4 = 0;
-
-	    for (var i = 0; i < n; i++) {
-	        var dev = values[i] - theMean;
-	        s2 += dev * dev;
-	        s4 += dev * dev * dev * dev;
+	    //Recompute the integrals
+	    var sumObserved=0;
+	    for(i=0;i<peakList.length;i++){
+	        sumObserved+=peakList[i].integralData.value;
 	    }
-	    var m2 = s2 / n;
-	    var m4 = s4 / n;
-
-	    if (unbiased) {
-	        var v = s2 / (n - 1);
-	        var a = (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3));
-	        var b = s4 / (v * v);
-	        var c = ((n - 1) * (n - 1)) / ((n - 2) * (n - 3));
-
-	        return a * b - 3 * c;
+	    if(sumObserved!=nH){
+	        sumObserved=nH/sumObserved;
+	        for(i=0;i<peakList.length;i++){
+	            peakList[i].integralData.value*=sumObserved;
+	        }
 	    }
-	    else {
-	        return m4 / (m2 * m2) - 3;
-	    }
-	};
+	}
 
-	exports.entropy = function entropy(values, eps) {
-	    if (typeof(eps) === 'undefined') eps = 0;
-	    var sum = 0, l = values.length;
-	    for (var i = 0; i < l; i++)
-	        sum += values[i] * Math.log(values[i] + eps);
-	    return -sum;
-	};
+	module.exports = removeImpurities;
 
-	exports.weightedMean = function weightedMean(values, weights) {
-	    var sum = 0, l = values.length;
-	    for (var i = 0; i < l; i++)
-	        sum += values[i] * weights[i];
-	    return sum;
-	};
+/***/ },
+/* 40 */
+/***/ function(module, exports, __webpack_require__) {
 
-	exports.weightedStandardDeviation = function weightedStandardDeviation(values, weights) {
-	    return Math.sqrt(exports.weightedVariance(values, weights));
-	};
+	'use strict';
 
-	exports.weightedVariance = function weightedVariance(values, weights) {
-	    var theMean = exports.weightedMean(values, weights);
-	    var vari = 0, l = values.length;
-	    var a = 0, b = 0;
-
-	    for (var i = 0; i < l; i++) {
-	        var z = values[i] - theMean;
-	        var w = weights[i];
-
-	        vari += w * (z * z);
-	        b += w;
-	        a += w * w;
-	    }
-
-	    return vari * (b / (b * b - a));
-	};
-
-	exports.center = function center(values, inPlace) {
-	    if (typeof(inPlace) === 'undefined') inPlace = false;
-
-	    var result = values;
-	    if (!inPlace)
-	        result = values.slice();
-
-	    var theMean = exports.mean(result), l = result.length;
-	    for (var i = 0; i < l; i++)
-	        result[i] -= theMean;
-	};
-
-	exports.standardize = function standardize(values, standardDev, inPlace) {
-	    if (typeof(standardDev) === 'undefined') standardDev = exports.standardDeviation(values);
-	    if (typeof(inPlace) === 'undefined') inPlace = false;
-	    var l = values.length;
-	    var result = inPlace ? values : new Array(l);
-	    for (var i = 0; i < l; i++)
-	        result[i] = values[i] / standardDev;
-	    return result;
-	};
-
-	exports.cumulativeSum = function cumulativeSum(array) {
-	    var l = array.length;
-	    var result = new Array(l);
-	    result[0] = array[0];
-	    for (var i = 1; i < l; i++)
-	        result[i] = result[i - 1] + array[i];
-	    return result;
-	};
+	exports.FFTUtils = __webpack_require__(41);
+	exports.FFT = __webpack_require__(42);
 
 
 /***/ },
 /* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
-	var arrayStat = __webpack_require__(40);
-
-	// https://github.com/accord-net/framework/blob/development/Sources/Accord.Statistics/Tools.cs
-
-	function entropy(matrix, eps) {
-	    if (typeof(eps) === 'undefined') {
-	        eps = 0;
-	    }
-	    var sum = 0,
-	        l1 = matrix.length,
-	        l2 = matrix[0].length;
-	    for (var i = 0; i < l1; i++) {
-	        for (var j = 0; j < l2; j++) {
-	            sum += matrix[i][j] * Math.log(matrix[i][j] + eps);
-	        }
-	    }
-	    return -sum;
-	}
-
-	function mean(matrix, dimension) {
-	    if (typeof(dimension) === 'undefined') {
-	        dimension = 0;
-	    }
-	    var rows = matrix.length,
-	        cols = matrix[0].length,
-	        theMean, N, i, j;
-
-	    if (dimension === -1) {
-	        theMean = [0];
-	        N = rows * cols;
-	        for (i = 0; i < rows; i++) {
-	            for (j = 0; j < cols; j++) {
-	                theMean[0] += matrix[i][j];
-	            }
-	        }
-	        theMean[0] /= N;
-	    } else if (dimension === 0) {
-	        theMean = new Array(cols);
-	        N = rows;
-	        for (j = 0; j < cols; j++) {
-	            theMean[j] = 0;
-	            for (i = 0; i < rows; i++) {
-	                theMean[j] += matrix[i][j];
-	            }
-	            theMean[j] /= N;
-	        }
-	    } else if (dimension === 1) {
-	        theMean = new Array(rows);
-	        N = cols;
-	        for (j = 0; j < rows; j++) {
-	            theMean[j] = 0;
-	            for (i = 0; i < cols; i++) {
-	                theMean[j] += matrix[j][i];
-	            }
-	            theMean[j] /= N;
-	        }
-	    } else {
-	        throw new Error('Invalid dimension');
-	    }
-	    return theMean;
-	}
-
-	function standardDeviation(matrix, means, unbiased) {
-	    var vari = variance(matrix, means, unbiased), l = vari.length;
-	    for (var i = 0; i < l; i++) {
-	        vari[i] = Math.sqrt(vari[i]);
-	    }
-	    return vari;
-	}
-
-	function variance(matrix, means, unbiased) {
-	    if (typeof(unbiased) === 'undefined') {
-	        unbiased = true;
-	    }
-	    means = means || mean(matrix);
-	    var rows = matrix.length;
-	    if (rows === 0) return [];
-	    var cols = matrix[0].length;
-	    var vari = new Array(cols);
-
-	    for (var j = 0; j < cols; j++) {
-	        var sum1 = 0, sum2 = 0, x = 0;
-	        for (var i = 0; i < rows; i++) {
-	            x = matrix[i][j] - means[j];
-	            sum1 += x;
-	            sum2 += x * x;
-	        }
-	        if (unbiased) {
-	            vari[j] = (sum2 - ((sum1 * sum1) / rows)) / (rows - 1);
-	        } else {
-	            vari[j] = (sum2 - ((sum1 * sum1) / rows)) / rows;
-	        }
-	    }
-	    return vari;
-	}
-
-	function median(matrix) {
-	    var rows = matrix.length, cols = matrix[0].length;
-	    var medians = new Array(cols);
-
-	    for (var i = 0; i < cols; i++) {
-	        var data = new Array(rows);
-	        for (var j = 0; j < rows; j++) {
-	            data[j] = matrix[j][i];
-	        }
-	        data.sort();
-	        var N = data.length;
-	        if (N % 2 === 0) {
-	            medians[i] = (data[N / 2] + data[(N / 2) - 1]) * 0.5;
-	        } else {
-	            medians[i] = data[Math.floor(N / 2)];
-	        }
-	    }
-	    return medians;
-	}
-
-	function mode(matrix) {
-	    var rows = matrix.length,
-	        cols = matrix[0].length,
-	        modes = new Array(cols),
-	        i, j;
-	    for (i = 0; i < cols; i++) {
-	        var itemCount = new Array(rows);
-	        for (var k = 0; k < rows; k++) {
-	            itemCount[k] = 0;
-	        }
-	        var itemArray = new Array(rows);
-	        var count = 0;
-
-	        for (j = 0; j < rows; j++) {
-	            var index = itemArray.indexOf(matrix[j][i]);
-	            if (index >= 0) {
-	                itemCount[index]++;
-	            } else {
-	                itemArray[count] = matrix[j][i];
-	                itemCount[count] = 1;
-	                count++;
-	            }
-	        }
-
-	        var maxValue = 0, maxIndex = 0;
-	        for (j = 0; j < count; j++) {
-	            if (itemCount[j] > maxValue) {
-	                maxValue = itemCount[j];
-	                maxIndex = j;
-	            }
-	        }
-
-	        modes[i] = itemArray[maxIndex];
-	    }
-	    return modes;
-	}
-
-	function skewness(matrix, unbiased) {
-	    if (typeof(unbiased) === 'undefined') unbiased = true;
-	    var means = mean(matrix);
-	    var n = matrix.length, l = means.length;
-	    var skew = new Array(l);
-
-	    for (var j = 0; j < l; j++) {
-	        var s2 = 0, s3 = 0;
-	        for (var i = 0; i < n; i++) {
-	            var dev = matrix[i][j] - means[j];
-	            s2 += dev * dev;
-	            s3 += dev * dev * dev;
-	        }
-
-	        var m2 = s2 / n;
-	        var m3 = s3 / n;
-	        var g = m3 / Math.pow(m2, 3 / 2);
-
-	        if (unbiased) {
-	            var a = Math.sqrt(n * (n - 1));
-	            var b = n - 2;
-	            skew[j] = (a / b) * g;
-	        } else {
-	            skew[j] = g;
-	        }
-	    }
-	    return skew;
-	}
-
-	function kurtosis(matrix, unbiased) {
-	    if (typeof(unbiased) === 'undefined') unbiased = true;
-	    var means = mean(matrix);
-	    var n = matrix.length, m = matrix[0].length;
-	    var kurt = new Array(m);
-
-	    for (var j = 0; j < m; j++) {
-	        var s2 = 0, s4 = 0;
-	        for (var i = 0; i < n; i++) {
-	            var dev = matrix[i][j] - means[j];
-	            s2 += dev * dev;
-	            s4 += dev * dev * dev * dev;
-	        }
-	        var m2 = s2 / n;
-	        var m4 = s4 / n;
-
-	        if (unbiased) {
-	            var v = s2 / (n - 1);
-	            var a = (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3));
-	            var b = s4 / (v * v);
-	            var c = ((n - 1) * (n - 1)) / ((n - 2) * (n - 3));
-	            kurt[j] = a * b - 3 * c;
-	        } else {
-	            kurt[j] = m4 / (m2 * m2) - 3;
-	        }
-	    }
-	    return kurt;
-	}
-
-	function standardError(matrix) {
-	    var samples = matrix.length;
-	    var standardDeviations = standardDeviation(matrix), l = standardDeviations.length;
-	    var standardErrors = new Array(l);
-	    var sqrtN = Math.sqrt(samples);
-
-	    for (var i = 0; i < l; i++) {
-	        standardErrors[i] = standardDeviations[i] / sqrtN;
-	    }
-	    return standardErrors;
-	}
-
-	function covariance(matrix, dimension) {
-	    return scatter(matrix, undefined, dimension);
-	}
-
-	function scatter(matrix, divisor, dimension) {
-	    if (typeof(dimension) === 'undefined') {
-	        dimension = 0;
-	    }
-	    if (typeof(divisor) === 'undefined') {
-	        if (dimension === 0) {
-	            divisor = matrix.length - 1;
-	        } else if (dimension === 1) {
-	            divisor = matrix[0].length - 1;
-	        }
-	    }
-	    var means = mean(matrix, dimension),
-	        rows = matrix.length;
-	    if (rows === 0) {
-	        return [[]];
-	    }
-	    var cols = matrix[0].length,
-	        cov, i, j, s, k;
-
-	    if (dimension === 0) {
-	        cov = new Array(cols);
-	        for (i = 0; i < cols; i++) {
-	            cov[i] = new Array(cols);
-	        }
-	        for (i = 0; i < cols; i++) {
-	            for (j = i; j < cols; j++) {
-	                s = 0;
-	                for (k = 0; k < rows; k++) {
-	                    s += (matrix[k][j] - means[j]) * (matrix[k][i] - means[i]);
-	                }
-	                s /= divisor;
-	                cov[i][j] = s;
-	                cov[j][i] = s;
-	            }
-	        }
-	    } else if (dimension === 1) {
-	        cov = new Array(rows);
-	        for (i = 0; i < rows; i++) {
-	            cov[i] = new Array(rows);
-	        }
-	        for (i = 0; i < rows; i++) {
-	            for (j = i; j < rows; j++) {
-	                s = 0;
-	                for (k = 0; k < cols; k++) {
-	                    s += (matrix[j][k] - means[j]) * (matrix[i][k] - means[i]);
-	                }
-	                s /= divisor;
-	                cov[i][j] = s;
-	                cov[j][i] = s;
-	            }
-	        }
-	    } else {
-	        throw new Error('Invalid dimension');
-	    }
-
-	    return cov;
-	}
-
-	function correlation(matrix) {
-	    var means = mean(matrix),
-	        standardDeviations = standardDeviation(matrix, true, means),
-	        scores = zScores(matrix, means, standardDeviations),
-	        rows = matrix.length,
-	        cols = matrix[0].length,
-	        i, j;
-
-	    var cor = new Array(cols);
-	    for (i = 0; i < cols; i++) {
-	        cor[i] = new Array(cols);
-	    }
-	    for (i = 0; i < cols; i++) {
-	        for (j = i; j < cols; j++) {
-	            var c = 0;
-	            for (var k = 0, l = scores.length; k < l; k++) {
-	                c += scores[k][j] * scores[k][i];
-	            }
-	            c /= rows - 1;
-	            cor[i][j] = c;
-	            cor[j][i] = c;
-	        }
-	    }
-	    return cor;
-	}
-
-	function zScores(matrix, means, standardDeviations) {
-	    means = means || mean(matrix);
-	    if (typeof(standardDeviations) === 'undefined') standardDeviations = standardDeviation(matrix, true, means);
-	    return standardize(center(matrix, means, false), standardDeviations, true);
-	}
-
-	function center(matrix, means, inPlace) {
-	    means = means || mean(matrix);
-	    var result = matrix,
-	        l = matrix.length,
-	        i, j, jj;
-
-	    if (!inPlace) {
-	        result = new Array(l);
-	        for (i = 0; i < l; i++) {
-	            result[i] = new Array(matrix[i].length);
-	        }
-	    }
-
-	    for (i = 0; i < l; i++) {
-	        var row = result[i];
-	        for (j = 0, jj = row.length; j < jj; j++) {
-	            row[j] = matrix[i][j] - means[j];
-	        }
-	    }
-	    return result;
-	}
-
-	function standardize(matrix, standardDeviations, inPlace) {
-	    if (typeof(standardDeviations) === 'undefined') standardDeviations = standardDeviation(matrix);
-	    var result = matrix,
-	        l = matrix.length,
-	        i, j, jj;
-
-	    if (!inPlace) {
-	        result = new Array(l);
-	        for (i = 0; i < l; i++) {
-	            result[i] = new Array(matrix[i].length);
-	        }
-	    }
-
-	    for (i = 0; i < l; i++) {
-	        var resultRow = result[i];
-	        var sourceRow = matrix[i];
-	        for (j = 0, jj = resultRow.length; j < jj; j++) {
-	            if (standardDeviations[j] !== 0 && !isNaN(standardDeviations[j])) {
-	                resultRow[j] = sourceRow[j] / standardDeviations[j];
-	            }
-	        }
-	    }
-	    return result;
-	}
-
-	function weightedVariance(matrix, weights) {
-	    var means = mean(matrix);
-	    var rows = matrix.length;
-	    if (rows === 0) return [];
-	    var cols = matrix[0].length;
-	    var vari = new Array(cols);
-
-	    for (var j = 0; j < cols; j++) {
-	        var sum = 0;
-	        var a = 0, b = 0;
-
-	        for (var i = 0; i < rows; i++) {
-	            var z = matrix[i][j] - means[j];
-	            var w = weights[i];
-
-	            sum += w * (z * z);
-	            b += w;
-	            a += w * w;
-	        }
-
-	        vari[j] = sum * (b / (b * b - a));
-	    }
-
-	    return vari;
-	}
-
-	function weightedMean(matrix, weights, dimension) {
-	    if (typeof(dimension) === 'undefined') {
-	        dimension = 0;
-	    }
-	    var rows = matrix.length;
-	    if (rows === 0) return [];
-	    var cols = matrix[0].length,
-	        means, i, ii, j, w, row;
-
-	    if (dimension === 0) {
-	        means = new Array(cols);
-	        for (i = 0; i < cols; i++) {
-	            means[i] = 0;
-	        }
-	        for (i = 0; i < rows; i++) {
-	            row = matrix[i];
-	            w = weights[i];
-	            for (j = 0; j < cols; j++) {
-	                means[j] += row[j] * w;
-	            }
-	        }
-	    } else if (dimension === 1) {
-	        means = new Array(rows);
-	        for (i = 0; i < rows; i++) {
-	            means[i] = 0;
-	        }
-	        for (j = 0; j < rows; j++) {
-	            row = matrix[j];
-	            w = weights[j];
-	            for (i = 0; i < cols; i++) {
-	                means[j] += row[i] * w;
-	            }
-	        }
-	    } else {
-	        throw new Error('Invalid dimension');
-	    }
-
-	    var weightSum = arrayStat.sum(weights);
-	    if (weightSum !== 0) {
-	        for (i = 0, ii = means.length; i < ii; i++) {
-	            means[i] /= weightSum;
-	        }
-	    }
-	    return means;
-	}
-
-	function weightedCovariance(matrix, weights, means, dimension) {
-	    dimension = dimension || 0;
-	    means = means || weightedMean(matrix, weights, dimension);
-	    var s1 = 0, s2 = 0;
-	    for (var i = 0, ii = weights.length; i < ii; i++) {
-	        s1 += weights[i];
-	        s2 += weights[i] * weights[i];
-	    }
-	    var factor = s1 / (s1 * s1 - s2);
-	    return weightedScatter(matrix, weights, means, factor, dimension);
-	}
-
-	function weightedScatter(matrix, weights, means, factor, dimension) {
-	    dimension = dimension || 0;
-	    means = means || weightedMean(matrix, weights, dimension);
-	    if (typeof(factor) === 'undefined') {
-	        factor = 1;
-	    }
-	    var rows = matrix.length;
-	    if (rows === 0) {
-	        return [[]];
-	    }
-	    var cols = matrix[0].length,
-	        cov, i, j, k, s;
-
-	    if (dimension === 0) {
-	        cov = new Array(cols);
-	        for (i = 0; i < cols; i++) {
-	            cov[i] = new Array(cols);
-	        }
-	        for (i = 0; i < cols; i++) {
-	            for (j = i; j < cols; j++) {
-	                s = 0;
-	                for (k = 0; k < rows; k++) {
-	                    s += weights[k] * (matrix[k][j] - means[j]) * (matrix[k][i] - means[i]);
-	                }
-	                cov[i][j] = s * factor;
-	                cov[j][i] = s * factor;
-	            }
-	        }
-	    } else if (dimension === 1) {
-	        cov = new Array(rows);
-	        for (i = 0; i < rows; i++) {
-	            cov[i] = new Array(rows);
-	        }
-	        for (i = 0; i < rows; i++) {
-	            for (j = i; j < rows; j++) {
-	                s = 0;
-	                for (k = 0; k < cols; k++) {
-	                    s += weights[k] * (matrix[j][k] - means[j]) * (matrix[i][k] - means[i]);
-	                }
-	                cov[i][j] = s * factor;
-	                cov[j][i] = s * factor;
-	            }
-	        }
-	    } else {
-	        throw new Error('Invalid dimension');
-	    }
-
-	    return cov;
-	}
-
-	module.exports = {
-	    entropy: entropy,
-	    mean: mean,
-	    standardDeviation: standardDeviation,
-	    variance: variance,
-	    median: median,
-	    mode: mode,
-	    skewness: skewness,
-	    kurtosis: kurtosis,
-	    standardError: standardError,
-	    covariance: covariance,
-	    scatter: scatter,
-	    correlation: correlation,
-	    zScores: zScores,
-	    center: center,
-	    standardize: standardize,
-	    weightedVariance: weightedVariance,
-	    weightedMean: weightedMean,
-	    weightedCovariance: weightedCovariance,
-	    weightedScatter: weightedScatter
-	};
-
-
-/***/ },
-/* 42 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	exports.FFTUtils = __webpack_require__(43);
-	exports.FFT = __webpack_require__(44);
-
-
-/***/ },
-/* 43 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var FFT = __webpack_require__(44);
+	var FFT = __webpack_require__(42);
 
 	var FFTUtils= {
 	    DEBUG : false,
@@ -15111,7 +13961,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -15348,27 +14198,29 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 45 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
 	/**
 	 * Created by abol on 4/20/16.
 	 */
-	module.exports.fourierTransform = __webpack_require__(46);
-	module.exports.zeroFilling = __webpack_require__(47);
-	module.exports.apodization = __webpack_require__(48);
-	module.exports.phaseCorrection = __webpack_require__(49);
-	module.exports.digitalFilter = __webpack_require__(50);
+	module.exports.fourierTransform = __webpack_require__(44);
+	module.exports.zeroFilling = __webpack_require__(45);
+	module.exports.apodization = __webpack_require__(46);
+	module.exports.phaseCorrection = __webpack_require__(47);
+	module.exports.digitalFilter = __webpack_require__(48);
 
 
 /***/ },
-/* 46 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
 	/**
 	 * Created by abol on 4/20/16.
 	 */
-	var fft = __webpack_require__(42);
+	var fft = __webpack_require__(40);
 
 	function fourierTransform(spectraData){
 	    //console.log(spectraData);
@@ -15408,6 +14260,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	        spectraData.setActiveElement(2 * iSubSpectra + 1);
 	        updateSpectra(spectraData, spectraType);
 	    }
+	    //TODO For Alejandro
+	    //Now we can try to apply the FFt on the second dimension
+	    if(spectraData.is2D()){
+	        var mode = spectraData.getParam(".ACQUISITION SCHEME");
+	        switch(mode){
+	            case 1://"State-TPP"
+	                break;
+	            case 2://State
+	                break;
+	            case 3://Echo-Antiecho
+	                break;
+	            defaut:
+	                //QF
+	                //Does not transform in the indirect dimension
+	            break;
+
+	        }
+	    }
 	    spectraData.setActiveElement(0);
 	    return spectraData;
 	}
@@ -15438,9 +14308,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = fourierTransform;
 
 /***/ },
-/* 47 */
+/* 45 */
 /***/ function(module, exports) {
 
+	'use strict';
 	/**
 	 * Created by abol on 4/20/16.
 	 */
@@ -15476,9 +14347,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = zeroFilling;
 
 /***/ },
-/* 48 */
+/* 46 */
 /***/ function(module, exports) {
 
+	'use strict';
 	/**
 	 * Created by acastillo on 4/26/16.
 	 */
@@ -15509,9 +14381,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = apodization;
 
 /***/ },
-/* 49 */
+/* 47 */
 /***/ function(module, exports) {
 
+	'use strict';
 	/**
 	 * Created by acastillo on 4/26/16.
 	 */
@@ -15566,13 +14439,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = phaseCorrection;
 
 /***/ },
-/* 50 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
 	/**
 	 * Created by acastillo on 4/26/16.
 	 */
-	var rotate = __webpack_require__(51);
+	var rotate = __webpack_require__(49);
 
 	function digitalFilter(spectraData, options){
 	    var nbPoints = 0;
@@ -15606,9 +14480,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = digitalFilter;
 
 /***/ },
-/* 51 */
+/* 49 */
 /***/ function(module, exports) {
 
+	'use strict';
 	/**
 	 * Created by acastillo on 4/26/16.
 	 */
@@ -15670,13 +14545,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	console.log(foo);*/
 
 /***/ },
-/* 52 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
+
 	var SD = __webpack_require__(1);
-	var PeakPicking2D = __webpack_require__(53);
-	var PeakOptimizer = __webpack_require__(54);
+	var PeakPicking2D = __webpack_require__(51);
+	var PeakOptimizer = __webpack_require__(52);
 	var JcampConverter=__webpack_require__(3);
+	var stat = __webpack_require__(36);
 
 	/**
 	 * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
@@ -15816,6 +14694,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if(options.references)
 	        PeakOptimizer.alignDimensions(peakList,options.references);
 
+	    if(options.format==="new"){
+	        var newSignals = new Array(peakList.length);
+	        var minMax1, minMax2;
+	        for(var k=peakList.length-1;k>=0;k--){
+	            var signal = peakList[k];
+	            newSignals[k]={
+	                fromTo:signal.fromTo,
+	                integral:signal.intensity||1,
+	                remark:"",
+	                signal:[{
+	                    peak:signal.peaks,
+	                    delta:[signal.shiftX, signal.shiftY]
+	                }],
+	                _highlight:signal._highlight,
+	                signalID:signal.signalID,
+	            };
+	        }
+	        peakList = newSignals;
+	    }
+
+
 	    return peakList;
 	}
 
@@ -15847,16 +14746,81 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return this.sd.xType;
 	}
 
+
+	/**
+	 * @function zeroFilling(nPointsX [,nPointsY])
+	 * This function increase the size of the spectrum, filling the new positions with zero values. Doing it one
+	 * could increase artificially the spectral resolution.
+	 * @param nPointsX Number of new zero points in the direct dimension
+	 * @param nPointsY Number of new zero points in the indirect dimension
+	 * @returns this object
+	 */
+	NMR2D.prototype.zeroFilling=function(nPointsX, nPointsY) {
+	    return Filters.zeroFilling(this,nPointsX, nPointsY);
+	}
+
+	/**
+	 * @function brukerFilter()
+	 * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
+	 * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
+	 * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
+	 * @returns this object
+	 */
+	NMR2D.prototype.brukerFilter=function() {
+	    return Filters.digitalFilter(this, {"brukerFilter":true});
+	}
+
+	/**
+	 * @function digitalFilter(options)
+	 * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
+	 * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
+	 * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
+	 * @option nbPoints: The number of points to shift. Positive values will shift the values to the rigth
+	 * and negative values will do to the left.
+	 * @option brukerSpectra
+	 * @returns this object
+	 */
+	NMR2D.prototype.digitalFilter=function(options) {
+	    return Filters.digitalFilter(this, options);
+	}
+
+
+	/**
+	 * @function fourierTransform()
+	 * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be of type NMR_FID or 2DNMR_FID
+	 * @returns this object
+	 */
+	NMR2D.prototype.fourierTransform=function( ) {
+	    return Filters.fourierTransform(this);
+	}
+
+	/**
+	 * @function postFourierTransform(ph1corr)
+	 * This filter makes an phase 1 correction that corrects the problem of the spectra that has been obtained
+	 * on spectrometers using the Bruker digital filters. This method is used in cases when the BrukerSpectra
+	 * filter could not find the correct number of points to perform a circular shift.
+	 * The actual problem is that not all of the spectra has the necessary parameters for use only one method for
+	 * correcting the problem of the Bruker digital filters.
+	 * @param spectraData A fourier transformed spectraData.
+	 * @param ph1corr Phase 1 correction value in radians.
+	 * @returns this object
+	 */
+	NMR2D.prototype.postFourierTransform=function(ph1corr) {
+	    return Filters.phaseCorrection(0,ph1corr);
+	}
+
 	module.exports = NMR2D;
 
 
 /***/ },
-/* 53 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var lib = __webpack_require__(42);
-	var PeakOptimizer = __webpack_require__(54);
-	var SimpleClustering =  __webpack_require__(55);
+	'use strict';
+
+	var lib = __webpack_require__(40);
+	var PeakOptimizer = __webpack_require__(52);
+	var SimpleClustering =  __webpack_require__(53);
 	var StatArray = __webpack_require__(2);
 	var FFTUtils = lib.FFTUtils;
 
@@ -16180,15 +15144,37 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var peaks2D = [];
 	                signal.shiftX = 0;
 	                signal.shiftY = 0;
+	                var minMax1 = [Number.MAX_VALUE,0];
+	                var minMax2 = [Number.MAX_VALUE,0];
 	                var sumZ = 0;
 	                for(var jPeak = clusters[iCluster].length-1;jPeak>=0;jPeak--){
 	                    if(clusters[iCluster][jPeak]==1){
-	                        peaks2D.push(peaks[jPeak]);
+	                        peaks2D.push({
+	                            x: peaks[jPeak].x,
+	                            y: peaks[jPeak].y,
+	                            z: peaks[jPeak].z
+
+	                        }  );
 	                        signal.shiftX+=peaks[jPeak].x*peaks[jPeak].z;
 	                        signal.shiftY+=peaks[jPeak].y*peaks[jPeak].z;
 	                        sumZ+=peaks[jPeak].z;
+	                        if(peaks[jPeak].x<minMax1[0]){
+	                            minMax1[0]=peaks[jPeak].x;
+	                        }
+	                        if(peaks[jPeak].x>minMax1[1]){
+	                            minMax1[1]=peaks[jPeak].x;
+	                        }
+	                        if(peaks[jPeak].y<minMax2[0]){
+	                            minMax2[0]=peaks[jPeak].y
+	                        }
+	                        if(peaks[jPeak].y>minMax2[1]){
+	                            minMax2[1]=peaks[jPeak].y;
+	                        }
+
 	                    }
 	                }
+	                signal.fromTo = [{from:minMax1[0],to:minMax1[1]},
+	                                {from:minMax2[0],to:minMax2[1]}];
 	                signal.shiftX/=sumZ;
 	                signal.shiftY/=sumZ;
 	                signal.peaks = peaks2D;
@@ -16203,8 +15189,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = PeakPicking2D;
 
 /***/ },
-/* 54 */
+/* 52 */
 /***/ function(module, exports) {
+
+	'use strict';
 
 	var PeakOptimizer={
 		diagonalError:0.05,
@@ -16506,8 +15494,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = PeakOptimizer;
 
 /***/ },
-/* 55 */
+/* 53 */
 /***/ function(module, exports) {
+
+	'use strict';
 
 	var SimpleClustering={
 
@@ -16570,9 +15560,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = SimpleClustering;
 
 /***/ },
-/* 56 */
+/* 54 */
 /***/ function(module, exports) {
 
+	'use strict';
 	/**
 	 * This library formats a set of nmr1D signals to the ACS format.
 	 * Created by acastillo on 3/11/15. p
@@ -16582,7 +15573,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var acsString="";
 	    var parenthesis="";
 	    var spectro="";
-	    rangeForMultiplet=false;
+	    var rangeForMultiplet=false;
 
 	    function fromNMRSignal1D2ACS(spectrum, options){
 	        acsString="";
