@@ -3649,11 +3649,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	                }
 	            }
 	        }
+	        
+	        //console.log(signals);
 	        if(options.compile||false){
 	            for(i=0;i<signals.length;i++){
 	                //console.log("Sum "+signals[i].integralData.value);
 	                JAnalyzer.compilePattern(signals[i]);
-	                //console.log(signals[i])
+	               
 	                if(signals[i].maskPattern&&signals[i].multiplicity!="m"
 	                    && signals[i].multiplicity!=""){
 	                    //Create a new signal with the removed peaks
@@ -3917,14 +3919,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var prevPeak = {x:100000,y:0,width:0},peaks=null;
 	        var rangeX = 16/frequency;//Peaks withing this range are considered to belongs to the same signal1D
 	        var spectrumIntegral = 0,cs,sum, i,j;
-	        //console.log("RangeX "+rangeX);
+	        var dx = (spectrum.getX(1)-spectrum.getX(0))>0?1:-1;
 	        for(i=0;i<peakList.length;i++){
+	            //console.log(peakList[i].width);
 	            //console.log(peakList[i]);
 	            if(Math.abs(peakList[i].x-prevPeak.x)>rangeX){
 	                //console.log(typeof peakList[i].x+" "+typeof peakList[i].width);
 	                signal1D = {"nbPeaks":1,"units":"PPM",
-	                    "startX":peakList[i].x+peakList[i].width,
-	                    "stopX":peakList[i].x-peakList[i].width,
+	                    "startX":peakList[i].x-peakList[i].width,
+	                    "stopX":peakList[i].x+peakList[i].width,
 	                    "multiplicity":"","pattern":"",
 	                    "observe":frequency,"nucleus":"1H",
 	                    "integralData":{"from":peakList[i].x-peakList[i].width*3,
@@ -3937,10 +3940,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	                //spectrumIntegral+=this.area(peakList[i]);
 	            }
 	            else{
-	                var tmp = peakList[i].x-peakList[i].width;
-	                signal1D.stopX = Math.min(signal1D.stopX,tmp);
-	                tmp = peakList[i].x+peakList[i].width;
+	                var tmp = peakList[i].x+peakList[i].width;
 	                signal1D.stopX = Math.max(signal1D.stopX,tmp);
+	                tmp = peakList[i].x-peakList[i].width;
+	                signal1D.startX = Math.min(signal1D.startX,tmp);
 	                signal1D.nbPeaks++;
 	                signal1D.peaks.push({x:peakList[i].x,"intensity":peakList[i].y, width:peakList[i].width});
 	                //signal1D.integralData.value+=this.area(peakList[i]);
@@ -3950,6 +3953,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            prevPeak = peakList[i];
 	        }
+	        //console.log(signals);
 	        //Normalize the integral to the normalization parameter and calculate cs
 	        for(i=0;i<signals.length;i++){
 	            peaks = signals[i].peaks;
@@ -4294,10 +4298,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        //Update the limits of the signal
 	        var peaks = signal.peaksComp;//Always in Hz
 	        var nbPeaks = peaks.length;
-	        signal.startX=peaks[0].x/signal.observe+peaks[0].width;
-	        signal.stopX=peaks[nbPeaks-1].x/signal.observe-peaks[nbPeaks-1].width;
-	        signal.integralData.to=peaks[0].x/signal.observe+peaks[0].width*3;
-	        signal.integralData.from=peaks[nbPeaks-1].x/signal.observe-peaks[nbPeaks-1].width*3;
+	        signal.startX=peaks[0].x/signal.observe-peaks[0].width;
+	        signal.stopX=peaks[nbPeaks-1].x/signal.observe+peaks[nbPeaks-1].width;
+	        
+	        signal.integralData.from=peaks[0].x/signal.observe-peaks[0].width*3;
+	        signal.integralData.to=peaks[nbPeaks-1].x/signal.observe+peaks[nbPeaks-1].width*3;
 
 	        //Compile the pattern and format the constant couplings
 	        signal.maskPattern = signal.mask2;
