@@ -156,10 +156,11 @@ var JAnalyzer = {
         //Update the limits of the signal
         var peaks = signal.peaksComp;//Always in Hz
         var nbPeaks = peaks.length;
-        signal.startX=peaks[0].x/signal.observe+peaks[0].width;
-        signal.stopX=peaks[nbPeaks-1].x/signal.observe-peaks[nbPeaks-1].width;
-        signal.integralData.to=peaks[0].x/signal.observe+peaks[0].width*3;
-        signal.integralData.from=peaks[nbPeaks-1].x/signal.observe-peaks[nbPeaks-1].width*3;
+        signal.startX=peaks[0].x/signal.observe-peaks[0].width;
+        signal.stopX=peaks[nbPeaks-1].x/signal.observe+peaks[nbPeaks-1].width;
+        
+        signal.integralData.from=peaks[0].x/signal.observe-peaks[0].width*3;
+        signal.integralData.to=peaks[nbPeaks-1].x/signal.observe+peaks[nbPeaks-1].width*3;
 
         //Compile the pattern and format the constant couplings
         signal.maskPattern = signal.mask2;

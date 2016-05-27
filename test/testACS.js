@@ -21,7 +21,7 @@ describe('spectra-data test peak picking in ACS format', function () {
     var peakPicking = spectrum.nmrPeakDetection({"nH":10, realTop:true, thresholdFactor:0.8,clean:true,compile:true});
     it('format ACS', function () {
         var acs = Data.ACS.formater.toACS(peakPicking,{rangeForMultiplet:true});
-        acs.should.equal("<sup>1</sup>H NMR (400 MHz) δ 7.27-7.31 (m, 2 H), 7.16-7.22 (m, 3 H), 2.60 (q, 2 H, <i>J</i> = 7.6 Hz), 1.19 (t, 3 H, <i>J</i> = 7.6 Hz).");
+        acs.should.equal("<sup>1</sup>H NMR (400 MHz) δ 7.26-7.31 (m, 2 H), 7.15-7.22 (m, 3 H), 2.60 (q, 2 H, <i>J</i> = 7.6 Hz), 1.19 (t, 3 H, <i>J</i> = 7.6 Hz).");
     });
 });
 
