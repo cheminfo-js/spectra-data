@@ -136,7 +136,6 @@ var PeakPicking={
                     to : signal.integralData.to,
                     integral : signal.integralData.value,
                     signal:[{
-                        delta:signal.delta1,
                         nbAtoms:0,
                         diaID:[],
                         multiplicity:signal.multiplicity,
@@ -150,6 +149,9 @@ var PeakPicking={
                 };
                 if(signal.nmrJs){
                     newSignals[i].signal[0].j = signal.nmrJs;
+                }
+                if(!signal.asymmetric||signal.multiplicity=="m"){
+                    newSignals[i].delta = signal.delta1;
                 }
             }
             signals = newSignals;

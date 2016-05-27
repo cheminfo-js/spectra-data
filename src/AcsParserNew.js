@@ -105,10 +105,10 @@ ACS.formater =(function() {
                 acsString+=formatNucleus(options.nucleus);
             }
             acsString+=" NMR";
-            if ((solvent) || (spectrum[0].observe)) {
+            if ((solvent) || (options.observe)) {
                 acsString+=" (";
-                if (spectrum[0].observe) {
-                    acsString+=(spectrum[0].observe*1).toFixed(0)+" MHz";
+                if (options.observe) {
+                    acsString+=(options.observe*1).toFixed(0)+" MHz";
                     if (solvent) acsString+=", ";
                 }
                 if (solvent) {
@@ -126,20 +126,20 @@ ACS.formater =(function() {
 
     function appendDelta(line, nbDecimal) {
         //console.log("appendDelta1");
-        var startX = 0,stopX=0,delta1=0;
-        if(line.startX){
-            if((typeof line.startX)=="string"){
-                startX=parseFloat(line.startX);
+        var startX = 0,stopX=0,delta1=0, asymmetric;
+        if(line.signal[0].from){
+            if((typeof line.signal[0].from)=="string"){
+                startX=parseFloat(line.signal[0].from);
             }
             else
-                startX=line.startX;
+                startX=line.signal[0].from;
         }
-        if(line.stopX){
-            if((typeof line.stopX)=="string"){
-                stopX=parseFloat(line.stopX);
+        if(line.signal[0].to){
+            if((typeof line.signal[0].to)=="string"){
+                stopX=parseFloat(line.signal[0].to);
             }
             else
-                stopX=line.stopX;
+                stopX=line.signal[0].to;
         }
         if(line.signal[0].delta){
             if((typeof line.signal[0].delta)=="string"){
@@ -147,11 +147,13 @@ ACS.formater =(function() {
             }
             else
                 delta1=line.signal[0].delta;
-
+        }
+        else{
+            asymmetric = true;
         }
         //console.log("Range2: "+rangeForMultiplet+" "+line.multiplicity);
-        if (line.asymmetric===true||(line.multiplicity=="m"&&rangeForMultiplet===true)) {//Is it massive??
-            if (line.startX&&line.stopX) {
+        if (asymmetric===true||(line.signal[0].multiplicity=="m"&&rangeForMultiplet===true)) {//Is it massive??
+            if (line.signal[0].from&&line.signal[0].to) {
                 if (startX<stopX) {
                     acsString+=startX.toFixed(nbDecimal)+"-"+stopX.toFixed(nbDecimal);
                 } else {
@@ -159,14 +161,14 @@ ACS.formater =(function() {
                 }
             } else {
                 if(line.signal[0].delta)
-                    acsString+=delta1.toFixed(nbDecimal);
+                    acsString+="?";
             }
         }
         else{
             if(line.signal[0].delta)
                 acsString+=delta1.toFixed(nbDecimal);
             else{
-                if(line.startX&&line.stopX){
+                if(line.signal[0].from&&line.signal[0].to){
                     acsString+=((startX+stopX)/2).toFixed(nbDecimal);
                 }
             }
@@ -206,33 +208,34 @@ ACS.formater =(function() {
     }
 
     function appendAssignment(line) {
-        if (line.pubAssignment) {
+        if (line.signal[0].pubAssignment) {
             appendParenthesisSeparator();
-            parenthesis+=formatAssignment(line.pubAssignment);
+            parenthesis+=formatAssignment(line.signal[0].pubAssignment);
         }
         else{
-            if (line.assignment) {
+            if (line.signal[0].assignment) {
                 appendParenthesisSeparator();
-                parenthesis+=formatAssignment(line.assignment);
+                parenthesis+=formatAssignment(line.signal[0].assignment);
             }
         }
     }
 
     function appendMultiplicity(line) {
-        if (line.pubMultiplicity) {
+        if (line.signal[0].pubMultiplicity) {
             appendParenthesisSeparator();
             parenthesis+=line.pubMultiplicity;
-        } else if (line.multiplicity) {
+        } else if (line.signal[0].multiplicity) {
             appendParenthesisSeparator();
-            parenthesis+=line.multiplicity;
+            parenthesis+=line.signal[0].multiplicity;
         }
     }
 
     function appendCoupling(line, nbDecimal) {
-        if (line.nmrJs) {
+        if (line.signal[0].j) {
+            var Js = line.signal[0].j;
             var j="<i>J</i> = ";
-            for (var i=0; i<line.nmrJs.length; i++) {
-                var coupling=line.nmrJs[i].coupling;
+            for (var i=0; i<Js.length; i++) {
+                var coupling=Js[i].coupling;
                 if (j.length>11) j+=", ";
                 j+=coupling.toFixed(nbDecimal);
             }
@@ -269,7 +272,9 @@ ACS.formater =(function() {
     }
 
     function fromACS2NMRSignal1D(acsString){
-        return JSON.parse(SDAPI.AcsParserAsJSONString(acsString));
+        //TODO Create the function that reconstructs the signals from the ACS string
+        return null;
+        //return JSON.parse(SDAPI.AcsParserAsJSONString(acsString));
     }
 
     return {
