@@ -6,35 +6,32 @@
  * http://www.spectroscopyeurope.com/images/stories/ColumnPDFs/TD_23_1.pdf
  */
 var JAnalyzer = require('./JAnalyzer');
-/*var LM = require('ml-curve-fitting');
-var Matrix = LM.Matrix;
-var math = Matrix.algebra;*/
 var GSD = require("ml-gsd");
 var extend = require("extend");
 var removeImpurities = require("./ImpurityRemover");
 
-var PeakPicking={
-    impurities:[],
-    maxJ:20,
-    defaultOptions:{nH:99,
-        clean:true,
-        realTop:false,
-        thresholdFactor:1,
-        compile:true,
-        integralFn:0,
-        optimize:true,
-        idPrefix:"",
-        format:"old"
-    },
+const maxJ = 20;
+const defaultOptions = {
+    nH:99,
+    clean:true,
+    realTop:false,
+    thresholdFactor:1,
+    compile:true,
+    integralFn:0,
+    optimize:true,
+    idPrefix:"",
+    format:"old"
+};
 
-    peakPicking:function(spectrum, optionsEx){
-        var options = extend({}, this.defaultOptions, optionsEx);
+
+exports.peakPicking = function(spectrum, optionsEx){
+        var options = Object.assign({}, defaultOptions, optionsEx);
         var i, j, nHi, sum;
 
         var noiseLevel = Math.abs(spectrum.getNoiseLevel())*(options.thresholdFactor);
 
         //console.log("noiseLevel "+noiseLevel);
-        var gsdOptions = extend({},
+        var gsdOptions = Object.assign({},
             {noiseLevel: noiseLevel,
                 minMaxRatio:0.01,
                 broadRatio:0.0025,
@@ -50,9 +47,9 @@ var PeakPicking={
         if(options.optimize)
             peakList = GSD.post.optimizePeaks(peakList,data[0],data[1],gsdOptions.nL,"lorentzian");
 
-        peakList = this.clearList(peakList, noiseLevel);
-        var signals = this.detectSignals(peakList, spectrum, options.nH, options.integralFn);
-        //console.log(JSON.stringify(signals));
+        peakList = exports.clearList(peakList, noiseLevel);
+        var signals = exports.detectSignals(peakList, spectrum, options.nH, options.integralFn);
+
         //Remove all the signals with small integral
         if(options.clean||false){
             for(var i=signals.length-1;i>=0;i--){
@@ -75,7 +72,7 @@ var PeakPicking={
                     sum=0;
                     var peaksO = [];
                     for(j=signals[i].maskPattern.length-1;j>=0;j--){
-                        sum+=this.area(signals[i].peaks[j]);
+                        sum+=area(signals[i].peaks[j]);
 
                         if(signals[i].maskPattern[j]===false) {
                             var peakR = signals[i].peaks.splice(j,1)[0];
@@ -85,7 +82,7 @@ var PeakPicking={
                             signals[i].mask2.splice(j,1);
                             signals[i].maskPattern.splice(j,1);
                             signals[i].nbPeaks--;
-                            nHi+=this.area(peakR);
+                            nHi+=area(peakR);
                         }
                     }
                     if(peaksO.length>0){
@@ -165,7 +162,10 @@ var PeakPicking={
         return [peakList,imp];
         */
         //return createSignals(peakList,nH);
-    },
+    };
+
+var PeakPicking={
+
 
     clearList:function(peakList, threshold){
         for(var i=peakList.length-1;i>=0;i--){
@@ -292,8 +292,8 @@ var PeakPicking={
 
             for(var i=0;i<nbPeaks0;i++){
                 if(signal.maskPattern[i]===false)
-                    toRemove+=this.area(peaksO[i]);
-                factor+= this.area(peaksO[i]);
+                    toRemove+=area(peaksO[i]);
+                factor+= area(peaksO[i]);
             }
             factor=signal.integralData.value/factor;
             signal.integralData.value-=toRemove*factor;
@@ -330,16 +330,15 @@ var PeakPicking={
         var frequency = spectrum.observeFrequencyX();
         var signals = [];
         var signal1D = {};
-        var prevPeak = {x:100000,y:0,width:0},peaks=null;
+        var prevPeak = {x:100000,y:0,width:0};
+        var peaks=null;
         var rangeX = 16/frequency;//Peaks withing this range are considered to belongs to the same signal1D
-        var spectrumIntegral = 0,cs,sum, i,j;
+        var spectrumIntegral = 0;
+        var cs,sum, i,j;
         var dx = (spectrum.getX(1)-spectrum.getX(0))>0?1:-1;
         for(i=0;i<peakList.length;i++){
-            //console.log(peakList[i].width);
-            //console.log(peakList[i]);
             if(Math.abs(peakList[i].x-prevPeak.x)>rangeX){
-                //console.log(typeof peakList[i].x+" "+typeof peakList[i].width);
-                signal1D = {"nbPeaks":1,"units":"PPM",
+                signal1D = {nbPeaks:1,units:"PPM",
                     "startX":peakList[i].x-peakList[i].width,
                     "stopX":peakList[i].x+peakList[i].width,
                     "multiplicity":"","pattern":"",
@@ -376,8 +375,8 @@ var PeakPicking={
             sum = 0;
 
             for(var j=0;j<peaks.length;j++){
-                cs+=peaks[j].x*this.area(peaks[j]);//.intensity;
-                sum+=this.area(peaks[j]);
+                cs+=peaks[j].x*area(peaks[j]);//.intensity;
+                sum+=area(peaks[j]);
             }
             signals[i].delta1 = cs/sum;
 
@@ -398,10 +397,6 @@ var PeakPicking={
         return signals;
     },
 
-    area: function(peak){
-        return Math.abs(peak.intensity*peak.width*1.57)//1.772453851);
-    },
-
     /**
      Updates the score that a given impurity is present in the current spectrum. In this part I would expect
      to have into account the multiplicity of the signal. Also the relative intensity of the signals.
@@ -412,9 +407,12 @@ var PeakPicking={
         //return 1;
 
         //Check the multiplicity
-        var mul = "";
-        var j = 0,index, k, maxJppm=this.maxJ/frequency;
-        var min=0, indexMin=0, score=0;
+        var mul, index, k;
+        var j = 0;
+        var maxJppm = this.maxJ/frequency;
+        var min = 0;
+        var indexMin = 0;
+        var score = 0;
         for(var i=candidates.length-1;i>=0;i--){
             mul = candidates[i][1];
             j = candidates[i][2];
@@ -538,13 +536,10 @@ var PeakPicking={
         }
         //Check the relative intensity
         return 1;
-    },
-
-    score:function(value, gamma){
-        return Math.exp(-Math.pow(value/gamma,2)/2.0);
     }
 
 }
 
-module.exports = PeakPicking;
-
+function area(peak){
+    return Math.abs(peak.intensity*peak.width*1.57)//1.772453851);
+}
