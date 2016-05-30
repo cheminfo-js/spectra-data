@@ -4,7 +4,7 @@
 
 var StatArray = require('ml-stat/array');
 var JcampConverter = require("jcampconverter");
-var JcampCreator = require("./JcampCreator");
+var JcampCreator = require("./jcampEncoder/JcampCreator");
 var extend = require("extend");
 
 /**

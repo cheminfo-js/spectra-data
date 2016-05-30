@@ -1,6 +1,6 @@
 'use strict';
 
-var SimpleClustering={
+module.exports={
 
 	/*This function returns the cluster list for a given connectivity matrix.
 	*To improve the performance, the connectivity(square and symmetric) matrix 
@@ -33,7 +33,6 @@ var SimpleClustering={
 		    else{
 		    	nextAv=toInclude.splice(0,1);
 		    }
-		    //console.log("row: "+nextAv);
 		    cluster[nextAv]=1;
 		    available[nextAv]=0;
 		    remaining--;
@@ -45,7 +44,6 @@ var SimpleClustering={
 				//The element in the conn matrix
 				//console.log("index: "+r*(2*nRows-r-1)/2+c)
 				row[i]=conn[r*(2*nRows-r-1)/2+c];
-				//console.log("col: "+i+":"+row[i]);
 				//There is new elements to include in this row?
 				//Then, include it to the current cluster
 				if(row[i]==1&&available[i]==1&&cluster[i]==0){
@@ -57,5 +55,3 @@ var SimpleClustering={
 		return clusterList;
 	}
 }
-
-module.exports = SimpleClustering;

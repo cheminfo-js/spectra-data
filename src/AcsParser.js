@@ -124,21 +124,21 @@ ACS.formater =(function() {
     }
 
     function appendDelta(line, nbDecimal) {
-        //console.log("appendDelta1");
+        //console.log(line);
         var startX = 0,stopX=0,delta1=0;
-        if(line.startX){
-            if((typeof line.startX)=="string"){
-                startX=parseFloat(line.startX);
+        if(line.integralData.from) {
+            if ((typeof line.integralData.from) == "string") {
+                startX = parseFloat(line.integralData.from);
             }
             else
-                startX=line.startX;
+                startX = line.integralData.from;
         }
-        if(line.stopX){
-            if((typeof line.stopX)=="string"){
-                stopX=parseFloat(line.stopX);
+        if(line.integralData.to){
+            if((typeof line.integralData.to)=="string"){
+                stopX=parseFloat(line.integralData.to);
             }
             else
-                stopX=line.stopX;
+                stopX=line.integralData.to;
         }
         if(line.delta1){
             if((typeof line.delta1)=="string"){
@@ -150,11 +150,11 @@ ACS.formater =(function() {
         }
         //console.log("Range2: "+rangeForMultiplet+" "+line.multiplicity);
         if (line.asymmetric===true||(line.multiplicity=="m"&&rangeForMultiplet===true)) {//Is it massive??
-            if (line.startX&&line.stopX) {
+            if (line.integralData.from&&line.integralData.to) {
                 if (startX<stopX) {
                     acsString+=startX.toFixed(nbDecimal)+"-"+stopX.toFixed(nbDecimal);
                 } else {
-                    acsString+=stopX.toFixed(nbDecimal)+"-"+startX.toFixed(nbDecimal);
+                    acsString+=stopX.toFixed(nbDecimal)+"-"+sttotoFixed(nbDecimal);
                 }
             } else {
                 if(line.delta1)
@@ -165,7 +165,7 @@ ACS.formater =(function() {
             if(line.delta1)
                 acsString+=delta1.toFixed(nbDecimal);
             else{
-                if(line.startX&&line.stopX){
+                if(line.integralData.from&&line.integralData.to){
                     acsString+=((startX+stopX)/2).toFixed(nbDecimal);
                 }
             }
@@ -179,7 +179,6 @@ ACS.formater =(function() {
     }
 
     function appendParenthesis(line, nbDecimal) {
-        //console.log("appendParenthesis1");
         // need to add assignment - coupling - integration
         parenthesis="";
         appendMultiplicity(line);
@@ -191,7 +190,6 @@ ACS.formater =(function() {
         if (parenthesis.length>0) {
             acsString+=" ("+parenthesis+")";
         }
-        //console.log("appendParenthesis2");
     }
 
     function appendIntegration(line) {

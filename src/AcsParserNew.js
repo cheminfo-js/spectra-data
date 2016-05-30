@@ -23,12 +23,12 @@ ACS.formater =(function() {
 
         if(options&&options.ascending){
             spectrum.sort(function(a,b){
-                return b.signal[0].delta- a.signal[0].delta
+                return b.from- a.from
             });
         }
         else{
             spectrum.sort(function(a,b){
-                return a.signal[0].delta- b.signal[0].delta
+                return a.from- b.from
             });
         }
 
@@ -126,20 +126,21 @@ ACS.formater =(function() {
 
     function appendDelta(line, nbDecimal) {
         //console.log("appendDelta1");
+        //console.log("sd");
         var startX = 0,stopX=0,delta1=0, asymmetric;
-        if(line.signal[0].from){
-            if((typeof line.signal[0].from)=="string"){
-                startX=parseFloat(line.signal[0].from);
+        if(line.from){
+            if((typeof line.from)=="string"){
+                startX=parseFloat(line.from);
             }
             else
-                startX=line.signal[0].from;
+                startX=line.from;
         }
-        if(line.signal[0].to){
-            if((typeof line.signal[0].to)=="string"){
-                stopX=parseFloat(line.signal[0].to);
+        if(line.to){
+            if((typeof line.to)=="string"){
+                stopX=parseFloat(line.to);
             }
             else
-                stopX=line.signal[0].to;
+                stopX=line.to;
         }
         if(line.signal[0].delta){
             if((typeof line.signal[0].delta)=="string"){
@@ -153,7 +154,7 @@ ACS.formater =(function() {
         }
         //console.log("Range2: "+rangeForMultiplet+" "+line.multiplicity);
         if (asymmetric===true||(line.signal[0].multiplicity=="m"&&rangeForMultiplet===true)) {//Is it massive??
-            if (line.signal[0].from&&line.signal[0].to) {
+            if (line.from&&line.to) {
                 if (startX<stopX) {
                     acsString+=startX.toFixed(nbDecimal)+"-"+stopX.toFixed(nbDecimal);
                 } else {
@@ -168,7 +169,7 @@ ACS.formater =(function() {
             if(line.signal[0].delta)
                 acsString+=delta1.toFixed(nbDecimal);
             else{
-                if(line.signal[0].from&&line.signal[0].to){
+                if(line.from&&line.to){
                     acsString+=((startX+stopX)/2).toFixed(nbDecimal);
                 }
             }
@@ -201,9 +202,9 @@ ACS.formater =(function() {
         if (line.pubIntegration) {
             appendParenthesisSeparator();
             parenthesis+=line.pubIntegration;
-        } else if (line.integralData) {
+        } else if (line.integral) {
             appendParenthesisSeparator();
-            parenthesis+=line.integralData.value.toFixed(0)+" H";
+            parenthesis+=line.integral.toFixed(0)+" H";
         }
     }
 

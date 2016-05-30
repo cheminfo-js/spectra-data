@@ -1,7 +1,7 @@
 'use strict';
 
 var SD = require('./SD');
-var PeakPicking2D = require('./PeakPicking2D');
+var peakPicking2D = require('./PeakPicking2D');
 var PeakOptimizer = require("./PeakOptimizer");
 var JcampConverter=require("jcampconverter");
 var stat = require("ml-stat");
@@ -134,7 +134,7 @@ NMR2D.prototype.nmrPeakDetection2D=function(options){
     if(options.idPrefix){
         id=options.idPrefix;
     }
-    var peakList = PeakPicking2D.findPeaks2D(this, options.thresholdFactor);
+    var peakList = peakPicking2D(this, options.thresholdFactor);
 
     //lets add an unique ID for each peak.
     for(var i=0;i<peakList.length;i++){
