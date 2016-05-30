@@ -36,7 +36,7 @@
     "jcampconverter": "^2.4.5",
     "ml-stat": "^1.1.0",
     "ml-matrix": "^1.0.4",
-    "ml-gsd": "1.1.4",
+    "ml-gsd": "^1.1.5",
     "ml-fft": "1.0.5",
     "extend": "^3.0.0"
   }
