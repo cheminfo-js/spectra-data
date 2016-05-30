@@ -24,7 +24,7 @@
   },
   "scripts": {
     "test": "mocha --require should --reporter mocha-better-spec-reporter --recursive",
-    "build": "cheminfo build"
+    "build": "cheminfo build --no-uglify"
   },
   "devDependencies": {
     "mocha-better-spec-reporter": "^3.0.1",
