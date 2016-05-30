@@ -4907,7 +4907,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if(count>2){
 	                var fitted =  Opt.optimizeSingleLorentzian(candidates,
 	                    {x: broadLines[maxI].x, y:max, width: Math.abs(candidates[0][0]-candidates[candidates.length-1][0])});
-	                //console.log(fitted)
 	                peakList.push({x:fitted[0][0],y:fitted[1][0],width:fitted[2][0],soft:false});
 
 	            }
@@ -5075,15 +5074,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @returns {*[]}
 	 */
 	function optimizeSingleLorentzian(xy, peak, opts) {
-	    var xy2 = parseData(xy);
+	    opts = opts || {};
+	    var xy2 = parseData(xy, opts.percentage||0);
+
+	    if(xy2===null||xy2[0].rows<3){
+	        return null; //Cannot run an optimization with less than 3 points
+	    }
+
 	    var t = xy2[0];
 	    var y_data = xy2[1];
 	    var maxY = xy2[2];
-	    var nbPoints = t.columns, i;
+	    var nbPoints = t.rows, i;
 
 	    var weight = [nbPoints / Math.sqrt(y_data.dot(y_data))];
 
-	    var opts=Object.create(opts || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ]);
+	    var opts=Object.create(opts.LMOptions || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ]);
 	    //var opts = [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ];
 	    var consts = [ ];
 	    var dt = Math.abs(t[0][0]-t[1][0]);// optional vector of constants
@@ -5106,16 +5111,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @returns {*[]}
 	 */
 	function optimizeSingleGaussian(xy, peak, opts) {
-	    var xy2 = parseData(xy);
+	    opts = opts || {};
+	    var xy2 = parseData(xy, opts.percentage||0);
+
+	    if(xy2===null||xy2[0].rows<3){
+	        return null; //Cannot run an optimization with less than 3 points
+	    }
+
 	    var t = xy2[0];
 	    var y_data = xy2[1];
 	    var maxY = xy2[2];
 
-	    var nbPoints = t.columns, i;
+	    var nbPoints = t.rows, i;
+
+
 
 	    var weight = [nbPoints / Math.sqrt(y_data.dot(y_data))];
 
-	    var opts=Object.create(opts || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ]);
+	    var opts=Object.create(opts.LMOptions || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ]);
 	    //var opts = [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ];
 	    var consts = [ ];                         // optional vector of constants
 	    var dt = Math.abs(t[0][0]-t[1][0]);
@@ -5133,6 +5146,91 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return [p_fit[0],[p_fit[1][0]*maxY],p_fit[2]];
 	}
 
+	/*
+	 peaks on group should sorted
+	 */
+	function optimizeLorentzianTrain(xy, group, opts){
+	    var xy2 = parseData(xy);
+	    //console.log(xy2[0].rows);
+	    if(xy2===null||xy2[0].rows<3){
+	        return null; //Cannot run an optimization with less than 3 points
+	    }
+
+	    var t = xy2[0];
+	    var y_data = xy2[1];
+	    var maxY = xy2[2];
+	    var currentIndex = 0;
+	    var nbPoints = t.length;
+	    var nextX;
+	    var tI, yI, maxY;
+	    var result=[], current;
+	    for(var i=0; i<group.length;i++){
+	        nextX = group[i].x-group[i].width*4;
+	        //console.log(group[i]);
+	        while(t[currentIndex++]<nextX&&currentIndex<nbPoints);
+	        nextX = group[i].x+group[i].width*4;
+	        tI = [];
+	        yI = [];
+	        while(t[currentIndex]<=nextX&&currentIndex<nbPoints){
+	            tI.push(t[currentIndex][0]);
+	            yI.push(y_data[currentIndex][0]*maxY);
+	            currentIndex++;
+	        }
+
+	        current=optimizeSingleLorentzian([tI, yI], group[i], opts);
+	        if(current){
+	            result.push({"x":current[0][0],"y":current[1][0],"width":current[2][0],"opt":true});
+	        }
+	        else{
+	            result.push({"x":group[i].x,"y":group[i].y,"width":group[i].width,"opt":false});
+	        }
+	    }
+
+	    return result;
+
+	}
+
+	function optimizeGaussianTrain(xy, group, opts){
+	    var xy2 = parseData(xy);
+	    //console.log(xy2[0].rows);
+	    if(xy2===null||xy2[0].rows<3){
+	        return null; //Cannot run an optimization with less than 3 points
+	    }
+
+	    var t = xy2[0];
+	    var y_data = xy2[1];
+	    var maxY = xy2[2];
+	    var currentIndex = 0;
+	    var nbPoints = t.length;
+	    var nextX;
+	    var tI, yI, maxY;
+	    var result=[], current;
+	    for(var i=0; i<group.length;i++){
+	        nextX = group[i].x-group[i].width*4;
+	        //console.log(group[i]);
+	        while(t[currentIndex++]<nextX&&currentIndex<nbPoints);
+	        nextX = group[i].x+group[i].width*4;
+	        tI = [];
+	        yI = [];
+	        while(t[currentIndex]<=nextX&&currentIndex<nbPoints){
+	            tI.push(t[currentIndex][0]);
+	            yI.push(y_data[currentIndex][0]*maxY);
+	            currentIndex++;
+	        }
+
+	        current=optimizeSingleGaussian([tI, yI], group[i], opts);
+	        if(current){
+	            result.push({"x":current[0][0],"y":current[1][0],"width":current[2][0],"opt":true});
+	        }
+	        else{
+	            result.push({"x":group[i].x,"y":group[i].y,"width":group[i].width,"opt":false});
+	        }
+	    }
+
+	    return result;
+	}
+
+
 
 	/**
 	 *
@@ -5142,13 +5240,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	function optimizeLorentzianSum(xy, group, opts){
 	    var xy2 = parseData(xy);
+
+	    if(xy2===null||xy2[0].rows<3){
+	        return null; //Cannot run an optimization with less than 3 points
+	    }
+
 	    var t = xy2[0];
 	    var y_data = xy2[1];
 	    var maxY = xy2[2];
-	    var nbPoints = t.columns, i;
+	    var nbPoints = t.rows, i;
 
 	    var weight = [nbPoints / math.sqrt(y_data.dot(y_data))];
-	    var opts=Object.create(opts || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ]);
+	    var opts=Object.create(opts || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2, 11, 9, 1 ]);
 	    var consts = [ ];// optional vector of constants
 
 	    var nL = group.length;
@@ -5196,6 +5299,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	function optimizeGaussianSum(xy, group, opts){
 	    var xy2 = parseData(xy);
+
+	    if(xy2===null||xy2[0].rows<3){
+	        return null; //Cannot run an optimization with less than 3 points
+	    }
+
 	    var t = xy2[0];
 	    var y_data = xy2[1];
 	    var maxY = xy2[2];
@@ -5253,7 +5361,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @param xy
 	 * @returns {*[]}
 	 */
-	function parseData(xy){
+	function parseData(xy, threshold){
 	    var nbSeries = xy.length;
 	    var t = null;
 	    var y_data = null, x,y;
@@ -5262,56 +5370,66 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if(nbSeries==2){
 	        //Looks like row wise matrix [x,y]
 	        var nbPoints = xy[0].length;
-	        if(nbPoints<3)
-	            throw new SizeException(nbPoints);
-	        else{
-	            t = new Matrix(nbPoints,1);
-	            y_data = new Matrix(nbPoints,1);
-	            x = xy[0];
-	            y = xy[1];
-	            if(typeof x[0] === "number"){
-	                for(i=0;i<nbPoints;i++){
-	                    t[i][0]=x[i];
-	                    y_data[i][0]=y[i];
-	                    if(y[i]>maxY)
-	                        maxY = y[i];
-	                }
+	        //if(nbPoints<3)
+	        //    throw new Exception(nbPoints);
+	        //else{
+	        t = new Array(nbPoints);//new Matrix(nbPoints,1);
+	        y_data = new Array(nbPoints);//new Matrix(nbPoints,1);
+	        x = xy[0];
+	        y = xy[1];
+	        if(typeof x[0] === "number"){
+	            for(i=0;i<nbPoints;i++){
+	                t[i]=x[i];
+	                y_data[i]=y[i];
+	                if(y[i]>maxY)
+	                    maxY = y[i];
 	            }
-	            else{
-	                //It is a colum matrix
-	                if(typeof x[0] === "object"){
-	                    for(i=0;i<nbPoints;i++){
-	                        t[i][0]=x[i][0];
-	                        y_data[i][0]=y[i][0];
-	                        if(y[i][0]>maxY)
-	                            maxY = y[i][0];
-	                    }
+	        }
+	        else{
+	            //It is a colum matrix
+	            if(typeof x[0] === "object"){
+	                for(i=0;i<nbPoints;i++){
+	                    t[i]=x[i][0];
+	                    y_data[i]=y[i][0];
+	                    if(y[i][0]>maxY)
+	                        maxY = y[i][0];
 	                }
-
 	            }
 
 	        }
+
+	        //}
 	    }
 	    else{
 	        //Looks like a column wise matrix [[x],[y]]
 	        var nbPoints = nbSeries;
-	        if(nbPoints<3)
-	            throw new SizeException(nbPoints);
-	        else {
-	            t = new Matrix(nbPoints, 1);
-	            y_data = new Matrix(nbPoints, 1);
-	            for (i = 0; i < nbPoints; i++) {
-	                t[i][0] = xy[i][0];
-	                y_data[i][0] = xy[i][1];
-	                if(y_data[i][0]>maxY)
-	                    maxY = y_data[i][0];
+	        //if(nbPoints<3)
+	        //    throw new SizeException(nbPoints);
+	        //else {
+	        t = new Array(nbPoints);//new Matrix(nbPoints, 1);
+	        y_data = new Array(nbPoints);//new Matrix(nbPoints, 1);
+	        for (i = 0; i < nbPoints; i++) {
+	            t[i] = xy[i][0];
+	            y_data[i] = xy[i][1];
+	            if(y_data[i]>maxY)
+	                maxY = y_data[i];
+	        }
+	        //}
+	    }
+	    for (i = 0; i < nbPoints; i++) {
+	        y_data[i]/=maxY;
+	    }
+	    if(threshold){
+	        for (i = nbPoints-1; i >=0; i--) {
+	            if(y_data[i]<threshold) {
+	                y_data.splice(i,1);
+	                t.splice(i,1);
 	            }
 	        }
 	    }
-	    for (i = 0; i < nbPoints; i++) {
-	        y_data[i][0]/=maxY;
-	    }
-	    return [t,y_data,maxY];
+	    if(t.length>0)
+	        return [(new Matrix([t])).transpose(),(new Matrix([y_data])).transpose(),maxY];
+	    return null;
 	}
 
 	function sizeException(nbPoints) {
@@ -5324,6 +5442,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports.optimizeGaussianSum = optimizeGaussianSum;
 	module.exports.singleGaussian = singleGaussian;
 	module.exports.singleLorentzian = singleLorentzian;
+	module.exports.optimizeGaussianTrain = optimizeGaussianTrain;
+	module.exports.optimizeLorentzianTrain = optimizeLorentzianTrain;
 
 /***/ },
 /* 14 */
@@ -15542,279 +15662,268 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * This library formats a set of nmr1D signals to the ACS format.
 	 * Created by acastillo on 3/11/15. p
 	 */
-	var ACS=ACS || {};
-	ACS.formater =(function() {
-	    var acsString="";
-	    var parenthesis="";
-	    var spectro="";
-	    var rangeForMultiplet=false;
 
-	    function fromNMRSignal1D2ACS(spectrum, options){
-	        acsString="";
-	        parenthesis="";
-	        spectro="";
-	        var solvent = null;
-	        if(options&&options.solvent)
-	            solvent = options.solvent;
-	        //options.rangeForMultiplet=false;
-	        if(options&&options.rangeForMultiplet!=undefined)
-	            rangeForMultiplet = options.rangeForMultiplet;
+	var acsString="";
+	var parenthesis="";
+	var spectro="";
+	var rangeForMultiplet=false;
 
-	        if(options&&options.ascending){
-	            spectrum.sort(function(a,b){
-	                return b.delta1- a.delta1
-	            });
-	        }
-	        else{
-	            spectrum.sort(function(a,b){
-	                return a.delta1- b.delta1
-	            });
-	        }
+	module.exports.toACS = function(spectrum, options){
+	    acsString="";
+	    parenthesis="";
+	    spectro="";
+	    var solvent = null;
+	    if(options&&options.solvent)
+	        solvent = options.solvent;
+	    if(options&&options.rangeForMultiplet!=undefined)
+	        rangeForMultiplet = options.rangeForMultiplet;
 
-	        //console.log("Range1: "+options.rangeForMultiplet);
-
-	        spectrum.type="NMR SPEC";
-	        if (spectrum[0]["nucleus"]=="1H") {
-	            formatAcs_default(spectrum, false, 2, 1, solvent);
-	        } else if (spectrum[0]["nucleus"]=="13C") {
-	            formatAcs_default(spectrum, false, 1, 0, solvent);
-	        }
-
-	        if (acsString.length>0) acsString+=".";
-
-	        return acsString;
+	    if(options&&options.ascending){
+	        spectrum.sort(function(a,b){
+	            return b.delta1- a.delta1
+	        });
+	    }
+	    else{
+	        spectrum.sort(function(a,b){
+	            return a.delta1- b.delta1
+	        });
 	    }
 
-	    /*function formatAcs_default_IR(spectra, ascending, decimalValue, smw) {
-	     appendSeparator();
-	     appendSpectroInformation(spectra);
-	     if (spectra["peakLabels"]) {
-	     var numberPeakLabels=spectra["peakLabels"].length;
-	     var minIntensity= 9999999;
-	     var maxIntensity=-9999999;
-	     for (var i=0; i<numberPeakLabels; i++) {
-	     if (spectra["peakLabels"][i].intensity<minIntensity) minIntensity=spectra["peakLabels"][i].intensity;
-	     if (spectra["peakLabels"][i].intensity>maxIntensity) maxIntensity=spectra["peakLabels"][i].intensity;
-	     }
-	     for (var i=0; i<numberPeakLabels; i++) {
-	     if (ascending) {
-	     var peakLabel=spectra["peakLabels"][i];
-	     } else {
-	     var peakLabel=spectra["peakLabels"][numberPeakLabels-i-1];
-	     }
-	     if (peakLabel) {
-	     appendSeparator();
-	     appendValue(peakLabel,decimalValue);
-	     if (smw) { // we need to add small / medium / strong
-	     if (peakLabel.intensity<((maxIntensity-minIntensity)/3+minIntensity)) acsString+=" (s)";
-	     else if (peakLabel.intensity>(maxIntensity-(maxIntensity-minIntensity)/3)) acsString+=" (w)";
-	     else acsString+=" (m)";
-	     }
-	     }
-	     }
-	     }
-	     }*/
+	    //console.log("Range1: "+options.rangeForMultiplet);
 
-	    function formatAcs_default(spectra, ascending, decimalValue, decimalJ, solvent) {
-	        appendSeparator();
-	        appendSpectroInformation(spectra, solvent);
-	        var numberSmartPeakLabels=spectra.length;
-	        //console.log("SP "+spectra);
-	        //console.log("# "+numberSmartPeakLabels);
-	        for (var i=0; i<numberSmartPeakLabels; i++) {
-	            if (ascending) {
-	                var signal=spectra[i];
+	    spectrum.type="NMR SPEC";
+	    if (spectrum[0]["nucleus"]=="1H") {
+	        formatAcs_default(spectrum, false, 2, 1, solvent);
+	    } else if (spectrum[0]["nucleus"]=="13C") {
+	        formatAcs_default(spectrum, false, 1, 0, solvent);
+	    }
+
+	    if (acsString.length>0) acsString+=".";
+
+	    return acsString;
+	}
+
+
+	module.exports.toNMRSignal = function(acsString){
+	    return JSON.parse(SDAPI.AcsParserAsJSONString(acsString));
+	}
+
+
+
+	/*function formatAcs_default_IR(spectra, ascending, decimalValue, smw) {
+	 appendSeparator();
+	 appendSpectroInformation(spectra);
+	 if (spectra["peakLabels"]) {
+	 var numberPeakLabels=spectra["peakLabels"].length;
+	 var minIntensity= 9999999;
+	 var maxIntensity=-9999999;
+	 for (var i=0; i<numberPeakLabels; i++) {
+	 if (spectra["peakLabels"][i].intensity<minIntensity) minIntensity=spectra["peakLabels"][i].intensity;
+	 if (spectra["peakLabels"][i].intensity>maxIntensity) maxIntensity=spectra["peakLabels"][i].intensity;
+	 }
+	 for (var i=0; i<numberPeakLabels; i++) {
+	 if (ascending) {
+	 var peakLabel=spectra["peakLabels"][i];
+	 } else {
+	 var peakLabel=spectra["peakLabels"][numberPeakLabels-i-1];
+	 }
+	 if (peakLabel) {
+	 appendSeparator();
+	 appendValue(peakLabel,decimalValue);
+	 if (smw) { // we need to add small / medium / strong
+	 if (peakLabel.intensity<((maxIntensity-minIntensity)/3+minIntensity)) acsString+=" (s)";
+	 else if (peakLabel.intensity>(maxIntensity-(maxIntensity-minIntensity)/3)) acsString+=" (w)";
+	 else acsString+=" (m)";
+	 }
+	 }
+	 }
+	 }
+	 }*/
+
+	function formatAcs_default(spectra, ascending, decimalValue, decimalJ, solvent) {
+	    appendSeparator();
+	    appendSpectroInformation(spectra, solvent);
+	    var numberSmartPeakLabels=spectra.length;
+	    for (var i=0; i<numberSmartPeakLabels; i++) {
+	        if (ascending) {
+	            var signal=spectra[i];
+	        } else {
+	            var signal=spectra[numberSmartPeakLabels-i-1];
+	        }
+	        if (signal) {
+	            appendSeparator();
+	            appendDelta(signal,decimalValue);
+	            appendParenthesis(signal,decimalJ);
+	        }
+	    }
+	}
+
+	function appendSpectroInformation(spectrum, solvent) {
+	    if (spectrum.type=="NMR SPEC") {
+	        if (spectrum[0].nucleus) {
+	            acsString+=formatNucleus(spectrum[0].nucleus);
+	        }
+	        acsString+=" NMR";
+	        if ((solvent) || (spectrum[0].observe)) {
+	            acsString+=" (";
+	            if (spectrum[0].observe) {
+	                acsString+=(spectrum[0].observe*1).toFixed(0)+" MHz";
+	                if (solvent) acsString+=", ";
+	            }
+	            if (solvent) {
+	                acsString+=formatMF(solvent);
+	            }
+	            acsString+=")";
+	        }
+	        acsString+=" δ ";
+	    } else if (spectrum.type=="IR") {
+	        acsString+=" IR ";
+	    } else if (spectrum.type=="MASS") {
+	        acsString+=" MASS ";
+	    }
+	}
+
+	function appendDelta(line, nbDecimal) {
+	    //console.log(line);
+	    var startX = 0,stopX=0,delta1=0;
+	    if(line.integralData.from) {
+	        if ((typeof line.integralData.from) == "string") {
+	            startX = parseFloat(line.integralData.from);
+	        }
+	        else
+	            startX = line.integralData.from;
+	    }
+	    if(line.integralData.to){
+	        if((typeof line.integralData.to)=="string"){
+	            stopX=parseFloat(line.integralData.to);
+	        }
+	        else
+	            stopX=line.integralData.to;
+	    }
+	    if(line.delta1){
+	        if((typeof line.delta1)=="string"){
+	            delta1=parseFloat(line.delta1);
+	        }
+	        else
+	            delta1=line.delta1;
+
+	    }
+	    if (line.asymmetric===true||(line.multiplicity=="m"&&rangeForMultiplet===true)) {//Is it massive??
+	        if (line.integralData.from&&line.integralData.to) {
+	            if (startX<stopX) {
+	                acsString+=startX.toFixed(nbDecimal)+"-"+stopX.toFixed(nbDecimal);
 	            } else {
-	                var signal=spectra[numberSmartPeakLabels-i-1];
+	                acsString+=stopX.toFixed(nbDecimal)+"-"+sttotoFixed(nbDecimal);
 	            }
-	            if (signal) {
-	                //console.log("X2X"+i+JSON.stringify(signal));
-	                appendSeparator();
-	                appendDelta(signal,decimalValue);
-	                appendParenthesis(signal,decimalJ);
-	                //console.log("S2S"+i);
-	            }
-	        }
-	    }
-
-	    function appendSpectroInformation(spectrum, solvent) {
-	        if (spectrum.type=="NMR SPEC") {
-	            if (spectrum[0].nucleus) {
-	                acsString+=formatNucleus(spectrum[0].nucleus);
-	            }
-	            acsString+=" NMR";
-	            if ((solvent) || (spectrum[0].observe)) {
-	                acsString+=" (";
-	                if (spectrum[0].observe) {
-	                    acsString+=(spectrum[0].observe*1).toFixed(0)+" MHz";
-	                    if (solvent) acsString+=", ";
-	                }
-	                if (solvent) {
-	                    acsString+=formatMF(solvent);
-	                }
-	                acsString+=")";
-	            }
-	            acsString+=" δ ";
-	        } else if (spectrum.type=="IR") {
-	            acsString+=" IR ";
-	        } else if (spectrum.type=="MASS") {
-	            acsString+=" MASS ";
-	        }
-	    }
-
-	    function appendDelta(line, nbDecimal) {
-	        //console.log(line);
-	        var startX = 0,stopX=0,delta1=0;
-	        if(line.integralData.from) {
-	            if ((typeof line.integralData.from) == "string") {
-	                startX = parseFloat(line.integralData.from);
-	            }
-	            else
-	                startX = line.integralData.from;
-	        }
-	        if(line.integralData.to){
-	            if((typeof line.integralData.to)=="string"){
-	                stopX=parseFloat(line.integralData.to);
-	            }
-	            else
-	                stopX=line.integralData.to;
-	        }
-	        if(line.delta1){
-	            if((typeof line.delta1)=="string"){
-	                delta1=parseFloat(line.delta1);
-	            }
-	            else
-	                delta1=line.delta1;
-
-	        }
-	        //console.log("Range2: "+rangeForMultiplet+" "+line.multiplicity);
-	        if (line.asymmetric===true||(line.multiplicity=="m"&&rangeForMultiplet===true)) {//Is it massive??
-	            if (line.integralData.from&&line.integralData.to) {
-	                if (startX<stopX) {
-	                    acsString+=startX.toFixed(nbDecimal)+"-"+stopX.toFixed(nbDecimal);
-	                } else {
-	                    acsString+=stopX.toFixed(nbDecimal)+"-"+sttotoFixed(nbDecimal);
-	                }
-	            } else {
-	                if(line.delta1)
-	                    acsString+=delta1.toFixed(nbDecimal);
-	            }
-	        }
-	        else{
+	        } else {
 	            if(line.delta1)
 	                acsString+=delta1.toFixed(nbDecimal);
-	            else{
-	                if(line.integralData.from&&line.integralData.to){
-	                    acsString+=((startX+stopX)/2).toFixed(nbDecimal);
-	                }
-	            }
 	        }
 	    }
-
-	    function appendValue(line, nbDecimal) {
-	        if (line.xPosition) {
-	            acsString+=line.xPosition.toFixed(nbDecimal);
-	        }
-	    }
-
-	    function appendParenthesis(line, nbDecimal) {
-	        // need to add assignment - coupling - integration
-	        parenthesis="";
-	        appendMultiplicity(line);
-	        appendIntegration(line);
-	        appendCoupling(line,nbDecimal);
-	        appendAssignment(line);
-
-
-	        if (parenthesis.length>0) {
-	            acsString+=" ("+parenthesis+")";
-	        }
-	    }
-
-	    function appendIntegration(line) {
-	        if (line.pubIntegration) {
-	            appendParenthesisSeparator();
-	            parenthesis+=line.pubIntegration;
-	        } else if (line.integralData) {
-	            appendParenthesisSeparator();
-	            parenthesis+=line.integralData.value.toFixed(0)+" H";
-	        }
-	    }
-
-	    function appendAssignment(line) {
-	        if (line.pubAssignment) {
-	            appendParenthesisSeparator();
-	            parenthesis+=formatAssignment(line.pubAssignment);
-	        }
+	    else{
+	        if(line.delta1)
+	            acsString+=delta1.toFixed(nbDecimal);
 	        else{
-	            if (line.assignment) {
-	                appendParenthesisSeparator();
-	                parenthesis+=formatAssignment(line.assignment);
+	            if(line.integralData.from&&line.integralData.to){
+	                acsString+=((startX+stopX)/2).toFixed(nbDecimal);
 	            }
 	        }
 	    }
+	}
 
-	    function appendMultiplicity(line) {
-	        if (line.pubMultiplicity) {
+	function appendValue(line, nbDecimal) {
+	    if (line.xPosition) {
+	        acsString+=line.xPosition.toFixed(nbDecimal);
+	    }
+	}
+
+	function appendParenthesis(line, nbDecimal) {
+	    // need to add assignment - coupling - integration
+	    parenthesis="";
+	    appendMultiplicity(line);
+	    appendIntegration(line);
+	    appendCoupling(line,nbDecimal);
+	    appendAssignment(line);
+
+
+	    if (parenthesis.length>0) {
+	        acsString+=" ("+parenthesis+")";
+	    }
+	}
+
+	function appendIntegration(line) {
+	    if (line.pubIntegration) {
+	        appendParenthesisSeparator();
+	        parenthesis+=line.pubIntegration;
+	    } else if (line.integralData) {
+	        appendParenthesisSeparator();
+	        parenthesis+=line.integralData.value.toFixed(0)+" H";
+	    }
+	}
+
+	function appendAssignment(line) {
+	    if (line.pubAssignment) {
+	        appendParenthesisSeparator();
+	        parenthesis+=formatAssignment(line.pubAssignment);
+	    }
+	    else{
+	        if (line.assignment) {
 	            appendParenthesisSeparator();
-	            parenthesis+=line.pubMultiplicity;
-	        } else if (line.multiplicity) {
-	            appendParenthesisSeparator();
-	            parenthesis+=line.multiplicity;
+	            parenthesis+=formatAssignment(line.assignment);
 	        }
 	    }
+	}
 
-	    function appendCoupling(line, nbDecimal) {
-	        if (line.nmrJs) {
-	            var j="<i>J</i> = ";
-	            for (var i=0; i<line.nmrJs.length; i++) {
-	                var coupling=line.nmrJs[i].coupling;
-	                if (j.length>11) j+=", ";
-	                j+=coupling.toFixed(nbDecimal);
-	            }
-	            appendParenthesisSeparator();
-	            parenthesis+=j+" Hz";
+	function appendMultiplicity(line) {
+	    if (line.pubMultiplicity) {
+	        appendParenthesisSeparator();
+	        parenthesis+=line.pubMultiplicity;
+	    } else if (line.multiplicity) {
+	        appendParenthesisSeparator();
+	        parenthesis+=line.multiplicity;
+	    }
+	}
+
+	function appendCoupling(line, nbDecimal) {
+	    if (line.nmrJs) {
+	        var j="<i>J</i> = ";
+	        for (var i=0; i<line.nmrJs.length; i++) {
+	            var coupling=line.nmrJs[i].coupling;
+	            if (j.length>11) j+=", ";
+	            j+=coupling.toFixed(nbDecimal);
 	        }
-
+	        appendParenthesisSeparator();
+	        parenthesis+=j+" Hz";
 	    }
 
-	    function formatAssignment(assignment) {
-	        assignment=assignment.replace(/([0-9])/g,"<sub>$1</sub>");
-	        assignment=assignment.replace(/\"([^\"]*)\"/g,"<i>$1</i>");
-	        return assignment;
-	    }
+	}
 
-	    function formatMF(mf) {
-	        mf=mf.replace(/([0-9])/g,"<sub>$1</sub>");
-	        return mf;
-	    }
+	function formatAssignment(assignment) {
+	    assignment=assignment.replace(/([0-9])/g,"<sub>$1</sub>");
+	    assignment=assignment.replace(/\"([^\"]*)\"/g,"<i>$1</i>");
+	    return assignment;
+	}
 
-	    function formatNucleus(nucleus) {
-	        nucleus=nucleus.replace(/([0-9])/g,"<sup>$1</sup>");
-	        return nucleus;
-	    }
+	function formatMF(mf) {
+	    mf=mf.replace(/([0-9])/g,"<sub>$1</sub>");
+	    return mf;
+	}
 
-	    function appendSeparator() {
-	        if ((acsString.length>0) && (! acsString.match(/ $/))) {
-	            acsString+=", ";
-	        }
-	    }
+	function formatNucleus(nucleus) {
+	    nucleus=nucleus.replace(/([0-9])/g,"<sup>$1</sup>");
+	    return nucleus;
+	}
 
-	    function appendParenthesisSeparator() {
-	        if ((parenthesis.length>0) && (! parenthesis.match(", $"))) parenthesis+=", ";
+	function appendSeparator() {
+	    if ((acsString.length>0) && (! acsString.match(/ $/))) {
+	        acsString+=", ";
 	    }
+	}
 
-	    function fromACS2NMRSignal1D(acsString){
-	        return JSON.parse(SDAPI.AcsParserAsJSONString(acsString));
-	    }
+	function appendParenthesisSeparator() {
+	    if ((parenthesis.length>0) && (! parenthesis.match(", $"))) parenthesis+=", ";
+	}
 
-	    return {
-	        toACS:fromNMRSignal1D2ACS,
-	        toNMRSignal:fromACS2NMRSignal1D
-	    }
-	})();
-
-	module.exports=ACS;
 
 /***/ },
 /* 55 */
@@ -15825,288 +15934,269 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * This library formats a set of nmr1D signals to the ACS format.
 	 * Created by acastillo on 3/11/15. p
 	 */
-	var ACS=ACS || {};
-	ACS.formater =(function() {
-	    var acsString="";
-	    var parenthesis="";
-	    var spectro="";
-	    var rangeForMultiplet=false;
 
-	    function fromNMRSignal1D2ACS(spectrum, options){
-	        acsString="";
-	        parenthesis="";
-	        spectro="";
-	        var solvent = null;
-	        if(options&&options.solvent)
-	            solvent = options.solvent;
-	        //options.rangeForMultiplet=false;
-	        if(options&&options.rangeForMultiplet!=undefined)
-	            rangeForMultiplet = options.rangeForMultiplet;
+	var acsString="";
+	var parenthesis="";
+	var spectro="";
+	var rangeForMultiplet=false;
 
-	        if(options&&options.ascending){
-	            spectrum.sort(function(a,b){
-	                return b.from- a.from
-	            });
-	        }
-	        else{
-	            spectrum.sort(function(a,b){
-	                return a.from- b.from
-	            });
-	        }
+	module.exports.toACS = function(spectrum, options){
+	    acsString="";
+	    parenthesis="";
+	    spectro="";
+	    var solvent = null;
+	    if(options&&options.solvent)
+	        solvent = options.solvent;
+	    if(options&&options.rangeForMultiplet!=undefined)
+	        rangeForMultiplet = options.rangeForMultiplet;
 
-	        //console.log("Range1: "+options.rangeForMultiplet);
-
-	        spectrum.type="NMR SPEC";
-	        if (options&&options.nucleus=="1H") {
-	            formatAcs_default(spectrum, false, 2, 1, solvent, options);
-	        }
-	        if (options&&options.nucleus=="13C") {
-	            formatAcs_default(spectrum, false, 1, 0, solvent,options);
-	        }
-
-	        if (acsString.length>0) acsString+=".";
-
-	        return acsString;
+	    if(options&&options.ascending){
+	        spectrum.sort(function(a,b){
+	            return b.from- a.from
+	        });
+	    }
+	    else{
+	        spectrum.sort(function(a,b){
+	            return a.from- b.from
+	        });
 	    }
 
-	    /*function formatAcs_default_IR(spectra, ascending, decimalValue, smw) {
-	     appendSeparator();
-	     appendSpectroInformation(spectra);
-	     if (spectra["peakLabels"]) {
-	     var numberPeakLabels=spectra["peakLabels"].length;
-	     var minIntensity= 9999999;
-	     var maxIntensity=-9999999;
-	     for (var i=0; i<numberPeakLabels; i++) {
-	     if (spectra["peakLabels"][i].intensity<minIntensity) minIntensity=spectra["peakLabels"][i].intensity;
-	     if (spectra["peakLabels"][i].intensity>maxIntensity) maxIntensity=spectra["peakLabels"][i].intensity;
-	     }
-	     for (var i=0; i<numberPeakLabels; i++) {
-	     if (ascending) {
-	     var peakLabel=spectra["peakLabels"][i];
-	     } else {
-	     var peakLabel=spectra["peakLabels"][numberPeakLabels-i-1];
-	     }
-	     if (peakLabel) {
-	     appendSeparator();
-	     appendValue(peakLabel,decimalValue);
-	     if (smw) { // we need to add small / medium / strong
-	     if (peakLabel.intensity<((maxIntensity-minIntensity)/3+minIntensity)) acsString+=" (s)";
-	     else if (peakLabel.intensity>(maxIntensity-(maxIntensity-minIntensity)/3)) acsString+=" (w)";
-	     else acsString+=" (m)";
-	     }
-	     }
-	     }
-	     }
-	     }*/
+	    spectrum.type="NMR SPEC";
+	    if (options&&options.nucleus=="1H") {
+	        formatAcs_default(spectrum, false, 2, 1, solvent, options);
+	    }
+	    if (options&&options.nucleus=="13C") {
+	        formatAcs_default(spectrum, false, 1, 0, solvent,options);
+	    }
 
-	    function formatAcs_default(spectra, ascending, decimalValue, decimalJ, solvent, options) {
-	        appendSeparator();
-	        appendSpectroInformation(spectra, solvent, options);
-	        var numberSmartPeakLabels=spectra.length;
-	        //console.log("SP "+spectra);
-	        //console.log("# "+numberSmartPeakLabels);
-	        for (var i=0; i<numberSmartPeakLabels; i++) {
-	            if (ascending) {
-	                var signal=spectra[i];
+	    if (acsString.length>0) acsString+=".";
+
+	    return acsString;
+	}
+
+	module.exports.toNMRSignal = function(acsString){
+	    //TODO Create the function that reconstructs the signals from the ACS string
+	    return null;
+	}
+
+	/*function formatAcs_default_IR(spectra, ascending, decimalValue, smw) {
+	 appendSeparator();
+	 appendSpectroInformation(spectra);
+	 if (spectra["peakLabels"]) {
+	 var numberPeakLabels=spectra["peakLabels"].length;
+	 var minIntensity= 9999999;
+	 var maxIntensity=-9999999;
+	 for (var i=0; i<numberPeakLabels; i++) {
+	 if (spectra["peakLabels"][i].intensity<minIntensity) minIntensity=spectra["peakLabels"][i].intensity;
+	 if (spectra["peakLabels"][i].intensity>maxIntensity) maxIntensity=spectra["peakLabels"][i].intensity;
+	 }
+	 for (var i=0; i<numberPeakLabels; i++) {
+	 if (ascending) {
+	 var peakLabel=spectra["peakLabels"][i];
+	 } else {
+	 var peakLabel=spectra["peakLabels"][numberPeakLabels-i-1];
+	 }
+	 if (peakLabel) {
+	 appendSeparator();
+	 appendValue(peakLabel,decimalValue);
+	 if (smw) { // we need to add small / medium / strong
+	 if (peakLabel.intensity<((maxIntensity-minIntensity)/3+minIntensity)) acsString+=" (s)";
+	 else if (peakLabel.intensity>(maxIntensity-(maxIntensity-minIntensity)/3)) acsString+=" (w)";
+	 else acsString+=" (m)";
+	 }
+	 }
+	 }
+	 }
+	 }*/
+
+	function formatAcs_default(spectra, ascending, decimalValue, decimalJ, solvent, options) {
+	    appendSeparator();
+	    appendSpectroInformation(spectra, solvent, options);
+	    var numberSmartPeakLabels=spectra.length;
+	    for (var i=0; i<numberSmartPeakLabels; i++) {
+	        if (ascending) {
+	            var signal=spectra[i];
+	        } else {
+	            var signal=spectra[numberSmartPeakLabels-i-1];
+	        }
+	        if (signal) {
+	            appendSeparator();
+	            appendDelta(signal,decimalValue);
+	            appendParenthesis(signal,decimalJ);
+	        }
+	    }
+	}
+
+	function appendSpectroInformation(spectrum, solvent, options) {
+	    if (spectrum.type=="NMR SPEC") {
+	        if (options.nucleus) {
+	            acsString+=formatNucleus(options.nucleus);
+	        }
+	        acsString+=" NMR";
+	        if ((solvent) || (options.observe)) {
+	            acsString+=" (";
+	            if (options.observe) {
+	                acsString+=(options.observe*1).toFixed(0)+" MHz";
+	                if (solvent) acsString+=", ";
+	            }
+	            if (solvent) {
+	                acsString+=formatMF(solvent);
+	            }
+	            acsString+=")";
+	        }
+	        acsString+=" δ ";
+	    } else if (spectrum.type=="IR") {
+	        acsString+=" IR ";
+	    } else if (spectrum.type=="MASS") {
+	        acsString+=" MASS ";
+	    }
+	}
+
+	function appendDelta(line, nbDecimal) {
+	    var startX = 0,stopX=0,delta1=0, asymmetric;
+	    if(line.from){
+	        if((typeof line.from)=="string"){
+	            startX=parseFloat(line.from);
+	        }
+	        else
+	            startX=line.from;
+	    }
+	    if(line.to){
+	        if((typeof line.to)=="string"){
+	            stopX=parseFloat(line.to);
+	        }
+	        else
+	            stopX=line.to;
+	    }
+	    if(line.signal[0].delta){
+	        if((typeof line.signal[0].delta)=="string"){
+	            delta1=parseFloat(line.signal[0].delta);
+	        }
+	        else
+	            delta1=line.signal[0].delta;
+	    }
+	    else{
+	        asymmetric = true;
+	    }
+	    //console.log("Range2: "+rangeForMultiplet+" "+line.multiplicity);
+	    if (asymmetric===true||(line.signal[0].multiplicity=="m"&&rangeForMultiplet===true)) {//Is it massive??
+	        if (line.from&&line.to) {
+	            if (startX<stopX) {
+	                acsString+=startX.toFixed(nbDecimal)+"-"+stopX.toFixed(nbDecimal);
 	            } else {
-	                var signal=spectra[numberSmartPeakLabels-i-1];
+	                acsString+=stopX.toFixed(nbDecimal)+"-"+startX.toFixed(nbDecimal);
 	            }
-	            if (signal) {
-	                //console.log("X2X"+i+JSON.stringify(signal));
-	                appendSeparator();
-	                appendDelta(signal,decimalValue);
-	                appendParenthesis(signal,decimalJ);
-	                //console.log("S2S"+i);
-	            }
-	        }
-	    }
-
-	    function appendSpectroInformation(spectrum, solvent, options) {
-	        if (spectrum.type=="NMR SPEC") {
-	            if (options.nucleus) {
-	                acsString+=formatNucleus(options.nucleus);
-	            }
-	            acsString+=" NMR";
-	            if ((solvent) || (options.observe)) {
-	                acsString+=" (";
-	                if (options.observe) {
-	                    acsString+=(options.observe*1).toFixed(0)+" MHz";
-	                    if (solvent) acsString+=", ";
-	                }
-	                if (solvent) {
-	                    acsString+=formatMF(solvent);
-	                }
-	                acsString+=")";
-	            }
-	            acsString+=" δ ";
-	        } else if (spectrum.type=="IR") {
-	            acsString+=" IR ";
-	        } else if (spectrum.type=="MASS") {
-	            acsString+=" MASS ";
-	        }
-	    }
-
-	    function appendDelta(line, nbDecimal) {
-	        //console.log("appendDelta1");
-	        //console.log("sd");
-	        var startX = 0,stopX=0,delta1=0, asymmetric;
-	        if(line.from){
-	            if((typeof line.from)=="string"){
-	                startX=parseFloat(line.from);
-	            }
-	            else
-	                startX=line.from;
-	        }
-	        if(line.to){
-	            if((typeof line.to)=="string"){
-	                stopX=parseFloat(line.to);
-	            }
-	            else
-	                stopX=line.to;
-	        }
-	        if(line.signal[0].delta){
-	            if((typeof line.signal[0].delta)=="string"){
-	                delta1=parseFloat(line.signal[0].delta);
-	            }
-	            else
-	                delta1=line.signal[0].delta;
-	        }
-	        else{
-	            asymmetric = true;
-	        }
-	        //console.log("Range2: "+rangeForMultiplet+" "+line.multiplicity);
-	        if (asymmetric===true||(line.signal[0].multiplicity=="m"&&rangeForMultiplet===true)) {//Is it massive??
-	            if (line.from&&line.to) {
-	                if (startX<stopX) {
-	                    acsString+=startX.toFixed(nbDecimal)+"-"+stopX.toFixed(nbDecimal);
-	                } else {
-	                    acsString+=stopX.toFixed(nbDecimal)+"-"+startX.toFixed(nbDecimal);
-	                }
-	            } else {
-	                if(line.signal[0].delta)
-	                    acsString+="?";
-	            }
-	        }
-	        else{
+	        } else {
 	            if(line.signal[0].delta)
-	                acsString+=delta1.toFixed(nbDecimal);
-	            else{
-	                if(line.from&&line.to){
-	                    acsString+=((startX+stopX)/2).toFixed(nbDecimal);
-	                }
-	            }
+	                acsString+="?";
 	        }
 	    }
-
-	    function appendValue(line, nbDecimal) {
-	        if (line.xPosition) {
-	            acsString+=line.xPosition.toFixed(nbDecimal);
-	        }
-	    }
-
-	    function appendParenthesis(line, nbDecimal) {
-	        //console.log("appendParenthesis1");
-	        // need to add assignment - coupling - integration
-	        parenthesis="";
-	        appendMultiplicity(line);
-	        appendIntegration(line);
-	        appendCoupling(line,nbDecimal);
-	        appendAssignment(line);
-
-
-	        if (parenthesis.length>0) {
-	            acsString+=" ("+parenthesis+")";
-	        }
-	        //console.log("appendParenthesis2");
-	    }
-
-	    function appendIntegration(line) {
-	        if (line.pubIntegration) {
-	            appendParenthesisSeparator();
-	            parenthesis+=line.pubIntegration;
-	        } else if (line.integral) {
-	            appendParenthesisSeparator();
-	            parenthesis+=line.integral.toFixed(0)+" H";
-	        }
-	    }
-
-	    function appendAssignment(line) {
-	        if (line.signal[0].pubAssignment) {
-	            appendParenthesisSeparator();
-	            parenthesis+=formatAssignment(line.signal[0].pubAssignment);
-	        }
+	    else{
+	        if(line.signal[0].delta)
+	            acsString+=delta1.toFixed(nbDecimal);
 	        else{
-	            if (line.signal[0].assignment) {
-	                appendParenthesisSeparator();
-	                parenthesis+=formatAssignment(line.signal[0].assignment);
+	            if(line.from&&line.to){
+	                acsString+=((startX+stopX)/2).toFixed(nbDecimal);
 	            }
 	        }
 	    }
+	}
 
-	    function appendMultiplicity(line) {
-	        if (line.signal[0].pubMultiplicity) {
+	function appendValue(line, nbDecimal) {
+	    if (line.xPosition) {
+	        acsString+=line.xPosition.toFixed(nbDecimal);
+	    }
+	}
+
+	function appendParenthesis(line, nbDecimal) {
+	    //console.log("appendParenthesis1");
+	    // need to add assignment - coupling - integration
+	    parenthesis="";
+	    appendMultiplicity(line);
+	    appendIntegration(line);
+	    appendCoupling(line,nbDecimal);
+	    appendAssignment(line);
+
+
+	    if (parenthesis.length>0) {
+	        acsString+=" ("+parenthesis+")";
+	    }
+	    //console.log("appendParenthesis2");
+	}
+
+	function appendIntegration(line) {
+	    if (line.pubIntegration) {
+	        appendParenthesisSeparator();
+	        parenthesis+=line.pubIntegration;
+	    } else if (line.integral) {
+	        appendParenthesisSeparator();
+	        parenthesis+=line.integral.toFixed(0)+" H";
+	    }
+	}
+
+	function appendAssignment(line) {
+	    if (line.signal[0].pubAssignment) {
+	        appendParenthesisSeparator();
+	        parenthesis+=formatAssignment(line.signal[0].pubAssignment);
+	    }
+	    else{
+	        if (line.signal[0].assignment) {
 	            appendParenthesisSeparator();
-	            parenthesis+=line.pubMultiplicity;
-	        } else if (line.signal[0].multiplicity) {
-	            appendParenthesisSeparator();
-	            parenthesis+=line.signal[0].multiplicity;
+	            parenthesis+=formatAssignment(line.signal[0].assignment);
 	        }
 	    }
+	}
 
-	    function appendCoupling(line, nbDecimal) {
-	        if (line.signal[0].j) {
-	            var Js = line.signal[0].j;
-	            var j="<i>J</i> = ";
-	            for (var i=0; i<Js.length; i++) {
-	                var coupling=Js[i].coupling;
-	                if (j.length>11) j+=", ";
-	                j+=coupling.toFixed(nbDecimal);
-	            }
-	            appendParenthesisSeparator();
-	            parenthesis+=j+" Hz";
+	function appendMultiplicity(line) {
+	    if (line.signal[0].pubMultiplicity) {
+	        appendParenthesisSeparator();
+	        parenthesis+=line.pubMultiplicity;
+	    } else if (line.signal[0].multiplicity) {
+	        appendParenthesisSeparator();
+	        parenthesis+=line.signal[0].multiplicity;
+	    }
+	}
+
+	function appendCoupling(line, nbDecimal) {
+	    if (line.signal[0].j) {
+	        var Js = line.signal[0].j;
+	        var j="<i>J</i> = ";
+	        for (var i=0; i<Js.length; i++) {
+	            var coupling=Js[i].coupling;
+	            if (j.length>11) j+=", ";
+	            j+=coupling.toFixed(nbDecimal);
 	        }
-
+	        appendParenthesisSeparator();
+	        parenthesis+=j+" Hz";
 	    }
+	}
 
-	    function formatAssignment(assignment) {
-	        assignment=assignment.replace(/([0-9])/g,"<sub>$1</sub>");
-	        assignment=assignment.replace(/\"([^\"]*)\"/g,"<i>$1</i>");
-	        return assignment;
+	function formatAssignment(assignment) {
+	    assignment=assignment.replace(/([0-9])/g,"<sub>$1</sub>");
+	    assignment=assignment.replace(/\"([^\"]*)\"/g,"<i>$1</i>");
+	    return assignment;
+	}
+
+	function formatMF(mf) {
+	    mf=mf.replace(/([0-9])/g,"<sub>$1</sub>");
+	    return mf;
+	}
+
+	function formatNucleus(nucleus) {
+	    nucleus=nucleus.replace(/([0-9])/g,"<sup>$1</sup>");
+	    return nucleus;
+	}
+
+	function appendSeparator() {
+	    if ((acsString.length>0) && (! acsString.match(/ $/))) {
+	        acsString+=", ";
 	    }
+	}
 
-	    function formatMF(mf) {
-	        mf=mf.replace(/([0-9])/g,"<sub>$1</sub>");
-	        return mf;
-	    }
+	function appendParenthesisSeparator() {
+	    if ((parenthesis.length>0) && (! parenthesis.match(", $"))) parenthesis+=", ";
+	}
 
-	    function formatNucleus(nucleus) {
-	        nucleus=nucleus.replace(/([0-9])/g,"<sup>$1</sup>");
-	        return nucleus;
-	    }
-
-	    function appendSeparator() {
-	        if ((acsString.length>0) && (! acsString.match(/ $/))) {
-	            acsString+=", ";
-	        }
-	    }
-
-	    function appendParenthesisSeparator() {
-	        if ((parenthesis.length>0) && (! parenthesis.match(", $"))) parenthesis+=", ";
-	    }
-
-	    function fromACS2NMRSignal1D(acsString){
-	        //TODO Create the function that reconstructs the signals from the ACS string
-	        return null;
-	        //return JSON.parse(SDAPI.AcsParserAsJSONString(acsString));
-	    }
-
-	    return {
-	        toACS:fromNMRSignal1D2ACS,
-	        toNMRSignal:fromACS2NMRSignal1D
-	    }
-	})();
-
-	module.exports=ACS;
 
 /***/ }
 /******/ ])
