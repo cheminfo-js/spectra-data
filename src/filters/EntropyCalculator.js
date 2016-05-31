@@ -1,6 +1,8 @@
+"use strict";
 /**
  * Created by Abol on 5/23/2016.
  */
+
 
 var lib = require("ml-fft");
 var FFT = lib.FFT;

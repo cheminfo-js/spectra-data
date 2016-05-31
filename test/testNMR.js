@@ -1,4 +1,4 @@
-'use strict';
+nmp'use strict';
 
 var Data = require('..');
 var FS = require('fs');
