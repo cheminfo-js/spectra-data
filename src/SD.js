@@ -31,7 +31,7 @@ function SD(sd) {
  * @returns {SD}
  */
 SD.fromJcamp = function(jcamp, options) {
-    options = options || {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/};
+    options = Object.assign({}, {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/}, options);
     var spectrum= JcampConverter.convert(jcamp,options);
     return new SD(spectrum);
 }

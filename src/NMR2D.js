@@ -29,7 +29,7 @@ NMR2D.prototype.constructor = NMR2D;
  * @returns {NMR2D}
  */
 NMR2D.fromJcamp = function(jcamp,options) {
-    options = options || {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/};
+    options = Object.assign({}, {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/}, options);
     var spectrum= JcampConverter.convert(jcamp,options);
     return new NMR2D(spectrum);
 }
