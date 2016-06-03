@@ -29,7 +29,7 @@ NMR.prototype.constructor = NMR;
  * @returns {NMR}
  */
 NMR.fromJcamp = function(jcamp,options) {
-    options = options || {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/};
+    options = Object.assign({}, {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/}, options);
     var spectrum= JcampConverter.convert(jcamp,options);
     return new NMR(spectrum);
 }
