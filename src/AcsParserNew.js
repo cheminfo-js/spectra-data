@@ -21,22 +21,21 @@ module.exports.toACS = function(spectrum, options){
 
     if(options&&options.ascending){
         spectrum.sort(function(a,b){
-            return b.delta1- a.delta1
+            return b.from- a.from
         });
     }
     else{
         spectrum.sort(function(a,b){
-            return a.delta1- b.delta1
+            return a.from- b.from
         });
     }
 
-    //console.log("Range1: "+options.rangeForMultiplet);
-
     spectrum.type="NMR SPEC";
-    if (spectrum[0]["nucleus"]=="1H") {
-        formatAcs_default(spectrum, false, 2, 1, solvent);
-    } else if (spectrum[0]["nucleus"]=="13C") {
-        formatAcs_default(spectrum, false, 1, 0, solvent);
+    if (options&&options.nucleus=="1H") {
+        formatAcs_default(spectrum, false, 2, 1, solvent, options);
+    }
+    if (options&&options.nucleus=="13C") {
+        formatAcs_default(spectrum, false, 1, 0, solvent,options);
     }
 
     if (acsString.length>0) acsString+=".";
@@ -44,12 +43,10 @@ module.exports.toACS = function(spectrum, options){
     return acsString;
 }
 
-
 module.exports.toNMRSignal = function(acsString){
-    return JSON.parse(SDAPI.AcsParserAsJSONString(acsString));
+    //TODO Create the function that reconstructs the signals from the ACS string
+    return null;
 }
-
-
 
 /*function formatAcs_default_IR(spectra, ascending, decimalValue, smw) {
  appendSeparator();
@@ -81,9 +78,9 @@ module.exports.toNMRSignal = function(acsString){
  }
  }*/
 
-function formatAcs_default(spectra, ascending, decimalValue, decimalJ, solvent) {
+function formatAcs_default(spectra, ascending, decimalValue, decimalJ, solvent, options) {
     appendSeparator();
-    appendSpectroInformation(spectra, solvent);
+    appendSpectroInformation(spectra, solvent, options);
     var numberSmartPeakLabels=spectra.length;
     for (var i=0; i<numberSmartPeakLabels; i++) {
         if (ascending) {
@@ -99,16 +96,16 @@ function formatAcs_default(spectra, ascending, decimalValue, decimalJ, solvent) 
     }
 }
 
-function appendSpectroInformation(spectrum, solvent) {
+function appendSpectroInformation(spectrum, solvent, options) {
     if (spectrum.type=="NMR SPEC") {
-        if (spectrum[0].nucleus) {
-            acsString+=formatNucleus(spectrum[0].nucleus);
+        if (options.nucleus) {
+            acsString+=formatNucleus(options.nucleus);
         }
         acsString+=" NMR";
-        if ((solvent) || (spectrum[0].observe)) {
+        if ((solvent) || (options.observe)) {
             acsString+=" (";
-            if (spectrum[0].observe) {
-                acsString+=(spectrum[0].observe*1).toFixed(0)+" MHz";
+            if (options.observe) {
+                acsString+=(options.observe*1).toFixed(0)+" MHz";
                 if (solvent) acsString+=", ";
             }
             if (solvent) {
@@ -125,47 +122,49 @@ function appendSpectroInformation(spectrum, solvent) {
 }
 
 function appendDelta(line, nbDecimal) {
-    //console.log(line);
-    var startX = 0,stopX=0,delta1=0;
-    if(line.integralData.from) {
-        if ((typeof line.integralData.from) == "string") {
-            startX = parseFloat(line.integralData.from);
+    var startX = 0,stopX=0,delta1=0, asymmetric;
+    if(line.from){
+        if((typeof line.from)=="string"){
+            startX=parseFloat(line.from);
         }
         else
-            startX = line.integralData.from;
+            startX=line.from;
     }
-    if(line.integralData.to){
-        if((typeof line.integralData.to)=="string"){
-            stopX=parseFloat(line.integralData.to);
+    if(line.to){
+        if((typeof line.to)=="string"){
+            stopX=parseFloat(line.to);
         }
         else
-            stopX=line.integralData.to;
+            stopX=line.to;
     }
-    if(line.delta1){
-        if((typeof line.delta1)=="string"){
-            delta1=parseFloat(line.delta1);
+    if(line.signal[0].delta){
+        if((typeof line.signal[0].delta)=="string"){
+            delta1=parseFloat(line.signal[0].delta);
         }
         else
-            delta1=line.delta1;
-
+            delta1=line.signal[0].delta;
     }
-    if (line.asymmetric===true||(line.multiplicity=="m"&&rangeForMultiplet===true)) {//Is it massive??
-        if (line.integralData.from&&line.integralData.to) {
+    else{
+        asymmetric = true;
+    }
+    //console.log("Range2: "+rangeForMultiplet+" "+line.multiplicity);
+    if (asymmetric===true||(line.signal[0].multiplicity=="m"&&rangeForMultiplet===true)) {//Is it massive??
+        if (line.from&&line.to) {
             if (startX<stopX) {
                 acsString+=startX.toFixed(nbDecimal)+"-"+stopX.toFixed(nbDecimal);
             } else {
-                acsString+=stopX.toFixed(nbDecimal)+"-"+sttotoFixed(nbDecimal);
+                acsString+=stopX.toFixed(nbDecimal)+"-"+startX.toFixed(nbDecimal);
             }
         } else {
-            if(line.delta1)
-                acsString+=delta1.toFixed(nbDecimal);
+            if(line.signal[0].delta)
+                acsString+="?";
         }
     }
     else{
-        if(line.delta1)
+        if(line.signal[0].delta)
             acsString+=delta1.toFixed(nbDecimal);
         else{
-            if(line.integralData.from&&line.integralData.to){
+            if(line.from&&line.to){
                 acsString+=((startX+stopX)/2).toFixed(nbDecimal);
             }
         }
@@ -179,6 +178,7 @@ function appendValue(line, nbDecimal) {
 }
 
 function appendParenthesis(line, nbDecimal) {
+    //console.log("appendParenthesis1");
     // need to add assignment - coupling - integration
     parenthesis="";
     appendMultiplicity(line);
@@ -190,53 +190,54 @@ function appendParenthesis(line, nbDecimal) {
     if (parenthesis.length>0) {
         acsString+=" ("+parenthesis+")";
     }
+    //console.log("appendParenthesis2");
 }
 
 function appendIntegration(line) {
     if (line.pubIntegration) {
         appendParenthesisSeparator();
         parenthesis+=line.pubIntegration;
-    } else if (line.integralData) {
+    } else if (line.integral) {
         appendParenthesisSeparator();
-        parenthesis+=line.integralData.value.toFixed(0)+" H";
+        parenthesis+=line.integral.toFixed(0)+" H";
     }
 }
 
 function appendAssignment(line) {
-    if (line.pubAssignment) {
+    if (line.signal[0].pubAssignment) {
         appendParenthesisSeparator();
-        parenthesis+=formatAssignment(line.pubAssignment);
+        parenthesis+=formatAssignment(line.signal[0].pubAssignment);
     }
     else{
-        if (line.assignment) {
+        if (line.signal[0].assignment) {
             appendParenthesisSeparator();
-            parenthesis+=formatAssignment(line.assignment);
+            parenthesis+=formatAssignment(line.signal[0].assignment);
         }
     }
 }
 
 function appendMultiplicity(line) {
-    if (line.pubMultiplicity) {
+    if (line.signal[0].pubMultiplicity) {
         appendParenthesisSeparator();
         parenthesis+=line.pubMultiplicity;
-    } else if (line.multiplicity) {
+    } else if (line.signal[0].multiplicity) {
         appendParenthesisSeparator();
-        parenthesis+=line.multiplicity;
+        parenthesis+=line.signal[0].multiplicity;
     }
 }
 
 function appendCoupling(line, nbDecimal) {
-    if (line.nmrJs) {
+    if (line.signal[0].j) {
+        var Js = line.signal[0].j;
         var j="<i>J</i> = ";
-        for (var i=0; i<line.nmrJs.length; i++) {
-            var coupling=line.nmrJs[i].coupling;
+        for (var i=0; i<Js.length; i++) {
+            var coupling=Js[i].coupling;
             if (j.length>11) j+=", ";
             j+=coupling.toFixed(nbDecimal);
         }
         appendParenthesisSeparator();
         parenthesis+=j+" Hz";
     }
-
 }
 
 function formatAssignment(assignment) {

@@ -51,6 +51,14 @@ describe('spectra-data test peak picking', function () {
         peakPicking[0].signalID.substr(0,3).should.equal("1H_");
     });
 
+    it('test integration and multiplet limits', function(){
+        peakPicking[4].startX.should.lessThan(1.290);
+        peakPicking[4].stopX.should.greaterThan(1.325);
+
+        peakPicking[4].integralData.from.should.lessThan(1.286);
+        peakPicking[4].integralData.to.should.greaterThan(1.330);
+    });
+
 
 });
 

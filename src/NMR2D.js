@@ -1,7 +1,10 @@
+'use strict';
+
 var SD = require('./SD');
-var PeakPicking2D = require('./PeakPicking2D');
+var peakPicking2D = require('./PeakPicking2D');
 var PeakOptimizer = require("./PeakOptimizer");
 var JcampConverter=require("jcampconverter");
+var stat = require("ml-stat");
 
 /**
  * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
@@ -131,7 +134,7 @@ NMR2D.prototype.nmrPeakDetection2D=function(options){
     if(options.idPrefix){
         id=options.idPrefix;
     }
-    var peakList = PeakPicking2D.findPeaks2D(this, options.thresholdFactor);
+    var peakList = peakPicking2D(this, options.thresholdFactor);
 
     //lets add an unique ID for each peak.
     for(var i=0;i<peakList.length;i++){
@@ -140,6 +143,27 @@ NMR2D.prototype.nmrPeakDetection2D=function(options){
     }
     if(options.references)
         PeakOptimizer.alignDimensions(peakList,options.references);
+
+    if(options.format==="new"){
+        var newSignals = new Array(peakList.length);
+        var minMax1, minMax2;
+        for(var k=peakList.length-1;k>=0;k--){
+            var signal = peakList[k];
+            newSignals[k]={
+                fromTo:signal.fromTo,
+                integral:signal.intensity||1,
+                remark:"",
+                signal:[{
+                    peak:signal.peaks,
+                    delta:[signal.shiftX, signal.shiftY]
+                }],
+                _highlight:signal._highlight,
+                signalID:signal.signalID,
+            };
+        }
+        peakList = newSignals;
+    }
+
 
     return peakList;
 }
@@ -464,5 +488,4 @@ NMR.prototype.automaticPhase=function() {
 NMR.prototype.nmrPeakDetection=function(parameters) {
     return PeakPicking.peakPicking(this, parameters);
 }
-
 module.exports = NMR2D;

@@ -1,5 +1,7 @@
+'use strict';
+
 var SD = require('./SD');
-var PeakPicking = require('./PeakPicking');
+var peakPicking = require('./PeakPicking');
 var JcampConverter=require("jcampconverter");
 var fft = require("ml-fft");
 var Filters = require("./filters/Filters.js");
@@ -332,7 +334,7 @@ NMR.prototype.automaticPhase=function() {
  * @returns {*}
  */
 NMR.prototype.nmrPeakDetection=function(parameters) {
-    return PeakPicking.peakPicking(this, parameters);
+    return peakPicking(this, parameters);
 }
 
 

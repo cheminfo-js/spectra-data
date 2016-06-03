@@ -1,9 +1,10 @@
+'use strict';
 // small note on the best way to define array
 // http://jsperf.com/lp-array-and-loops/2
 
 var StatArray = require('ml-stat/array');
 var JcampConverter = require("jcampconverter");
-var JcampCreator = require("./JcampCreator");
+var JcampCreator = require("./jcampEncoder/JcampCreator");
 var extend = require("extend");
 
 /**

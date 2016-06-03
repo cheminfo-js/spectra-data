@@ -58,23 +58,25 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	exports.SD = __webpack_require__(1);
-	exports.NMR = __webpack_require__(7);
-	exports.NMR2D = __webpack_require__(52);
-	exports.ACS = __webpack_require__(56);
-	exports.JAnalyzer = __webpack_require__(9);
+	exports.NMR = __webpack_require__(8);
+	exports.NMR2D = __webpack_require__(50);
+	exports.ACS = __webpack_require__(54);
+	exports.ACS2 = __webpack_require__(55);
+	exports.JAnalyzer = __webpack_require__(10);
 	//exports.SD2 = require('/SD2');
 
 /***/ },
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
 	// small note on the best way to define array
 	// http://jsperf.com/lp-array-and-loops/2
 
 	var StatArray = __webpack_require__(2);
 	var JcampConverter = __webpack_require__(3);
-	var JcampCreator = __webpack_require__(4);
-	var extend = __webpack_require__(6);
+	var JcampCreator = __webpack_require__(5);
+	var extend = __webpack_require__(7);
 
 	/**
 	 * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
@@ -1419,18 +1421,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 3 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
+
+	var parseXYDataRegExp = __webpack_require__(4);
+
 
 	function getConverter() {
 
 	    // the following RegExp can only be used for XYdata, some peakTables have values with a "E-5" ...
-	    var xyDataSplitRegExp = /[,\t \+-]*(?=[^\d,\t \.])|[ \t]+(?=[\d+\.-])/;
-	    var removeCommentRegExp = /\$\$.*/;
-	    var peakTableSplitRegExp = /[,\t ]+/;
 	    var ntuplesSeparator = /[, \t]{1,}/;
-	    var DEBUG = false;
 
 	    var GC_MS_FIELDS = ['TIC', '.RIC', 'SCANNUMBER'];
 
@@ -1442,6 +1443,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        return floatArray;
 	    }
+	    
+	    function Spectrum() {
+	        
+	    }
 
 	    /*
 	     options.keepSpectra: keep the original spectra for a 2D
@@ -1452,10 +1457,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function convert(jcamp, options) {
 	        options = options || {};
 
-	        var keepRecordsRegExp=/^$/;
-	        if (options.keepRecordsRegExp) keepRecordsRegExp=options.keepRecordsRegExp;
+	        var keepRecordsRegExp = /^$/;
+	        if (options.keepRecordsRegExp) keepRecordsRegExp = options.keepRecordsRegExp;
 
-	        var start = new Date();
+	        var start = Date.now();
 
 	        var ntuples = {},
 	            ldr,
@@ -1470,16 +1475,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var spectra = [];
 	        result.spectra = spectra;
 	        result.info = {};
-	        var spectrum = {};
+	        var spectrum = new Spectrum();
 
 	        if (!(typeof jcamp === 'string')) return result;
 	        // console.time('start');
 
-	        if (result.profiling) result.profiling.push({action: 'Before split to LDRS', time: new Date() - start});
+	        if (result.profiling) result.profiling.push({
+	            action: 'Before split to LDRS',
+	            time: Date.now() - start
+	        });
 
 	        ldrs = jcamp.split(/[\r\n]+##/);
 
-	        if (result.profiling) result.profiling.push({action: 'Split to LDRS', time: new Date() - start});
+	        if (result.profiling) result.profiling.push({
+	            action: 'Split to LDRS',
+	            time: Date.now() - start
+	        });
 
 	        if (ldrs[0]) ldrs[0] = ldrs[0].replace(/^[\r\n ]*##/, '');
 
@@ -1639,17 +1650,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	                prepareSpectrum(result, spectrum);
 	                // well apparently we should still consider it is a PEAK TABLE if there are no '++' after
 	                if (dataValue.match(/.*\+\+.*/)) {
-	                    parseXYData(spectrum, dataValue, result);
+	                    if (options.fastParse === false) {
+	                        parseXYDataRegExp(spectrum, dataValue, result);
+	                    } else {
+	                        if (!spectrum.deltaX) {
+	                            spectrum.deltaX = (spectrum.lastX - spectrum.firstX) / (spectrum.nbPoints - 1);
+	                        }
+	                        fastParseXYData(spectrum, dataValue, result);
+	                    }
 	                } else {
 	                    parsePeakTable(spectrum, dataValue, result);
 	                }
 	                spectra.push(spectrum);
-	                spectrum = {};
+	                spectrum = new Spectrum();
 	            } else if (dataLabel === 'PEAKTABLE') {
 	                prepareSpectrum(result, spectrum);
 	                parsePeakTable(spectrum, dataValue, result);
 	                spectra.push(spectrum);
-	                spectrum = {};
+	                spectrum = new Spectrum();
 	            } else if (isMSField(dataLabel)) {
 	                spectrum[convertMSFieldToLabel(dataLabel)] = dataValue;
 	            }
@@ -1658,54 +1676,57 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	        }
 
-	        // Currently disabled
-	        //    if (options && options.lowRes) addLowRes(spectra,options);
+	        if (result.profiling) result.profiling.push({
+	            action: 'Finished parsing',
+	            time: Date.now() - start
+	        });
 
-	        if (result.profiling) result.profiling.push({action: 'Finished parsing', time: new Date() - start});
-
-	        if (Object.keys(ntuples).length>0) {
-	            var newNtuples=[];
-	            var keys=Object.keys(ntuples);
-	            for (var i=0; i<keys.length; i++) {
-	                var key=keys[i];
-	                var values=ntuples[key];
-	                for (var j=0; j<values.length; j++) {
-	                    if (! newNtuples[j]) newNtuples[j]={};
-	                    newNtuples[j][key]=values[j];
+	        if (Object.keys(ntuples).length > 0) {
+	            var newNtuples = [];
+	            var keys = Object.keys(ntuples);
+	            for (var i = 0; i < keys.length; i++) {
+	                var key = keys[i];
+	                var values = ntuples[key];
+	                for (var j = 0; j < values.length; j++) {
+	                    if (!newNtuples[j]) newNtuples[j] = {};
+	                    newNtuples[j][key] = values[j];
 	                }
 	            }
-	            result.ntuples=newNtuples;
+	            result.ntuples = newNtuples;
 	        }
 
 	        if (result.twoD) {
-	            add2D(result);
+	            add2D(result, options);
 	            if (result.profiling) result.profiling.push({
 	                action: 'Finished countour plot calculation',
-	                time: new Date() - start
+	                time: Date.now() - start
 	            });
 	            if (!options.keepSpectra) {
 	                delete result.spectra;
 	            }
 	        }
 
-	        var isGCMS = (spectra.length > 1 && (! spectra[0].dataType || spectra[0].dataType.match(/.*mass.*/i)));
+	        var isGCMS = (spectra.length > 1 && (!spectra[0].dataType || spectra[0].dataType.match(/.*mass.*/i)));
 	        if (isGCMS && options.newGCMS) {
 	            options.xy = true;
 	        }
 
 	        if (options.xy) { // the spectraData should not be a oneD array but an object with x and y
 	            if (spectra.length > 0) {
-	                for (var i=0; i<spectra.length; i++) {
-	                    var spectrum=spectra[i];
-	                    if (spectrum.data.length>0) {
-	                        for (var j=0; j<spectrum.data.length; j++) {
-	                            var data=spectrum.data[j];
-	                            var newData={x: new Array(data.length/2), y:new Array(data.length/2)};
-	                            for (var k=0; k<data.length; k=k+2) {
-	                                newData.x[k/2]=data[k];
-	                                newData.y[k/2]=data[k+1];
+	                for (var i = 0; i < spectra.length; i++) {
+	                    var spectrum = spectra[i];
+	                    if (spectrum.data.length > 0) {
+	                        for (var j = 0; j < spectrum.data.length; j++) {
+	                            var data = spectrum.data[j];
+	                            var newData = {
+	                                x: new Array(data.length / 2),
+	                                y: new Array(data.length / 2)
+	                            };
+	                            for (var k = 0; k < data.length; k = k + 2) {
+	                                newData.x[k / 2] = data[k];
+	                                newData.y[k / 2] = data[k + 1];
 	                            }
-	                            spectrum.data[j]=newData;
+	                            spectrum.data[j] = newData;
 	                        }
 
 	                    }
@@ -1723,12 +1744,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            if (result.profiling) result.profiling.push({
 	                action: 'Finished GCMS calculation',
-	                time: new Date() - start
+	                time: Date.now() - start
 	            });
 	        }
 
 	        if (result.profiling) {
-	            result.profiling.push({action: 'Total time', time: new Date() - start});
+	            result.profiling.push({
+	                action: 'Total time',
+	                time: Date.now() - start
+	            });
 	        }
 
 	        return result;
@@ -1745,7 +1769,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    function addNewGCMS(result) {
 	        var spectra = result.spectra;
-	        var length  = spectra.length;
+	        var length = spectra.length;
 	        var gcms = {
 	            times: new Array(length),
 	            series: [{
@@ -1793,7 +1817,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                existingGCMSFields.push(label);
 	            }
 	        }
-	        if (existingGCMSFields.length===0) return;
+	        if (existingGCMSFields.length === 0) return;
 	        var gcms = {};
 	        gcms.gc = {};
 	        gcms.ms = [];
@@ -1806,7 +1830,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                gcms.gc[existingGCMSFields[j]].push(spectrum.pageValue);
 	                gcms.gc[existingGCMSFields[j]].push(parseFloat(spectrum[existingGCMSFields[j]]));
 	            }
-	          if (spectrum.data) gcms.ms[i] = spectrum.data[0];
+	            if (spectrum.data) gcms.ms[i] = spectrum.data[0];
 
 	        }
 	        result.gcms = gcms;
@@ -1831,154 +1855,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	    }
 
-	    function parsePeakTable(spectrum, value, result) {
-	        spectrum.isPeaktable=true;
-	        var i, ii, j, jj, values;
-	        var currentData = [];
-	        spectrum.data = [currentData];
-
-	        // counts for around 20% of the time
-	        var lines = value.split(/,? *,?[;\r\n]+ */);
-
-	        var k = 0;
-	        for (i = 1, ii = lines.length; i < ii; i++) {
-	            values = lines[i].trim().replace(removeCommentRegExp, '').split(peakTableSplitRegExp);
-	            if (values.length % 2 === 0) {
-	                for (j = 0, jj = values.length; j < jj; j = j + 2) {
-	                    // takes around 40% of the time to add and parse the 2 values nearly exclusively because of parseFloat
-	                    currentData[k++] = (parseFloat(values[j]) * spectrum.xFactor);
-	                    currentData[k++] = (parseFloat(values[j + 1]) * spectrum.yFactor);
-	                }
-	            } else {
-	                result.logs.push('Format error: ' + values);
-	            }
-	        }
-	    }
-
-	    function parseXYData(spectrum, value, result) {
-	        // we check if deltaX is defined otherwise we calculate it
-	        if (!spectrum.deltaX) {
-	            spectrum.deltaX = (spectrum.lastX - spectrum.firstX) / (spectrum.nbPoints - 1);
-	        }
-
-	        spectrum.isXYdata=true;
-
-	        var currentData = [];
-	        spectrum.data = [currentData];
-
-	        var currentX = spectrum.firstX;
-	        var currentY = spectrum.firstY;
-	        var lines = value.split(/[\r\n]+/);
-	        var lastDif, values, ascii, expectedY;
-	        values = [];
-	        for (var i = 1, ii = lines.length; i < ii; i++) {
-	            //var previousValues=JSON.parse(JSON.stringify(values));
-	            values = lines[i].trim().replace(removeCommentRegExp, '').split(xyDataSplitRegExp);
-	            if (values.length > 0) {
-	                if (DEBUG) {
-	                    if (!spectrum.firstPoint) {
-	                        spectrum.firstPoint = parseFloat(values[0]);
-	                    }
-	                    var expectedCurrentX = parseFloat(values[0] - spectrum.firstPoint) * spectrum.xFactor + spectrum.firstX;
-	                    if ((lastDif || lastDif === 0)) {
-	                        expectedCurrentX += spectrum.deltaX;
-	                    }
-	                    result.logs.push('Checking X value: currentX: ' + currentX + ' - expectedCurrentX: ' + expectedCurrentX);
-	                }
-	                for (var j = 1, jj = values.length; j < jj; j++) {
-	                    if (j === 1 && (lastDif || lastDif === 0)) {
-	                        lastDif = null; // at the beginning of each line there should be the full value X / Y so the diff is always undefined
-	                        // we could check if we have the expected Y value
-	                        ascii = values[j].charCodeAt(0);
-
-	                        if (false) { // this code is just to check the jcamp DIFDUP and the next line repeat of Y value
-	                            // + - . 0 1 2 3 4 5 6 7 8 9
-	                            if ((ascii === 43) || (ascii === 45) || (ascii === 46) || ((ascii > 47) && (ascii < 58))) {
-	                                expectedY = parseFloat(values[j]);
-	                            } else
-	                            // positive SQZ digits @ A B C D E F G H I (ascii 64-73)
-	                            if ((ascii > 63) && (ascii < 74)) {
-	                                // we could use parseInt but parseFloat is faster at least in Chrome
-	                                expectedY = parseFloat(String.fromCharCode(ascii - 16) + values[j].substring(1));
-	                            } else
-	                            // negative SQZ digits a b c d e f g h i (ascii 97-105)
-	                            if ((ascii > 96) && (ascii < 106)) {
-	                                // we could use parseInt but parseFloat is faster at least in Chrome
-	                                expectedY = -parseFloat(String.fromCharCode(ascii - 48) + values[j].substring(1));
-	                            }
-	                            if (expectedY !== currentY) {
-	                                result.logs.push('Y value check error: Found: ' + expectedY + ' - Current: ' + currentY);
-	                                result.logs.push('Previous values: ' + previousValues.length);
-	                                result.logs.push(previousValues);
-	                            }
-	                        }
-	                    } else {
-	                        if (values[j].length > 0) {
-	                            ascii = values[j].charCodeAt(0);
-	                            // + - . 0 1 2 3 4 5 6 7 8 9
-	                            if ((ascii === 43) || (ascii === 45) || (ascii === 46) || ((ascii > 47) && (ascii < 58))) {
-	                                lastDif = null;
-	                                currentY = parseFloat(values[j]);
-	                                currentData.push(currentX, currentY * spectrum.yFactor);;
-	                                currentX += spectrum.deltaX;
-	                            } else
-	                            // positive SQZ digits @ A B C D E F G H I (ascii 64-73)
-	                            if ((ascii > 63) && (ascii < 74)) {
-	                                lastDif = null;
-	                                currentY = parseFloat(String.fromCharCode(ascii - 16) + values[j].substring(1));
-	                                currentData.push(currentX, currentY * spectrum.yFactor);;
-	                                currentX += spectrum.deltaX;
-	                            } else
-	                            // negative SQZ digits a b c d e f g h i (ascii 97-105)
-	                            if ((ascii > 96) && (ascii < 106)) {
-	                                lastDif = null;
-	                                currentY = -parseFloat(String.fromCharCode(ascii - 48) + values[j].substring(1));
-	                                currentData.push(currentX, currentY * spectrum.yFactor);;
-	                                currentX += spectrum.deltaX;
-	                            } else
-
-
-
-	                            // DUP digits S T U V W X Y Z s (ascii 83-90, 115)
-	                            if (((ascii > 82) && (ascii < 91)) || (ascii === 115)) {
-	                                var dup = parseFloat(String.fromCharCode(ascii - 34) + values[j].substring(1)) - 1;
-	                                if (ascii === 115) {
-	                                    dup = parseFloat('9' + values[j].substring(1)) - 1;
-	                                }
-	                                for (var l = 0; l < dup; l++) {
-	                                    if (lastDif) {
-	                                        currentY = currentY + lastDif;
-	                                    }
-	                                    currentData.push(currentX, currentY * spectrum.yFactor);;
-	                                    currentX += spectrum.deltaX;
-	                                }
-	                            } else
-	                            // positive DIF digits % J K L M N O P Q R (ascii 37, 74-82)
-	                            if (ascii === 37) {
-	                                lastDif = parseFloat('0' + values[j].substring(1));
-	                                currentY += lastDif;
-	                                currentData.push(currentX, currentY * spectrum.yFactor);;
-	                                currentX += spectrum.deltaX;
-	                            } else if ((ascii > 73) && (ascii < 83)) {
-	                                lastDif = parseFloat(String.fromCharCode(ascii - 25) + values[j].substring(1));
-	                                currentY += lastDif;
-	                                currentData.push(currentX, currentY * spectrum.yFactor);;
-	                                currentX += spectrum.deltaX;
-	                            } else
-	                            // negative DIF digits j k l m n o p q r (ascii 106-114)
-	                            if ((ascii > 105) && (ascii < 115)) {
-	                                lastDif = -parseFloat(String.fromCharCode(ascii - 57) + values[j].substring(1));
-	                                currentY += lastDif;
-	                                currentData.push(currentX, currentY * spectrum.yFactor);;
-	                                currentX += spectrum.deltaX;
-	                            }
-	                        }
-	                    }
-	                }
-	            }
-	        }
-
-	    }
 
 	    function convertTo3DZ(spectra) {
 	        var noise = 0;
@@ -1989,19 +1865,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var z = new Array(ySize);
 	        for (var i = 0; i < ySize; i++) {
 	            z[i] = new Array(xSize);
+	            var xVector = spectra[i].data[0];
 	            for (var j = 0; j < xSize; j++) {
-	                z[i][j] = spectra[i].data[0][j * 2 + 1];
-	                if (z[i][j] < minZ) minZ = spectra[i].data[0][j * 2 + 1];
-	                if (z[i][j] > maxZ) maxZ = spectra[i].data[0][j * 2 + 1];
+	                var value = xVector[j * 2 + 1];
+	                z[i][j] = value;
+	                if (value < minZ) minZ = value;
+	                if (value > maxZ) maxZ = value;
 	                if (i !== 0 && j !== 0) {
-	                    noise += Math.abs(z[i][j] - z[i][j - 1]) + Math.abs(z[i][j] - z[i - 1][j]);
+	                    noise += Math.abs(value - z[i][j - 1]) + Math.abs(value - z[i - 1][j]);
 	                }
 	            }
 	        }
 	        return {
 	            z: z,
 	            minX: spectra[0].data[0][0],
-	            maxX: spectra[0].data[0][spectra[0].data[0].length - 2],
+	            maxX: spectra[0].data[0][spectra[0].data[0].length - 2], // has to be -2 because it is a 1D array [x,y,x,y,...]
 	            minY: spectra[0].pageValue,
 	            maxY: spectra[ySize - 1].pageValue,
 	            minZ: minZ,
@@ -2011,22 +1889,22 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    }
 
-	    function add2D(result) {
+	    function add2D(result, options) {
 	        var zData = convertTo3DZ(result.spectra);
-	        result.contourLines = generateContourLines(zData);
+	        result.contourLines = generateContourLines(zData, options);
 	        delete zData.z;
 	        result.minMax = zData;
 	    }
 
 
 	    function generateContourLines(zData, options) {
-	        //console.time('generateContourLines');
 	        var noise = zData.noise;
 	        var z = zData.z;
 	        var contourLevels = [];
-	        var nbLevels = 7;
-	        var povarHeight = new Float32Array(4);
-	        var isOver = [];
+	        var nbLevels = options.nbContourLevels || 7;
+	        var noiseMultiplier = options.noiseMultiplier === undefined ? 5 : options.noiseMultiplier;
+	        var povarHeight0, povarHeight1, povarHeight2, povarHeight3;
+	        var isOver0, isOver1, isOver2, isOver3;
 	        var nbSubSpectra = z.length;
 	        var nbPovars = z[0].length;
 	        var pAx, pAy, pBx, pBy;
@@ -2054,12 +1932,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var lineZValue;
 	        for (var level = 0; level < nbLevels * 2; level++) { // multiply by 2 for positif and negatif
 	            var contourLevel = {};
-	            contourLevels.push(contourLevel);
+	            contourLevels[level] = contourLevel;
 	            var side = level % 2;
+	            var factor = (maxZ - noiseMultiplier * noise) * Math.exp((level >> 1) - nbLevels);
 	            if (side === 0) {
-	                lineZValue = (maxZ - 5 * noise) * Math.exp(level / 2 - nbLevels) + 5 * noise;
+	                lineZValue = factor + noiseMultiplier * noise;
 	            } else {
-	                lineZValue = -(maxZ - 5 * noise) * Math.exp(level / 2 - nbLevels) - 5 * noise;
+	                lineZValue = -factor - noiseMultiplier * noise;
 	            }
 	            var lines = [];
 	            contourLevel.zValue = lineZValue;
@@ -2068,62 +1947,84 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (lineZValue <= minZ || lineZValue >= maxZ) continue;
 
 	            for (var iSubSpectra = 0; iSubSpectra < nbSubSpectra - 1; iSubSpectra++) {
+	                var subSpectra = z[iSubSpectra];
+	                var subSpectraAfter = z[iSubSpectra + 1];
 	                for (var povar = 0; povar < nbPovars - 1; povar++) {
-	                    povarHeight[0] = z[iSubSpectra][povar];
-	                    povarHeight[1] = z[iSubSpectra][povar + 1];
-	                    povarHeight[2] = z[(iSubSpectra + 1)][povar];
-	                    povarHeight[3] = z[(iSubSpectra + 1)][(povar + 1)];
+	                    povarHeight0 = subSpectra[povar];
+	                    povarHeight1 = subSpectra[povar + 1];
+	                    povarHeight2 = subSpectraAfter[povar];
+	                    povarHeight3 = subSpectraAfter[povar + 1];
 
-	                    for (var i = 0; i < 4; i++) {
-	                        isOver[i] = (povarHeight[i] > lineZValue);
-	                    }
+	                    isOver0 = (povarHeight0 > lineZValue);
+	                    isOver1 = (povarHeight1 > lineZValue);
+	                    isOver2 = (povarHeight2 > lineZValue);
+	                    isOver3 = (povarHeight3 > lineZValue);
 
 	                    // Example povar0 is over the plane and povar1 and
 	                    // povar2 are below, we find the varersections and add
 	                    // the segment
-	                    if (isOver[0] !== isOver[1] && isOver[0] !== isOver[2]) {
-	                        pAx = povar + (lineZValue - povarHeight[0]) / (povarHeight[1] - povarHeight[0]);
+	                    if (isOver0 !== isOver1 && isOver0 !== isOver2) {
+	                        pAx = povar + (lineZValue - povarHeight0) / (povarHeight1 - povarHeight0);
 	                        pAy = iSubSpectra;
 	                        pBx = povar;
-	                        pBy = iSubSpectra + (lineZValue - povarHeight[0]) / (povarHeight[2] - povarHeight[0]);
-	                        lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
+	                        pBy = iSubSpectra + (lineZValue - povarHeight0) / (povarHeight2 - povarHeight0);
+	                        lines.push(pAx * dx + x0);
+	                        lines.push(pAy * dy + y0);
+	                        lines.push(pBx * dx + x0);
+	                        lines.push(pBy * dy + y0);
 	                    }
-	                    if (isOver[3] !== isOver[1] && isOver[3] !== isOver[2]) {
+	                    // remove push does not help !!!!
+	                    if (isOver3 !== isOver1 && isOver3 !== isOver2) {
 	                        pAx = povar + 1;
-	                        pAy = iSubSpectra + 1 - (lineZValue - povarHeight[3]) / (povarHeight[1] - povarHeight[3]);
-	                        pBx = povar + 1 - (lineZValue - povarHeight[3]) / (povarHeight[2] - povarHeight[3]);
+	                        pAy = iSubSpectra + 1 - (lineZValue - povarHeight3) / (povarHeight1 - povarHeight3);
+	                        pBx = povar + 1 - (lineZValue - povarHeight3) / (povarHeight2 - povarHeight3);
 	                        pBy = iSubSpectra + 1;
-	                        lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
+	                        lines.push(pAx * dx + x0);
+	                        lines.push(pAy * dy + y0);
+	                        lines.push(pBx * dx + x0);
+	                        lines.push(pBy * dy + y0);
 	                    }
 	                    // test around the diagonal
-	                    if (isOver[1] !== isOver[2]) {
-	                        pAx = povar + 1 - (lineZValue - povarHeight[1]) / (povarHeight[2] - povarHeight[1]);
-	                        pAy = iSubSpectra + (lineZValue - povarHeight[1]) / (povarHeight[2] - povarHeight[1]);
-	                        if (isOver[1] !== isOver[0]) {
-	                            pBx = povar + 1 - (lineZValue - povarHeight[1]) / (povarHeight[0] - povarHeight[1]);
+	                    if (isOver1 !== isOver2) {
+	                        pAx = (povar + 1 - (lineZValue - povarHeight1) / (povarHeight2 - povarHeight1)) * dx + x0;
+	                        pAy = (iSubSpectra + (lineZValue - povarHeight1) / (povarHeight2 - povarHeight1)) * dy + y0;
+	                        if (isOver1 !== isOver0) {
+	                            pBx = povar + 1 - (lineZValue - povarHeight1) / (povarHeight0 - povarHeight1);
 	                            pBy = iSubSpectra;
-	                            lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
+	                            lines.push(pAx);
+	                            lines.push(pAy);
+	                            lines.push(pBx * dx + x0);
+	                            lines.push(pBy * dy + y0);
 	                        }
-	                        if (isOver[2] !== isOver[0]) {
+	                        if (isOver2 !== isOver0) {
 	                            pBx = povar;
-	                            pBy = iSubSpectra + 1 - (lineZValue - povarHeight[2]) / (povarHeight[0] - povarHeight[2]);
-	                            lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
+	                            pBy = iSubSpectra + 1 - (lineZValue - povarHeight2) / (povarHeight0 - povarHeight2);
+	                            lines.push(pAx);
+	                            lines.push(pAy);
+	                            lines.push(pBx * dx + x0);
+	                            lines.push(pBy * dy + y0);
 	                        }
-	                        if (isOver[1] !== isOver[3]) {
+	                        if (isOver1 !== isOver3) {
 	                            pBx = povar + 1;
-	                            pBy = iSubSpectra + (lineZValue - povarHeight[1]) / (povarHeight[3] - povarHeight[1]);
-	                            lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
+	                            pBy = iSubSpectra + (lineZValue - povarHeight1) / (povarHeight3 - povarHeight1);
+	                            lines.push(pAx);
+	                            lines.push(pAy);
+	                            lines.push(pBx * dx + x0);
+	                            lines.push(pBy * dy + y0);
 	                        }
-	                        if (isOver[2] !== isOver[3]) {
-	                            pBx = povar + (lineZValue - povarHeight[2]) / (povarHeight[3] - povarHeight[2]);
+	                        if (isOver2 !== isOver3) {
+	                            pBx = povar + (lineZValue - povarHeight2) / (povarHeight3 - povarHeight2);
 	                            pBy = iSubSpectra + 1;
-	                            lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
+	                            lines.push(pAx);
+	                            lines.push(pAy);
+	                            lines.push(pBx * dx + x0);
+	                            lines.push(pBy * dy + y0);
 	                        }
 	                    }
 	                }
 	            }
 	        }
-	        // console.timeEnd('generateContourLines');
+
 	        return {
 	            minX: zData.minX,
 	            maxX: zData.maxX,
@@ -2131,39 +2032,217 @@ return /******/ (function(modules) { // webpackBootstrap
 	            maxY: zData.maxY,
 	            segments: contourLevels
 	        };
-	        //return contourLevels;
 	    }
 
+	    function fastParseXYData(spectrum, value) {
+	        // TODO need to deal with result
+	        //  console.log(value);
+	        // we check if deltaX is defined otherwise we calculate it
 
-	    function addLowRes(spectra, options) {
-	        var spectrum;
-	        var averageX, averageY;
-	        var targetNbPoints = options.lowRes;
-	        var highResData;
-	        for (var i = 0; i < spectra.length; i++) {
-	            spectrum = spectra[i];
-	            // we need to find the current higher resolution
-	            if (spectrum.data.length > 0) {
-	                highResData = spectrum.data[0];
-	                for (var j = 1; j < spectrum.data.length; j++) {
-	                    if (spectrum.data[j].length > highResData.length) {
-	                        highResData = spectrum.data[j];
-	                    }
-	                }
+	        var yFactor = spectrum.yFactor;
+	        var deltaX = spectrum.deltaX;
 
-	                if (targetNbPoints > (highResData.length / 2)) return;
-	                var i, ii;
-	                var lowResData = [];
-	                var modulo = Math.ceil(highResData.length / (targetNbPoints * 2));
-	                for (i = 0, ii = highResData.length; i < ii; i = i + 2) {
-	                    if (i % modulo === 0) {
-	                        lowResData.push(highResData[i], highResData[i + 1])
-	                    }
+
+	        spectrum.isXYdata = true;
+	        // TODO to be improved using 2 array {x:[], y:[]}
+	        var currentData = [];
+	        var currentPosition = 0;
+	        spectrum.data = [currentData];
+
+
+	        var currentX = spectrum.firstX;
+	        var currentY = spectrum.firstY;
+
+	        // we skip the first line
+	        //
+	        var endLine = false;
+	        for (var i = 0; i < value.length; i++) {
+	            var ascii = value.charCodeAt(i);
+	            if (ascii === 13 || ascii === 10) {
+	                endLine = true;
+	            } else {
+	                if (endLine) break;
+	            }
+	        }
+
+	        // we proceed taking the i after the first line
+	        var newLine = true;
+	        var isDifference = false;
+	        var isLastDifference = false;
+	        var lastDifference = 0;
+	        var isDuplicate = false;
+	        var inComment = false;
+	        var currentValue = 0;
+	        var isNegative = false;
+	        var inValue = false;
+	        var skipFirstValue = false;
+	        var decimalPosition = 0;
+	        var ascii;
+	        for (; i <= value.length; i++) {
+	            if (i === value.length) ascii = 13;
+	            else ascii = value.charCodeAt(i);
+	            if (inComment) {
+	                // we should ignore the text if we are after $$
+	                if (ascii === 13 || ascii === 10) {
+	                    newLine = true;
+	                    inComment = false;
 	                }
-	                spectrum.data.push(lowResData);
+	            } else {
+	                // when is it a new value ?
+	                // when it is not a digit, . or comma
+	                // it is a number that is either new or we continue
+	                if (ascii <= 57 && ascii >= 48) { // a number
+	                    inValue = true;
+	                    if (decimalPosition > 0) {
+	                        currentValue += (ascii - 48) / Math.pow(10, decimalPosition++);
+	                    } else {
+	                        currentValue *= 10;
+	                        currentValue += ascii - 48;
+	                    }
+	                } else if (ascii === 44 || ascii === 46) { // a "," or "."
+	                    inValue = true;
+	                    decimalPosition++;
+	                } else {
+	                    if (inValue) {
+	                        // need to process the previous value
+	                        if (newLine) {
+	                            newLine = false; // we don't check the X value
+	                            // console.log("NEW LINE",isDifference, lastDifference);
+	                            // if new line and lastDifference, the first value is just a check !
+	                            // that we don't check ...
+	                            if (isLastDifference) skipFirstValue = true;
+	                        } else {
+	                            // need to deal with duplicate and differences
+	                            if (skipFirstValue) {
+	                                skipFirstValue = false;
+	                            } else {
+	                                if (isDifference) {
+	                                    if (currentValue === 0) lastDifference = 0;
+	                                    else lastDifference = isNegative ? -currentValue : currentValue;
+	                                    isLastDifference = true;
+	                                    isDifference = false;
+	                                }
+	                                var duplicate = isDuplicate ? currentValue - 1 : 1;
+	                                for (var j = 0; j < duplicate; j++) {
+	                                    if (isLastDifference) {
+	                                        currentY += lastDifference;
+	                                    } else {
+	                                        if (currentValue === 0) currentY = 0;
+	                                        else currentY = isNegative ? -currentValue : currentValue;
+	                                    }
+
+	                                    //  console.log("Separator",isNegative ?
+	                                    //          -currentValue : currentValue,
+	                                    //      "isDiff", isDifference, "isDup", isDuplicate,
+	                                    //      "lastDif", lastDifference, "dup:", duplicate, "y", currentY);
+
+	                                    // push is slightly slower ... (we loose 10%)
+	                                    currentData[currentPosition++] = currentX;
+	                                    currentData[currentPosition++] = currentY * yFactor;
+	                                    currentX += deltaX;
+	                                }
+	                            }
+	                        }
+	                        isNegative = false;
+	                        currentValue = 0;
+	                        decimalPosition = 0;
+	                        inValue = false;
+	                        isDuplicate = false;
+	                    }
+
+	                    // positive SQZ digits @ A B C D E F G H I (ascii 64-73)
+	                    if ((ascii < 74) && (ascii > 63)) {
+	                        inValue = true;
+	                        isLastDifference = false;
+	                        currentValue = ascii - 64;
+	                    } else
+	                    // negative SQZ digits a b c d e f g h i (ascii 97-105)
+	                    if ((ascii > 96) && (ascii < 106)) {
+	                        inValue = true;
+	                        isLastDifference = false;
+	                        currentValue = ascii - 96;
+	                        isNegative = true;
+	                    } else
+	                    // DUP digits S T U V W X Y Z s (ascii 83-90, 115)
+	                    if (ascii === 115) {
+	                        inValue = true;
+	                        isDuplicate = true;
+	                        currentValue = 9;
+	                    } else if ((ascii > 82) && (ascii < 91)) {
+	                        inValue = true;
+	                        isDuplicate = true;
+	                        currentValue = ascii - 82;
+	                    } else
+	                    // positive DIF digits % J K L M N O P Q R (ascii 37, 74-82)
+	                    if ((ascii > 73) && (ascii < 83)) {
+	                        inValue = true;
+	                        isDifference = true;
+	                        currentValue = ascii - 73;
+	                    } else
+	                    // negative DIF digits j k l m n o p q r (ascii 106-114)
+	                    if ((ascii > 105) && (ascii < 115)) {
+	                        inValue = true;
+	                        isDifference = true;
+	                        currentValue = ascii - 105;
+	                        isNegative = true;
+	                    } else
+	                    // $ sign, we need to check the next one
+	                    if (ascii === 36 && value.charCodeAt(i + 1) === 36) {
+	                        inValue = true;
+	                        inComment = true;
+	                    } else
+	                    // positive DIF digits % J K L M N O P Q R (ascii 37, 74-82)
+	                    if (ascii === 37) {
+	                        inValue = true;
+	                        isDifference = true;
+	                        currentValue = 0;
+	                        isNegative = false;
+	                    } else if (ascii === 45) { // a "-"
+	                        // check if after there is a number, decimal or comma
+	                        var ascii2 = value.charCodeAt(i + 1);
+	                        if ((ascii2 >= 48 && ascii2 <= 57) || ascii2 === 44 || ascii2 === 46) {
+	                            inValue = true;
+	                            isLastDifference = false;
+	                            isNegative = true;
+	                        }
+	                    } else if (ascii === 13 || ascii === 10) {
+	                        newLine = true;
+	                        inComment = false;
+	                    }
+	                    // and now analyse the details ... space or tabulation
+	                    // if "+" we just don't care
+	                }
 	            }
 	        }
 	    }
+
+	    function parsePeakTable(spectrum, value, result) {
+	        var removeCommentRegExp = /\$\$.*/;
+	        var peakTableSplitRegExp = /[,\t ]+/;
+
+	        spectrum.isPeaktable = true;
+	        var i, ii, j, jj, values;
+	        var currentData = [];
+	        spectrum.data = [currentData];
+
+	        // counts for around 20% of the time
+	        var lines = value.split(/,? *,?[;\r\n]+ */);
+
+	        var k = 0;
+	        for (i = 1, ii = lines.length; i < ii; i++) {
+	            values = lines[i].trim().replace(removeCommentRegExp, '').split(peakTableSplitRegExp);
+	            if (values.length % 2 === 0) {
+	                for (j = 0, jj = values.length; j < jj; j = j + 2) {
+	                    // takes around 40% of the time to add and parse the 2 values nearly exclusively because of parseFloat
+	                    currentData[k++] = (parseFloat(values[j]) * spectrum.xFactor);
+	                    currentData[k++] = (parseFloat(values[j + 1]) * spectrum.yFactor);
+	                }
+	            } else {
+	                result.logs.push('Format error: ' + values);
+	            }
+	        }
+	    }
+
 
 	    return convert;
 
@@ -2193,20 +2272,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return new Promise(function (resolve) {
 	        var stamp = Date.now() + '' + Math.random();
 	        stamps[stamp] = resolve;
-	        worker.postMessage({stamp: stamp, input: input, options: options});
+	        worker.postMessage(JSON.stringify({
+	            stamp: stamp,
+	            input: input,
+	            options: options
+	        }));
 	    });
 	}
 
 	function createWorker() {
 	    var workerURL = URL.createObjectURL(new Blob([
-	        'var getConverter =' + getConverter.toString() + ';var convert = getConverter(); onmessage = function (event) { postMessage({stamp: event.data.stamp, output: convert(event.data.input, event.data.options)}); };'
+	        'var getConverter =' + getConverter.toString() + ';var convert = getConverter(); onmessage = function (event) { var data = JSON.parse(event.data); postMessage(JSON.stringify({stamp: data.stamp, output: convert(data.input, data.options)})); };'
 	    ], {type: 'application/javascript'}));
 	    worker = new Worker(workerURL);
 	    URL.revokeObjectURL(workerURL);
 	    worker.addEventListener('message', function (event) {
-	        var stamp = event.data.stamp;
+	        var data = JSON.parse(event.data);
+	        var stamp = data.stamp;
 	        if (stamps[stamp]) {
-	            stamps[stamp](event.data.output);
+	            stamps[stamp](data.output);
 	        }
 	    });
 	}
@@ -2218,8 +2302,159 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 4 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+
+	var xyDataSplitRegExp = /[,\t \+-]*(?=[^\d,\t \.])|[ \t]+(?=[\d+\.-])/;
+	var removeCommentRegExp = /\$\$.*/;
+	var DEBUG=false;
+
+	module.exports=function(spectrum, value, result) {
+	    // we check if deltaX is defined otherwise we calculate it
+	    if (!spectrum.deltaX) {
+	        spectrum.deltaX = (spectrum.lastX - spectrum.firstX) / (spectrum.nbPoints - 1);
+	    }
+
+	    spectrum.isXYdata=true;
+
+	    var currentData = [];
+	    var currentPosition=0;
+	    spectrum.data = [currentData];
+
+	    var currentX = spectrum.firstX;
+	    var currentY = spectrum.firstY;
+	    var lines = value.split(/[\r\n]+/);
+	    var lastDif, values, ascii, expectedY;
+	    values = [];
+	    for (var i = 1, ii = lines.length; i < ii; i++) {
+	        //var previousValues=JSON.parse(JSON.stringify(values));
+	        values = lines[i].trim().replace(removeCommentRegExp, '').split(xyDataSplitRegExp);
+	        if (values.length > 0) {
+	            if (DEBUG) {
+	                if (!spectrum.firstPoint) {
+	                    spectrum.firstPoint = +values[0];
+	                }
+	                var expectedCurrentX = (values[0] - spectrum.firstPoint) * spectrum.xFactor + spectrum.firstX;
+	                if ((lastDif || lastDif === 0)) {
+	                    expectedCurrentX += spectrum.deltaX;
+	                }
+	                result.logs.push('Checking X value: currentX: ' + currentX + ' - expectedCurrentX: ' + expectedCurrentX);
+	            }
+	            for (var j = 1, jj = values.length; j < jj; j++) {
+	                if (j === 1 && (lastDif || lastDif === 0)) {
+	                    lastDif = null; // at the beginning of each line there should be the full value X / Y so the diff is always undefined
+	                    // we could check if we have the expected Y value
+	                    ascii = values[j].charCodeAt(0);
+
+	                    if (false) { // this code is just to check the jcamp DIFDUP and the next line repeat of Y value
+	                        // + - . 0 1 2 3 4 5 6 7 8 9
+	                        if ((ascii === 43) || (ascii === 45) || (ascii === 46) || ((ascii > 47) && (ascii < 58))) {
+	                            expectedY = +values[j];
+	                        } else
+	                        // positive SQZ digits @ A B C D E F G H I (ascii 64-73)
+	                        if ((ascii > 63) && (ascii < 74)) {
+	                            expectedY = +(String.fromCharCode(ascii - 16) + values[j].substring(1));
+	                        } else
+	                        // negative SQZ digits a b c d e f g h i (ascii 97-105)
+	                        if ((ascii > 96) && (ascii < 106)) {
+	                            expectedY = -(String.fromCharCode(ascii - 48) + values[j].substring(1));
+	                        }
+	                        if (expectedY !== currentY) {
+	                            result.logs.push('Y value check error: Found: ' + expectedY + ' - Current: ' + currentY);
+	                            result.logs.push('Previous values: ' + previousValues.length);
+	                            result.logs.push(previousValues);
+	                        }
+	                    }
+	                } else {
+	                    if (values[j].length > 0) {
+	                        ascii = values[j].charCodeAt(0);
+	                        // + - . 0 1 2 3 4 5 6 7 8 9
+	                        if ((ascii === 43) || (ascii === 45) || (ascii === 46) || ((ascii > 47) && (ascii < 58))) {
+	                            lastDif = null;
+	                            currentY = +values[j];
+	                            // currentData.push(currentX, currentY * spectrum.yFactor);
+	                            currentData[currentPosition++]=currentX;
+	                            currentData[currentPosition++]=currentY * spectrum.yFactor;
+	                            currentX += spectrum.deltaX;
+	                        } else
+	                        // positive SQZ digits @ A B C D E F G H I (ascii 64-73)
+	                        if ((ascii > 63) && (ascii < 74)) {
+	                            lastDif = null;
+	                            currentY = +(String.fromCharCode(ascii - 16) + values[j].substring(1));
+	                            // currentData.push(currentX, currentY * spectrum.yFactor);
+	                            currentData[currentPosition++] = currentX;
+	                            currentData[currentPosition++] = currentY * spectrum.yFactor;
+	                            currentX += spectrum.deltaX;
+	                        } else
+	                        // negative SQZ digits a b c d e f g h i (ascii 97-105)
+	                        if ((ascii > 96) && (ascii < 106)) {
+	                            lastDif = null;
+	                            // we can multiply the string by 1 because if may not contain decimal (is this correct ????)
+	                            currentY = -(String.fromCharCode(ascii - 48) + values[j].substring(1))*1;
+	                            //currentData.push(currentX, currentY * spectrum.yFactor);
+	                            currentData[currentPosition++]=currentX;
+	                            currentData[currentPosition++]=currentY * spectrum.yFactor;
+	                            currentX += spectrum.deltaX;
+	                        } else
+
+
+
+	                        // DUP digits S T U V W X Y Z s (ascii 83-90, 115)
+	                        if (((ascii > 82) && (ascii < 91)) || (ascii === 115)) {
+	                            var dup = (String.fromCharCode(ascii - 34) + values[j].substring(1)) - 1;
+	                            if (ascii === 115) {
+	                                dup = ('9' + values[j].substring(1)) - 1;
+	                            }
+	                            for (var l = 0; l < dup; l++) {
+	                                if (lastDif) {
+	                                    currentY = currentY + lastDif;
+	                                }
+	                                // currentData.push(currentX, currentY * spectrum.yFactor);
+	                                currentData[currentPosition++]=currentX;
+	                                currentData[currentPosition++]=currentY * spectrum.yFactor;
+	                                currentX += spectrum.deltaX;
+	                            }
+	                        } else
+	                        // positive DIF digits % J K L M N O P Q R (ascii 37, 74-82)
+	                        if (ascii === 37) {
+	                            lastDif = +('0' + values[j].substring(1));
+	                            currentY += lastDif;
+	                            // currentData.push(currentX, currentY * spectrum.yFactor);
+	                            currentData[currentPosition++]=currentX;
+	                            currentData[currentPosition++]=currentY * spectrum.yFactor;
+	                            currentX += spectrum.deltaX;
+	                        } else if ((ascii > 73) && (ascii < 83)) {
+	                            lastDif = (String.fromCharCode(ascii - 25) + values[j].substring(1))*1;
+	                            currentY += lastDif;
+	                            // currentData.push(currentX, currentY * spectrum.yFactor);
+	                            currentData[currentPosition++]=currentX;
+	                            currentData[currentPosition++]=currentY * spectrum.yFactor;
+	                            currentX += spectrum.deltaX;
+	                        } else
+	                        // negative DIF digits j k l m n o p q r (ascii 106-114)
+	                        if ((ascii > 105) && (ascii < 115)) {
+	                            lastDif = -(String.fromCharCode(ascii - 57) + values[j].substring(1))*1;
+	                            currentY += lastDif;
+	                            // currentData.push(currentX, currentY * spectrum.yFactor);
+	                            currentData[currentPosition++]=currentX;
+	                            currentData[currentPosition++]=currentY * spectrum.yFactor;
+	                            currentX += spectrum.deltaX;
+	                        }
+	                    }
+	                }
+	            }
+	        }
+	    }
+	}
+
+
+/***/ },
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
 	/**
 	 * Created by acastillo on 3/2/16.
 	 */
@@ -2231,7 +2466,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 */
 
-	var Encoder = __webpack_require__(5);
+	var Encoder = __webpack_require__(6);
 
 	var JcampCreator = (function(){
 
@@ -2579,336 +2814,331 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports) {
 
+	'use strict';
 	/**
-	 * class encodes a integer vector as a String in order to store it in a text file.
-	 * The algorithms used to encode the data are describe in:
-	 *            http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
-	 * Created by acastillo on 3/2/16.
+	* class encodes a integer vector as a String in order to store it in a text file.
+	* The algorithms used to encode the data are describe in:
+	*            http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
+	* Created by acastillo on 3/2/16.
+	*/
+	var newLine="\r\n";
+
+	var pseudoDigits=[['0','1','2','3','4','5','6','7','8','9'],
+	              ['@','A','B','C','D','E','F','G','H','I'],
+	              ['@','a','b','c','d','e','f','g','h','i'],
+	              ['%','J','K','L','M','N','O','P','Q','R'],
+	              ['%','j','k','l','m','n','o','p','q','r'],
+	              [' ','S','T','U','V','W','X','Y','Z','s']];
+
+	var SQZ_P= 1, SQZ_N= 2, DIF_P=3, DIF_N=4, DUP=5, MaxLinelength=100;
+
+	/**
+	 * This function encodes the given vector. The encoding format is specified by the
+	 * encoding option
+	 * @param data
+	 * @param firstX
+	 * @param intervalX
+	 * @param encoding: ('FIX','SQZ','DIF','DIFDUP','CVS','PAC') Default 'DIFDUP'
+	 * @returns {String}
 	 */
-	var Encoder = (function(){
-	    var newLine="\r\n";
-
-	    var pseudoDigits=[['0','1','2','3','4','5','6','7','8','9'],
-	                  ['@','A','B','C','D','E','F','G','H','I'],
-	                  ['@','a','b','c','d','e','f','g','h','i'],
-	                  ['%','J','K','L','M','N','O','P','Q','R'],
-	                  ['%','j','k','l','m','n','o','p','q','r'],
-	                  [' ','S','T','U','V','W','X','Y','Z','s']];
-
-	    var SQZ_P= 1, SQZ_N= 2, DIF_P=3, DIF_N=4, DUP=5, MaxLinelength=100;
-
-	    /**
-	     * This function encodes the given vector. The encoding format is specified by the
-	     * encoding option
-	     * @param data
-	     * @param firstX
-	     * @param intervalX
-	     * @param encoding: ('FIX','SQZ','DIF','DIFDUP','CVS','PAC') Default 'DIFDUP'
-	     * @returns {String}
-	     */
-	    var encode = function(data, firstX, intervalX, encoding){
-	        if(encoding==("FIX"))
-	            return FIXencod(data, firstX,intervalX);
-	        if(encoding==("SQZ"))
-	            return SQZencod(data, firstX,intervalX);
-	        if(encoding==("DIF"))
-	            return DIFencod(data, firstX,intervalX);
-	        if(encoding==("DIFDUP"))
-	            return DIFDUPencod(data, firstX,intervalX);
-	        if(encoding==("CSV"))
-	            return CSVencod(data, firstX,intervalX);
-	        if(encoding==("PAC"))
-	            return PACencod(data, firstX,intervalX);
-	        //Default
+	var encode = function(data, firstX, intervalX, encoding){
+	    if(encoding==("FIX"))
+	        return FIXencod(data, firstX,intervalX);
+	    if(encoding==("SQZ"))
+	        return SQZencod(data, firstX,intervalX);
+	    if(encoding==("DIF"))
 	        return DIFencod(data, firstX,intervalX);
+	    if(encoding==("DIFDUP"))
+	        return DIFDUPencod(data, firstX,intervalX);
+	    if(encoding==("CSV"))
+	        return CSVencod(data, firstX,intervalX);
+	    if(encoding==("PAC"))
+	        return PACencod(data, firstX,intervalX);
+	    //Default
+	    return DIFencod(data, firstX,intervalX);
+	}
+
+	/**
+	 * No data compression used. The data is separated by a comma(',').
+	 * @param data
+	 * @return
+	 */
+	var CSVencod =  function(data, firstX, intervalX){
+	    return FIXencod(data, firstX, intervalX, ",");
+	};
+
+	/**
+	 * No data compression used. The data is separated by the specified separator.
+	 * @param data
+	 * @param separator, The separator character
+	 * @return
+	 */
+	var FIXencod =  function(data, firstX, intervalX, separator){
+	    if(!separator)
+	        separator = " ";
+	    var outputData = "";
+	    var j=0, TD = data.length, i;
+	    while(j<TD-7){
+	        outputData+=Math.ceil(firstX+j*intervalX);
+	        for(i = 0;i<8;i++)
+	            outputData+=separator+data[j++];
+	        outputData+=newLine;
+	    }
+	    if(j<TD){
+	        //We add last numbers
+	        outputData+=Math.ceil(firstX+j*intervalX);
+	        for(i=j;i<TD;i++)
+	            outputData+=separator + data[i];
+	    }
+	    return outputData;
+	};
+	/**
+	 * No data compression used. The data is separated by the sign of the number.
+	 * @param data
+	 * @return
+	 */
+	var PACencod = function(data, firstX, intervalX){
+	    var outputData = "";
+	    var j=0, TD = data.length, i;
+
+	    while(j<TD-7){
+	        outputData+=Math.ceil(firstX+j*intervalX);
+	        for(i = 0;i<8;i++){
+	            if(data[j]<0)
+	                outputData+="-"+data[j++];
+	            else
+	                outputData+="+"+data[j++];
+	        }
+	        outputData+=newLine;
+	    }
+	    if(j<TD){
+	        //We add last numbers
+	        outputData+=Math.ceil(firstX+j*intervalX);
+	        for(i=j;i<TD;i++){
+	            if(data[i]<0)
+	                outputData+="-"+data[i];
+	            else
+	                outputData+="+"+data[i];
+	        }
+	    }
+	    return outputData;
+	};
+	/**
+	 * Data compression is possible using the squeezed form (SQZ) in which the delimiter, the leading digit,
+	 * and sign are replaced by a pseudo-digit from Table 1. For example, the Y-values 30, 32 would be
+	 * represented as C0C2.
+	 * @param data
+	 * @return String
+	 */
+	var SQZencod = function(data, firstX, intervalX){
+	    var outputData = "";
+	    //String outputData = new String();
+	    var j=0, TD = data.length, i;
+
+	    while(j<TD-10){
+	        outputData+=Math.ceil(firstX+j*intervalX);
+	        for(i = 0;i<10;i++)
+	            outputData+=SQZDigit(data[j++].toString());
+	        outputData+=newLine;
+	    }
+	    if(j<TD){
+	        //We add last numbers
+	        outputData+=Math.ceil(firstX+j*intervalX);
+	        for(i = j;i<TD;i++)
+	            outputData+=SQZDigit(data[i].toString());
 	    }
 
-	    /**
-	     * No data compression used. The data is separated by a comma(',').
-	     * @param data
-	     * @return
-	     */
-	    var CSVencod =  function(data, firstX, intervalX){
-	        return FIXencod(data, firstX, intervalX, ",");
-	    };
+	    return outputData;
+	};
 
-	    /**
-	     * No data compression used. The data is separated by the specified separator.
-	     * @param data
-	     * @param separator, The separator character
-	     * @return
-	     */
-	    var FIXencod =  function(data, firstX, intervalX, separator){
-	        if(!separator)
-	            separator = " ";
-	        var outputData = "";
-	        var j=0, TD = data.length, i;
-	        while(j<TD-7){
-	            outputData+=Math.ceil(firstX+j*intervalX);
-	            for(i = 0;i<8;i++)
-	                outputData+=separator+data[j++];
-	            outputData+=newLine;
-	        }
-	        if(j<TD){
-	            //We add last numbers
-	            outputData+=Math.ceil(firstX+j*intervalX);
-	            for(i=j;i<TD;i++)
-	                outputData+=separator + data[i];
-	        }
-	        return outputData;
-	    };
-	    /**
-	     * No data compression used. The data is separated by the sign of the number.
-	     * @param data
-	     * @return
-	     */
-	    var PACencod = function(data, firstX, intervalX){
-	        var outputData = "";
-	        var j=0, TD = data.length, i;
+	/**
+	 * Duplicate suppression encoding
+	 * @param data
+	 * @return
+	 */
+	var DIFDUPencod = function(data, firstX, intervalX){
+	    var mult=0, index=0, charCount= 0, i;
+	    //We built a string where we store the encoded data.
+	    var encodData = "",encodNumber = "",temp = "";
 
-	        while(j<TD-7){
-	            outputData+=Math.ceil(firstX+j*intervalX);
-	            for(i = 0;i<8;i++){
-	                if(data[j]<0)
-	                    outputData+="-"+data[j++];
-	                else
-	                    outputData+="+"+data[j++];
-	            }
-	            outputData+=newLine;
-	        }
-	        if(j<TD){
-	            //We add last numbers
-	            outputData+=Math.ceil(firstX+j*intervalX);
-	            for(i=j;i<TD;i++){
-	                if(data[i]<0)
-	                    outputData+="-"+data[i];
-	                else
-	                    outputData+="+"+data[i];
-	            }
-	        }
-	        return outputData;
-	    };
-	    /**
-	     * Data compression is possible using the squeezed form (SQZ) in which the delimiter, the leading digit,
-	     * and sign are replaced by a pseudo-digit from Table 1. For example, the Y-values 30, 32 would be
-	     * represented as C0C2.
-	     * @param data
-	     * @return String
-	     */
-	    var SQZencod = function(data, firstX, intervalX){
-	        var outputData = "";
-	        //String outputData = new String();
-	        var j=0, TD = data.length, i;
+	    //We calculate the differences vector
+	    var diffData = new Array(data.length-1);
+	    for(i=0;i<diffData.length;i++){
+	        diffData[i]= data[i+1]-data[i];
+	    }
 
-	        while(j<TD-10){
-	            outputData+=Math.ceil(firstX+j*intervalX);
-	            for(i = 0;i<10;i++)
-	                outputData+=SQZDigit(data[j++].toString());
-	            outputData+=newLine;
+	    //We simulate a line carry
+	    var numDiff = diffData.length;
+	    while(index<numDiff){
+	        if(charCount==0){//Start line
+	            encodNumber = Math.ceil(firstX+index*intervalX)+SQZDigit(data[index].toString())+DIFDigit(diffData[index].toString());
+	            encodData+=encodNumber;
+	            charCount+=encodNumber.length;
 	        }
-	        if(j<TD){
-	            //We add last numbers
-	            outputData+=Math.ceil(firstX+j*intervalX);
-	            for(i = j;i<TD;i++)
-	                outputData+=SQZDigit(data[i].toString());
-	        }
-
-	        return outputData;
-	    };
-
-	    /**
-	     * Duplicate suppression encoding
-	     * @param data
-	     * @return
-	     */
-	    var DIFDUPencod = function(data, firstX, intervalX){
-	        var mult=0, index=0, charCount= 0, i;
-	        //We built a string where we store the encoded data.
-	        var encodData = "",encodNumber = "",temp = "";
-
-	        //We calculate the differences vector
-	        var diffData = new Array(data.length-1);
-	        for(i=0;i<diffData.length;i++){
-	            diffData[i]= data[i+1]-data[i];
-	        }
-
-	        //We simulate a line carry
-	        var numDiff = diffData.length;
-	        while(index<numDiff){
-	            if(charCount==0){//Start line
-	                encodNumber = Math.ceil(firstX+index*intervalX)+SQZDigit(data[index].toString())+DIFDigit(diffData[index].toString());
-	                encodData+=encodNumber;
-	                charCount+=encodNumber.length;
+	        else{
+	            //Try to insert next difference
+	            if(diffData[index-1]==diffData[index]){
+	                mult++;
 	            }
 	            else{
-	                //Try to insert next difference
-	                if(diffData[index-1]==diffData[index]){
+	                if(mult>0){//Now we know that it can be in line
 	                    mult++;
-	                }
-	                else{
-	                    if(mult>0){//Now we know that it can be in line
-	                        mult++;
-	                        encodNumber=DUPDigit(mult.toString());
-	                        encodData+=encodNumber;
-	                        charCount+=encodNumber.length;
-	                        mult=0;
-	                        index--;
-	                    }
-	                    else{
-	                        //Mirar si cabe, en caso contrario iniciar una nueva linea
-	                        encodNumber=DIFDigit(diffData[index].toString());
-	                        if(encodNumber.length+charCount<MaxLinelength){
-	                            encodData+=encodNumber;
-	                            charCount+=encodNumber.length;
-	                        }
-	                        else{//Iniciar nueva linea
-	                            encodData+=newLine;
-	                            temp=Math.ceil(firstX+index*intervalX)+SQZDigit(data[index].toString())+encodNumber;
-	                            encodData+=temp;//Each line start with first index number.
-	                            charCount=temp.length;
-	                        }
-	                    }
-	                }
-	            }
-	            index++;
-	        }
-	        if(mult>0)
-	            encodData+=DUPDigit((mult+1).toString());
-	        //We insert the last data from fid. It is done to control of data
-	        //The last line start with the number of datas in the fid.
-	        encodData+=newLine+Math.ceil(firstX+index*intervalX)+SQZDigit(data[index].toString());
-
-	        return encodData;
-	    };
-
-	    /**
-	     * Differential encoding
-	     * @param data
-	     * @return
-	     */
-	    var DIFencod = function(data, firstX, intervalX){
-	        var index=0, charCount= 0,i;
-
-	        var encodData = "";
-	        //String encodData = new String();
-	        var encodNumber = "", temp = "";
-
-	        //We calculate the differences vector
-	        var diffData = new Array(data.length-1);
-	        for(i=0;i<diffData.length;i++){
-	            diffData[i]= data[i+1]-data[i];
-	        }
-
-	        index=0;
-	        var numDiff = diffData.length;
-	        while(index<numDiff){
-	            if(charCount==0){//Iniciar linea
-	                //We convert the first number.
-	                encodNumber = Math.ceil(firstX+index*intervalX)+SQZDigit(data[index].toString())+DIFDigit(diffData[index].toString());
-	                encodData+=encodNumber;
-	                charCount+=encodNumber.length;
-	            }
-	            else{
-	                //Mirar si cabe, en caso contrario iniciar una nueva linea
-	                encodNumber=DIFDigit(diffData[index].toString());
-	                if(encodNumber.length+charCount<MaxLinelength){
+	                    encodNumber=DUPDigit(mult.toString());
 	                    encodData+=encodNumber;
 	                    charCount+=encodNumber.length;
+	                    mult=0;
+	                    index--;
 	                }
-	                else{//Iniciar nueva linea
-	                    encodData+=newLine;
-	                    temp=Math.ceil(firstX+index*intervalX)+SQZDigit(data[index].toString())+encodNumber;
-	                    encodData+=temp;//Each line start with first index number.
-	                    charCount=temp.length;
+	                else{
+	                    //Mirar si cabe, en caso contrario iniciar una nueva linea
+	                    encodNumber=DIFDigit(diffData[index].toString());
+	                    if(encodNumber.length+charCount<MaxLinelength){
+	                        encodData+=encodNumber;
+	                        charCount+=encodNumber.length;
+	                    }
+	                    else{//Iniciar nueva linea
+	                        encodData+=newLine;
+	                        temp=Math.ceil(firstX+index*intervalX)+SQZDigit(data[index].toString())+encodNumber;
+	                        encodData+=temp;//Each line start with first index number.
+	                        charCount=temp.length;
+	                    }
 	                }
 	            }
-	            index++;
 	        }
-	        //We insert the last number from data. It is done to control of data
-	        encodData+=newLine+Math.ceil(firstX+index*intervalX)+SQZDigit(data[index].toString());
+	        index++;
+	    }
+	    if(mult>0)
+	        encodData+=DUPDigit((mult+1).toString());
+	    //We insert the last data from fid. It is done to control of data
+	    //The last line start with the number of datas in the fid.
+	    encodData+=newLine+Math.ceil(firstX+index*intervalX)+SQZDigit(data[index].toString());
 
-	        return encodData;
-	    };
+	    return encodData;
+	};
 
-	    /**
-	     * Convert number to the ZQZ format, using pseudo digits.
-	     * @param num
-	     * @return
-	     */
-	    var SQZDigit = function(num){
-	        //console.log(num+" "+num.length);
-	        var SQZdigit = "";
-	        if(num.charAt(0)=='-'){
-	            SQZdigit+=pseudoDigits[SQZ_N][Number(num.charAt(1))];
-	            if(num.length>2)
-	                SQZdigit+=num.substring(2);
-	        }
-	        else{
-	            SQZdigit+=pseudoDigits[SQZ_P][Number(num.charAt(0))];
-	            if(num.length>1)
-	                SQZdigit+=num.substring(1);
-	        }
+	/**
+	 * Differential encoding
+	 * @param data
+	 * @return
+	 */
+	var DIFencod = function(data, firstX, intervalX){
+	    var index=0, charCount= 0,i;
 
-	        return SQZdigit;
-	    };
-	    /**
-	     * Convert number to the DIF format, using pseudo digits.
-	     * @param num
-	     * @return
-	     */
-	    var DIFDigit = function(num){
-	        var DIFFdigit = "";
+	    var encodData = "";
+	    //String encodData = new String();
+	    var encodNumber = "", temp = "";
 
-	        if(num.charAt(0)=='-'){
-	            DIFFdigit+=pseudoDigits[DIF_N][Number(num.charAt(1))];
-	            if(num.length>2)
-	                DIFFdigit+=num.substring(2);
-
-	        }
-	        else{
-	            DIFFdigit+=pseudoDigits[DIF_P][Number(num.charAt(0))];
-	            if(num.length>1)
-	                DIFFdigit+=num.substring(1);
-
-	        }
-
-	        return DIFFdigit;
-	    };
-	    /**
-	     * Convert number to the DUP format, using pseudo digits.
-	     * @param num
-	     * @return
-	     */
-	    var DUPDigit = function(num){
-	        var DUPdigit = "";
-	        DUPdigit+=pseudoDigits[DUP][Number(num.charAt(0))];
-	        if(num.length>1)
-	            DUPdigit+=num.substring(1);
-
-	        return DUPdigit;
+	    //We calculate the differences vector
+	    var diffData = new Array(data.length-1);
+	    for(i=0;i<diffData.length;i++){
+	        diffData[i]= data[i+1]-data[i];
 	    }
 
-	    return {
-	        encode:encode,
-	        FIXencod:FIXencod,
-	        CSVencod:CSVencod,
-	        PACencod:PACencod,
-	        SQZencod:SQZencod,
-	        DIFDUPencod:DIFDUPencod,
-	        DIFencod:DIFDUPencod
-	    };
+	    index=0;
+	    var numDiff = diffData.length;
+	    while(index<numDiff){
+	        if(charCount==0){//Iniciar linea
+	            //We convert the first number.
+	            encodNumber = Math.ceil(firstX+index*intervalX)+SQZDigit(data[index].toString())+DIFDigit(diffData[index].toString());
+	            encodData+=encodNumber;
+	            charCount+=encodNumber.length;
+	        }
+	        else{
+	            //Mirar si cabe, en caso contrario iniciar una nueva linea
+	            encodNumber=DIFDigit(diffData[index].toString());
+	            if(encodNumber.length+charCount<MaxLinelength){
+	                encodData+=encodNumber;
+	                charCount+=encodNumber.length;
+	            }
+	            else{//Iniciar nueva linea
+	                encodData+=newLine;
+	                temp=Math.ceil(firstX+index*intervalX)+SQZDigit(data[index].toString())+encodNumber;
+	                encodData+=temp;//Each line start with first index number.
+	                charCount=temp.length;
+	            }
+	        }
+	        index++;
+	    }
+	    //We insert the last number from data. It is done to control of data
+	    encodData+=newLine+Math.ceil(firstX+index*intervalX)+SQZDigit(data[index].toString());
 
-	})();
+	    return encodData;
+	};
 
-	module.exports = Encoder;
+	/**
+	 * Convert number to the ZQZ format, using pseudo digits.
+	 * @param num
+	 * @return
+	 */
+	var SQZDigit = function(num){
+	    //console.log(num+" "+num.length);
+	    var SQZdigit = "";
+	    if(num.charAt(0)=='-'){
+	        SQZdigit+=pseudoDigits[SQZ_N][Number(num.charAt(1))];
+	        if(num.length>2)
+	            SQZdigit+=num.substring(2);
+	    }
+	    else{
+	        SQZdigit+=pseudoDigits[SQZ_P][Number(num.charAt(0))];
+	        if(num.length>1)
+	            SQZdigit+=num.substring(1);
+	    }
 
+	    return SQZdigit;
+	};
+	/**
+	 * Convert number to the DIF format, using pseudo digits.
+	 * @param num
+	 * @return
+	 */
+	var DIFDigit = function(num){
+	    var DIFFdigit = "";
+
+	    if(num.charAt(0)=='-'){
+	        DIFFdigit+=pseudoDigits[DIF_N][Number(num.charAt(1))];
+	        if(num.length>2)
+	            DIFFdigit+=num.substring(2);
+
+	    }
+	    else{
+	        DIFFdigit+=pseudoDigits[DIF_P][Number(num.charAt(0))];
+	        if(num.length>1)
+	            DIFFdigit+=num.substring(1);
+
+	    }
+
+	    return DIFFdigit;
+	};
+	/**
+	 * Convert number to the DUP format, using pseudo digits.
+	 * @param num
+	 * @return
+	 */
+	function DUPDigit(num){
+	    var DUPdigit = "";
+	    DUPdigit+=pseudoDigits[DUP][Number(num.charAt(0))];
+	    if(num.length>1)
+	        DUPdigit+=num.substring(1);
+
+	    return DUPdigit;
+	}
+
+	module.exports = {
+	    encode,
+	    FIXencod,
+	    CSVencod,
+	    PACencod,
+	    SQZencod,
+	    DIFDUPencod,
+	    DIFencod
+	};
 
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -3000,14 +3230,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
+
 	var SD = __webpack_require__(1);
-	var PeakPicking = __webpack_require__(8);
+	var peakPicking = __webpack_require__(9);
 	var JcampConverter=__webpack_require__(3);
-	var fft = __webpack_require__(42);
-	var Filters = __webpack_require__(45);
+	var fft = __webpack_require__(40);
+	var Filters = __webpack_require__(43);
 
 	/**
 	 * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
@@ -3337,7 +3569,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @returns {*}
 	 */
 	NMR.prototype.nmrPeakDetection=function(parameters) {
-	    return PeakPicking.peakPicking(this, parameters);
+	    return peakPicking(this, parameters);
 	}
 
 
@@ -3346,668 +3578,590 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
 	/**
 	 * Implementation of the peak pickig method described by Cobas in:
 	 * A new approach to improving automated analysis of proton NMR spectra
 	 * through Global Spectral Deconvolution (GSD)
 	 * http://www.spectroscopyeurope.com/images/stories/ColumnPDFs/TD_23_1.pdf
 	 */
-	var JAnalyzer = __webpack_require__(9);
-	/*var LM = require('ml-curve-fitting');
-	var Matrix = LM.Matrix;
-	var math = Matrix.algebra;*/
-	var GSD = __webpack_require__(10);
-	var extend = __webpack_require__(6);
+	var JAnalyzer = __webpack_require__(10);
+	var GSD = __webpack_require__(11);
+	//var extend = require("extend");
+	var removeImpurities = __webpack_require__(39);
 
-	var PeakPicking={
-	    impurities:[],
-	    maxJ:20,
-	    defaultOptions:{nH:99,
-	        clean:true,
-	        realTop:false,
-	        thresholdFactor:1,
-	        compile:true,
-	        integralFn:0,
-	        optimize:true,
-	        idPrefix:""
-	    },
+	const defaultOptions = {
+	    nH:99,
+	    clean:true,
+	    realTop:false,
+	    thresholdFactor:1,
+	    compile:true,
+	    integralFn:0,
+	    optimize:true,
+	    idPrefix:"",
+	    format:"old"
+	};
 
-	    peakPicking:function(spectrum, optionsEx){
-	        var options = extend({}, this.defaultOptions, optionsEx);
-	        var i, j, nHi, sum;
 
-	        var noiseLevel = Math.abs(spectrum.getNoiseLevel())*(options.thresholdFactor);
+	module.exports = function(spectrum, optionsEx){
+	    var options = Object.assign({}, defaultOptions, optionsEx);
+	    var i, j, nHi, sum;
 
-	        //console.log("noiseLevel "+noiseLevel);
-	        var gsdOptions = extend({},
-	            {noiseLevel: noiseLevel,
-	                minMaxRatio:0.01,
-	                broadRatio:0.0025,
-	                smoothY:true,
-	                nL:4,
-	                sgOptions:{windowSize: 9, polynomial: 3}
-	            },
-	            options.gsdOptions);
+	    var noiseLevel = Math.abs(spectrum.getNoiseLevel())*(options.thresholdFactor);
 
-	        var data = spectrum.getXYData();
-	        var peakList = GSD.gsd(data[0],data[1], gsdOptions);
-	        var peakList = GSD.post.joinBroadPeaks(peakList,{width:0.25});
-	        if(options.optimize)
-	            peakList = GSD.post.optimizePeaks(peakList,data[0],data[1],gsdOptions.nL,"lorentzian");
+	    //console.log("noiseLevel "+noiseLevel);
+	    var gsdOptions = Object.assign({},
+	        {noiseLevel: noiseLevel,
+	            minMaxRatio:0.01,
+	            broadRatio:0.0025,
+	            smoothY:true,
+	            nL:4,
+	            sgOptions:{windowSize: 9, polynomial: 3}
+	        },
+	        options.gsdOptions);
 
-	        peakList = this.clearList(peakList, noiseLevel);
-	        var signals = this.detectSignals(peakList, spectrum, options.nH, options.integralFn);
-	        //console.log(JSON.stringify(signals));
-	        //Remove all the signals with small integral
-	        if(options.clean||false){
-	            for(var i=signals.length-1;i>=0;i--){
-	                if(signals[i].integralData.value<0.5) {
-	                    signals.splice(i, 1);
-	                }
+	    var data = spectrum.getXYData();
+	    var peakList = GSD.gsd(data[0],data[1], gsdOptions);
+	    var peakList = GSD.post.joinBroadPeaks(peakList,{width:0.25});
+	    if(options.optimize)
+	        peakList = GSD.post.optimizePeaks(peakList,data[0],data[1],gsdOptions.nL,"lorentzian");
+
+	    peakList = clearList(peakList, noiseLevel);
+	    var signals = detectSignals(peakList, spectrum, options.nH, options.integralFn);
+
+	    //Remove all the signals with small integral
+	    if(options.clean||false){
+	        for(var i=signals.length-1;i>=0;i--){
+	            if(signals[i].integralData.value<0.5) {
+	                signals.splice(i, 1);
 	            }
 	        }
-	        if(options.compile||false){
-	            for(i=0;i<signals.length;i++){
-	                //console.log("Sum "+signals[i].integralData.value);
-	                JAnalyzer.compilePattern(signals[i]);
-	                //console.log(signals[i])
-	                if(signals[i].maskPattern&&signals[i].multiplicity!="m"
-	                    && signals[i].multiplicity!=""){
-	                    //Create a new signal with the removed peaks
-	                    nHi = 0;
-	                    sum=0;
-	                    var peaksO = [];
-	                    for(j=signals[i].maskPattern.length-1;j>=0;j--){
-	                        sum+=this.area(signals[i].peaks[j]);
+	    }
 
-	                        if(signals[i].maskPattern[j]===false) {
-	                            var peakR = signals[i].peaks.splice(j,1)[0];
-	                            peaksO.push({x:peakR.x, y:peakR.intensity, width:peakR.width});
-	                            //peaksO.push(peakR);
-	                            signals[i].mask.splice(j,1);
-	                            signals[i].mask2.splice(j,1);
-	                            signals[i].maskPattern.splice(j,1);
-	                            signals[i].nbPeaks--;
-	                            nHi+=this.area(peakR);
-	                        }
-	                    }
-	                    if(peaksO.length>0){
-	                        nHi=nHi*signals[i].integralData.value/sum;
-	                        signals[i].integralData.value-=nHi;
-	                        var peaks1 = [];
-	                        for(var j=peaksO.length-1;j>=0;j--)
-	                            peaks1.push(peaksO[j]);
-	                        var newSignals = this.detectSignals(peaks1, spectrum, nHi, options.integralFn);
+	    //console.log(signals);
+	    if(options.compile||false){
+	        for(i=0;i<signals.length;i++){
+	            //console.log("Sum "+signals[i].integralData.value);
+	            JAnalyzer.compilePattern(signals[i]);
 
-	                        for(j=0;j<newSignals.length;j++)
-	                            signals.push(newSignals[j]);
+	            if(signals[i].maskPattern&&signals[i].multiplicity!="m"
+	                && signals[i].multiplicity!=""){
+	                //Create a new signal with the removed peaks
+	                nHi = 0;
+	                sum=0;
+	                var peaksO = [];
+	                for(j=signals[i].maskPattern.length-1;j>=0;j--){
+	                    sum+=area(signals[i].peaks[j]);
+
+	                    if(signals[i].maskPattern[j]===false) {
+	                        var peakR = signals[i].peaks.splice(j,1)[0];
+	                        peaksO.push({x:peakR.x, y:peakR.intensity, width:peakR.width});
+	                        //peaksO.push(peakR);
+	                        signals[i].mask.splice(j,1);
+	                        signals[i].mask2.splice(j,1);
+	                        signals[i].maskPattern.splice(j,1);
+	                        signals[i].nbPeaks--;
+	                        nHi+=area(peakR);
 	                    }
 	                }
-	            }
-	            //console.log(signals);
-	            this.updateIntegrals(signals, options.nH);
-	        }
-	        signals.sort(function(a,b){
-	            return b.delta1- a.delta1
-	        });
-	        //Remove all the signals with small integral
-	        if(options.clean||false){
-	            for(var i=signals.length-1;i>=0;i--){
-	                //console.log(signals[i]);
-	                if(signals[i].integralData.value<0.5) {
-	                    signals.splice(i, 1);
+	                if(peaksO.length>0){
+	                    nHi=nHi*signals[i].integralData.value/sum;
+	                    signals[i].integralData.value-=nHi;
+	                    var peaks1 = [];
+	                    for(var j=peaksO.length-1;j>=0;j--)
+	                        peaks1.push(peaksO[j]);
+	                    var newSignals = detectSignals(peaks1, spectrum, nHi, options.integralFn);
+
+	                    for(j=0;j<newSignals.length;j++)
+	                        signals.push(newSignals[j]);
 	                }
 	            }
 	        }
+	        //console.log(signals);
+	        updateIntegrals(signals, options.nH);
+	    }
+	    signals.sort(function(a,b){
+	        return b.delta1- a.delta1
+	    });
+	    //Remove all the signals with small integral
+	    if(options.clean||false){
+	        for(var i=signals.length-1;i>=0;i--){
+	            //console.log(signals[i]);
+	            if(signals[i].integralData.value<0.5) {
+	                signals.splice(i, 1);
+	            }
+	        }
+	    }
 
+	    for(var i=0;i<signals.length;i++){
+	        if(options.idPrefix&&options.idPrefix.length>0)
+	            signals[i].signalID = options.idPrefix+"_"+(i+1);
+	        else
+	            signals[i].signalID = (i+1)+"";
+	        signals[i]._highlight=[signals[i].signalID];
+	    }
+
+	    removeImpurities(signals, spectrum.getSolventName(),options.nH);
+
+	    if(options.format==="new"){
+	        var newSignals = new Array(signals.length);
 	        for(var i=0;i<signals.length;i++){
-	            if(options.idPrefix&&options.idPrefix.length>0)
-	                signals[i].signalID = options.idPrefix+"_"+(i+1);
-	            else
-	                signals[i].signalID = (i+1)+"";
-	            signals[i]._highlight=[signals[i].signalID];
-	        }
+	            var signal = signals[i];
+	            newSignals[i] = {
+	                from : signal.integralData.from,
+	                to : signal.integralData.to,
+	                integral : signal.integralData.value,
+	                signal:[{
+	                    nbAtoms:0,
+	                    diaID:[],
+	                    multiplicity:signal.multiplicity,
+	                    peak:signal.peaks,
+	                    kind:"",
+	                    remark:""
+	                }],
+	                signalID:signal.signalID,
+	                _highlight:signal._highlight
 
-	        return signals;
-
-	        /*var frequency = spectrum.observeFrequencyX();//getParamDouble("$BF1",400);
-	        var imp = this.labelPeaks(peakList, solvent, frequency);
-	        return [peakList,imp];
-	        */
-	        //return createSignals(peakList,nH);
-	    },
-
-	    clearList:function(peakList, threshold){
-	        for(var i=peakList.length-1;i>=0;i--){
-	            if(Math.abs(peakList[i].y)<threshold){
-	                peakList.splice(i,1);
+	            };
+	            if(signal.nmrJs){
+	                newSignals[i].signal[0].j = signal.nmrJs;
+	            }
+	            if(!signal.asymmetric||signal.multiplicity=="m"){
+	                newSignals[i].signal[0].delta = signal.delta1;
 	            }
 	        }
-	        return peakList;
-	    },
+	        signals = newSignals;
+	    }
+
+	    return signals;
 
 
-	    /**
-	     * This method implements a non linear sampling of the spectrum. The point close to
-	     * the critic points are more sampled than the other ones.
-	     * @param spectrum
-	     * @param peaks
-	     * @param rowWise
+	    /*var frequency = spectrum.observeFrequencyX();//getParamDouble("$BF1",400);
+	     var imp = labelPeaks(peakList, solvent, frequency);
+	     return [peakList,imp];
 	     */
-	    sampling: function(spectrum, peaks, rowWise){
-	        var i0, ie, ic,i, j,nbPoints;
-	        var xy = []
-	        if(i0>ie){
-	            var tmp = i0;
-	            i0 = ie;
-	            ie = tmp;
-	        }
-	        //Non linear sampling for each peak.
-	        for(i=0;i<peaks.length;i++){
-	            var more = true;
-	            var nL = 4;
-	            while(more) {
-	                i0 = spectrum.unitsToArrayPoint(peaks[i][0] - peaks[i][2] * nL);
-	                ie = spectrum.unitsToArrayPoint(peaks[i][0] + peaks[i][2] * nL);
-	                ic = spectrum.unitsToArrayPoint(peaks[i][0]);
-	                if (i0 > ie) {
-	                    tmp = i0;
-	                    i0 = ie;
-	                    ie = tmp;
-	                }
-	                i0 = i0 < 0 ? 0 : i0;
-	                ie = ie >= spectrum.getNbPoints() ? spectrum.getNbPoints() - 1 : ie;
+	    //return createSignals(peakList,nH);
+	};
 
-	                if (ie - i0 < 10) {
-	                    for (j = i0; j <= ie; j++) {
-	                        xy.push([spectrum.getX(j), spectrum.getY(j)]);
-	                    }
-	                    more = false;
+	function clearList(peakList, threshold){
+	    for(var i=peakList.length-1;i>=0;i--){
+	        if(Math.abs(peakList[i].y)<threshold){
+	            peakList.splice(i,1);
+	        }
+	    }
+	    return peakList;
+	}
+
+
+	/**
+	 * This method implements a non linear sampling of the spectrum. The point close to
+	 * the critic points are more sampled than the other ones.
+	 * @param spectrum
+	 * @param peaks
+	 * @param rowWise
+	 */
+	function sampling(spectrum, peaks, rowWise){
+	    var i0, ie, ic,i, j,nbPoints;
+	    var xy = []
+	    if(i0>ie){
+	        var tmp = i0;
+	        i0 = ie;
+	        ie = tmp;
+	    }
+	    //Non linear sampling for each peak.
+	    for(i=0;i<peaks.length;i++){
+	        var more = true;
+	        var nL = 4;
+	        while(more) {
+	            i0 = spectrum.unitsToArrayPoint(peaks[i][0] - peaks[i][2] * nL);
+	            ie = spectrum.unitsToArrayPoint(peaks[i][0] + peaks[i][2] * nL);
+	            ic = spectrum.unitsToArrayPoint(peaks[i][0]);
+	            if (i0 > ie) {
+	                tmp = i0;
+	                i0 = ie;
+	                ie = tmp;
+	            }
+	            i0 = i0 < 0 ? 0 : i0;
+	            ie = ie >= spectrum.getNbPoints() ? spectrum.getNbPoints() - 1 : ie;
+
+	            if (ie - i0 < 10) {
+	                for (j = i0; j <= ie; j++) {
+	                    xy.push([spectrum.getX(j), spectrum.getY(j)]);
+	                }
+	                more = false;
+	            }
+	            else {
+	                xy.push([spectrum.getX(i0), spectrum.getY(i0)]);
+	                xy.push([spectrum.getX(ie), spectrum.getY(ie)]);
+	                if (nL > 0.5) {
+	                    nL -= 0.5;
 	                }
 	                else {
-	                    xy.push([spectrum.getX(i0), spectrum.getY(i0)]);
-	                    xy.push([spectrum.getX(ie), spectrum.getY(ie)]);
-	                    if (nL > 0.5) {
-	                        nL -= 0.5;
-	                    }
-	                    else {
-	                        nL /= 2;
-	                    }
+	                    nL /= 2;
 	                }
 	            }
 	        }
-	        //console.log(xy);
-	        xy.sort(function(a,b){
-	            return a[0]-b[0];
-	        });
-	        //console.log("XX "+xy.length);
-	        var x=[],y=[];
-	        var index =0;
-	        if(rowWise){
-	            x=[xy[0][0]],y=[xy[0][1]];
-	            for(i=1;i<xy.length;i++){
-	                if(x[index]!=xy[i][0]){
-	                    x.push(xy[i][0]);
-	                    y.push(xy[i][1]);
-	                    index++;
-	                }
-	            }
-	        }
-	        else{
-	            x=[[xy[0][0]]],y=[[xy[0][1]]];
-	            for(i=1;i<xy.length;i++){
-	                if(x[index][0]!=xy[i][0]){
-	                    x.push([xy[i][0]]);
-	                    y.push([xy[i][1]]);
-	                    index++;
-	                }
-	            }
-	        }
-	        return [x,y];
-
-	    },
-
-	    getVector: function(spectrum, from, to, rowWise){
-	        var i0 = spectrum.unitsToArrayPoint(from);
-	        var ie = spectrum.unitsToArrayPoint(to);
-	        var x = [];
-	        var y = [];
-	        if(i0>ie){
-	            var tmp = i0;
-	            i0 = ie;
-	            ie = tmp;
-	        }
-	        i0=i0<0?0:i0;
-	        ie=ie>=spectrum.getNbPoints()?spectrum.getNbPoints()-1:ie;
-	        for(var i=i0;i<ie;i+=10){
-	            if(rowWise){
-	                y.push(spectrum.getY(i));
-	                x.push(spectrum.getX(i));
-	            }
-	            else{
-	                y.push([spectrum.getY(i)]);
-	                x.push([spectrum.getX(i)]);
-	            }
-	        }
-	        return [x,y];
-	    },
-
-
-
-	    updateLimits : function(signal){
-	        if(signal.multiplicity!="m" && signal.multiplicity!=""){
-	            //Remove the integral of the removed peaks
-	            var peaksO = signal.peaks;
-	            var nbPeaks0 = peaksO.length, index = 0, factor = 0, toRemove = 0;
-
-	            for(var i=0;i<nbPeaks0;i++){
-	                if(signal.maskPattern[i]===false)
-	                    toRemove+=this.area(peaksO[i]);
-	                factor+= this.area(peaksO[i]);
-	            }
-	            factor=signal.integralData.value/factor;
-	            signal.integralData.value-=toRemove*factor;
-	        }
-	        return signal.integralData.value;
-	    },
-
-	    updateIntegrals : function(signals, nH){
-	        var sumIntegral = 0,i,sumObserved=0;
-	        for(i=0;i<signals.length;i++){
-	            sumObserved+=Math.round(signals[i].integralData.value);
-	        }
-	        if(sumObserved!=nH){
-
-	            sumIntegral=nH/sumObserved;
-	            for(i=0;i<signals.length;i++){
-	                signals[i].integralData.value*=sumIntegral;
-	            }
-	        }
-	    },
-
-	    /*
-	     {
-	     "nbPeaks":1,"multiplicity":"","units":"PPM","startX":3.43505,"assignment":"",
-	     "pattern":"s","stopX":3.42282,"observe":400.08,"asymmetric":false,
-	     "delta1":3.42752,
-	     "integralData":{"to":3.43505,"value":590586504,"from":3.42282},
-	     "nucleus":"1H",
-	     "peaks":[{"intensity":60066147,"x":3.42752}]
-	     }
-	     */
-	    detectSignals: function(peakList, spectrum, nH, integralType){
-
-	        var frequency = spectrum.observeFrequencyX();
-	        var signals = [];
-	        var signal1D = {};
-	        var prevPeak = {x:100000,y:0,width:0},peaks=null;
-	        var rangeX = 16/frequency;//Peaks withing this range are considered to belongs to the same signal1D
-	        var spectrumIntegral = 0,cs,sum, i,j;
-	        //console.log("RangeX "+rangeX);
-	        for(i=0;i<peakList.length;i++){
-	            //console.log(peakList[i]);
-	            if(Math.abs(peakList[i].x-prevPeak.x)>rangeX){
-	                //console.log(typeof peakList[i].x+" "+typeof peakList[i].width);
-	                signal1D = {"nbPeaks":1,"units":"PPM",
-	                    "startX":peakList[i].x+peakList[i].width,
-	                    "stopX":peakList[i].x-peakList[i].width,
-	                    "multiplicity":"","pattern":"",
-	                    "observe":frequency,"nucleus":"1H",
-	                    "integralData":{"from":peakList[i].x-peakList[i].width*3,
-	                                    "to":peakList[i].x+peakList[i].width*3
-	                                    //"value":this.area(peakList[i])
-	                    },
-	                    "peaks":[]};
-	                signal1D.peaks.push({x:peakList[i].x,"intensity":peakList[i].y, width:peakList[i].width});
-	                signals.push(signal1D);
-	                //spectrumIntegral+=this.area(peakList[i]);
-	            }
-	            else{
-	                var tmp = peakList[i].x-peakList[i].width;
-	                signal1D.stopX = Math.min(signal1D.stopX,tmp);
-	                tmp = peakList[i].x+peakList[i].width;
-	                signal1D.stopX = Math.max(signal1D.stopX,tmp);
-	                signal1D.nbPeaks++;
-	                signal1D.peaks.push({x:peakList[i].x,"intensity":peakList[i].y, width:peakList[i].width});
-	                //signal1D.integralData.value+=this.area(peakList[i]);
-	                signal1D.integralData.from = Math.min(signal1D.integralData.from, peakList[i].x-peakList[i].width*3);
-	                signal1D.integralData.to = Math.max(signal1D.integralData.to,peakList[i].x+peakList[i].width*3);
-	                //spectrumIntegral+=this.area(peakList[i]);
-	            }
-	            prevPeak = peakList[i];
-	        }
-	        //Normalize the integral to the normalization parameter and calculate cs
-	        for(i=0;i<signals.length;i++){
-	            peaks = signals[i].peaks;
-	            var integral = signals[i].integralData;
-	            cs = 0;
-	            sum = 0;
-
-	            for(var j=0;j<peaks.length;j++){
-	                cs+=peaks[j].x*this.area(peaks[j]);//.intensity;
-	                sum+=this.area(peaks[j]);
-	            }
-	            signals[i].delta1 = cs/sum;
-
-	            if(integralType==0)
-	                integral.value = sum;
-	            else {
-	                integral.value=spectrum.getArea(integral.from,integral.to);//*nH/spectrumIntegral;
-	            }
-	            spectrumIntegral+=integral.value;
-
-	        }
-	        for(var i=0;i<signals.length;i++){
-	            //console.log(integral.value);
-	            var integral = signals[i].integralData;
-	            integral.value*=nH/spectrumIntegral;
-	        }
-
-	        return signals;
-	    },
-
-	    area: function(peak){
-	        return Math.abs(peak.intensity*peak.width*1.57)//1.772453851);
-	    },
-	    /**
-	     This function tries to determine which peaks belongs to common laboratory solvents
-	     as trace impurities from DOI:10.1021/jo971176v. The only parameter of the table is
-	     the solvent name.
-	     */
-	    labelPeaks:function(peakList, solvent, frequency){
-	        var column = 0;
-	        //console.log(this.impurities[0]);
-	        for(column=4;column<this.impurities.length;column++){
-	            //console.log("sss".contains);
-	            if(this.impurities[0][column].indexOf(solvent)>=0){
-	                break;
-	            }
-	        }
-	        //console.log("labelPeaks "+column);
-	        var nImpurities = this.impurities.length-1;
-	        var nPeaks = peakList.length;
-	        //Scores matrix
-	        //console.log(nImpurities);
-	        var scores = new Array(nImpurities);
-	        var max = 0, diff=0, score=0;
-	        var gamma = 0.2;//ppm
-	        var impurityID=-1;
-	        var prevImp = "";
-	        var maxIntensity = 0,i;
-	        for(var j=nPeaks-1;j>=0;j--){
-	            if(peakList[j][1]>maxIntensity)
-	                maxIntensity = peakList[j][1];
-	        }
-
-	        for(i=nImpurities-1;i>=0;i--){
-	            if(this.impurities[i+1][0]!=prevImp){
-	                impurityID++;
-	                prevImp=this.impurities[i+1][0];
-	            }
-
-	            //impID, max, maxIndex, average
-	            scores[i]=[impurityID,this.impurities[i+1][2],
-	                this.impurities[i+1][3],0,[],0];
-	            max = 0;
-	            for(var j=nPeaks-1;j>=0;j--){
-	                diff = 10000;//Big numnber
-	                if(this.impurities[i+1][column]>0)
-	                    diff = Math.abs(peakList[j][0]-this.impurities[i+1][column]);
-	                if(diff<gamma*3){
-	                    score=this.score(diff,gamma);
-	                    if(score>max){
-	                        max=score;
-	                        scores[i][3]=max;
-	                        scores[i][4]=[j];
-	                    }
-	                }
-	            }
-	        }
-	        //Calculate the average score for each impurity set of signals
-	        var prevIndex = -1, sum=0, count = 0;
-	        var candidates=[];
-	        var impuritiesPeaks = [];
-	        var i=nImpurities-1;
-	        while(i>=-1){
-	            if(i==-1||scores[i][0]!=prevIndex&&prevIndex!=-1){
-	                if(prevIndex!=-1){
-	                    scores[i+1][5]=sum/count;
-	                    //Now, lets chech the multiplicities
-	                    if(scores[i+1][5]>0.9){
-	                        //console.log(scores[i+1][0]+" SS ");
-	                        score=this.updateScore(candidates, peakList, maxIntensity, frequency);
-	                        if(score>0.9){
-	                            //console.log(candidates);
-	                            //TODO: Remove peaks and add it do impuritiesPeaks
-	                            for(var j=0;j<candidates.length;j++){
-	                                for(var k=candidates[j][4].length-1;k>=0;k--){
-	                                    impuritiesPeaks.push(peakList[candidates[j][4][k]]);
-	                                }
-	                            }
-	                        }
-	                    }
-	                }
-	                if(i>=0){
-	                    prevIndex=scores[i][0];
-	                    sum=scores[i][3];
-	                    count=1;
-	                    candidates=[scores[i]];
-	                }
-
-	            }else{
-	                prevIndex=scores[i][0];
-	                candidates.push(scores[i]);
-	                sum+=scores[i][3];
-	                count++;
-	            }
-	            i--;
-	        }
-	        //console.log(impuritiesPeaks.length);
-
-	        return impuritiesPeaks;
-	    },
-	    /**
-	     Updates the score that a given impurity is present in the current spectrum. In this part I would expect
-	     to have into account the multiplicity of the signal. Also the relative intensity of the signals.
-	     THIS IS the KEY part of the algorithm!!!!!!!!!
-	     */
-	    updateScore:function(candidates, peakList, maxIntensity, frequency){
-	        //You may do it to avoid this part.
-	        //return 1;
-
-	        //Check the multiplicity
-	        var mul = "";
-	        var j = 0,index, k, maxJppm=this.maxJ/frequency;
-	        var min=0, indexMin=0, score=0;
-	        for(var i=candidates.length-1;i>=0;i--){
-	            mul = candidates[i][1];
-	            j = candidates[i][2];
-	            //console.log(candidates[i][4]);
-	            index = candidates[i][4][0];
-	            //console.log(peakList[index][0]+" "+mul+" "+j+" "+index);
-	            //I guess we should try to identify the pattern in the nearby.
-	            if(mul.indexOf("sep")>=0){
-	                if(peakList[index][1]>maxIntensity*0.33){
-	                    candidates.splice(i,1);//Not a candidate anymore.
-	                }
-	            }else{
-	                if(mul.indexOf("s")>=0||mul.indexOf("X")>=0){
-	                    k=index-1;
-	                    min=peakList[index][1];
-	                    indexMin=index;
-	                    while(k>=0&&Math.abs(peakList[index][0]-peakList[k][0])<0.025){
-	                        if(peakList[k][1]<min){
-	                            min=peakList[k][1];
-	                            indexMin=k;
-	                        }
-	                        k--;
-	                    }
-	                    k=index+1;
-	                    while(k<peakList.length&&Math.abs(peakList[index][0]-peakList[k][0])<0.025){
-	                        if(peakList[k][1]<min){
-	                            min=peakList[k][1];
-	                            indexMin=k;
-	                        }
-	                        k++;
-	                    }
-	                    candidates[i][4][0]=indexMin;
-	                    score+=1;
-	                }
-	            }
-	            if(mul.indexOf("d")>=0){
-	                if(index>0&&index<peakList.length-1){
-	                    var thisJ1 = Math.abs(Math.abs(peakList[index-1][0]-peakList[index][0])*frequency-j);
-	                    var thisJ2 = Math.abs(Math.abs(peakList[index+1][0]-peakList[index][0])*frequency-j);
-	                    var thisJ3 = Math.abs(Math.abs(peakList[index+1][0]-peakList[index-1][0])*frequency-j);
-	                    if(thisJ1<2||thisJ2<2||thisJ3<2){
-	                        if(thisJ1<thisJ2){
-	                            if(thisJ1<thisJ3){
-	                                candidates[i][4]=[index-1,index];
-	                                score+=1;
-	                            }
-	                            else{
-	                                candidates[i][4]=[index-1,index+1];
-	                                score+=1;
-	                            }
-	                        }
-	                        else{
-	                            if(thisJ2<thisJ3){
-	                                candidates[i][4]=[index,index+1];
-	                                score+=1;
-	                            }
-	                            else{
-	                                candidates[i][4]=[index-1,index+1];
-	                                score+=1;
-	                            }
-	                        }
-	                    }
-	                }
-	            }
-	            if(mul.indexOf("t")>=0){
-	                //console.log("here");
-	                if(index>0&&index<peakList.length-1){
-	                    var thisJ1 = Math.abs(Math.abs(peakList[index-1][0]-peakList[index][0])*frequency-j);
-	                    var thisJ2 = Math.abs(Math.abs(peakList[index+1][0]-peakList[index][0])*frequency-j);
-	                    var thisJ4 = Math.abs(Math.abs(peakList[index+1][0]-peakList[index+2][0])*frequency-j);
-	                    //console.log("XX "+thisJ1+" "+thisJ2);
-	                    if(thisJ1<2){
-	                        candidates[i][4]=[index-1, index];
-	                        score+=0.5;
-	                    }
-	                    if(thisJ2<2){
-	                        candidates[i][4].push(index+1);
-	                        score+=0.5;
-	                    }
-	                    if(thisJ3<2){
-	                        candidates[i][4].push(index+2);
-	                        score+=0.5;
-	                    }
-
-	                }
-	            }
-	            if(mul.indexOf("q")>=0){
-	                if(index>1&&index<peakList.length-2){
-	                    var thisJ1 = Math.abs(Math.abs(peakList[index-2][0]-peakList[index-1][0])*frequency-j);
-	                    var thisJ2 = Math.abs(Math.abs(peakList[index-1][0]-peakList[index][0])*frequency-j);
-	                    var thisJ3 = Math.abs(Math.abs(peakList[index+1][0]-peakList[index][0])*frequency-j);
-	                    var thisJ4= Math.abs(Math.abs(peakList[index+2][0]-peakList[index+1][0])*frequency-j);
-	                    if(thisJ1<2){
-	                        candidates[i][4].push(index-2);
-	                        score+=0.25;
-	                    }
-	                    if(thisJ2<2){
-	                        candidates[i][4].push(index-1);
-	                        score+=0.25;
-	                    }
-	                    if(thisJ3<2){
-	                        candidates[i][4].push(index+1);
-	                        score+=0.25;
-	                    }
-	                    if(thisJ4<2){
-	                        candidates[i][4].push(index+2);
-	                        score+=0.25;
-	                    }
-	                }
-	            }
-
-
-	        }
-
-	        //console.log(score/candidates.length+ " -> "+candidates);
-	        //Lets remove the candidates to be impurities.
-	        //It would be equivalent to mark the peaks as valid again
-	        if(score/candidates.length < 0.5){
-	            for(var i=candidates.length-1;i>=0;i--){
-	                candidates.splice(i,1);
-	            }
-	            return 0;
-	        }
-	        //Check the relative intensity
-	        return 1;
-	    },
-
-	    score:function(value, gamma){
-	        return Math.exp(-Math.pow(value/gamma,2)/2.0);
-	    },
-	    /**
-	     This function joint all the nearby peaks into single signals. We may try to
-	     determine the J-couplings and the multiplicity here.
-	     */
-	    createSignals:function(){
-
 	    }
+	    //console.log(xy);
+	    xy.sort(function(a,b){
+	        return a[0]-b[0];
+	    });
+	    //console.log("XX "+xy.length);
+	    var x=[],y=[];
+	    var index =0;
+	    if(rowWise){
+	        x=[xy[0][0]],y=[xy[0][1]];
+	        for(i=1;i<xy.length;i++){
+	            if(x[index]!=xy[i][0]){
+	                x.push(xy[i][0]);
+	                y.push(xy[i][1]);
+	                index++;
+	            }
+	        }
+	    }
+	    else{
+	        x=[[xy[0][0]]],y=[[xy[0][1]]];
+	        for(i=1;i<xy.length;i++){
+	            if(x[index][0]!=xy[i][0]){
+	                x.push([xy[i][0]]);
+	                y.push([xy[i][1]]);
+	                index++;
+	            }
+	        }
+	    }
+	    return [x,y];
 
 	}
 
-	module.exports = PeakPicking;
+	function getVector(spectrum, from, to, rowWise){
+	    var i0 = spectrum.unitsToArrayPoint(from);
+	    var ie = spectrum.unitsToArrayPoint(to);
+	    var x = [];
+	    var y = [];
+	    if(i0>ie){
+	        var tmp = i0;
+	        i0 = ie;
+	        ie = tmp;
+	    }
+	    i0=i0<0?0:i0;
+	    ie=ie>=spectrum.getNbPoints()?spectrum.getNbPoints()-1:ie;
+	    for(var i=i0;i<ie;i+=10){
+	        if(rowWise){
+	            y.push(spectrum.getY(i));
+	            x.push(spectrum.getX(i));
+	        }
+	        else{
+	            y.push([spectrum.getY(i)]);
+	            x.push([spectrum.getX(i)]);
+	        }
+	    }
+	    return [x,y];
+	}
 
+
+
+	function updateLimits(signal){
+	    if(signal.multiplicity!="m" && signal.multiplicity!=""){
+	        //Remove the integral of the removed peaks
+	        var peaksO = signal.peaks;
+	        var nbPeaks0 = peaksO.length, index = 0, factor = 0, toRemove = 0;
+
+	        for(var i=0;i<nbPeaks0;i++){
+	            if(signal.maskPattern[i]===false)
+	                toRemove+=area(peaksO[i]);
+	            factor+= area(peaksO[i]);
+	        }
+	        factor=signal.integralData.value/factor;
+	        signal.integralData.value-=toRemove*factor;
+	    }
+	    return signal.integralData.value;
+	}
+
+	function updateIntegrals(signals, nH){
+	    var sumIntegral = 0,i,sumObserved=0;
+	    for(i=0;i<signals.length;i++){
+	        sumObserved+=Math.round(signals[i].integralData.value);
+	    }
+	    if(sumObserved!=nH){
+
+	        sumIntegral=nH/sumObserved;
+	        for(i=0;i<signals.length;i++){
+	            signals[i].integralData.value*=sumIntegral;
+	        }
+	    }
+	}
+
+	/*
+	 {
+	 "nbPeaks":1,"multiplicity":"","units":"PPM","startX":3.43505,"assignment":"",
+	 "pattern":"s","stopX":3.42282,"observe":400.08,"asymmetric":false,
+	 "delta1":3.42752,
+	 "integralData":{"to":3.43505,"value":590586504,"from":3.42282},
+	 "nucleus":"1H",
+	 "peaks":[{"intensity":60066147,"x":3.42752}]
+	 }
+	 */
+	function detectSignals(peakList, spectrum, nH, integralType){
+
+	    var frequency = spectrum.observeFrequencyX();
+	    var signals = [];
+	    var signal1D = {};
+	    var prevPeak = {x:100000,y:0,width:0};
+	    var peaks=null;
+	    var rangeX = 16/frequency;//Peaks withing this range are considered to belongs to the same signal1D
+	    var spectrumIntegral = 0;
+	    var cs,sum, i,j;
+	    var dx = (spectrum.getX(1)-spectrum.getX(0))>0?1:-1;
+	    for(i=0;i<peakList.length;i++){
+	        if(Math.abs(peakList[i].x-prevPeak.x)>rangeX){
+	            signal1D = {nbPeaks:1,units:"PPM",
+	                "startX":peakList[i].x-peakList[i].width,
+	                "stopX":peakList[i].x+peakList[i].width,
+	                "multiplicity":"","pattern":"",
+	                "observe":frequency,"nucleus":"1H",
+	                "integralData":{"from":peakList[i].x-peakList[i].width*3,
+	                    "to":peakList[i].x+peakList[i].width*3
+	                    //"value":area(peakList[i])
+	                },
+	                "peaks":[]};
+	            signal1D.peaks.push({x:peakList[i].x,"intensity":peakList[i].y, width:peakList[i].width});
+	            signals.push(signal1D);
+	            //spectrumIntegral+=area(peakList[i]);
+	        }
+	        else{
+	            var tmp = peakList[i].x+peakList[i].width;
+	            signal1D.stopX = Math.max(signal1D.stopX,tmp);
+	            tmp = peakList[i].x-peakList[i].width;
+	            signal1D.startX = Math.min(signal1D.startX,tmp);
+	            signal1D.nbPeaks++;
+	            signal1D.peaks.push({x:peakList[i].x,"intensity":peakList[i].y, width:peakList[i].width});
+	            //signal1D.integralData.value+=area(peakList[i]);
+	            signal1D.integralData.from = Math.min(signal1D.integralData.from, peakList[i].x-peakList[i].width*3);
+	            signal1D.integralData.to = Math.max(signal1D.integralData.to,peakList[i].x+peakList[i].width*3);
+	            //spectrumIntegral+=area(peakList[i]);
+	        }
+	        prevPeak = peakList[i];
+	    }
+	    //console.log(signals);
+	    //Normalize the integral to the normalization parameter and calculate cs
+	    for(i=0;i<signals.length;i++){
+	        peaks = signals[i].peaks;
+	        var integral = signals[i].integralData;
+	        cs = 0;
+	        sum = 0;
+
+	        for(var j=0;j<peaks.length;j++){
+	            cs+=peaks[j].x*area(peaks[j]);//.intensity;
+	            sum+=area(peaks[j]);
+	        }
+	        signals[i].delta1 = cs/sum;
+
+	        if(integralType==0)
+	            integral.value = sum;
+	        else {
+	            integral.value=spectrum.getArea(integral.from,integral.to);//*nH/spectrumIntegral;
+	        }
+	        spectrumIntegral+=integral.value;
+
+	    }
+	    for(var i=0;i<signals.length;i++){
+	        //console.log(integral.value);
+	        var integral = signals[i].integralData;
+	        integral.value*=nH/spectrumIntegral;
+	    }
+
+	    return signals;
+	}
+
+	/**
+	 Updates the score that a given impurity is present in the current spectrum. In this part I would expect
+	 to have into account the multiplicity of the signal. Also the relative intensity of the signals.
+	 THIS IS the KEY part of the algorithm!!!!!!!!!
+	 */
+	function updateScore(candidates, peakList, maxIntensity, frequency){
+	    //You may do it to avoid this part.
+	    //Check the multiplicity
+	    var mul, index, k;
+	    var j = 0;
+	    var min = 0;
+	    var indexMin = 0;
+	    var score = 0;
+	    for(var i=candidates.length-1;i>=0;i--){
+	        mul = candidates[i][1];
+	        j = candidates[i][2];
+	        //console.log(candidates[i][4]);
+	        index = candidates[i][4][0];
+	        //console.log(peakList[index][0]+" "+mul+" "+j+" "+index);
+	        //I guess we should try to identify the pattern in the nearby.
+	        if(mul.indexOf("sep")>=0){
+	            if(peakList[index][1]>maxIntensity*0.33){
+	                candidates.splice(i,1);//Not a candidate anymore.
+	            }
+	        }else{
+	            if(mul.indexOf("s")>=0||mul.indexOf("X")>=0){
+	                k=index-1;
+	                min=peakList[index][1];
+	                indexMin=index;
+	                while(k>=0&&Math.abs(peakList[index][0]-peakList[k][0])<0.025){
+	                    if(peakList[k][1]<min){
+	                        min=peakList[k][1];
+	                        indexMin=k;
+	                    }
+	                    k--;
+	                }
+	                k=index+1;
+	                while(k<peakList.length&&Math.abs(peakList[index][0]-peakList[k][0])<0.025){
+	                    if(peakList[k][1]<min){
+	                        min=peakList[k][1];
+	                        indexMin=k;
+	                    }
+	                    k++;
+	                }
+	                candidates[i][4][0]=indexMin;
+	                score+=1;
+	            }
+	        }
+	        if(mul.indexOf("d")>=0){
+	            if(index>0&&index<peakList.length-1){
+	                var thisJ1 = Math.abs(Math.abs(peakList[index-1][0]-peakList[index][0])*frequency-j);
+	                var thisJ2 = Math.abs(Math.abs(peakList[index+1][0]-peakList[index][0])*frequency-j);
+	                var thisJ3 = Math.abs(Math.abs(peakList[index+1][0]-peakList[index-1][0])*frequency-j);
+	                if(thisJ1<2||thisJ2<2||thisJ3<2){
+	                    if(thisJ1<thisJ2){
+	                        if(thisJ1<thisJ3){
+	                            candidates[i][4]=[index-1,index];
+	                            score+=1;
+	                        }
+	                        else{
+	                            candidates[i][4]=[index-1,index+1];
+	                            score+=1;
+	                        }
+	                    }
+	                    else{
+	                        if(thisJ2<thisJ3){
+	                            candidates[i][4]=[index,index+1];
+	                            score+=1;
+	                        }
+	                        else{
+	                            candidates[i][4]=[index-1,index+1];
+	                            score+=1;
+	                        }
+	                    }
+	                }
+	            }
+	        }
+	        if(mul.indexOf("t")>=0){
+	            if(index>0&&index<peakList.length-1){
+	                var thisJ1 = Math.abs(Math.abs(peakList[index-1][0]-peakList[index][0])*frequency-j);
+	                var thisJ2 = Math.abs(Math.abs(peakList[index+1][0]-peakList[index][0])*frequency-j);
+	                var thisJ4 = Math.abs(Math.abs(peakList[index+1][0]-peakList[index+2][0])*frequency-j);
+	                //console.log("XX "+thisJ1+" "+thisJ2);
+	                if(thisJ1<2){
+	                    candidates[i][4]=[index-1, index];
+	                    score+=0.5;
+	                }
+	                if(thisJ2<2){
+	                    candidates[i][4].push(index+1);
+	                    score+=0.5;
+	                }
+	                if(thisJ3<2){
+	                    candidates[i][4].push(index+2);
+	                    score+=0.5;
+	                }
+
+	            }
+	        }
+	        if(mul.indexOf("q")>=0){
+	            if(index>1&&index<peakList.length-2){
+	                var thisJ1 = Math.abs(Math.abs(peakList[index-2][0]-peakList[index-1][0])*frequency-j);
+	                var thisJ2 = Math.abs(Math.abs(peakList[index-1][0]-peakList[index][0])*frequency-j);
+	                var thisJ3 = Math.abs(Math.abs(peakList[index+1][0]-peakList[index][0])*frequency-j);
+	                var thisJ4= Math.abs(Math.abs(peakList[index+2][0]-peakList[index+1][0])*frequency-j);
+	                if(thisJ1<2){
+	                    candidates[i][4].push(index-2);
+	                    score+=0.25;
+	                }
+	                if(thisJ2<2){
+	                    candidates[i][4].push(index-1);
+	                    score+=0.25;
+	                }
+	                if(thisJ3<2){
+	                    candidates[i][4].push(index+1);
+	                    score+=0.25;
+	                }
+	                if(thisJ4<2){
+	                    candidates[i][4].push(index+2);
+	                    score+=0.25;
+	                }
+	            }
+	        }
+	    }
+
+	    //console.log(score/candidates.length+ " -> "+candidates);
+	    //Lets remove the candidates to be impurities.
+	    //It would be equivalent to mark the peaks as valid again
+	    if(score/candidates.length < 0.5){
+	        for(var i=candidates.length-1;i>=0;i--){
+	            candidates.splice(i,1);
+	        }
+	        return 0;
+	    }
+	    //Check the relative intensity
+	    return 1;
+	}
+
+	function area(peak){
+	    return Math.abs(peak.intensity*peak.width*1.57)//1.772453851);
+	}
 
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports) {
 
+	'use strict';
 	/**
 	 * This library implements the J analyser described by Cobas et al in the paper:
 	 * A two-stage approach to automatic determination of 1H NMR coupling constants
 	 * Created by acastillo on 4/5/15.
 	 */
-	var JAnalyzer = {
-	    pascalTriangle : [[0],[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1],[1,5,10,10,5,1],[1,6,15,20,15,6,1]],
-	    patterns: ["s","d","t","q","quint","h","sept","o","n"],
-	    symRatio : 1.5,
-	    maxErrorIter1 : 2.5,//Hz
-	    maxErrorIter2 : 1,//Hz
-	    DEBUG : false,
 
+	const pascalTriangle  =  [[0],[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1],[1,5,10,10,5,1],[1,6,15,20,15,6,1]];
+	const patterns = ["s","d","t","q","quint","h","sept","o","n"];
+	var symRatio = 1.5;
+	var maxErrorIter1 = 2.5;//Hz
+	var maxErrorIter2 = 1;//Hz
+	var DEBUG = false;
+
+	module.exports = {
 	    /**
 	     * The compilation process implements at the first stage a normalization procedure described by Golotvin et al.
 	     * embedding in peak-component-counting method described by Hoyes et al.
 	     * @param signal
 	     */
 	    compilePattern : function(signal){
-	        if(this.DEBUG)console.log("Debugin...");
+	        if(DEBUG)console.log("Debugin...");
 
 	        signal.multiplicity="m";//By default the multiplicity is massive
 	        // 1.1 symmetrize
 	        // It will add a set of peaks(signal.peaksComp) to the signal that will be used during
 	        // the compilation process. The unit of those peaks will be in Hz
-	        signal.symRank = this.symmetrizeChoiseBest(signal,this.maxErrorIter1,1);
+	        signal.symRank = symmetrizeChoiseBest(signal,maxErrorIter1,1);
 	        signal.asymmetric = true;
 	       // console.log(signal.delta1+" "+signal.symRank);
 	        //Is the signal symmetric?
 	        if(signal.symRank>=0.95&&signal.peaksComp.length<32){
-	            if(this.DEBUG)console.log(signal.delta1+ " nbPeaks "+signal.peaksComp.length);
+	            if(DEBUG)console.log(signal.delta1+ " nbPeaks "+signal.peaksComp.length);
 	            signal.asymmetric = false;
-	            var i,j,min,max,k=1,P1,Jc=[],n2,maxFlagged;
+	            var i,j,n,k=1,P1,Jc=[],n2,maxFlagged;
 	            //Loop over the possible number of coupling contributing to the multiplet
-	            for(var n=0;n<9;n++){
-	                if(this.DEBUG)console.log("Trying "+n+" couplings");
+	            for(n=0;n<9;n++){
+	                if(DEBUG)console.log("Trying "+n+" couplings");
 	                //1.2 Normalize. It makes a deep copy of the peaks before to modify them.
-	                peaks = this.normalize(signal,n);
+	                var peaks = normalize(signal,n);
 	                //signal.peaksCompX = peaks;
 	                var validPattern = false;//It will change to true, when we find the good patter
 	                //Lets check if the signal could be a singulet.
@@ -4020,19 +4174,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    }
 	                }
 	                // 1.3 Establish a range for the Heights Hi [peaks.intensity*0.85,peaks.intensity*1.15];
-	                var ranges = this.getRanges(peaks);
+	                var ranges = getRanges(peaks);
 	                n2 = Math.pow(2,n);
 
-	                if(this.DEBUG){
+	                if(DEBUG){
 	                    console.log("ranges: "+JSON.stringify(ranges));
 	                    console.log("Target sum: "+n2);
 	                }
 
 	                // 1.4 Find a combination of integer heights Hi, one from each Si, that sums to 2^n.
 	                var heights = null;
-	                while(!validPattern&&(heights = this.getNextCombination(ranges, n2))!==null){
+	                while(!validPattern&&(heights = getNextCombination(ranges, n2))!==null){
 
-	                    if(this.DEBUG){
+	                    if(DEBUG){
 	                        console.log("Possible pattern found with "+n+" couplings!!!");
 	                        console.log(heights);
 	                    }
@@ -4046,7 +4200,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                            numbering[i][j]=k++;
 	                        }
 	                    }
-	                    if(this.DEBUG){
+	                    if(DEBUG){
 	                        console.log("Numbering: "+JSON.stringify(numbering));
 	                    }
 	                    Jc = []; //The array to store the detected j-coupling
@@ -4060,7 +4214,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    var nFlagged = 2;
 	                    maxFlagged = Math.pow(2,n)-1;
 	                    while(Jc.length<n&&nFlagged<maxFlagged&&k<peaks.length){
-	                        if(this.DEBUG){
+	                        if(DEBUG){
 	                            console.log("New Jc"+JSON.stringify(Jc));
 	                            console.log("Aval. numbering "+JSON.stringify(numbering));
 	                        }
@@ -4094,7 +4248,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        }
 	                    }
 	                    //Calculate the ideal patter by using the extracted j-couplings
-	                    var pattern = this.idealPattern(Jc);
+	                    var pattern = idealPattern(Jc);
 	                    //Compare the ideal pattern with the proposed intensities.
 	                    // All the intensities have to match to accept the multiplet
 	                    validPattern = true;
@@ -4103,7 +4257,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                            validPattern = false;
 	                    }
 	                    //More verbosity of the process
-	                    if(this.DEBUG){
+	                    if(DEBUG){
 	                        console.log("Jc "+JSON.stringify(Jc));
 	                        console.log("Heights "+JSON.stringify(heights));
 	                        console.log("pattern "+JSON.stringify(pattern));
@@ -4112,7 +4266,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                }
 	                //If we found a valid pattern we should inform about the pattern.
 	                if(validPattern){
-	                    this.updateSignal(signal,Jc);
+	                    updateSignal(signal,Jc);
 	                }
 	            }
 	        }
@@ -4121,444 +4275,443 @@ return /******/ (function(modules) { // webpackBootstrap
 	        for(i=0;i<signal.peaksComp.length;i++){
 	            signal.peaksComp[i].x/=signal.observe;
 	        }
-	    },
+	    }
+	}
 
-	    updateSignal : function(signal, Jc){
-	        //Update the limits of the signal
-	        var peaks = signal.peaksComp;//Always in Hz
-	        var nbPeaks = peaks.length;
-	        signal.startX=peaks[0].x/signal.observe+peaks[0].width;
-	        signal.stopX=peaks[nbPeaks-1].x/signal.observe-peaks[nbPeaks-1].width;
-	        signal.integralData.to=peaks[0].x/signal.observe+peaks[0].width*3;
-	        signal.integralData.from=peaks[nbPeaks-1].x/signal.observe-peaks[nbPeaks-1].width*3;
+	function updateSignal(signal, Jc){
+	    //Update the limits of the signal
+	    var peaks = signal.peaksComp;//Always in Hz
+	    var nbPeaks = peaks.length;
+	    signal.startX=peaks[0].x/signal.observe-peaks[0].width;
+	    signal.stopX=peaks[nbPeaks-1].x/signal.observe+peaks[nbPeaks-1].width;
 
-	        //Compile the pattern and format the constant couplings
-	        signal.maskPattern = signal.mask2;
-	        signal.multiplicity = this.abstractPattern(signal,Jc);
-	        signal.pattern=signal.multiplicity;//Our library depends on this parameter, but it is old
-	        //console.log(signal);
-	        if(this.DEBUG)
-	            console.log("Final j-couplings: "+JSON.stringify(Jc));
-	    },
+	    signal.integralData.from=peaks[0].x/signal.observe-peaks[0].width*3;
+	    signal.integralData.to=peaks[nbPeaks-1].x/signal.observe+peaks[nbPeaks-1].width*3;
 
-	    /**
-	     * Returns the multiplet in the compact format
-	     */
-	    abstractPattern : function(signal,Jc){
-	        var tol = 0.05,i, pattern = "", cont = 1;
-	        var newNmrJs = [];
-	        if(Jc&&Jc.length>0){
-	            Jc.sort(function(a,b){
-	                return a-b;
-	            });
-	            for(i=0;i<Jc.length-1;i++){
-	                if(Math.abs(Jc[i]-Jc[i+1])<tol){
-	                    cont++;
+	    //Compile the pattern and format the constant couplings
+	    signal.maskPattern = signal.mask2;
+	    signal.multiplicity = abstractPattern(signal,Jc);
+	    signal.pattern=signal.multiplicity;//Our library depends on this parameter, but it is old
+	    //console.log(signal);
+	    if(DEBUG)
+	        console.log("Final j-couplings: "+JSON.stringify(Jc));
+	}
+
+	/**
+	 * Returns the multiplet in the compact format
+	 */
+	function  abstractPattern(signal,Jc){
+	    var tol = 0.05,i, pattern = "", cont = 1;
+	    var newNmrJs = [];
+	    if(Jc&&Jc.length>0){
+	        Jc.sort(function(a,b){
+	            return a-b;
+	        });
+	        for(i=0;i<Jc.length-1;i++){
+	            if(Math.abs(Jc[i]-Jc[i+1])<tol){
+	                cont++;
+	            }
+	            else{
+	                newNmrJs.push({"coupling":Math.abs(Jc[i]),"multiplicity":patterns[cont]});
+	                pattern+=patterns[cont];
+	                cont=1;
+	            }
+	        }
+	        newNmrJs.push({"coupling":Math.abs(Jc[i]),"multiplicity":patterns[cont]});
+	        pattern+=patterns[cont];
+	        signal.nmrJs =  newNmrJs;
+	    }
+	    else{
+	        pattern="s";
+	        if(Math.abs(signal.startX-signal.stopX)*signal.observe>16){
+	            pattern="br s"
+	        }
+	    }
+	    return pattern;
+	}
+
+	/**
+	 *This function creates an ideal pattern from the given J-couplings
+	 */
+	function idealPattern(Jc){
+	    var hsum = Math.pow(2,Jc.length),i,j;
+	    var pattern = [{x:0,intensity:hsum}];
+	    //To split the initial height
+	    for(i=0;i<Jc.length;i++){
+	        for(j=pattern.length-1;j>=0;j--){
+	            pattern.push({x:pattern[j].x+Jc[i]/2,
+	                intensity:pattern[j].intensity/2});
+	            pattern[j].x = pattern[j].x-Jc[i]/2;
+	            pattern[j].intensity = pattern[j].intensity/2;
+	        }
+	    }
+	    //To sum the heights in the same positions
+	    pattern.sort(function compare(a,b) { return a.x-b.x});
+	    for(j=pattern.length-2;j>=0;j--){
+	        if(Math.abs(pattern[j].x-pattern[j+1].x)<0.1){
+	            pattern[j].intensity+= pattern[j+1].intensity
+	            pattern.splice(j+1,1);
+	        }
+	    }
+	    return pattern;
+	}
+
+	/**
+	 * Find a combination of integer heights Hi, one from each Si, that sums to 2n.
+	 */
+	function getNextCombination(ranges, value){
+	    var half = Math.ceil(ranges.values.length/2), lng = ranges.values.length;
+	    var sum = 0,i,ok;
+	    while(sum!=value){
+	        //Update the indexes to point at the next possible combination
+	        ok = false;
+	        var leftIndex = 0;
+	        while(!ok){
+	            ok = true;
+	            ranges.currentIndex[ranges.active]++;
+	            if(ranges.currentIndex[ranges.active]>=ranges.values[ranges.active].length){
+	                //In this case, there is no more possible combinations
+	                if(ranges.active+1==half){
+	                    return null;
 	                }
 	                else{
-	                    newNmrJs.push({"coupling":Math.abs(Jc[i]),"multiplicity":this.patterns[cont]});
-	                    pattern+=this.patterns[cont];
-	                    cont=1;
-	                }
-	            }
-	            newNmrJs.push({"coupling":Math.abs(Jc[i]),"multiplicity":this.patterns[cont]});
-	            pattern+=this.patterns[cont];
-	            signal.nmrJs =  newNmrJs;
-	        }
-	        else{
-	            pattern="s";
-	            if(Math.abs(signal.startX-signal.stopX)*signal.observe>16){
-	                pattern="bs"
-	            }
-	        }
-	        return pattern;
-	    },
-
-	    /**
-	     *This function creates an ideal pattern from the given J-couplings
-	     */
-	    idealPattern : function(Jc){
-	        var hsum = Math.pow(2,Jc.length),i,j;
-	        var pattern = [{x:0,intensity:hsum}];
-	        //To split the initial height
-	        for(i=0;i<Jc.length;i++){
-	            for(j=pattern.length-1;j>=0;j--){
-	                pattern.push({x:pattern[j].x+Jc[i]/2,
-	                    intensity:pattern[j].intensity/2});
-	                pattern[j].x = pattern[j].x-Jc[i]/2;
-	                pattern[j].intensity = pattern[j].intensity/2;
-	            }
-	        }
-	        //To sum the heights in the same positions
-	        pattern.sort(function compare(a,b) { return a.x-b.x});
-	        for(j=pattern.length-2;j>=0;j--){
-	            if(Math.abs(pattern[j].x-pattern[j+1].x)<0.1){
-	                pattern[j].intensity+= pattern[j+1].intensity
-	                pattern.splice(j+1,1);
-	            }
-	        }
-	        return pattern;
-	    },
-
-	    /**
-	     * Find a combination of integer heights Hi, one from each Si, that sums to 2n.
-	     */
-	    getNextCombination : function(ranges, value){
-	        var half = Math.ceil(ranges.values.length/2), lng = ranges.values.length;
-	        var sum = 0,i;
-	        while(sum!=value){
-	            //Update the indexes to point at the next possible combination
-	            ok = false;
-	            var leftIndex = 0;
-	            while(!ok){
-	                ok = true;
-	                ranges.currentIndex[ranges.active]++;
-	                if(ranges.currentIndex[ranges.active]>=ranges.values[ranges.active].length){
-	                    //In this case, there is no more possible combinations
-	                    if(ranges.active+1==half){
-	                        return null;
-	                    }
-	                    else{
-	                        //If this happens we need to try the next active peak
-	                        ranges.currentIndex[ranges.active]=0;
-	                        ok=false;
-	                        ranges.active++;
-	                    }
-	                }
-	                else{
-	                    ranges.active=0;
-	                }
-	            }
-	            // Sum the heights for this combination
-	            sum=0;
-	            for(i=0;i<half;i++){
-	                sum+= ranges.values[i][ranges.currentIndex[i]]*2;
-	            }
-	            if(ranges.values.length%2!==0){
-	                sum-= ranges.values[half-1][ranges.currentIndex[half-1]];
-	            }
-	            if(this.DEBUG){
-	                console.log(ranges.currentIndex);
-	                console.log(sum+" "+value);
-	            }
-	        }
-	        //If the sum is equal to the expected value, fill the array to return
-	        if(sum==value){
-	            var heights = new Array(lng);
-	            for(i=0;i<half;i++){
-	                heights[i] = ranges.values[i][ranges.currentIndex[i]];
-	                heights[lng-i-1] = ranges.values[i][ranges.currentIndex[i]];
-	            }
-	            return heights;
-	        }
-	        return null;
-	    },
-
-	    /**
-	     * This function generates the possible values that each peak can contribute
-	     * to the multiplet.
-	     * @param peaks
-	     * @returns {{values: Array, currentIndex: Array, active: number}}
-	     */
-	    getRanges : function(peaks){
-	        var ranges = new Array(peaks.length);
-	        var currentIndex = new Array(peaks.length);
-	        var min,max;
-	        ranges[0] = [1];
-	        ranges[peaks.length-1] = [1];
-	        currentIndex[0]=-1;
-	        currentIndex[peaks.length-1] = 0;
-	        for(var i=1;i<peaks.length-1;i++){
-	            min = Math.round(peaks[i].intensity*0.85);
-	            max = Math.round(peaks[i].intensity*1.15);
-	            ranges[i] =[];
-	            for(var j=min;j<=max;j++){
-	                ranges[i].push(j);
-	            }
-	            currentIndex[i]=0;
-	        }
-	        return {values:ranges, currentIndex:currentIndex, active:0};
-	    },
-	    /**
-	     * Performs a symmetrization of the signal by using different aproximations to the center.
-	     * It will return the result of the symmetrization that removes less peaks from the signal
-	     * @param signal
-	     * @param maxError
-	     * @param iteration
-	     * @returns {*}
-	     */
-	    symmetrizeChoiseBest : function(signal,maxError,iteration){
-	        var symRank1 = this.symmetrize(signal,maxError,iteration);
-	        var tmpPeaks = signal.peaksComp;
-	        var tmpMask = signal.mask;
-	        var cs = signal.delta1;
-	        signal.delta1 = (signal.peaks[0].x+signal.peaks[signal.peaks.length-1].x)/2;
-	        var symRank2 = this.symmetrize(signal,maxError,iteration);
-	        if(signal.peaksComp.length>tmpPeaks.length)
-	            return symRank2;
-	        else{
-	            signal.delta1 = cs;
-	            signal.peaksComp = tmpPeaks;
-	            signal.mask = tmpMask;
-	            return symRank1;
-	        }
-
-	    },
-	    /**
-	     * This function will return a set of symmetric peaks that will
-	     * be the enter point for the patter compilation process.
-	     */
-	    symmetrize : function(signal, maxError, iteration){
-	        //Before to symmetrize we need to keep only the peaks that possibly conforms the multiplete
-	        var max, min, avg, ratio, avgWidth;
-	        var peaks = new Array(signal.peaks.length);
-	        //Make a deep copy of the peaks and convert PPM ot HZ
-	        for(j=0;j<peaks.length;j++){
-	            peaks[j]= {x:signal.peaks[j].x*signal.observe,
-	                intensity:signal.peaks[j].intensity,
-	                width:signal.peaks[j].width};
-	        }
-	        //Join the peaks that are closer than 0.25 Hz
-	        for(j=peaks.length-2;j>=0;j--){
-	            if(Math.abs(peaks[j].x-peaks[j+1].x)<0.25){
-	                peaks[j].x = (peaks[j].x*peaks[j].intensity+peaks[j+1].x*peaks[j+1].intensity);
-	                peaks[j].intensity = peaks[j].intensity+peaks[j+1].intensity;
-	                peaks[j].x/=peaks[j].intensity;
-	                peaks[j].intensity/=2;
-	                peaks[j].width+=peaks[j+1].width;
-	                peaks.splice(j+1,1);
-	            }
-	        }
-	        signal.peaksComp = peaks;
-	        var nbPeaks = peaks.length;
-	        var mask = new Array(nbPeaks);
-	        signal.mask = mask;
-	        var left=0, right=peaks.length-1, cs = signal.delta1*signal.observe, middle = [(peaks[0].x+peaks[nbPeaks-1].x)/2,1];
-	        maxError = this.error(Math.abs(cs-middle[0]));
-	        var heightSum = 0;
-	        //We try to symmetrize the extreme peaks. We consider as candidates for symmetricing those which have
-	        //ratio smaller than 3
-	        for(var i=0;i<nbPeaks;i++){
-	            mask[i]= true;
-	            heightSum+=signal.peaks[i].intensity;
-	        }
-
-	        while(left<=right){
-	            mask[left] = true;
-	            mask[right] = true;
-	            if(left==right){
-	                if(nbPeaks>2&&Math.abs(peaks[left].x-cs)>maxError){
-	                    mask[left] = false;
+	                    //If this happens we need to try the next active peak
+	                    ranges.currentIndex[ranges.active]=0;
+	                    ok=false;
+	                    ranges.active++;
 	                }
 	            }
 	            else{
-	                max = Math.max(peaks[left].intensity,peaks[right].intensity);
-	                min = Math.min(peaks[left].intensity,peaks[right].intensity);
-	                ratio = max/min;
-	                if(ratio>this.symRatio){
-	                    if(peaks[left].intensity==min){
-	                        mask[left] = false;
-	                        right++;
-	                    }
-	                    else{
+	                ranges.active=0;
+	            }
+	        }
+	        // Sum the heights for this combination
+	        sum=0;
+	        for(i=0;i<half;i++){
+	            sum+= ranges.values[i][ranges.currentIndex[i]]*2;
+	        }
+	        if(ranges.values.length%2!==0){
+	            sum-= ranges.values[half-1][ranges.currentIndex[half-1]];
+	        }
+	        if(DEBUG){
+	            console.log(ranges.currentIndex);
+	            console.log(sum+" "+value);
+	        }
+	    }
+	    //If the sum is equal to the expected value, fill the array to return
+	    if(sum==value){
+	        var heights = new Array(lng);
+	        for(i=0;i<half;i++){
+	            heights[i] = ranges.values[i][ranges.currentIndex[i]];
+	            heights[lng-i-1] = ranges.values[i][ranges.currentIndex[i]];
+	        }
+	        return heights;
+	    }
+	    return null;
+	}
+
+	/**
+	 * This function generates the possible values that each peak can contribute
+	 * to the multiplet.
+	 * @param peaks
+	 * @returns {{values: Array, currentIndex: Array, active: number}}
+	 */
+	function getRanges(peaks){
+	    var ranges = new Array(peaks.length);
+	    var currentIndex = new Array(peaks.length);
+	    var min,max;
+	    ranges[0] = [1];
+	    ranges[peaks.length-1] = [1];
+	    currentIndex[0]=-1;
+	    currentIndex[peaks.length-1] = 0;
+	    for(var i=1;i<peaks.length-1;i++){
+	        min = Math.round(peaks[i].intensity*0.85);
+	        max = Math.round(peaks[i].intensity*1.15);
+	        ranges[i] =[];
+	        for(var j=min;j<=max;j++){
+	            ranges[i].push(j);
+	        }
+	        currentIndex[i]=0;
+	    }
+	    return {values:ranges, currentIndex:currentIndex, active:0};
+	}
+	/**
+	 * Performs a symmetrization of the signal by using different aproximations to the center.
+	 * It will return the result of the symmetrization that removes less peaks from the signal
+	 * @param signal
+	 * @param maxError
+	 * @param iteration
+	 * @returns {*}
+	 */
+	function symmetrizeChoiseBest(signal,maxError,iteration){
+	    var symRank1 = symmetrize(signal,maxError,iteration);
+	    var tmpPeaks = signal.peaksComp;
+	    var tmpMask = signal.mask;
+	    var cs = signal.delta1;
+	    signal.delta1 = (signal.peaks[0].x+signal.peaks[signal.peaks.length-1].x)/2;
+	    var symRank2 = symmetrize(signal,maxError,iteration);
+	    if(signal.peaksComp.length>tmpPeaks.length)
+	        return symRank2;
+	    else{
+	        signal.delta1 = cs;
+	        signal.peaksComp = tmpPeaks;
+	        signal.mask = tmpMask;
+	        return symRank1;
+	    }
+
+	}
+	/**
+	 * This function will return a set of symmetric peaks that will
+	 * be the enter point for the patter compilation process.
+	 */
+	function symmetrize(signal, maxError, iteration){
+	    //Before to symmetrize we need to keep only the peaks that possibly conforms the multiplete
+	    var max, min, avg, ratio, avgWidth, j;
+	    var peaks = new Array(signal.peaks.length);
+	    //Make a deep copy of the peaks and convert PPM ot HZ
+	    for(j=0;j<peaks.length;j++){
+	        peaks[j]= {x:signal.peaks[j].x*signal.observe,
+	            intensity:signal.peaks[j].intensity,
+	            width:signal.peaks[j].width};
+	    }
+	    //Join the peaks that are closer than 0.25 Hz
+	    for(j=peaks.length-2;j>=0;j--){
+	        if(Math.abs(peaks[j].x-peaks[j+1].x)<0.25){
+	            peaks[j].x = (peaks[j].x*peaks[j].intensity+peaks[j+1].x*peaks[j+1].intensity);
+	            peaks[j].intensity = peaks[j].intensity+peaks[j+1].intensity;
+	            peaks[j].x/=peaks[j].intensity;
+	            peaks[j].intensity/=2;
+	            peaks[j].width+=peaks[j+1].width;
+	            peaks.splice(j+1,1);
+	        }
+	    }
+	    signal.peaksComp = peaks;
+	    var nbPeaks = peaks.length;
+	    var mask = new Array(nbPeaks);
+	    signal.mask = mask;
+	    var left=0, right=peaks.length-1, cs = signal.delta1*signal.observe, middle = [(peaks[0].x+peaks[nbPeaks-1].x)/2,1];
+	    maxError = error(Math.abs(cs-middle[0]));
+	    var heightSum = 0;
+	    //We try to symmetrize the extreme peaks. We consider as candidates for symmetricing those which have
+	    //ratio smaller than 3
+	    for(var i=0;i<nbPeaks;i++){
+	        mask[i]= true;
+	        heightSum+=signal.peaks[i].intensity;
+	    }
+
+	    while(left<=right){
+	        mask[left] = true;
+	        mask[right] = true;
+	        if(left==right){
+	            if(nbPeaks>2&&Math.abs(peaks[left].x-cs)>maxError){
+	                mask[left] = false;
+	            }
+	        }
+	        else{
+	            max = Math.max(peaks[left].intensity,peaks[right].intensity);
+	            min = Math.min(peaks[left].intensity,peaks[right].intensity);
+	            ratio = max/min;
+	            if(ratio>symRatio){
+	                if(peaks[left].intensity==min){
+	                    mask[left] = false;
+	                    right++;
+	                }
+	                else{
+	                    mask[right] = false;
+	                    left--;
+	                }
+	            }
+	            else{
+	                var diffL = Math.abs(peaks[left].x-cs);
+	                var diffR = Math.abs(peaks[right].x-cs);
+
+	                if(Math.abs(diffL-diffR)<maxError){
+	                    //avg = (peaks[left].intensity+peaks[right].intensity)/2;
+	                    avg = Math.min(peaks[left].intensity,peaks[right].intensity);
+	                    avgWidth = Math.min(peaks[left].width,peaks[right].width);
+	                    peaks[left].intensity=peaks[right].intensity=avg;
+	                    peaks[left].width=peaks[right].width=avgWidth;
+	                    middle=[middle[0]+((peaks[right].x+peaks[left].x)/2), middle[1]+1];
+	                }
+	                else{
+	                    if(Math.max(diffL,diffR)==diffR){
 	                        mask[right] = false;
 	                        left--;
 	                    }
-	                }
-	                else{
-	                    var diffL = Math.abs(peaks[left].x-cs);
-	                    var diffR = Math.abs(peaks[right].x-cs);
-
-	                    if(Math.abs(diffL-diffR)<maxError){
-	                        //avg = (peaks[left].intensity+peaks[right].intensity)/2;
-	                        avg = Math.min(peaks[left].intensity,peaks[right].intensity);
-	                        avgWidth = Math.min(peaks[left].width,peaks[right].width);
-	                        peaks[left].intensity=peaks[right].intensity=avg;
-	                        peaks[left].width=peaks[right].width=avgWidth;
-	                        middle=[middle[0]+((peaks[right].x+peaks[left].x)/2), middle[1]+1];
-	                    }
 	                    else{
-	                        if(Math.max(diffL,diffR)==diffR){
-	                            mask[right] = false;
-	                            left--;
-	                        }
-	                        else{
-	                            mask[left] = false;
-	                            right++;
-	                        }
-	                    }
-	                    if(this.DEBUG){
-	                        console.log("MaxError: "+maxError+" "+middle[0]+" "+middle[1]);
-	                        console.log(iteration+" CS: "+cs+" Hz "+cs/signal.observe+" PPM");
-	                        console.log("Middle: "+(middle[0]/middle[1])+" Hz "+(middle[0]/middle[1])/signal.observe+" PPM");
-	                        console.log(diffL+ " "+diffR);
-	                        console.log(Math.abs(diffL-diffR));
-	                        console.log(JSON.stringify(peaks));
-	                        console.log(JSON.stringify(mask));
+	                        mask[left] = false;
+	                        right++;
 	                    }
 	                }
-	            }
-	            left++;
-	            right--;
-	            //Only alter cs if it is the first iteration of the sym process.
-	            if(iteration==1){
-	                cs = this.chemicalShift(peaks, mask);
-	                //There is not more available peaks
-	                if(isNaN(cs)){ return 0;}
-	            }
-	            maxError = this.error(Math.abs(cs-middle[0]/middle[1]));
-	        }
-	        //To remove the weak peaks and recalculate the cs
-	        for(i=nbPeaks-1;i>=0;i--){
-	            if(mask[i]===false){
-	                peaks.splice(i,1);
+	                if(DEBUG){
+	                    console.log("MaxError: "+maxError+" "+middle[0]+" "+middle[1]);
+	                    console.log(iteration+" CS: "+cs+" Hz "+cs/signal.observe+" PPM");
+	                    console.log("Middle: "+(middle[0]/middle[1])+" Hz "+(middle[0]/middle[1])/signal.observe+" PPM");
+	                    console.log(diffL+ " "+diffR);
+	                    console.log(Math.abs(diffL-diffR));
+	                    console.log(JSON.stringify(peaks));
+	                    console.log(JSON.stringify(mask));
+	                }
 	            }
 	        }
-	        cs = this.chemicalShift(peaks);
-	        if(isNaN(cs)){ return 0;}
-	        signal.delta1 = cs/signal.observe;
-	        //Now, the peak should be symmetric in heights, but we need to know if it is symmetric in x
-	        var symFactor = 0,weight = 0;
-	        if(peaks.length>1){
-	            for(i=Math.ceil(peaks.length/2)-1;i>=0;i--){
-	                symFactor+=(3+Math.min(Math.abs(peaks[i].x-cs),Math.abs(peaks[peaks.length-1-i].x-cs)))
+	        left++;
+	        right--;
+	        //Only alter cs if it is the first iteration of the sym process.
+	        if(iteration==1){
+	            cs = chemicalShift(peaks, mask);
+	            //There is not more available peaks
+	            if(isNaN(cs)){ return 0;}
+	        }
+	        maxError = error(Math.abs(cs-middle[0]/middle[1]));
+	    }
+	    //To remove the weak peaks and recalculate the cs
+	    for(i=nbPeaks-1;i>=0;i--){
+	        if(mask[i]===false){
+	            peaks.splice(i,1);
+	        }
+	    }
+	    cs = chemicalShift(peaks);
+	    if(isNaN(cs)){ return 0;}
+	    signal.delta1 = cs/signal.observe;
+	    //Now, the peak should be symmetric in heights, but we need to know if it is symmetric in x
+	    var symFactor = 0,weight = 0;
+	    if(peaks.length>1){
+	        for(i=Math.ceil(peaks.length/2)-1;i>=0;i--){
+	            symFactor+=(3+Math.min(Math.abs(peaks[i].x-cs),Math.abs(peaks[peaks.length-1-i].x-cs)))
 	                /(3+Math.max(Math.abs(peaks[i].x-cs),Math.abs(peaks[peaks.length-1-i].x-cs)))*peaks[i].intensity;
-	                weight+=peaks[i].intensity;
+	            weight+=peaks[i].intensity;
+	        }
+	        symFactor/=weight;
+	    }
+	    else{
+	        if(peaks.length==1)
+	            symFactor=1;
+	    }
+	    var newSumHeights = 0;
+	    for(i=0;i<peaks.length;i++){
+	        newSumHeights+=peaks[i].intensity;
+	    }
+	    symFactor-=(heightSum-newSumHeights)/heightSum*0.12; //Removed peaks penalty
+	    if(DEBUG){
+	        console.log("Penalty "+(heightSum-newSumHeights)/heightSum*0.12);
+	        console.log("cs: "+(cs/signal.observe)+" symFactor: "+symFactor);
+	    }
+	    //Sometimes we need a second opinion after the first symmetrization.
+	    if(symFactor>0.8&&symFactor<0.97&&iteration<2){
+	        return symmetrize(signal, maxErrorIter2, 2);
+	    }{
+	        //Center the given pattern at cs and symmetrize x
+	        if(peaks.length>1) {
+	            var weight = 0, dxi;
+	            for (i = Math.ceil(peaks.length / 2) - 1; i >= 0; i--) {
+	                dxi = (peaks[i].x - peaks[peaks.length - 1 - i].x)/2.0;
+	                peaks[i].x =cs+dxi;
+	                peaks[peaks.length - 1 - i].x=cs-dxi;
 	            }
-	            symFactor/=weight;
 	        }
-	        else{
-	            if(peaks.length==1)
-	                symFactor=1;
-	        }
-	        var newSumHeights = 0;
-	        for(i=0;i<peaks.length;i++){
-	            newSumHeights+=peaks[i].intensity;
-	        }
-	        symFactor-=(heightSum-newSumHeights)/heightSum*0.12; //Removed peaks penalty
-	        if(this.DEBUG){
-	            console.log("Penalty "+(heightSum-newSumHeights)/heightSum*0.12);
-	            console.log("cs: "+(cs/signal.observe)+" symFactor: "+symFactor);
-	        }
-	        //Sometimes we need a second opinion after the first symmetrization.
-	        if(symFactor>0.8&&symFactor<0.97&&iteration<2){
-	            return this.symmetrize(signal, this.maxErrorIter2, 2);
-	        }{
-	            //Center the given pattern at cs and symmetrize x
-	            if(peaks.length>1) {
-	                var weight = 0, dxi;
-	                for (i = Math.ceil(peaks.length / 2) - 1; i >= 0; i--) {
-	                    dxi = (peaks[i].x - peaks[peaks.length - 1 - i].x)/2.0;
-	                    peaks[i].x =cs+dxi;
-	                    peaks[peaks.length - 1 - i].x=cs-dxi;
-	                }
-	            }
-	        }
-	        return symFactor;
-	    },
+	    }
+	    return symFactor;
+	}
 
-	    error : function(value){
-	        var maxError = value*2.5;
-	        if(maxError<0.75)
-	            maxError = 0.75;
-	        if(maxError > 3)
-	            maxError = 3;
-	        return maxError;
-	    },
-	    /**
-	     * 2 stages normalizarion of the peaks heights to Math.pow(2,n).
-	     * Creates a new mask with the peaks that could contribute to the multiplete
-	     * @param signal
-	     * @param n
-	     * @returns {*}
-	     */
-	    normalize : function(signal, n){
-	        //Perhaps this is slow
-	        var peaks = JSON.parse(JSON.stringify(signal.peaksComp));
-	        var norm = 0,norm2=0,i;//Math.pow(2,n);
-	        for(i=0;i<peaks.length;i++){
-	            norm+= peaks[i].intensity;
-	        }
-	        norm=Math.pow(2,n)/norm;
-	        signal.mask2 = JSON.parse(JSON.stringify(signal.mask));
-	        //console.log("Mask0 "+JSON.stringify(signal.mask2));
-	        var index=signal.mask2.length-1;
-	        for(i=peaks.length-1;i>=0;i--){
-	            peaks[i].intensity*= norm;
-	            while(index>=0&&signal.mask2[index]===false)
-	                index--;
-	            if(peaks[i].intensity<0.75){
-	                if(this.DEBUG)
-	                    console.log("Peak "+i+" does not seem to belong to this multiplet "+peaks[i].intensity);
-	                peaks.splice(i,1);
-	                signal.mask2[index]=false;
-	            }
-	            else{
-	                norm2+= peaks[i].intensity;
-	            }
+	function error(value){
+	    var maxError = value*2.5;
+	    if(maxError<0.75)
+	        maxError = 0.75;
+	    if(maxError > 3)
+	        maxError = 3;
+	    return maxError;
+	}
+	/**
+	 * 2 stages normalizarion of the peaks heights to Math.pow(2,n).
+	 * Creates a new mask with the peaks that could contribute to the multiplete
+	 * @param signal
+	 * @param n
+	 * @returns {*}
+	 */
+	function normalize(signal, n){
+	    //Perhaps this is slow
+	    var peaks = JSON.parse(JSON.stringify(signal.peaksComp));
+	    var norm = 0,norm2=0,i;//Math.pow(2,n);
+	    for(i=0;i<peaks.length;i++){
+	        norm+= peaks[i].intensity;
+	    }
+	    norm=Math.pow(2,n)/norm;
+	    signal.mask2 = JSON.parse(JSON.stringify(signal.mask));
+	    //console.log("Mask0 "+JSON.stringify(signal.mask2));
+	    var index=signal.mask2.length-1;
+	    for(i=peaks.length-1;i>=0;i--){
+	        peaks[i].intensity*= norm;
+	        while(index>=0&&signal.mask2[index]===false)
 	            index--;
-	        }
-	        norm2=Math.pow(2,n)/norm2;
-	        for(i=peaks.length-1;i>=0;i--){
-	            peaks[i].intensity*= norm2;
-	        }
-	        //console.log("Mask1 "+JSON.stringify(signal.mask2));
-	        if(this.DEBUG) console.log(JSON.stringify(peaks));
-	        return peaks;
-	    },
-
-	    /**
-	     * Calculates the chemical shift as the weighted sum of the peaks
-	     * @param peaks
-	     * @param mask
-	     * @returns {number}
-	     */
-	    chemicalShift : function(peaks, mask){
-	        var sum=0,cs= 0, i, area;
-	        if(mask){
-	            for(i=0;i<peaks.length;i++){
-	                //console.log(mask[i]);
-	                if(mask[i]===true){
-	                    area = this.area(peaks[i]);
-	                    sum+=area;
-	                    cs+=area*peaks[i].x;
-	                }
-	            }
+	        if(peaks[i].intensity<0.75){
+	            if(DEBUG)
+	                console.log("Peak "+i+" does not seem to belong to this multiplet "+peaks[i].intensity);
+	            peaks.splice(i,1);
+	            signal.mask2[index]=false;
 	        }
 	        else{
-	            for(i=0;i<peaks.length;i++){
-	                area = this.area(peaks[i]);
+	            norm2+= peaks[i].intensity;
+	        }
+	        index--;
+	    }
+	    norm2=Math.pow(2,n)/norm2;
+	    for(i=peaks.length-1;i>=0;i--){
+	        peaks[i].intensity*= norm2;
+	    }
+	    //console.log("Mask1 "+JSON.stringify(signal.mask2));
+	    if(DEBUG) console.log(JSON.stringify(peaks));
+	    return peaks;
+	}
+
+	/**
+	 * Calculates the chemical shift as the weighted sum of the peaks
+	 * @param peaks
+	 * @param mask
+	 * @returns {number}
+	 */
+	function chemicalShift(peaks, mask){
+	    var sum=0,cs= 0, i, area;
+	    if(mask){
+	        for(i=0;i<peaks.length;i++){
+	            //console.log(mask[i]);
+	            if(mask[i]===true){
+	                area = getArea(peaks[i]);
 	                sum+=area;
 	                cs+=area*peaks[i].x;
 	            }
 	        }
-	        return cs/sum;
-	    },
-
-	    area: function(peak){
-	        return Math.abs(peak.intensity*peak.width*1.57)//1.772453851);
 	    }
+	    else{
+	        for(i=0;i<peaks.length;i++){
+	            area = getArea(peaks[i]);
+	            sum+=area;
+	            cs+=area*peaks[i].x;
+	        }
+	    }
+	    return cs/sum;
 	}
 
-	module.exports = JAnalyzer;
-
-/***/ },
-/* 10 */
-/***/ function(module, exports, __webpack_require__) {
-
-	
-	module.exports.post = __webpack_require__(11);
-	module.exports.gsd = __webpack_require__(34);
-
+	function getArea(peak){
+	    return Math.abs(peak.intensity*peak.width*1.57)//1.772453851);
+	}
 
 /***/ },
 /* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
+	
+	module.exports.post = __webpack_require__(12);
+	module.exports.gsd = __webpack_require__(35);
+
+
+/***/ },
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
 	/**
 	 * Created by acastillo on 9/6/15.
 	 */
-	var Opt = __webpack_require__(12);
+	var Opt = __webpack_require__(13);
 
 	function sampleFunction(from, to, x, y, lastIndex){
 	    var nbPoints = x.length;
@@ -4754,7 +4907,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if(count>2){
 	                var fitted =  Opt.optimizeSingleLorentzian(candidates,
 	                    {x: broadLines[maxI].x, y:max, width: Math.abs(candidates[0][0]-candidates[candidates.length-1][0])});
-	                //console.log(fitted)
 	                peakList.push({x:fitted[0][0],y:fitted[1][0],width:fitted[2][0],soft:false});
 
 	            }
@@ -4831,14 +4983,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var LM = __webpack_require__(13);
+	var LM = __webpack_require__(14);
 	var math = LM.Matrix.algebra;
-	var Matrix = __webpack_require__(25);
+	var Matrix = __webpack_require__(26);
 
 	/**
 	 * This function calculates the spectrum as a sum of lorentzian functions. The Lorentzian
@@ -4922,15 +5074,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @returns {*[]}
 	 */
 	function optimizeSingleLorentzian(xy, peak, opts) {
-	    var xy2 = parseData(xy);
+	    opts = opts || {};
+	    var xy2 = parseData(xy, opts.percentage||0);
+
+	    if(xy2===null||xy2[0].rows<3){
+	        return null; //Cannot run an optimization with less than 3 points
+	    }
+
 	    var t = xy2[0];
 	    var y_data = xy2[1];
 	    var maxY = xy2[2];
-	    var nbPoints = t.columns, i;
+	    var nbPoints = t.rows, i;
 
 	    var weight = [nbPoints / Math.sqrt(y_data.dot(y_data))];
 
-	    var opts=Object.create(opts || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ]);
+	    var opts=Object.create(opts.LMOptions || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ]);
 	    //var opts = [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ];
 	    var consts = [ ];
 	    var dt = Math.abs(t[0][0]-t[1][0]);// optional vector of constants
@@ -4953,16 +5111,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @returns {*[]}
 	 */
 	function optimizeSingleGaussian(xy, peak, opts) {
-	    var xy2 = parseData(xy);
+	    opts = opts || {};
+	    var xy2 = parseData(xy, opts.percentage||0);
+
+	    if(xy2===null||xy2[0].rows<3){
+	        return null; //Cannot run an optimization with less than 3 points
+	    }
+
 	    var t = xy2[0];
 	    var y_data = xy2[1];
 	    var maxY = xy2[2];
 
-	    var nbPoints = t.columns, i;
+	    var nbPoints = t.rows, i;
+
+
 
 	    var weight = [nbPoints / Math.sqrt(y_data.dot(y_data))];
 
-	    var opts=Object.create(opts || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ]);
+	    var opts=Object.create(opts.LMOptions || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ]);
 	    //var opts = [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ];
 	    var consts = [ ];                         // optional vector of constants
 	    var dt = Math.abs(t[0][0]-t[1][0]);
@@ -4980,6 +5146,91 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return [p_fit[0],[p_fit[1][0]*maxY],p_fit[2]];
 	}
 
+	/*
+	 peaks on group should sorted
+	 */
+	function optimizeLorentzianTrain(xy, group, opts){
+	    var xy2 = parseData(xy);
+	    //console.log(xy2[0].rows);
+	    if(xy2===null||xy2[0].rows<3){
+	        return null; //Cannot run an optimization with less than 3 points
+	    }
+
+	    var t = xy2[0];
+	    var y_data = xy2[1];
+	    var maxY = xy2[2];
+	    var currentIndex = 0;
+	    var nbPoints = t.length;
+	    var nextX;
+	    var tI, yI, maxY;
+	    var result=[], current;
+	    for(var i=0; i<group.length;i++){
+	        nextX = group[i].x-group[i].width*4;
+	        //console.log(group[i]);
+	        while(t[currentIndex++]<nextX&&currentIndex<nbPoints);
+	        nextX = group[i].x+group[i].width*4;
+	        tI = [];
+	        yI = [];
+	        while(t[currentIndex]<=nextX&&currentIndex<nbPoints){
+	            tI.push(t[currentIndex][0]);
+	            yI.push(y_data[currentIndex][0]*maxY);
+	            currentIndex++;
+	        }
+
+	        current=optimizeSingleLorentzian([tI, yI], group[i], opts);
+	        if(current){
+	            result.push({"x":current[0][0],"y":current[1][0],"width":current[2][0],"opt":true});
+	        }
+	        else{
+	            result.push({"x":group[i].x,"y":group[i].y,"width":group[i].width,"opt":false});
+	        }
+	    }
+
+	    return result;
+
+	}
+
+	function optimizeGaussianTrain(xy, group, opts){
+	    var xy2 = parseData(xy);
+	    //console.log(xy2[0].rows);
+	    if(xy2===null||xy2[0].rows<3){
+	        return null; //Cannot run an optimization with less than 3 points
+	    }
+
+	    var t = xy2[0];
+	    var y_data = xy2[1];
+	    var maxY = xy2[2];
+	    var currentIndex = 0;
+	    var nbPoints = t.length;
+	    var nextX;
+	    var tI, yI, maxY;
+	    var result=[], current;
+	    for(var i=0; i<group.length;i++){
+	        nextX = group[i].x-group[i].width*4;
+	        //console.log(group[i]);
+	        while(t[currentIndex++]<nextX&&currentIndex<nbPoints);
+	        nextX = group[i].x+group[i].width*4;
+	        tI = [];
+	        yI = [];
+	        while(t[currentIndex]<=nextX&&currentIndex<nbPoints){
+	            tI.push(t[currentIndex][0]);
+	            yI.push(y_data[currentIndex][0]*maxY);
+	            currentIndex++;
+	        }
+
+	        current=optimizeSingleGaussian([tI, yI], group[i], opts);
+	        if(current){
+	            result.push({"x":current[0][0],"y":current[1][0],"width":current[2][0],"opt":true});
+	        }
+	        else{
+	            result.push({"x":group[i].x,"y":group[i].y,"width":group[i].width,"opt":false});
+	        }
+	    }
+
+	    return result;
+	}
+
+
 
 	/**
 	 *
@@ -4989,13 +5240,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	function optimizeLorentzianSum(xy, group, opts){
 	    var xy2 = parseData(xy);
+
+	    if(xy2===null||xy2[0].rows<3){
+	        return null; //Cannot run an optimization with less than 3 points
+	    }
+
 	    var t = xy2[0];
 	    var y_data = xy2[1];
 	    var maxY = xy2[2];
-	    var nbPoints = t.columns, i;
+	    var nbPoints = t.rows, i;
 
 	    var weight = [nbPoints / math.sqrt(y_data.dot(y_data))];
-	    var opts=Object.create(opts || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ]);
+	    var opts=Object.create(opts || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2, 11, 9, 1 ]);
 	    var consts = [ ];// optional vector of constants
 
 	    var nL = group.length;
@@ -5043,6 +5299,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	function optimizeGaussianSum(xy, group, opts){
 	    var xy2 = parseData(xy);
+
+	    if(xy2===null||xy2[0].rows<3){
+	        return null; //Cannot run an optimization with less than 3 points
+	    }
+
 	    var t = xy2[0];
 	    var y_data = xy2[1];
 	    var maxY = xy2[2];
@@ -5100,7 +5361,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @param xy
 	 * @returns {*[]}
 	 */
-	function parseData(xy){
+	function parseData(xy, threshold){
 	    var nbSeries = xy.length;
 	    var t = null;
 	    var y_data = null, x,y;
@@ -5109,56 +5370,66 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if(nbSeries==2){
 	        //Looks like row wise matrix [x,y]
 	        var nbPoints = xy[0].length;
-	        if(nbPoints<3)
-	            throw new SizeException(nbPoints);
-	        else{
-	            t = new Matrix(nbPoints,1);
-	            y_data = new Matrix(nbPoints,1);
-	            x = xy[0];
-	            y = xy[1];
-	            if(typeof x[0] === "number"){
-	                for(i=0;i<nbPoints;i++){
-	                    t[i][0]=x[i];
-	                    y_data[i][0]=y[i];
-	                    if(y[i]>maxY)
-	                        maxY = y[i];
-	                }
+	        //if(nbPoints<3)
+	        //    throw new Exception(nbPoints);
+	        //else{
+	        t = new Array(nbPoints);//new Matrix(nbPoints,1);
+	        y_data = new Array(nbPoints);//new Matrix(nbPoints,1);
+	        x = xy[0];
+	        y = xy[1];
+	        if(typeof x[0] === "number"){
+	            for(i=0;i<nbPoints;i++){
+	                t[i]=x[i];
+	                y_data[i]=y[i];
+	                if(y[i]>maxY)
+	                    maxY = y[i];
 	            }
-	            else{
-	                //It is a colum matrix
-	                if(typeof x[0] === "object"){
-	                    for(i=0;i<nbPoints;i++){
-	                        t[i][0]=x[i][0];
-	                        y_data[i][0]=y[i][0];
-	                        if(y[i][0]>maxY)
-	                            maxY = y[i][0];
-	                    }
+	        }
+	        else{
+	            //It is a colum matrix
+	            if(typeof x[0] === "object"){
+	                for(i=0;i<nbPoints;i++){
+	                    t[i]=x[i][0];
+	                    y_data[i]=y[i][0];
+	                    if(y[i][0]>maxY)
+	                        maxY = y[i][0];
 	                }
-
 	            }
 
 	        }
+
+	        //}
 	    }
 	    else{
 	        //Looks like a column wise matrix [[x],[y]]
 	        var nbPoints = nbSeries;
-	        if(nbPoints<3)
-	            throw new SizeException(nbPoints);
-	        else {
-	            t = new Matrix(nbPoints, 1);
-	            y_data = new Matrix(nbPoints, 1);
-	            for (i = 0; i < nbPoints; i++) {
-	                t[i][0] = xy[i][0];
-	                y_data[i][0] = xy[i][1];
-	                if(y_data[i][0]>maxY)
-	                    maxY = y_data[i][0];
+	        //if(nbPoints<3)
+	        //    throw new SizeException(nbPoints);
+	        //else {
+	        t = new Array(nbPoints);//new Matrix(nbPoints, 1);
+	        y_data = new Array(nbPoints);//new Matrix(nbPoints, 1);
+	        for (i = 0; i < nbPoints; i++) {
+	            t[i] = xy[i][0];
+	            y_data[i] = xy[i][1];
+	            if(y_data[i]>maxY)
+	                maxY = y_data[i];
+	        }
+	        //}
+	    }
+	    for (i = 0; i < nbPoints; i++) {
+	        y_data[i]/=maxY;
+	    }
+	    if(threshold){
+	        for (i = nbPoints-1; i >=0; i--) {
+	            if(y_data[i]<threshold) {
+	                y_data.splice(i,1);
+	                t.splice(i,1);
 	            }
 	        }
 	    }
-	    for (i = 0; i < nbPoints; i++) {
-	        y_data[i][0]/=maxY;
-	    }
-	    return [t,y_data,maxY];
+	    if(t.length>0)
+	        return [(new Matrix([t])).transpose(),(new Matrix([y_data])).transpose(),maxY];
+	    return null;
 	}
 
 	function sizeException(nbPoints) {
@@ -5171,27 +5442,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports.optimizeGaussianSum = optimizeGaussianSum;
 	module.exports.singleGaussian = singleGaussian;
 	module.exports.singleLorentzian = singleLorentzian;
-
-/***/ },
-/* 13 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	module.exports = __webpack_require__(14);
-	module.exports.Matrix = __webpack_require__(15);
-	module.exports.Matrix.algebra = __webpack_require__(24);
-
+	module.exports.optimizeGaussianTrain = optimizeGaussianTrain;
+	module.exports.optimizeLorentzianTrain = optimizeLorentzianTrain;
 
 /***/ },
 /* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
+
+	module.exports = __webpack_require__(15);
+	module.exports.Matrix = __webpack_require__(16);
+	module.exports.Matrix.algebra = __webpack_require__(25);
+
+
+/***/ },
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
 	/**
 	 * Created by acastillo on 8/5/15.
 	 */
-	var Matrix = __webpack_require__(15);
-	var math = __webpack_require__(24);
+	var Matrix = __webpack_require__(16);
+	var math = __webpack_require__(25);
 
 	var DEBUG = false;
 	/** Levenberg Marquardt curve-fitting: minimize sum of weighted squared residuals
@@ -5706,17 +5979,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = LM;
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	module.exports = __webpack_require__(16);
-	module.exports.Decompositions = module.exports.DC = __webpack_require__(17);
+	module.exports = __webpack_require__(17);
+	module.exports.Decompositions = module.exports.DC = __webpack_require__(18);
 
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -7192,18 +7465,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(16);
+	var Matrix = __webpack_require__(17);
 
-	var SingularValueDecomposition = __webpack_require__(18);
-	var EigenvalueDecomposition = __webpack_require__(20);
-	var LuDecomposition = __webpack_require__(21);
-	var QrDecomposition = __webpack_require__(22);
-	var CholeskyDecomposition = __webpack_require__(23);
+	var SingularValueDecomposition = __webpack_require__(19);
+	var EigenvalueDecomposition = __webpack_require__(21);
+	var LuDecomposition = __webpack_require__(22);
+	var QrDecomposition = __webpack_require__(23);
+	var CholeskyDecomposition = __webpack_require__(24);
 
 	function inverse(matrix) {
 	    return solve(matrix, Matrix.eye(matrix.rows));
@@ -7238,13 +7511,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(16);
-	var hypotenuse = __webpack_require__(19).hypotenuse;
+	var Matrix = __webpack_require__(17);
+	var hypotenuse = __webpack_require__(20).hypotenuse;
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/SingularValueDecomposition.cs
 	function SingularValueDecomposition(value, options) {
@@ -7741,7 +8014,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -7761,13 +8034,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(16);
-	var hypotenuse = __webpack_require__(19).hypotenuse;
+	var Matrix = __webpack_require__(17);
+	var hypotenuse = __webpack_require__(20).hypotenuse;
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/EigenvalueDecomposition.cs
 	function EigenvalueDecomposition(matrix) {
@@ -8533,12 +8806,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(16);
+	var Matrix = __webpack_require__(17);
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/LuDecomposition.cs
 	function LuDecomposition(matrix) {
@@ -8708,13 +8981,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(16);
-	var hypotenuse = __webpack_require__(19).hypotenuse;
+	var Matrix = __webpack_require__(17);
+	var hypotenuse = __webpack_require__(20).hypotenuse;
 
 	//https://github.com/lutzroeder/Mapack/blob/master/Source/QrDecomposition.cs
 	function QrDecomposition(value) {
@@ -8864,12 +9137,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(16);
+	var Matrix = __webpack_require__(17);
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/CholeskyDecomposition.cs
 	function CholeskyDecomposition(value) {
@@ -8959,7 +9232,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -8971,7 +9244,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var Matrix = __webpack_require__(15);
+	var Matrix = __webpack_require__(16);
 
 	function matrix(A,B){
 	    return new Matrix(A,B);
@@ -9217,17 +9490,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	module.exports = __webpack_require__(26);
-	module.exports.Decompositions = module.exports.DC = __webpack_require__(27);
+	module.exports = __webpack_require__(27);
+	module.exports.Decompositions = module.exports.DC = __webpack_require__(28);
 
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -10703,18 +10976,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(26);
+	var Matrix = __webpack_require__(27);
 
-	var SingularValueDecomposition = __webpack_require__(28);
-	var EigenvalueDecomposition = __webpack_require__(30);
-	var LuDecomposition = __webpack_require__(31);
-	var QrDecomposition = __webpack_require__(32);
-	var CholeskyDecomposition = __webpack_require__(33);
+	var SingularValueDecomposition = __webpack_require__(29);
+	var EigenvalueDecomposition = __webpack_require__(31);
+	var LuDecomposition = __webpack_require__(32);
+	var QrDecomposition = __webpack_require__(33);
+	var CholeskyDecomposition = __webpack_require__(34);
 
 	function inverse(matrix) {
 	    return solve(matrix, Matrix.eye(matrix.rows));
@@ -10749,13 +11022,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 28 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(26);
-	var hypotenuse = __webpack_require__(29).hypotenuse;
+	var Matrix = __webpack_require__(27);
+	var hypotenuse = __webpack_require__(30).hypotenuse;
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/SingularValueDecomposition.cs
 	function SingularValueDecomposition(value, options) {
@@ -11252,7 +11525,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 29 */
+/* 30 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -11272,13 +11545,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(26);
-	var hypotenuse = __webpack_require__(29).hypotenuse;
+	var Matrix = __webpack_require__(27);
+	var hypotenuse = __webpack_require__(30).hypotenuse;
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/EigenvalueDecomposition.cs
 	function EigenvalueDecomposition(matrix) {
@@ -12044,12 +12317,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 31 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(26);
+	var Matrix = __webpack_require__(27);
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/LuDecomposition.cs
 	function LuDecomposition(matrix) {
@@ -12219,13 +12492,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 32 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(26);
-	var hypotenuse = __webpack_require__(29).hypotenuse;
+	var Matrix = __webpack_require__(27);
+	var hypotenuse = __webpack_require__(30).hypotenuse;
 
 	//https://github.com/lutzroeder/Mapack/blob/master/Source/QrDecomposition.cs
 	function QrDecomposition(value) {
@@ -12375,12 +12648,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 33 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var Matrix = __webpack_require__(26);
+	var Matrix = __webpack_require__(27);
 
 	// https://github.com/lutzroeder/Mapack/blob/master/Source/CholeskyDecomposition.cs
 	function CholeskyDecomposition(value) {
@@ -12470,16 +12743,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 34 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Opt = __webpack_require__(12);
-	var stats = __webpack_require__(35);
-	var extend = __webpack_require__(6);
+	var Opt = __webpack_require__(13);
+	var stats = __webpack_require__(36);
+	var extend = __webpack_require__(7);
 	var SG = __webpack_require__(38);
 
 	var sgDefOptions = {
-	    windowSize: 5,
+	    windowSize: 9,
 	    polynomial: 3
 	};
 
@@ -12489,56 +12762,70 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var options=Object.create(options || {});
 	    if (options.minMaxRatio===undefined) options.minMaxRatio=0.00025;
 	    if (options.broadRatio===undefined) options.broadRatio=0.00;
-	    if (options.noiseLevel===undefined) options.noiseLevel=0;
+	    if (options.noiseLevel===undefined) options.noiseLevel=undefined;
+	    if (options.noiseFactor===undefined) options.noiseFactor=3;
 	    if (options.maxCriteria===undefined) options.maxCriteria=true;
 	    if (options.smoothY===undefined) options.smoothY=true;
 	    if (options.realTopDetection===undefined) options.realTopDetection=false;
 
 	    var sgOptions = extend({}, sgDefOptions, options.sgOptions);
 
-	    //Transform y to use the standard algorithm.
-	    var yCorrection = {m:1, b:0};
-	    if(!options.maxCriteria||options.noiseLevel>0){
-	        y=[].concat(y);
-	        if(!options.maxCriteria){
-	            yCorrection = {m:-1, b:stats.array.max(y)};
-	            for (var i=0; i<y.length; i++){
-	                y[i]=-y[i]+yCorrection.b;
+	    //console.log(JSON.stringify(stats.array.minMax(y)));
+	    if(options.noiseLevel===undefined){
+	        //We have to know if x is equally spaced
+	        var maxDx=0, minDx=Number.MAX_VALUE,tmp;
+	        for(var i=0;i< x.length-1;i++){
+	            var tmp = Math.abs(x[i+1]-x[i]);
+	            if(tmp<minDx){
+	                minDx = tmp;
 	            }
-	            options.noiseLevel=-options.noiseLevel+yCorrection.b;
+	            if(tmp>maxDx){
+	                maxDx = tmp;
+	            }
 	        }
-	        if (options.noiseLevel>0) {
-	            for (var i=0; i<y.length; i++){
-	                if(Math.abs(y[i])<options.noiseLevel) {
-	                    y[i]=0;
-	                }
-	            }
+
+	        if((maxDx-minDx)/maxDx<0.05){
+
+	            options.noiseLevel = getNoiseLevel(y);
+	            //console.log(options.noiseLevel+" "+stats.array.median(y));
+	        }
+	        else{
+	            options.noiseLevel = 0;
+	        }
+	    }
+	    //console.log("options.noiseLevel "+options.noiseLevel);
+	    y=[].concat(y);
+	    var yCorrection = {m:1, b:options.noiseLevel};
+	    if(!options.maxCriteria){
+	        yCorrection.m =-1;
+	        yCorrection.b*=-1;
+	    }
+
+	    for (var i=0; i<y.length; i++){
+	        y[i]=yCorrection.m*y[i]-yCorrection.b;
+	    }
+
+	    for (var i=0; i<y.length; i++) {
+	        if (y[i] < 0) {
+	            y[i] = 0;
 	        }
 	    }
 
-	    //We have to know if x is equally spaced
-	    var maxDx=0, minDx=Number.MAX_VALUE,tmp;
-	    for(var i=0;i< x.length-1;i++){
-	        var tmp = Math.abs(x[i+1]-x[i]);
-	        if(tmp<minDx){
-	            minDx = tmp;
-	        }
-	        if(tmp>maxDx){
-	            maxDx = tmp;
-	        }
-	    }
 	    //If the max difference between delta x is less than 5%, then, we can assume it to be equally spaced variable
+	    var Y = y;
 	    if((maxDx-minDx)/maxDx<0.05){
-	        var Y = SG(y, x[1]-x[0], {windowSize:sgOptions.windowSize, polynomial:sgOptions.polynomial,derivative:0});
+	        if(options.smoothY)
+	            Y = SG(y, x[1]-x[0], {windowSize:sgOptions.windowSize, polynomial:sgOptions.polynomial,derivative:0});
 	        var dY = SG(y, x[1]-x[0], {windowSize:sgOptions.windowSize, polynomial:sgOptions.polynomial,derivative:1});
 	        var ddY = SG(y, x[1]-x[0], {windowSize:sgOptions.windowSize, polynomial:sgOptions.polynomial,derivative:2});
 	    }
 	    else{
-	        var Y = SG(y, x, {windowSize:sgOptions.windowSize, polynomial:sgOptions.polynomial,derivative:0});
+	        if(options.smoothY)
+	            Y = SG(y, x, {windowSize:sgOptions.windowSize, polynomial:sgOptions.polynomial,derivative:0});
 	        var dY = SG(y, x, {windowSize:sgOptions.windowSize, polynomial:sgOptions.polynomial,derivative:1});
 	        var ddY = SG(y, x, {windowSize:sgOptions.windowSize, polynomial:sgOptions.polynomial,derivative:2});
 	    }
-	    
+
 	    var X = x;
 	    var dx = x[1]-x[0];
 	    var maxDdy=0;
@@ -12594,9 +12881,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	        }
 	    }
-	    if(options.realTopDetection){
-	        realTopDetection(minddY,X,Y);
-	    }
 	    //
 	    //console.log(intervalL.length+" "+minddY.length+" "+broadMask.length);
 	    var signals = [];
@@ -12628,6 +12912,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            //console.log(height);
 	            if (Math.abs(Y[minddY[j]]) > options.minMaxRatio*maxY) {
 	                signals.push({
+	                    i:minddY[j],
 	                    x: frequency,
 	                    y: (Y[minddY[j]]-yCorrection.b)/yCorrection.m,
 	                    width:Math.abs(intervalR[possible] - intervalL[possible]),//widthCorrection
@@ -12635,6 +12920,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	                })
 	            }
 	        }
+	    }
+
+
+	    if(options.realTopDetection){
+	        realTopDetection(signals,X,Y);
+	    }
+
+	    //Correct the values to fit the original spectra data
+	    for(var j=0;j<signals.length;j++){
+	        signals[j].base=options.noiseLevel;
 	    }
 
 	    signals.sort(function (a, b) {
@@ -12645,11 +12940,35 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	}
 
+	function getNoiseLevel(y){
+	    var mean = 0,stddev=0;
+	    var length = y.length,i=0;
+	    for(i = 0; i < length; i++){
+	        mean+=y[i];
+	    }
+	    mean/=length;
+	    var averageDeviations = new Array(length);
+	    for (i = 0; i < length; i++)
+	        averageDeviations[i] = Math.abs(y[i] - mean);
+	    averageDeviations.sort();
+	    if (length % 2 == 1) {
+	        stddev = averageDeviations[(length-1)/2] / 0.6745;
+	    } else {
+	        stddev = 0.5*(averageDeviations[length/2]+averageDeviations[length/2-1]) / 0.6745;
+	    }
+
+	    return stddev;
+	}
+
 	function realTopDetection(peakList, x, y){
+	    //console.log(peakList);
+	    //console.log(x);
+	    //console.log(y);
 	    var listP = [];
 	    var alpha, beta, gamma, p,currentPoint;
 	    for(var j=0;j<peakList.length;j++){
-	        currentPoint = peakList[j];//peakList[j][2];
+	        currentPoint = peakList[j].i;//peakList[j][2];
+	        var tmp = currentPoint;
 	        //The detected peak could be moved 1 or 2 unit to left or right.
 	        if(y[currentPoint-1]>=y[currentPoint-2]
 	            &&y[currentPoint-1]>=y[currentPoint]) {
@@ -12680,10 +12999,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	            beta = 20 * Math.log10(y[currentPoint]);
 	            gamma = 20 * Math.log10(y[currentPoint + 1]);
 	            p = 0.5 * (alpha - gamma) / (alpha - 2 * beta + gamma);
-
-	            x[peakList[j]] = x[currentPoint] + (x[currentPoint]-x[currentPoint-1])*p;
-	            y[peakList[j]] = y[currentPoint] - 0.25 * (y[currentPoint - 1]
-	                - [currentPoint + 1]) * p;//signal.peaks[j].intensity);
+	            //console.log("p: "+p);
+	            //console.log(x[currentPoint]+" "+tmp+" "+currentPoint);
+	            peakList[j].x = x[currentPoint] + (x[currentPoint]-x[currentPoint-1])*p;
+	            peakList[j].y = y[currentPoint] - 0.25 * (y[currentPoint - 1]
+	                - y[currentPoint + 1]) * p;//signal.peaks[j].intensity);
+	            //console.log(y[tmp]+" "+peakList[j].y);
 	        }
 	    }
 	}
@@ -12692,472 +13013,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 35 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	exports.array = __webpack_require__(36);
+	exports.array = __webpack_require__(2);
 	exports.matrix = __webpack_require__(37);
-
-
-/***/ },
-/* 36 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	function compareNumbers(a, b) {
-	    return a - b;
-	}
-
-	/**
-	 * Computes the sum of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.sum = function sum(values) {
-	    var sum = 0;
-	    for (var i = 0; i < values.length; i++) {
-	        sum += values[i];
-	    }
-	    return sum;
-	};
-
-	/**
-	 * Computes the maximum of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.max = function max(values) {
-	    var max = -Infinity;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        if (values[i] > max) max = values[i];
-	    }
-	    return max;
-	};
-
-	/**
-	 * Computes the minimum of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.min = function min(values) {
-	    var min = Infinity;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        if (values[i] < min) min = values[i];
-	    }
-	    return min;
-	};
-
-	/**
-	 * Computes the min and max of the given values
-	 * @param {Array} values
-	 * @returns {{min: number, max: number}}
-	 */
-	exports.minMax = function minMax(values) {
-	    var min = Infinity;
-	    var max = -Infinity;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        if (values[i] < min) min = values[i];
-	        if (values[i] > max) max = values[i];
-	    }
-	    return {
-	        min: min,
-	        max: max
-	    };
-	};
-
-	/**
-	 * Computes the arithmetic mean of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.arithmeticMean = function arithmeticMean(values) {
-	    var sum = 0;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        sum += values[i];
-	    }
-	    return sum / l;
-	};
-
-	/**
-	 * {@link arithmeticMean}
-	 */
-	exports.mean = exports.arithmeticMean;
-
-	/**
-	 * Computes the geometric mean of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.geometricMean = function geometricMean(values) {
-	    var mul = 1;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        mul *= values[i];
-	    }
-	    return Math.pow(mul, 1 / l);
-	};
-
-	/**
-	 * Computes the mean of the log of the given values
-	 * If the return value is exponentiated, it gives the same result as the
-	 * geometric mean.
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.logMean = function logMean(values) {
-	    var lnsum = 0;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        lnsum += Math.log(values[i]);
-	    }
-	    return lnsum / l;
-	};
-
-	/**
-	 * Computes the weighted grand mean for a list of means and sample sizes
-	 * @param {Array} means - Mean values for each set of samples
-	 * @param {Array} samples - Number of original values for each set of samples
-	 * @returns {number}
-	 */
-	exports.grandMean = function grandMean(means, samples) {
-	    var sum = 0;
-	    var n = 0;
-	    var l = means.length;
-	    for (var i = 0; i < l; i++) {
-	        sum += samples[i] * means[i];
-	        n += samples[i];
-	    }
-	    return sum / n;
-	};
-
-	/**
-	 * Computes the truncated mean of the given values using a given percentage
-	 * @param {Array} values
-	 * @param {number} percent - The percentage of values to keep (range: [0,1])
-	 * @param {boolean} [alreadySorted=false]
-	 * @returns {number}
-	 */
-	exports.truncatedMean = function truncatedMean(values, percent, alreadySorted) {
-	    if (alreadySorted === undefined) alreadySorted = false;
-	    if (!alreadySorted) {
-	        values = values.slice().sort(compareNumbers);
-	    }
-	    var l = values.length;
-	    var k = Math.floor(l * percent);
-	    var sum = 0;
-	    for (var i = k; i < (l - k); i++) {
-	        sum += values[i];
-	    }
-	    return sum / (l - 2 * k);
-	};
-
-	/**
-	 * Computes the harmonic mean of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.harmonicMean = function harmonicMean(values) {
-	    var sum = 0;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        if (values[i] === 0) {
-	            throw new RangeError('value at index ' + i + 'is zero');
-	        }
-	        sum += 1 / values[i];
-	    }
-	    return l / sum;
-	};
-
-	/**
-	 * Computes the contraharmonic mean of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.contraHarmonicMean = function contraHarmonicMean(values) {
-	    var r1 = 0;
-	    var r2 = 0;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        r1 += values[i] * values[i];
-	        r2 += values[i];
-	    }
-	    if (r2 < 0) {
-	        throw new RangeError('sum of values is negative');
-	    }
-	    return r1 / r2;
-	};
-
-	/**
-	 * Computes the median of the given values
-	 * @param {Array} values
-	 * @param {boolean} [alreadySorted=false]
-	 * @returns {number}
-	 */
-	exports.median = function median(values, alreadySorted) {
-	    if (alreadySorted === undefined) alreadySorted = false;
-	    if (!alreadySorted) {
-	        values = values.slice().sort(compareNumbers);
-	    }
-	    var l = values.length;
-	    var half = Math.floor(l / 2);
-	    if (l % 2 === 0) {
-	        return (values[half - 1] + values[half]) * 0.5;
-	    } else {
-	        return values[half];
-	    }
-	};
-
-	/**
-	 * Computes the variance of the given values
-	 * @param {Array} values
-	 * @param {boolean} [unbiased=true] - if true, divide by (n-1); if false, divide by n.
-	 * @returns {number}
-	 */
-	exports.variance = function variance(values, unbiased) {
-	    if (unbiased === undefined) unbiased = true;
-	    var theMean = exports.mean(values);
-	    var theVariance = 0;
-	    var l = values.length;
-
-	    for (var i = 0; i < l; i++) {
-	        var x = values[i] - theMean;
-	        theVariance += x * x;
-	    }
-
-	    if (unbiased) {
-	        return theVariance / (l - 1);
-	    } else {
-	        return theVariance / l;
-	    }
-	};
-
-	/**
-	 * Computes the standard deviation of the given values
-	 * @param {Array} values
-	 * @param {boolean} [unbiased=true] - if true, divide by (n-1); if false, divide by n.
-	 * @returns {number}
-	 */
-	exports.standardDeviation = function standardDeviation(values, unbiased) {
-	    return Math.sqrt(exports.variance(values, unbiased));
-	};
-
-	exports.standardError = function standardError(values) {
-	    return exports.standardDeviation(values) / Math.sqrt(values.length);
-	};
-
-	exports.quartiles = function quartiles(values, alreadySorted) {
-	    if (typeof(alreadySorted) === 'undefined') alreadySorted = false;
-	    if (!alreadySorted) {
-	        values = values.slice();
-	        values.sort(compareNumbers);
-	    }
-
-	    var quart = values.length / 4;
-	    var q1 = values[Math.ceil(quart) - 1];
-	    var q2 = exports.median(values, true);
-	    var q3 = values[Math.ceil(quart * 3) - 1];
-
-	    return {q1: q1, q2: q2, q3: q3};
-	};
-
-	exports.pooledStandardDeviation = function pooledStandardDeviation(samples, unbiased) {
-	    return Math.sqrt(exports.pooledVariance(samples, unbiased));
-	};
-
-	exports.pooledVariance = function pooledVariance(samples, unbiased) {
-	    if (typeof(unbiased) === 'undefined') unbiased = true;
-	    var sum = 0;
-	    var length = 0, l = samples.length;
-	    for (var i = 0; i < l; i++) {
-	        var values = samples[i];
-	        var vari = exports.variance(values);
-
-	        sum += (values.length - 1) * vari;
-
-	        if (unbiased)
-	            length += values.length - 1;
-	        else
-	            length += values.length;
-	    }
-	    return sum / length;
-	};
-
-	exports.mode = function mode(values) {
-	    var l = values.length,
-	        itemCount = new Array(l),
-	        i;
-	    for (i = 0; i < l; i++) {
-	        itemCount[i] = 0;
-	    }
-	    var itemArray = new Array(l);
-	    var count = 0;
-
-	    for (i = 0; i < l; i++) {
-	        var index = itemArray.indexOf(values[i]);
-	        if (index >= 0)
-	            itemCount[index]++;
-	        else {
-	            itemArray[count] = values[i];
-	            itemCount[count] = 1;
-	            count++;
-	        }
-	    }
-
-	    var maxValue = 0, maxIndex = 0;
-	    for (i = 0; i < count; i++) {
-	        if (itemCount[i] > maxValue) {
-	            maxValue = itemCount[i];
-	            maxIndex = i;
-	        }
-	    }
-
-	    return itemArray[maxIndex];
-	};
-
-	exports.covariance = function covariance(vector1, vector2, unbiased) {
-	    if (typeof(unbiased) === 'undefined') unbiased = true;
-	    var mean1 = exports.mean(vector1);
-	    var mean2 = exports.mean(vector2);
-
-	    if (vector1.length !== vector2.length)
-	        throw "Vectors do not have the same dimensions";
-
-	    var cov = 0, l = vector1.length;
-	    for (var i = 0; i < l; i++) {
-	        var x = vector1[i] - mean1;
-	        var y = vector2[i] - mean2;
-	        cov += x * y;
-	    }
-
-	    if (unbiased)
-	        return cov / (l - 1);
-	    else
-	        return cov / l;
-	};
-
-	exports.skewness = function skewness(values, unbiased) {
-	    if (typeof(unbiased) === 'undefined') unbiased = true;
-	    var theMean = exports.mean(values);
-
-	    var s2 = 0, s3 = 0, l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        var dev = values[i] - theMean;
-	        s2 += dev * dev;
-	        s3 += dev * dev * dev;
-	    }
-	    var m2 = s2 / l;
-	    var m3 = s3 / l;
-
-	    var g = m3 / (Math.pow(m2, 3 / 2.0));
-	    if (unbiased) {
-	        var a = Math.sqrt(l * (l - 1));
-	        var b = l - 2;
-	        return (a / b) * g;
-	    }
-	    else {
-	        return g;
-	    }
-	};
-
-	exports.kurtosis = function kurtosis(values, unbiased) {
-	    if (typeof(unbiased) === 'undefined') unbiased = true;
-	    var theMean = exports.mean(values);
-	    var n = values.length, s2 = 0, s4 = 0;
-
-	    for (var i = 0; i < n; i++) {
-	        var dev = values[i] - theMean;
-	        s2 += dev * dev;
-	        s4 += dev * dev * dev * dev;
-	    }
-	    var m2 = s2 / n;
-	    var m4 = s4 / n;
-
-	    if (unbiased) {
-	        var v = s2 / (n - 1);
-	        var a = (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3));
-	        var b = s4 / (v * v);
-	        var c = ((n - 1) * (n - 1)) / ((n - 2) * (n - 3));
-
-	        return a * b - 3 * c;
-	    }
-	    else {
-	        return m4 / (m2 * m2) - 3;
-	    }
-	};
-
-	exports.entropy = function entropy(values, eps) {
-	    if (typeof(eps) === 'undefined') eps = 0;
-	    var sum = 0, l = values.length;
-	    for (var i = 0; i < l; i++)
-	        sum += values[i] * Math.log(values[i] + eps);
-	    return -sum;
-	};
-
-	exports.weightedMean = function weightedMean(values, weights) {
-	    var sum = 0, l = values.length;
-	    for (var i = 0; i < l; i++)
-	        sum += values[i] * weights[i];
-	    return sum;
-	};
-
-	exports.weightedStandardDeviation = function weightedStandardDeviation(values, weights) {
-	    return Math.sqrt(exports.weightedVariance(values, weights));
-	};
-
-	exports.weightedVariance = function weightedVariance(values, weights) {
-	    var theMean = exports.weightedMean(values, weights);
-	    var vari = 0, l = values.length;
-	    var a = 0, b = 0;
-
-	    for (var i = 0; i < l; i++) {
-	        var z = values[i] - theMean;
-	        var w = weights[i];
-
-	        vari += w * (z * z);
-	        b += w;
-	        a += w * w;
-	    }
-
-	    return vari * (b / (b * b - a));
-	};
-
-	exports.center = function center(values, inPlace) {
-	    if (typeof(inPlace) === 'undefined') inPlace = false;
-
-	    var result = values;
-	    if (!inPlace)
-	        result = values.slice();
-
-	    var theMean = exports.mean(result), l = result.length;
-	    for (var i = 0; i < l; i++)
-	        result[i] -= theMean;
-	};
-
-	exports.standardize = function standardize(values, standardDev, inPlace) {
-	    if (typeof(standardDev) === 'undefined') standardDev = exports.standardDeviation(values);
-	    if (typeof(inPlace) === 'undefined') inPlace = false;
-	    var l = values.length;
-	    var result = inPlace ? values : new Array(l);
-	    for (var i = 0; i < l; i++)
-	        result[i] = values[i] / standardDev;
-	    return result;
-	};
-
-	exports.cumulativeSum = function cumulativeSum(array) {
-	    var l = array.length;
-	    var result = new Array(l);
-	    result[0] = array[0];
-	    for (var i = 1; i < l; i++)
-	        result[i] = result[i - 1] + array[i];
-	    return result;
-	};
 
 
 /***/ },
@@ -13165,7 +13027,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
-	var arrayStat = __webpack_require__(36);
+	var arrayStat = __webpack_require__(2);
 
 	// https://github.com/accord-net/framework/blob/development/Sources/Accord.Statistics/Tools.cs
 
@@ -13691,13 +13553,13 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
 	//Code translate from Pascal source in http://pubs.acs.org/doi/pdf/10.1021/ac00205a007
-	var extend = __webpack_require__(6);
-	var stat = __webpack_require__(39);
+	var extend = __webpack_require__(7);
+	var stat = __webpack_require__(36);
 
 	var defaultOptions = {
-	    windowSize: 11,
+	    windowSize: 9,
 	    derivative: 0,
-	    polynomial: 2,
+	    polynomial: 3,
 	};
 
 
@@ -13863,1014 +13725,108 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 39 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	exports.array = __webpack_require__(40);
-	exports.matrix = __webpack_require__(41);
-
-
-/***/ },
-/* 40 */
 /***/ function(module, exports) {
 
 	'use strict';
 
-	function compareNumbers(a, b) {
-	    return a - b;
+	const impuritiesList = [
+	    {"solvent":"CDCl3","impurities":[{"shifts":[{"proton":"X","coupling":0,"multiplicity":"ds","shift":7.26}],"name":"solvent_residual_peak"},{"shifts":[{"proton":"H2O","coupling":0,"multiplicity":"bs","shift":1.56}],"name":"H2O"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.1}],"name":"acetic_acid"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.17}],"name":"acetone"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.1}],"name":"acetonitrile"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.36}],"name":"benzene"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.28}],"name":"tert-butyl_alcohol"},{"shifts":[{"proton":"CCH3","coupling":0,"multiplicity":"s","shift":1.19},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.22}],"name":"tert-butyl_methyl_ether"},{"shifts":[{"proton":"ArH","coupling":0,"multiplicity":"s","shift":6.98},{"proton":"OHc","coupling":0,"multiplicity":"s","shift":5.01},{"proton":"ArCH3","coupling":0,"multiplicity":"s","shift":2.27},{"proton":"ArC(CH3)3","coupling":0,"multiplicity":"s","shift":1.43}],"name":"BHTb"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.26}],"name":"chloroform"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":1.43}],"name":"cyclohexane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.73}],"name":"1,2-dichloroethane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":5.3}],"name":"dichloromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.21},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.48}],"name":"diethyl_ether"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.65},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.57},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.39}],"name":"diglyme"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.4},{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.55}],"name":"1,2-dimethoxyethane"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.09},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":3.02},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.94}],"name":"dimethylacetamide"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":8.02},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.96},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.88}],"name":"dimethylformamide"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.62}],"name":"dimethyl_sulfoxide"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.71}],"name":"dioxane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.25},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.72},{"proton":"OH","coupling":5,"multiplicity":"s,t","shift":1.32}],"name":"ethanol"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.05},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":4.12},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.26}],"name":"ethyl_acetate"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.14},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":2.46},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.06}],"name":"ethyl_methyl_ketone"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":3.76}],"name":"ethylene_glycol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"m","shift":0.86},{"proton":"CH2","coupling":0,"multiplicity":"br_s","shift":1.26}],"name":"grease^f"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"t","shift":0.88},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.26}],"name":"n-hexane"},{"shifts":[{"proton":"CH3","coupling":9.5,"multiplicity":"d","shift":2.65}],"name":"HMPAg"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.49},{"proton":"OH","coupling":0,"multiplicity":"s","shift":1.09}],"name":"methanol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":4.33}],"name":"nitromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":7},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.27}],"name":"n-pentane"},{"shifts":[{"proton":"CH3","coupling":6,"multiplicity":"d","shift":1.22},{"proton":"CH","coupling":6,"multiplicity":"sep","shift":4.04}],"name":"2-propanol"},{"shifts":[{"proton":"CH(2)","coupling":0,"multiplicity":"m","shift":8.62},{"proton":"CH(3)","coupling":0,"multiplicity":"m","shift":7.29},{"proton":"CH(4)","coupling":0,"multiplicity":"m","shift":7.68}],"name":"pyridine"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":0.07}],"name":"silicone_greasei"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.85},{"proton":"CH2O","coupling":0,"multiplicity":"m","shift":3.76}],"name":"tetrahydrofuran"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.36},{"proton":"CH(o/p)","coupling":0,"multiplicity":"m","shift":7.17},{"proton":"CH(m)","coupling":0,"multiplicity":"m","shift":7.25}],"name":"toluene"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.03},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":2.53}],"name":"triethylamine"}]},
+	    {"solvent":"(CD3)2CO","impurities":[{"shifts":[{"proton":"X","coupling":0,"multiplicity":"","shift":2.05}],"name":"solvent_residual_peak"},{"shifts":[{"proton":"H2O","coupling":0,"multiplicity":"s","shift":2.84}],"name":"H2O"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.96}],"name":"acetic_acid"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.09}],"name":"acetone"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.05}],"name":"acetonitrile"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.36}],"name":"benzene"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.18}],"name":"tert-butyl_alcohol"},{"shifts":[{"proton":"CCH3","coupling":0,"multiplicity":"s","shift":1.13},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.13}],"name":"tert-butyl_methyl_ether"},{"shifts":[{"proton":"ArH","coupling":0,"multiplicity":"s","shift":6.96},{"proton":"ArCH3","coupling":0,"multiplicity":"s","shift":2.22},{"proton":"ArC(CH3)3","coupling":0,"multiplicity":"s","shift":1.41}],"name":"BHTb"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":8.02}],"name":"chloroform"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":1.43}],"name":"cyclohexane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.87}],"name":"1,2-dichloroethane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":5.63}],"name":"dichloromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.11},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.41}],"name":"diethyl_ether"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.56},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.47},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.28}],"name":"diglyme"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.28},{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.46}],"name":"1,2-dimethoxyethane"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.97},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":3},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.83}],"name":"dimethylacetamide"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.96},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.94},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.78}],"name":"dimethylformamide"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.52}],"name":"dimethyl_sulfoxide"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.59}],"name":"dioxane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.12},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.57},{"proton":"OH","coupling":5,"multiplicity":"s,t","shift":3.39}],"name":"ethanol"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.97},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":4.05},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.2}],"name":"ethyl_acetate"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.07},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":2.45},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":0.96}],"name":"ethyl_methyl_ketone"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":3.28}],"name":"ethylene_glycol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"m","shift":0.87},{"proton":"CH2","coupling":0,"multiplicity":"br_s","shift":1.29}],"name":"grease^f"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"t","shift":0.88},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.28}],"name":"n-hexane"},{"shifts":[{"proton":"CH3","coupling":9.5,"multiplicity":"d","shift":2.59}],"name":"HMPAg"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.31},{"proton":"OH","coupling":0,"multiplicity":"s","shift":3.12}],"name":"methanol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":4.43}],"name":"nitromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.88},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.27}],"name":"n-pentane"},{"shifts":[{"proton":"CH3","coupling":6,"multiplicity":"d","shift":1.1},{"proton":"CH","coupling":6,"multiplicity":"sep","shift":3.9}],"name":"2-propanol"},{"shifts":[{"proton":"CH(2)","coupling":0,"multiplicity":"m","shift":8.58},{"proton":"CH(3)","coupling":0,"multiplicity":"m","shift":7.35},{"proton":"CH(4)","coupling":0,"multiplicity":"m","shift":7.76}],"name":"pyridine"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":0.13}],"name":"silicone_greasei"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.79},{"proton":"CH2O","coupling":0,"multiplicity":"m","shift":3.63}],"name":"tetrahydrofuran"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.32},{"proton":"CH(o/p)","coupling":0,"multiplicity":"m","shift":7.5},{"proton":"CH(m)","coupling":0,"multiplicity":"m","shift":7.5}],"name":"toluene"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.96},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":2.45}],"name":"triethylamine"}]},
+	    {"solvent":"(CD3)2SO/DMSO","impurities":[{"shifts":[{"proton":"X","coupling":0,"multiplicity":"quint","shift":2.5}],"name":"solvent_residual_peak"},{"shifts":[{"proton":"H2O","coupling":0,"multiplicity":"s","shift":3.33}],"name":"H2O"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.91}],"name":"acetic_acid"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.09}],"name":"acetone"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.07}],"name":"acetonitrile"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.37}],"name":"benzene"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.11},{"proton":"OHc","coupling":0,"multiplicity":"s","shift":4.19}],"name":"tert-butyl_alcohol"},{"shifts":[{"proton":"CCH3","coupling":0,"multiplicity":"s","shift":1.11},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.08}],"name":"tert-butyl_methyl_ether"},{"shifts":[{"proton":"ArH","coupling":0,"multiplicity":"s","shift":6.87},{"proton":"OHc","coupling":0,"multiplicity":"s","shift":6.65},{"proton":"ArCH3","coupling":0,"multiplicity":"s","shift":2.18},{"proton":"ArC(CH3)3","coupling":0,"multiplicity":"s","shift":1.36}],"name":"BHTb"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":8.32}],"name":"chloroform"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":1.4}],"name":"cyclohexane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.9}],"name":"1,2-dichloroethane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":5.76}],"name":"dichloromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.09},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.38}],"name":"diethyl_ether"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.51},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.38},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.24}],"name":"diglyme"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.24},{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.43}],"name":"1,2-dimethoxyethane"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.96},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.94},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.78}],"name":"dimethylacetamide"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.95},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.89},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.73}],"name":"dimethylformamide"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.54}],"name":"dimethyl_sulfoxide"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.57}],"name":"dioxane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.06},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.44},{"proton":"OH","coupling":5,"multiplicity":"s,t","shift":4.63}],"name":"ethanol"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.99},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":4.03},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.17}],"name":"ethyl_acetate"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.07},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":2.43},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":0.91}],"name":"ethyl_methyl_ketone"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":3.34}],"name":"ethylene_glycol"},{"shifts":[],"name":"grease^f"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"t","shift":0.86},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.25}],"name":"n-hexane"},{"shifts":[{"proton":"CH3","coupling":9.5,"multiplicity":"d","shift":2.53}],"name":"HMPAg"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.16},{"proton":"OH","coupling":0,"multiplicity":"s","shift":4.01}],"name":"methanol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":4.42}],"name":"nitromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.88},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.27}],"name":"n-pentane"},{"shifts":[{"proton":"CH3","coupling":6,"multiplicity":"d","shift":1.04},{"proton":"CH","coupling":6,"multiplicity":"sep","shift":3.78}],"name":"2-propanol"},{"shifts":[{"proton":"CH(2)","coupling":0,"multiplicity":"m","shift":8.58},{"proton":"CH(3)","coupling":0,"multiplicity":"m","shift":7.39},{"proton":"CH(4)","coupling":0,"multiplicity":"m","shift":7.79}],"name":"pyridine"},{"shifts":[],"name":"silicone_greasei"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.76},{"proton":"CH2O","coupling":0,"multiplicity":"m","shift":3.6}],"name":"tetrahydrofuran"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.3},{"proton":"CH(o/p)","coupling":0,"multiplicity":"m","shift":7.18},{"proton":"CH(m)","coupling":0,"multiplicity":"m","shift":7.25}],"name":"toluene"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.93},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":2.43}],"name":"triethylamine"}]},
+	    {"solvent":"C6D6","impurities":[{"shifts":[{"proton":"X","coupling":0,"multiplicity":"","shift":7.16}],"name":"solvent_residual_peak"},{"shifts":[{"proton":"H2O","coupling":0,"multiplicity":"s","shift":0.4}],"name":"H2O"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.55}],"name":"acetic_acid"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.55}],"name":"acetone"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.55}],"name":"acetonitrile"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.15}],"name":"benzene"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.05},{"proton":"OHc","coupling":0,"multiplicity":"s","shift":1.55}],"name":"tert-butyl_alcohol"},{"shifts":[{"proton":"CCH3","coupling":0,"multiplicity":"s","shift":1.07},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.04}],"name":"tert-butyl_methyl_ether"},{"shifts":[{"proton":"ArH","coupling":0,"multiplicity":"s","shift":7.05},{"proton":"OHc","coupling":0,"multiplicity":"s","shift":4.79},{"proton":"ArCH3","coupling":0,"multiplicity":"s","shift":2.24},{"proton":"ArC(CH3)3","coupling":0,"multiplicity":"s","shift":1.38}],"name":"BHTb"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":6.15}],"name":"chloroform"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":1.4}],"name":"cyclohexane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":2.9}],"name":"1,2-dichloroethane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":4.27}],"name":"dichloromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.11},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.26}],"name":"diethyl_ether"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.46},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.34},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.11}],"name":"diglyme"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.12},{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.33}],"name":"1,2-dimethoxyethane"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.6},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.57},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.05}],"name":"dimethylacetamide"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.63},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.36},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.86}],"name":"dimethylformamide"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.68}],"name":"dimethyl_sulfoxide"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.35}],"name":"dioxane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.96},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.34}],"name":"ethanol"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.65},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":3.89},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":0.92}],"name":"ethyl_acetate"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.58},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":1.81},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":0.85}],"name":"ethyl_methyl_ketone"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":3.41}],"name":"ethylene_glycol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"m","shift":0.92},{"proton":"CH2","coupling":0,"multiplicity":"br_s","shift":1.36}],"name":"grease^f"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"t","shift":0.89},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.24}],"name":"n-hexane"},{"shifts":[{"proton":"CH3","coupling":9.5,"multiplicity":"d","shift":2.4}],"name":"HMPAg"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.07}],"name":"methanol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.94}],"name":"nitromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.86},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.23}],"name":"n-pentane"},{"shifts":[{"proton":"CH3","coupling":6,"multiplicity":"d","shift":0.95},{"proton":"CH","coupling":6,"multiplicity":"sep","shift":3.67}],"name":"2-propanol"},{"shifts":[{"proton":"CH(2)","coupling":0,"multiplicity":"m","shift":8.53},{"proton":"CH(3)","coupling":0,"multiplicity":"m","shift":6.66},{"proton":"CH(4)","coupling":0,"multiplicity":"m","shift":6.98}],"name":"pyridine"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":0.29}],"name":"silicone_greasei"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.4},{"proton":"CH2O","coupling":0,"multiplicity":"m","shift":3.57}],"name":"tetrahydrofuran"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.11},{"proton":"CH(o/p)","coupling":0,"multiplicity":"m","shift":7.02},{"proton":"CH(m)","coupling":0,"multiplicity":"m","shift":7.13}],"name":"toluene"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.96},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":2.4}],"name":"triethylamine"}]},
+	    {"solvent":"CD3CN","impurities":[{"shifts":[{"proton":"X","coupling":0,"multiplicity":"","shift":1.94}],"name":"solvent_residual_peak"},{"shifts":[{"proton":"H2O","coupling":0,"multiplicity":"s","shift":2.13}],"name":"H2O"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.96}],"name":"acetic_acid"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.08}],"name":"acetone"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.96}],"name":"acetonitrile"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.37}],"name":"benzene"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.16},{"proton":"OHc","coupling":0,"multiplicity":"s","shift":2.18}],"name":"tert-butyl_alcohol"},{"shifts":[{"proton":"CCH3","coupling":0,"multiplicity":"s","shift":1.14},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.13}],"name":"tert-butyl_methyl_ether"},{"shifts":[{"proton":"ArH","coupling":0,"multiplicity":"s","shift":6.97},{"proton":"OHc","coupling":0,"multiplicity":"s","shift":5.2},{"proton":"ArCH3","coupling":0,"multiplicity":"s","shift":2.22},{"proton":"ArC(CH3)3","coupling":0,"multiplicity":"s","shift":1.39}],"name":"BHTb"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.58}],"name":"chloroform"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":1.44}],"name":"cyclohexane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.81}],"name":"1,2-dichloroethane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":5.44}],"name":"dichloromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.12},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.42}],"name":"diethyl_ether"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.53},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.45},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.29}],"name":"diglyme"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.28},{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.45}],"name":"1,2-dimethoxyethane"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.97},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.96},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.83}],"name":"dimethylacetamide"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.92},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.89},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.77}],"name":"dimethylformamide"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.5}],"name":"dimethyl_sulfoxide"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.6}],"name":"dioxane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.12},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.54},{"proton":"OH","coupling":5,"multiplicity":"s,t","shift":2.47}],"name":"ethanol"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":1.97},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":4.06},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.2}],"name":"ethyl_acetate"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.06},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":2.43},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":0.96}],"name":"ethyl_methyl_ketone"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":3.51}],"name":"ethylene_glycol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"m","shift":0.86},{"proton":"CH2","coupling":0,"multiplicity":"br_s","shift":1.27}],"name":"grease^f"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"t","shift":0.89},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.28}],"name":"n-hexane"},{"shifts":[{"proton":"CH3","coupling":9.5,"multiplicity":"d","shift":2.57}],"name":"HMPAg"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.28},{"proton":"OH","coupling":0,"multiplicity":"s","shift":2.16}],"name":"methanol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":4.31}],"name":"nitromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.87},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.29}],"name":"n-pentane"},{"shifts":[{"proton":"CH3","coupling":6,"multiplicity":"d","shift":1.09},{"proton":"CH","coupling":6,"multiplicity":"sep","shift":3.87}],"name":"2-propanol"},{"shifts":[{"proton":"CH(2)","coupling":0,"multiplicity":"m","shift":8.57},{"proton":"CH(3)","coupling":0,"multiplicity":"m","shift":7.33},{"proton":"CH(4)","coupling":0,"multiplicity":"m","shift":7.73}],"name":"pyridine"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":0.08}],"name":"silicone_greasei"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.8},{"proton":"CH2O","coupling":0,"multiplicity":"m","shift":3.64}],"name":"tetrahydrofuran"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.33},{"proton":"CH(o/p)","coupling":0,"multiplicity":"m","shift":7.2},{"proton":"CH(m)","coupling":0,"multiplicity":"m","shift":7.2}],"name":"toluene"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.96},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":2.45}],"name":"triethylamine"}]},
+	    {"solvent":"CD3OD","impurities":[{"shifts":[{"proton":"X","coupling":0,"multiplicity":"","shift":3.31}],"name":"solvent_residual_peak"},{"shifts":[{"proton":"H2O","coupling":0,"multiplicity":"s","shift":4.87}],"name":"H2O"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.99}],"name":"acetic_acid"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.15}],"name":"acetone"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.03}],"name":"acetonitrile"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.33}],"name":"benzene"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.4}],"name":"tert-butyl_alcohol"},{"shifts":[{"proton":"CCH3","coupling":0,"multiplicity":"s","shift":1.15},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.2}],"name":"tert-butyl_methyl_ether"},{"shifts":[{"proton":"ArH","coupling":0,"multiplicity":"s","shift":6.92},{"proton":"ArCH3","coupling":0,"multiplicity":"s","shift":2.21},{"proton":"ArC(CH3)3","coupling":0,"multiplicity":"s","shift":1.4}],"name":"BHTb"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.9}],"name":"chloroform"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":1.45}],"name":"cyclohexane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.78}],"name":"1,2-dichloroethane"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":5.49}],"name":"dichloromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.18},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.49}],"name":"diethyl_ether"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.61},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.58},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.35}],"name":"diglyme"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.35},{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.52}],"name":"1,2-dimethoxyethane"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.07},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":3.31},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.92}],"name":"dimethylacetamide"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.97},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.99},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.86}],"name":"dimethylformamide"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.65}],"name":"dimethyl_sulfoxide"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.66}],"name":"dioxane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.19},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.6}],"name":"ethanol"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.01},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":4.09},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.24}],"name":"ethyl_acetate"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.12},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":2.5},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.01}],"name":"ethyl_methyl_ketone"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":3.59}],"name":"ethylene_glycol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"m","shift":0.88},{"proton":"CH2","coupling":0,"multiplicity":"br_s","shift":1.29}],"name":"grease^f"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"t","shift":0.9},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.29}],"name":"n-hexane"},{"shifts":[{"proton":"CH3","coupling":9.5,"multiplicity":"d","shift":2.64}],"name":"HMPAg"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.34}],"name":"methanol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":4.34}],"name":"nitromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.89},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.29}],"name":"n-pentane"},{"shifts":[{"proton":"CH3","coupling":6,"multiplicity":"d","shift":1.5},{"proton":"CH","coupling":6,"multiplicity":"sep","shift":3.92}],"name":"2-propanol"},{"shifts":[{"proton":"CH(2)","coupling":0,"multiplicity":"m","shift":8.53},{"proton":"CH(3)","coupling":0,"multiplicity":"m","shift":7.44},{"proton":"CH(4)","coupling":0,"multiplicity":"m","shift":7.85}],"name":"pyridine"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":0.1}],"name":"silicone_greasei"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.87},{"proton":"CH2O","coupling":0,"multiplicity":"m","shift":3.71}],"name":"tetrahydrofuran"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.32},{"proton":"CH(o/p)","coupling":0,"multiplicity":"m","shift":7.16},{"proton":"CH(m)","coupling":0,"multiplicity":"m","shift":7.16}],"name":"toluene"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.05},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":2.58}],"name":"triethylamine"}]},
+	    {"solvent":"D2O","impurities":[{"shifts":[{"proton":"X","coupling":0,"multiplicity":"","shift":4.79}],"name":"solvent_residual_peak"},{"shifts":[],"name":"H2O"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.08}],"name":"acetic_acid"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.22}],"name":"acetone"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.06}],"name":"acetonitrile"},{"shifts":[],"name":"benzene"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":1.24}],"name":"tert-butyl_alcohol"},{"shifts":[{"proton":"CCH3","coupling":0,"multiplicity":"s","shift":1.21},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.22}],"name":"tert-butyl_methyl_ether"},{"shifts":[],"name":"BHTb"},{"shifts":[],"name":"chloroform"},{"shifts":[],"name":"cyclohexane"},{"shifts":[],"name":"1,2-dichloroethane"},{"shifts":[],"name":"dichloromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.17},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.56}],"name":"diethyl_ether"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.67},{"proton":"CH2","coupling":0,"multiplicity":"m","shift":3.61},{"proton":"OCH3","coupling":0,"multiplicity":"s","shift":3.37}],"name":"diglyme"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.37},{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.6}],"name":"1,2-dimethoxyethane"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.08},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":3.06},{"proton":"NCH3","coupling":0,"multiplicity":"s","shift":2.9}],"name":"dimethylacetamide"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":7.92},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.01},{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.85}],"name":"dimethylformamide"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":2.71}],"name":"dimethyl_sulfoxide"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"s","shift":3.75}],"name":"dioxane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":1.17},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":3.65}],"name":"ethanol"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.07},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":4.14},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.24}],"name":"ethyl_acetate"},{"shifts":[{"proton":"CH3CO","coupling":0,"multiplicity":"s","shift":2.19},{"proton":"CH2CH3","coupling":7,"multiplicity":"q","shift":3.18},{"proton":"CH2CH3","coupling":7,"multiplicity":"t","shift":1.26}],"name":"ethyl_methyl_ketone"},{"shifts":[{"proton":"CH","coupling":0,"multiplicity":"s","shift":3.65}],"name":"ethylene_glycol"},{"shifts":[],"name":"grease^f"},{"shifts":[],"name":"n-hexane"},{"shifts":[{"proton":"CH3","coupling":9.5,"multiplicity":"d","shift":2.61}],"name":"HMPAg"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":3.34}],"name":"methanol"},{"shifts":[{"proton":"CH3","coupling":0,"multiplicity":"s","shift":4.4}],"name":"nitromethane"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.9}],"name":"n-pentane"},{"shifts":[{"proton":"CH3","coupling":6,"multiplicity":"d","shift":1.17},{"proton":"CH","coupling":6,"multiplicity":"sep","shift":4.02}],"name":"2-propanol"},{"shifts":[{"proton":"CH(2)","coupling":0,"multiplicity":"m","shift":8.52},{"proton":"CH(3)","coupling":0,"multiplicity":"m","shift":7.45},{"proton":"CH(4)","coupling":0,"multiplicity":"m","shift":7.87}],"name":"pyridine"},{"shifts":[],"name":"silicone_greasei"},{"shifts":[{"proton":"CH2","coupling":0,"multiplicity":"m","shift":1.88},{"proton":"CH2O","coupling":0,"multiplicity":"m","shift":3.74}],"name":"tetrahydrofuran"},{"shifts":[],"name":"toluene"},{"shifts":[{"proton":"CH3","coupling":7,"multiplicity":"t","shift":0.99},{"proton":"CH2","coupling":7,"multiplicity":"q","shift":2.57}],"name":"triethylamine"}]}];
+
+	var look4 = "solvent_residual_peak"+"H2O"+"TMS";
+	//var pascalTriangle = [[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1],[1,5,10,10,5,1],[1,6,15,20,15,6,1]];
+	//var patterns = ["s","d","t","q","quint","h","sept","o","n"];
+
+	function removeSignal(peak, noiseSignal){
+
 	}
 
-	/**
-	 * Computes the sum of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.sum = function sum(values) {
-	    var sum = 0;
-	    for (var i = 0; i < values.length; i++) {
-	        sum += values[i];
-	    }
-	    return sum;
-	};
-
-	/**
-	 * Computes the maximum of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.max = function max(values) {
-	    var max = -Infinity;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        if (values[i] > max) max = values[i];
-	    }
-	    return max;
-	};
-
-	/**
-	 * Computes the minimum of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.min = function min(values) {
-	    var min = Infinity;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        if (values[i] < min) min = values[i];
-	    }
-	    return min;
-	};
-
-	/**
-	 * Computes the min and max of the given values
-	 * @param {Array} values
-	 * @returns {{min: number, max: number}}
-	 */
-	exports.minMax = function minMax(values) {
-	    var min = Infinity;
-	    var max = -Infinity;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        if (values[i] < min) min = values[i];
-	        if (values[i] > max) max = values[i];
-	    }
-	    return {
-	        min: min,
-	        max: max
-	    };
-	};
-
-	/**
-	 * Computes the arithmetic mean of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.arithmeticMean = function arithmeticMean(values) {
-	    var sum = 0;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        sum += values[i];
-	    }
-	    return sum / l;
-	};
-
-	/**
-	 * {@link arithmeticMean}
-	 */
-	exports.mean = exports.arithmeticMean;
-
-	/**
-	 * Computes the geometric mean of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.geometricMean = function geometricMean(values) {
-	    var mul = 1;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        mul *= values[i];
-	    }
-	    return Math.pow(mul, 1 / l);
-	};
-
-	/**
-	 * Computes the mean of the log of the given values
-	 * If the return value is exponentiated, it gives the same result as the
-	 * geometric mean.
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.logMean = function logMean(values) {
-	    var lnsum = 0;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        lnsum += Math.log(values[i]);
-	    }
-	    return lnsum / l;
-	};
-
-	/**
-	 * Computes the weighted grand mean for a list of means and sample sizes
-	 * @param {Array} means - Mean values for each set of samples
-	 * @param {Array} samples - Number of original values for each set of samples
-	 * @returns {number}
-	 */
-	exports.grandMean = function grandMean(means, samples) {
-	    var sum = 0;
-	    var n = 0;
-	    var l = means.length;
-	    for (var i = 0; i < l; i++) {
-	        sum += samples[i] * means[i];
-	        n += samples[i];
-	    }
-	    return sum / n;
-	};
-
-	/**
-	 * Computes the truncated mean of the given values using a given percentage
-	 * @param {Array} values
-	 * @param {number} percent - The percentage of values to keep (range: [0,1])
-	 * @param {boolean} [alreadySorted=false]
-	 * @returns {number}
-	 */
-	exports.truncatedMean = function truncatedMean(values, percent, alreadySorted) {
-	    if (alreadySorted === undefined) alreadySorted = false;
-	    if (!alreadySorted) {
-	        values = values.slice().sort(compareNumbers);
-	    }
-	    var l = values.length;
-	    var k = Math.floor(l * percent);
-	    var sum = 0;
-	    for (var i = k; i < (l - k); i++) {
-	        sum += values[i];
-	    }
-	    return sum / (l - 2 * k);
-	};
-
-	/**
-	 * Computes the harmonic mean of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.harmonicMean = function harmonicMean(values) {
-	    var sum = 0;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        if (values[i] === 0) {
-	            throw new RangeError('value at index ' + i + 'is zero');
+	function checkImpurity(peakList, impurity){
+	    var error = 0.025,i;
+	    var found = false;
+	    var indexes = new Array(impurity.length);
+	    for(i=0;i<impurity.length;i++){
+	        found=false;
+	        for(var j=0;j<peakList.length;j++){
+	            if(Math.abs(impurity[i].shift-peakList[j].delta1)<
+	                (error+Math.abs(peakList[j].startX-peakList[j].stopX)/2)&&
+	                (impurity[i].multiplicity===""||
+	                (impurity[i].multiplicity.indexOf(peakList[j].multiplicity)>=0&&!peakList[j].asymmetric))){
+	                found = true;
+	                indexes[i]=j;
+	                break;
+	            }
 	        }
-	        sum += 1 / values[i];
-	    }
-	    return l / sum;
-	};
-
-	/**
-	 * Computes the contraharmonic mean of the given values
-	 * @param {Array} values
-	 * @returns {number}
-	 */
-	exports.contraHarmonicMean = function contraHarmonicMean(values) {
-	    var r1 = 0;
-	    var r2 = 0;
-	    var l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        r1 += values[i] * values[i];
-	        r2 += values[i];
-	    }
-	    if (r2 < 0) {
-	        throw new RangeError('sum of values is negative');
-	    }
-	    return r1 / r2;
-	};
-
-	/**
-	 * Computes the median of the given values
-	 * @param {Array} values
-	 * @param {boolean} [alreadySorted=false]
-	 * @returns {number}
-	 */
-	exports.median = function median(values, alreadySorted) {
-	    if (alreadySorted === undefined) alreadySorted = false;
-	    if (!alreadySorted) {
-	        values = values.slice().sort(compareNumbers);
-	    }
-	    var l = values.length;
-	    var half = Math.floor(l / 2);
-	    if (l % 2 === 0) {
-	        return (values[half - 1] + values[half]) * 0.5;
-	    } else {
-	        return values[half];
-	    }
-	};
-
-	/**
-	 * Computes the variance of the given values
-	 * @param {Array} values
-	 * @param {boolean} [unbiased=true] - if true, divide by (n-1); if false, divide by n.
-	 * @returns {number}
-	 */
-	exports.variance = function variance(values, unbiased) {
-	    if (unbiased === undefined) unbiased = true;
-	    var theMean = exports.mean(values);
-	    var theVariance = 0;
-	    var l = values.length;
-
-	    for (var i = 0; i < l; i++) {
-	        var x = values[i] - theMean;
-	        theVariance += x * x;
+	        if(!found)
+	            break;
 	    }
 
-	    if (unbiased) {
-	        return theVariance / (l - 1);
-	    } else {
-	        return theVariance / l;
-	    }
-	};
-
-	/**
-	 * Computes the standard deviation of the given values
-	 * @param {Array} values
-	 * @param {boolean} [unbiased=true] - if true, divide by (n-1); if false, divide by n.
-	 * @returns {number}
-	 */
-	exports.standardDeviation = function standardDeviation(values, unbiased) {
-	    return Math.sqrt(exports.variance(values, unbiased));
-	};
-
-	exports.standardError = function standardError(values) {
-	    return exports.standardDeviation(values) / Math.sqrt(values.length);
-	};
-
-	exports.quartiles = function quartiles(values, alreadySorted) {
-	    if (typeof(alreadySorted) === 'undefined') alreadySorted = false;
-	    if (!alreadySorted) {
-	        values = values.slice();
-	        values.sort(compareNumbers);
-	    }
-
-	    var quart = values.length / 4;
-	    var q1 = values[Math.ceil(quart) - 1];
-	    var q2 = exports.median(values, true);
-	    var q3 = values[Math.ceil(quart * 3) - 1];
-
-	    return {q1: q1, q2: q2, q3: q3};
-	};
-
-	exports.pooledStandardDeviation = function pooledStandardDeviation(samples, unbiased) {
-	    return Math.sqrt(exports.pooledVariance(samples, unbiased));
-	};
-
-	exports.pooledVariance = function pooledVariance(samples, unbiased) {
-	    if (typeof(unbiased) === 'undefined') unbiased = true;
-	    var sum = 0;
-	    var length = 0, l = samples.length;
-	    for (var i = 0; i < l; i++) {
-	        var values = samples[i];
-	        var vari = exports.variance(values);
-
-	        sum += (values.length - 1) * vari;
-
-	        if (unbiased)
-	            length += values.length - 1;
-	        else
-	            length += values.length;
-	    }
-	    return sum / length;
-	};
-
-	exports.mode = function mode(values) {
-	    var l = values.length,
-	        itemCount = new Array(l),
-	        i;
-	    for (i = 0; i < l; i++) {
-	        itemCount[i] = 0;
-	    }
-	    var itemArray = new Array(l);
-	    var count = 0;
-
-	    for (i = 0; i < l; i++) {
-	        var index = itemArray.indexOf(values[i]);
-	        if (index >= 0)
-	            itemCount[index]++;
-	        else {
-	            itemArray[count] = values[i];
-	            itemCount[count] = 1;
-	            count++;
+	    var toRemove = [];
+	    if(found){
+	        for(i=0;i<impurity.length;i++){
+	            toRemove.push(indexes[i]);
 	        }
 	    }
-
-	    var maxValue = 0, maxIndex = 0;
-	    for (i = 0; i < count; i++) {
-	        if (itemCount[i] > maxValue) {
-	            maxValue = itemCount[i];
-	            maxIndex = i;
-	        }
-	    }
-
-	    return itemArray[maxIndex];
-	};
-
-	exports.covariance = function covariance(vector1, vector2, unbiased) {
-	    if (typeof(unbiased) === 'undefined') unbiased = true;
-	    var mean1 = exports.mean(vector1);
-	    var mean2 = exports.mean(vector2);
-
-	    if (vector1.length !== vector2.length)
-	        throw "Vectors do not have the same dimensions";
-
-	    var cov = 0, l = vector1.length;
-	    for (var i = 0; i < l; i++) {
-	        var x = vector1[i] - mean1;
-	        var y = vector2[i] - mean2;
-	        cov += x * y;
-	    }
-
-	    if (unbiased)
-	        return cov / (l - 1);
 	    else
-	        return cov / l;
-	};
-
-	exports.skewness = function skewness(values, unbiased) {
-	    if (typeof(unbiased) === 'undefined') unbiased = true;
-	    var theMean = exports.mean(values);
-
-	    var s2 = 0, s3 = 0, l = values.length;
-	    for (var i = 0; i < l; i++) {
-	        var dev = values[i] - theMean;
-	        s2 += dev * dev;
-	        s3 += dev * dev * dev;
+	        return 0;
+	    for(i=0;i<toRemove.length;i++){
+	        peakList[toRemove[i]].integralData.value = 0;
 	    }
-	    var m2 = s2 / l;
-	    var m3 = s3 / l;
+	    return 1;
+	}
 
-	    var g = m3 / (Math.pow(m2, 3 / 2.0));
-	    if (unbiased) {
-	        var a = Math.sqrt(l * (l - 1));
-	        var b = l - 2;
-	        return (a / b) * g;
+	function removeImpurities(peakList, solvent, nH){
+	    var impurities = null, i;
+	    for(i=0;i<impuritiesList.length;i++){
+	        if(impuritiesList[i].solvent.indexOf(solvent)>=0){
+	            impurities = impuritiesList[i].impurities;
+	            break;
+	        }
 	    }
-	    else {
-	        return g;
+	    impurities.push({"shifts":[{"proton":"X","coupling":0,"multiplicity":"","shift":0.0}],"name":"TMS"});
+	    var nCols = peakList.length;
+	    var nRows = impurities.length;
+	    var scores = new Array(nRows);
+	    for(i=0;i<nRows;i++){
+	        if( look4.indexOf(impurities[i].name)>=0){
+	            scores[i]=checkImpurity(peakList, impurities[i].shifts);
+	        }
 	    }
-	};
-
-	exports.kurtosis = function kurtosis(values, unbiased) {
-	    if (typeof(unbiased) === 'undefined') unbiased = true;
-	    var theMean = exports.mean(values);
-	    var n = values.length, s2 = 0, s4 = 0;
-
-	    for (var i = 0; i < n; i++) {
-	        var dev = values[i] - theMean;
-	        s2 += dev * dev;
-	        s4 += dev * dev * dev * dev;
+	    //Recompute the integrals
+	    var sumObserved=0;
+	    for(i=0;i<peakList.length;i++){
+	        sumObserved+=peakList[i].integralData.value;
 	    }
-	    var m2 = s2 / n;
-	    var m4 = s4 / n;
-
-	    if (unbiased) {
-	        var v = s2 / (n - 1);
-	        var a = (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3));
-	        var b = s4 / (v * v);
-	        var c = ((n - 1) * (n - 1)) / ((n - 2) * (n - 3));
-
-	        return a * b - 3 * c;
+	    if(sumObserved!=nH){
+	        sumObserved=nH/sumObserved;
+	        for(i=0;i<peakList.length;i++){
+	            peakList[i].integralData.value*=sumObserved;
+	        }
 	    }
-	    else {
-	        return m4 / (m2 * m2) - 3;
-	    }
-	};
+	}
 
-	exports.entropy = function entropy(values, eps) {
-	    if (typeof(eps) === 'undefined') eps = 0;
-	    var sum = 0, l = values.length;
-	    for (var i = 0; i < l; i++)
-	        sum += values[i] * Math.log(values[i] + eps);
-	    return -sum;
-	};
+	module.exports = removeImpurities;
 
-	exports.weightedMean = function weightedMean(values, weights) {
-	    var sum = 0, l = values.length;
-	    for (var i = 0; i < l; i++)
-	        sum += values[i] * weights[i];
-	    return sum;
-	};
+/***/ },
+/* 40 */
+/***/ function(module, exports, __webpack_require__) {
 
-	exports.weightedStandardDeviation = function weightedStandardDeviation(values, weights) {
-	    return Math.sqrt(exports.weightedVariance(values, weights));
-	};
+	'use strict';
 
-	exports.weightedVariance = function weightedVariance(values, weights) {
-	    var theMean = exports.weightedMean(values, weights);
-	    var vari = 0, l = values.length;
-	    var a = 0, b = 0;
-
-	    for (var i = 0; i < l; i++) {
-	        var z = values[i] - theMean;
-	        var w = weights[i];
-
-	        vari += w * (z * z);
-	        b += w;
-	        a += w * w;
-	    }
-
-	    return vari * (b / (b * b - a));
-	};
-
-	exports.center = function center(values, inPlace) {
-	    if (typeof(inPlace) === 'undefined') inPlace = false;
-
-	    var result = values;
-	    if (!inPlace)
-	        result = values.slice();
-
-	    var theMean = exports.mean(result), l = result.length;
-	    for (var i = 0; i < l; i++)
-	        result[i] -= theMean;
-	};
-
-	exports.standardize = function standardize(values, standardDev, inPlace) {
-	    if (typeof(standardDev) === 'undefined') standardDev = exports.standardDeviation(values);
-	    if (typeof(inPlace) === 'undefined') inPlace = false;
-	    var l = values.length;
-	    var result = inPlace ? values : new Array(l);
-	    for (var i = 0; i < l; i++)
-	        result[i] = values[i] / standardDev;
-	    return result;
-	};
-
-	exports.cumulativeSum = function cumulativeSum(array) {
-	    var l = array.length;
-	    var result = new Array(l);
-	    result[0] = array[0];
-	    for (var i = 1; i < l; i++)
-	        result[i] = result[i - 1] + array[i];
-	    return result;
-	};
+	exports.FFTUtils = __webpack_require__(41);
+	exports.FFT = __webpack_require__(42);
 
 
 /***/ },
 /* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
-	var arrayStat = __webpack_require__(40);
-
-	// https://github.com/accord-net/framework/blob/development/Sources/Accord.Statistics/Tools.cs
-
-	function entropy(matrix, eps) {
-	    if (typeof(eps) === 'undefined') {
-	        eps = 0;
-	    }
-	    var sum = 0,
-	        l1 = matrix.length,
-	        l2 = matrix[0].length;
-	    for (var i = 0; i < l1; i++) {
-	        for (var j = 0; j < l2; j++) {
-	            sum += matrix[i][j] * Math.log(matrix[i][j] + eps);
-	        }
-	    }
-	    return -sum;
-	}
-
-	function mean(matrix, dimension) {
-	    if (typeof(dimension) === 'undefined') {
-	        dimension = 0;
-	    }
-	    var rows = matrix.length,
-	        cols = matrix[0].length,
-	        theMean, N, i, j;
-
-	    if (dimension === -1) {
-	        theMean = [0];
-	        N = rows * cols;
-	        for (i = 0; i < rows; i++) {
-	            for (j = 0; j < cols; j++) {
-	                theMean[0] += matrix[i][j];
-	            }
-	        }
-	        theMean[0] /= N;
-	    } else if (dimension === 0) {
-	        theMean = new Array(cols);
-	        N = rows;
-	        for (j = 0; j < cols; j++) {
-	            theMean[j] = 0;
-	            for (i = 0; i < rows; i++) {
-	                theMean[j] += matrix[i][j];
-	            }
-	            theMean[j] /= N;
-	        }
-	    } else if (dimension === 1) {
-	        theMean = new Array(rows);
-	        N = cols;
-	        for (j = 0; j < rows; j++) {
-	            theMean[j] = 0;
-	            for (i = 0; i < cols; i++) {
-	                theMean[j] += matrix[j][i];
-	            }
-	            theMean[j] /= N;
-	        }
-	    } else {
-	        throw new Error('Invalid dimension');
-	    }
-	    return theMean;
-	}
-
-	function standardDeviation(matrix, means, unbiased) {
-	    var vari = variance(matrix, means, unbiased), l = vari.length;
-	    for (var i = 0; i < l; i++) {
-	        vari[i] = Math.sqrt(vari[i]);
-	    }
-	    return vari;
-	}
-
-	function variance(matrix, means, unbiased) {
-	    if (typeof(unbiased) === 'undefined') {
-	        unbiased = true;
-	    }
-	    means = means || mean(matrix);
-	    var rows = matrix.length;
-	    if (rows === 0) return [];
-	    var cols = matrix[0].length;
-	    var vari = new Array(cols);
-
-	    for (var j = 0; j < cols; j++) {
-	        var sum1 = 0, sum2 = 0, x = 0;
-	        for (var i = 0; i < rows; i++) {
-	            x = matrix[i][j] - means[j];
-	            sum1 += x;
-	            sum2 += x * x;
-	        }
-	        if (unbiased) {
-	            vari[j] = (sum2 - ((sum1 * sum1) / rows)) / (rows - 1);
-	        } else {
-	            vari[j] = (sum2 - ((sum1 * sum1) / rows)) / rows;
-	        }
-	    }
-	    return vari;
-	}
-
-	function median(matrix) {
-	    var rows = matrix.length, cols = matrix[0].length;
-	    var medians = new Array(cols);
-
-	    for (var i = 0; i < cols; i++) {
-	        var data = new Array(rows);
-	        for (var j = 0; j < rows; j++) {
-	            data[j] = matrix[j][i];
-	        }
-	        data.sort();
-	        var N = data.length;
-	        if (N % 2 === 0) {
-	            medians[i] = (data[N / 2] + data[(N / 2) - 1]) * 0.5;
-	        } else {
-	            medians[i] = data[Math.floor(N / 2)];
-	        }
-	    }
-	    return medians;
-	}
-
-	function mode(matrix) {
-	    var rows = matrix.length,
-	        cols = matrix[0].length,
-	        modes = new Array(cols),
-	        i, j;
-	    for (i = 0; i < cols; i++) {
-	        var itemCount = new Array(rows);
-	        for (var k = 0; k < rows; k++) {
-	            itemCount[k] = 0;
-	        }
-	        var itemArray = new Array(rows);
-	        var count = 0;
-
-	        for (j = 0; j < rows; j++) {
-	            var index = itemArray.indexOf(matrix[j][i]);
-	            if (index >= 0) {
-	                itemCount[index]++;
-	            } else {
-	                itemArray[count] = matrix[j][i];
-	                itemCount[count] = 1;
-	                count++;
-	            }
-	        }
-
-	        var maxValue = 0, maxIndex = 0;
-	        for (j = 0; j < count; j++) {
-	            if (itemCount[j] > maxValue) {
-	                maxValue = itemCount[j];
-	                maxIndex = j;
-	            }
-	        }
-
-	        modes[i] = itemArray[maxIndex];
-	    }
-	    return modes;
-	}
-
-	function skewness(matrix, unbiased) {
-	    if (typeof(unbiased) === 'undefined') unbiased = true;
-	    var means = mean(matrix);
-	    var n = matrix.length, l = means.length;
-	    var skew = new Array(l);
-
-	    for (var j = 0; j < l; j++) {
-	        var s2 = 0, s3 = 0;
-	        for (var i = 0; i < n; i++) {
-	            var dev = matrix[i][j] - means[j];
-	            s2 += dev * dev;
-	            s3 += dev * dev * dev;
-	        }
-
-	        var m2 = s2 / n;
-	        var m3 = s3 / n;
-	        var g = m3 / Math.pow(m2, 3 / 2);
-
-	        if (unbiased) {
-	            var a = Math.sqrt(n * (n - 1));
-	            var b = n - 2;
-	            skew[j] = (a / b) * g;
-	        } else {
-	            skew[j] = g;
-	        }
-	    }
-	    return skew;
-	}
-
-	function kurtosis(matrix, unbiased) {
-	    if (typeof(unbiased) === 'undefined') unbiased = true;
-	    var means = mean(matrix);
-	    var n = matrix.length, m = matrix[0].length;
-	    var kurt = new Array(m);
-
-	    for (var j = 0; j < m; j++) {
-	        var s2 = 0, s4 = 0;
-	        for (var i = 0; i < n; i++) {
-	            var dev = matrix[i][j] - means[j];
-	            s2 += dev * dev;
-	            s4 += dev * dev * dev * dev;
-	        }
-	        var m2 = s2 / n;
-	        var m4 = s4 / n;
-
-	        if (unbiased) {
-	            var v = s2 / (n - 1);
-	            var a = (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3));
-	            var b = s4 / (v * v);
-	            var c = ((n - 1) * (n - 1)) / ((n - 2) * (n - 3));
-	            kurt[j] = a * b - 3 * c;
-	        } else {
-	            kurt[j] = m4 / (m2 * m2) - 3;
-	        }
-	    }
-	    return kurt;
-	}
-
-	function standardError(matrix) {
-	    var samples = matrix.length;
-	    var standardDeviations = standardDeviation(matrix), l = standardDeviations.length;
-	    var standardErrors = new Array(l);
-	    var sqrtN = Math.sqrt(samples);
-
-	    for (var i = 0; i < l; i++) {
-	        standardErrors[i] = standardDeviations[i] / sqrtN;
-	    }
-	    return standardErrors;
-	}
-
-	function covariance(matrix, dimension) {
-	    return scatter(matrix, undefined, dimension);
-	}
-
-	function scatter(matrix, divisor, dimension) {
-	    if (typeof(dimension) === 'undefined') {
-	        dimension = 0;
-	    }
-	    if (typeof(divisor) === 'undefined') {
-	        if (dimension === 0) {
-	            divisor = matrix.length - 1;
-	        } else if (dimension === 1) {
-	            divisor = matrix[0].length - 1;
-	        }
-	    }
-	    var means = mean(matrix, dimension),
-	        rows = matrix.length;
-	    if (rows === 0) {
-	        return [[]];
-	    }
-	    var cols = matrix[0].length,
-	        cov, i, j, s, k;
-
-	    if (dimension === 0) {
-	        cov = new Array(cols);
-	        for (i = 0; i < cols; i++) {
-	            cov[i] = new Array(cols);
-	        }
-	        for (i = 0; i < cols; i++) {
-	            for (j = i; j < cols; j++) {
-	                s = 0;
-	                for (k = 0; k < rows; k++) {
-	                    s += (matrix[k][j] - means[j]) * (matrix[k][i] - means[i]);
-	                }
-	                s /= divisor;
-	                cov[i][j] = s;
-	                cov[j][i] = s;
-	            }
-	        }
-	    } else if (dimension === 1) {
-	        cov = new Array(rows);
-	        for (i = 0; i < rows; i++) {
-	            cov[i] = new Array(rows);
-	        }
-	        for (i = 0; i < rows; i++) {
-	            for (j = i; j < rows; j++) {
-	                s = 0;
-	                for (k = 0; k < cols; k++) {
-	                    s += (matrix[j][k] - means[j]) * (matrix[i][k] - means[i]);
-	                }
-	                s /= divisor;
-	                cov[i][j] = s;
-	                cov[j][i] = s;
-	            }
-	        }
-	    } else {
-	        throw new Error('Invalid dimension');
-	    }
-
-	    return cov;
-	}
-
-	function correlation(matrix) {
-	    var means = mean(matrix),
-	        standardDeviations = standardDeviation(matrix, true, means),
-	        scores = zScores(matrix, means, standardDeviations),
-	        rows = matrix.length,
-	        cols = matrix[0].length,
-	        i, j;
-
-	    var cor = new Array(cols);
-	    for (i = 0; i < cols; i++) {
-	        cor[i] = new Array(cols);
-	    }
-	    for (i = 0; i < cols; i++) {
-	        for (j = i; j < cols; j++) {
-	            var c = 0;
-	            for (var k = 0, l = scores.length; k < l; k++) {
-	                c += scores[k][j] * scores[k][i];
-	            }
-	            c /= rows - 1;
-	            cor[i][j] = c;
-	            cor[j][i] = c;
-	        }
-	    }
-	    return cor;
-	}
-
-	function zScores(matrix, means, standardDeviations) {
-	    means = means || mean(matrix);
-	    if (typeof(standardDeviations) === 'undefined') standardDeviations = standardDeviation(matrix, true, means);
-	    return standardize(center(matrix, means, false), standardDeviations, true);
-	}
-
-	function center(matrix, means, inPlace) {
-	    means = means || mean(matrix);
-	    var result = matrix,
-	        l = matrix.length,
-	        i, j, jj;
-
-	    if (!inPlace) {
-	        result = new Array(l);
-	        for (i = 0; i < l; i++) {
-	            result[i] = new Array(matrix[i].length);
-	        }
-	    }
-
-	    for (i = 0; i < l; i++) {
-	        var row = result[i];
-	        for (j = 0, jj = row.length; j < jj; j++) {
-	            row[j] = matrix[i][j] - means[j];
-	        }
-	    }
-	    return result;
-	}
-
-	function standardize(matrix, standardDeviations, inPlace) {
-	    if (typeof(standardDeviations) === 'undefined') standardDeviations = standardDeviation(matrix);
-	    var result = matrix,
-	        l = matrix.length,
-	        i, j, jj;
-
-	    if (!inPlace) {
-	        result = new Array(l);
-	        for (i = 0; i < l; i++) {
-	            result[i] = new Array(matrix[i].length);
-	        }
-	    }
-
-	    for (i = 0; i < l; i++) {
-	        var resultRow = result[i];
-	        var sourceRow = matrix[i];
-	        for (j = 0, jj = resultRow.length; j < jj; j++) {
-	            if (standardDeviations[j] !== 0 && !isNaN(standardDeviations[j])) {
-	                resultRow[j] = sourceRow[j] / standardDeviations[j];
-	            }
-	        }
-	    }
-	    return result;
-	}
-
-	function weightedVariance(matrix, weights) {
-	    var means = mean(matrix);
-	    var rows = matrix.length;
-	    if (rows === 0) return [];
-	    var cols = matrix[0].length;
-	    var vari = new Array(cols);
-
-	    for (var j = 0; j < cols; j++) {
-	        var sum = 0;
-	        var a = 0, b = 0;
-
-	        for (var i = 0; i < rows; i++) {
-	            var z = matrix[i][j] - means[j];
-	            var w = weights[i];
-
-	            sum += w * (z * z);
-	            b += w;
-	            a += w * w;
-	        }
-
-	        vari[j] = sum * (b / (b * b - a));
-	    }
-
-	    return vari;
-	}
-
-	function weightedMean(matrix, weights, dimension) {
-	    if (typeof(dimension) === 'undefined') {
-	        dimension = 0;
-	    }
-	    var rows = matrix.length;
-	    if (rows === 0) return [];
-	    var cols = matrix[0].length,
-	        means, i, ii, j, w, row;
-
-	    if (dimension === 0) {
-	        means = new Array(cols);
-	        for (i = 0; i < cols; i++) {
-	            means[i] = 0;
-	        }
-	        for (i = 0; i < rows; i++) {
-	            row = matrix[i];
-	            w = weights[i];
-	            for (j = 0; j < cols; j++) {
-	                means[j] += row[j] * w;
-	            }
-	        }
-	    } else if (dimension === 1) {
-	        means = new Array(rows);
-	        for (i = 0; i < rows; i++) {
-	            means[i] = 0;
-	        }
-	        for (j = 0; j < rows; j++) {
-	            row = matrix[j];
-	            w = weights[j];
-	            for (i = 0; i < cols; i++) {
-	                means[j] += row[i] * w;
-	            }
-	        }
-	    } else {
-	        throw new Error('Invalid dimension');
-	    }
-
-	    var weightSum = arrayStat.sum(weights);
-	    if (weightSum !== 0) {
-	        for (i = 0, ii = means.length; i < ii; i++) {
-	            means[i] /= weightSum;
-	        }
-	    }
-	    return means;
-	}
-
-	function weightedCovariance(matrix, weights, means, dimension) {
-	    dimension = dimension || 0;
-	    means = means || weightedMean(matrix, weights, dimension);
-	    var s1 = 0, s2 = 0;
-	    for (var i = 0, ii = weights.length; i < ii; i++) {
-	        s1 += weights[i];
-	        s2 += weights[i] * weights[i];
-	    }
-	    var factor = s1 / (s1 * s1 - s2);
-	    return weightedScatter(matrix, weights, means, factor, dimension);
-	}
-
-	function weightedScatter(matrix, weights, means, factor, dimension) {
-	    dimension = dimension || 0;
-	    means = means || weightedMean(matrix, weights, dimension);
-	    if (typeof(factor) === 'undefined') {
-	        factor = 1;
-	    }
-	    var rows = matrix.length;
-	    if (rows === 0) {
-	        return [[]];
-	    }
-	    var cols = matrix[0].length,
-	        cov, i, j, k, s;
-
-	    if (dimension === 0) {
-	        cov = new Array(cols);
-	        for (i = 0; i < cols; i++) {
-	            cov[i] = new Array(cols);
-	        }
-	        for (i = 0; i < cols; i++) {
-	            for (j = i; j < cols; j++) {
-	                s = 0;
-	                for (k = 0; k < rows; k++) {
-	                    s += weights[k] * (matrix[k][j] - means[j]) * (matrix[k][i] - means[i]);
-	                }
-	                cov[i][j] = s * factor;
-	                cov[j][i] = s * factor;
-	            }
-	        }
-	    } else if (dimension === 1) {
-	        cov = new Array(rows);
-	        for (i = 0; i < rows; i++) {
-	            cov[i] = new Array(rows);
-	        }
-	        for (i = 0; i < rows; i++) {
-	            for (j = i; j < rows; j++) {
-	                s = 0;
-	                for (k = 0; k < cols; k++) {
-	                    s += weights[k] * (matrix[j][k] - means[j]) * (matrix[i][k] - means[i]);
-	                }
-	                cov[i][j] = s * factor;
-	                cov[j][i] = s * factor;
-	            }
-	        }
-	    } else {
-	        throw new Error('Invalid dimension');
-	    }
-
-	    return cov;
-	}
-
-	module.exports = {
-	    entropy: entropy,
-	    mean: mean,
-	    standardDeviation: standardDeviation,
-	    variance: variance,
-	    median: median,
-	    mode: mode,
-	    skewness: skewness,
-	    kurtosis: kurtosis,
-	    standardError: standardError,
-	    covariance: covariance,
-	    scatter: scatter,
-	    correlation: correlation,
-	    zScores: zScores,
-	    center: center,
-	    standardize: standardize,
-	    weightedVariance: weightedVariance,
-	    weightedMean: weightedMean,
-	    weightedCovariance: weightedCovariance,
-	    weightedScatter: weightedScatter
-	};
-
-
-/***/ },
-/* 42 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	exports.FFTUtils = __webpack_require__(43);
-	exports.FFT = __webpack_require__(44);
-
-
-/***/ },
-/* 43 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var FFT = __webpack_require__(44);
+	var FFT = __webpack_require__(42);
 
 	var FFTUtils= {
 	    DEBUG : false,
@@ -15111,7 +14067,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -15348,27 +14304,29 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 45 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
 	/**
 	 * Created by abol on 4/20/16.
 	 */
-	module.exports.fourierTransform = __webpack_require__(46);
-	module.exports.zeroFilling = __webpack_require__(47);
-	module.exports.apodization = __webpack_require__(48);
-	module.exports.phaseCorrection = __webpack_require__(49);
-	module.exports.digitalFilter = __webpack_require__(50);
+	module.exports.fourierTransform = __webpack_require__(44);
+	module.exports.zeroFilling = __webpack_require__(45);
+	module.exports.apodization = __webpack_require__(46);
+	module.exports.phaseCorrection = __webpack_require__(47);
+	module.exports.digitalFilter = __webpack_require__(48);
 
 
 /***/ },
-/* 46 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
 	/**
 	 * Created by abol on 4/20/16.
 	 */
-	var fft = __webpack_require__(42);
+	var fft = __webpack_require__(40);
 
 	function fourierTransform(spectraData){
 	    //console.log(spectraData);
@@ -15408,6 +14366,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	        spectraData.setActiveElement(2 * iSubSpectra + 1);
 	        updateSpectra(spectraData, spectraType);
 	    }
+	    //TODO For Alejandro
+	    //Now we can try to apply the FFt on the second dimension
+	    if(spectraData.is2D()){
+	        var mode = spectraData.getParam(".ACQUISITION SCHEME");
+	        switch(mode){
+	            case 1://"State-TPP"
+	                break;
+	            case 2://State
+	                break;
+	            case 3://Echo-Antiecho
+	                break;
+	            defaut:
+	                //QF
+	                //Does not transform in the indirect dimension
+	            break;
+
+	        }
+	    }
 	    spectraData.setActiveElement(0);
 	    return spectraData;
 	}
@@ -15438,9 +14414,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = fourierTransform;
 
 /***/ },
-/* 47 */
+/* 45 */
 /***/ function(module, exports) {
 
+	'use strict';
 	/**
 	 * Created by abol on 4/20/16.
 	 */
@@ -15476,9 +14453,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = zeroFilling;
 
 /***/ },
-/* 48 */
+/* 46 */
 /***/ function(module, exports) {
 
+	'use strict';
 	/**
 	 * Created by acastillo on 4/26/16.
 	 */
@@ -15509,9 +14487,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = apodization;
 
 /***/ },
-/* 49 */
+/* 47 */
 /***/ function(module, exports) {
 
+	'use strict';
 	/**
 	 * Created by acastillo on 4/26/16.
 	 */
@@ -15566,13 +14545,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = phaseCorrection;
 
 /***/ },
-/* 50 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
 	/**
 	 * Created by acastillo on 4/26/16.
 	 */
-	var rotate = __webpack_require__(51);
+	var rotate = __webpack_require__(49);
 
 	function digitalFilter(spectraData, options){
 	    var nbPoints = 0;
@@ -15606,9 +14586,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = digitalFilter;
 
 /***/ },
-/* 51 */
+/* 49 */
 /***/ function(module, exports) {
 
+	'use strict';
 	/**
 	 * Created by acastillo on 4/26/16.
 	 */
@@ -15670,13 +14651,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	console.log(foo);*/
 
 /***/ },
-/* 52 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
+
 	var SD = __webpack_require__(1);
-	var PeakPicking2D = __webpack_require__(53);
-	var PeakOptimizer = __webpack_require__(54);
+	var peakPicking2D = __webpack_require__(51);
+	var PeakOptimizer = __webpack_require__(52);
 	var JcampConverter=__webpack_require__(3);
+	var stat = __webpack_require__(36);
 
 	/**
 	 * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
@@ -15806,7 +14790,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if(options.idPrefix){
 	        id=options.idPrefix;
 	    }
-	    var peakList = PeakPicking2D.findPeaks2D(this, options.thresholdFactor);
+	    var peakList = peakPicking2D(this, options.thresholdFactor);
 
 	    //lets add an unique ID for each peak.
 	    for(var i=0;i<peakList.length;i++){
@@ -15815,6 +14799,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    if(options.references)
 	        PeakOptimizer.alignDimensions(peakList,options.references);
+
+	    if(options.format==="new"){
+	        var newSignals = new Array(peakList.length);
+	        var minMax1, minMax2;
+	        for(var k=peakList.length-1;k>=0;k--){
+	            var signal = peakList[k];
+	            newSignals[k]={
+	                fromTo:signal.fromTo,
+	                integral:signal.intensity||1,
+	                remark:"",
+	                signal:[{
+	                    peak:signal.peaks,
+	                    delta:[signal.shiftX, signal.shiftY]
+	                }],
+	                _highlight:signal._highlight,
+	                signalID:signal.signalID,
+	            };
+	        }
+	        peakList = newSignals;
+	    }
+
 
 	    return peakList;
 	}
@@ -15847,371 +14852,455 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return this.sd.xType;
 	}
 
+
+	/**
+	 * @function zeroFilling(nPointsX [,nPointsY])
+	 * This function increase the size of the spectrum, filling the new positions with zero values. Doing it one
+	 * could increase artificially the spectral resolution.
+	 * @param nPointsX Number of new zero points in the direct dimension
+	 * @param nPointsY Number of new zero points in the indirect dimension
+	 * @returns this object
+	 */
+	NMR2D.prototype.zeroFilling=function(nPointsX, nPointsY) {
+	    return Filters.zeroFilling(this,nPointsX, nPointsY);
+	}
+
+	/**
+	 * @function brukerFilter()
+	 * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
+	 * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
+	 * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
+	 * @returns this object
+	 */
+	NMR2D.prototype.brukerFilter=function() {
+	    return Filters.digitalFilter(this, {"brukerFilter":true});
+	}
+
+	/**
+	 * @function digitalFilter(options)
+	 * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
+	 * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
+	 * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
+	 * @option nbPoints: The number of points to shift. Positive values will shift the values to the rigth
+	 * and negative values will do to the left.
+	 * @option brukerSpectra
+	 * @returns this object
+	 */
+	NMR2D.prototype.digitalFilter=function(options) {
+	    return Filters.digitalFilter(this, options);
+	}
+
+
+	/**
+	 * @function fourierTransform()
+	 * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be of type NMR_FID or 2DNMR_FID
+	 * @returns this object
+	 */
+	NMR2D.prototype.fourierTransform=function( ) {
+	    return Filters.fourierTransform(this);
+	}
+
+	/**
+	 * @function postFourierTransform(ph1corr)
+	 * This filter makes an phase 1 correction that corrects the problem of the spectra that has been obtained
+	 * on spectrometers using the Bruker digital filters. This method is used in cases when the BrukerSpectra
+	 * filter could not find the correct number of points to perform a circular shift.
+	 * The actual problem is that not all of the spectra has the necessary parameters for use only one method for
+	 * correcting the problem of the Bruker digital filters.
+	 * @param spectraData A fourier transformed spectraData.
+	 * @param ph1corr Phase 1 correction value in radians.
+	 * @returns this object
+	 */
+	NMR2D.prototype.postFourierTransform=function(ph1corr) {
+	    return Filters.phaseCorrection(0,ph1corr);
+	}
+
 	module.exports = NMR2D;
 
 
 /***/ },
-/* 53 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var lib = __webpack_require__(42);
-	var PeakOptimizer = __webpack_require__(54);
-	var SimpleClustering =  __webpack_require__(55);
+	'use strict';
+
+	var lib = __webpack_require__(40);
+	var PeakOptimizer = __webpack_require__(52);
+	var SimpleClustering =  __webpack_require__(53);
 	var StatArray = __webpack_require__(2);
 	var FFTUtils = lib.FFTUtils;
 
-	var PeakPicking2D= {
-	    DEBUG : false,
-	    smallFilter : [
-	        [0, 0, 1, 2, 2, 2, 1, 0, 0],
-	        [0, 1, 4, 7, 7, 7, 4, 1, 0],
-	        [1, 4, 5, 3, 0, 3, 5, 4, 1],
-	        [2, 7, 3, -12, -23, -12, 3, 7, 2],
-	        [2, 7, 0, -23, -40, -23, 0, 7, 2],
-	        [2, 7, 3, -12, -23, -12, 3, 7, 2],
-	        [1, 4, 5, 3, 0, 3, 5, 4, 1],
-	        [0, 1, 3, 7, 7, 7, 3, 1, 0],
-	        [0, 0, 1, 2, 2, 2, 1, 0, 0]],
+	const DEBUG = false;
+	const smallFilter = [
+	    [0, 0, 1, 2, 2, 2, 1, 0, 0],
+	    [0, 1, 4, 7, 7, 7, 4, 1, 0],
+	    [1, 4, 5, 3, 0, 3, 5, 4, 1],
+	    [2, 7, 3, -12, -23, -12, 3, 7, 2],
+	    [2, 7, 0, -23, -40, -23, 0, 7, 2],
+	    [2, 7, 3, -12, -23, -12, 3, 7, 2],
+	    [1, 4, 5, 3, 0, 3, 5, 4, 1],
+	    [0, 1, 3, 7, 7, 7, 3, 1, 0],
+	    [0, 0, 1, 2, 2, 2, 1, 0, 0]];
 
+	module.exports  = function(spectraData, thresholdFactor){
+	    if(thresholdFactor==0)
+	        thresholdFactor=1;
+	    if(thresholdFactor<0)
+	        thresholdFactor=-thresholdFactor;
+	    var nbPoints = spectraData.getNbPoints();
+	    var nbSubSpectra = spectraData.getNbSubSpectra();
 
-	    //How noisy is the spectrum depending on the kind of experiment.
-	    getLoGnStdDevNMR : function(spectraData) {
-	    if (spectraData.isHomoNuclear())
-	        return 1.5
-	    else
-	        return 3;
-	    },
+	    var data = new Array(nbPoints * nbSubSpectra);
+	    //var data = new Array(nbPoints * nbSubSpectra/2);
 
-	    findPeaks2D : function(spectraData, thresholdFactor){
-	        if(thresholdFactor==0)
-	            thresholdFactor=1;
-	        if(thresholdFactor<0)
-	            thresholdFactor=-thresholdFactor;
-	        var nbPoints = spectraData.getNbPoints();
-	        var nbSubSpectra = spectraData.getNbSubSpectra();
+	    var isHomonuclear = spectraData.isHomoNuclear();
 
-	        var data = new Array(nbPoints * nbSubSpectra);
-	        //var data = new Array(nbPoints * nbSubSpectra/2);
+	    //var sum = new Array(nbPoints);
 
-	        var isHomonuclear = spectraData.isHomoNuclear();
-
-	        //var sum = new Array(nbPoints);
-
-	        for (var iSubSpectra = 0; iSubSpectra < nbSubSpectra; iSubSpectra++) {
-	            var spectrum = spectraData.getYData(iSubSpectra);
-	            for (var iCol = 0; iCol < nbPoints; iCol++) {
-	                if(isHomonuclear){
-	                    data[iSubSpectra * nbPoints + iCol] =(spectrum[iCol]>0?spectrum[iCol]:0);
-	                }
-	                else{
-	                    data[iSubSpectra * nbPoints + iCol] =Math.abs(spectrum[iCol]);
-	                }
+	    for (var iSubSpectra = 0; iSubSpectra < nbSubSpectra; iSubSpectra++) {
+	        var spectrum = spectraData.getYData(iSubSpectra);
+	        for (var iCol = 0; iCol < nbPoints; iCol++) {
+	            if(isHomonuclear){
+	                data[iSubSpectra * nbPoints + iCol] =(spectrum[iCol]>0?spectrum[iCol]:0);
+	            }
+	            else{
+	                data[iSubSpectra * nbPoints + iCol] =Math.abs(spectrum[iCol]);
 	            }
 	        }
+	    }
 
-	        var nStdDev = this.getLoGnStdDevNMR(spectraData);
-	        if(isHomonuclear){
-	            var convolutedSpectrum = this.convoluteWithLoG(data, nbSubSpectra, nbPoints);
-	            var peaksMC1 = this.findPeaks2DLoG(data, convolutedSpectrum, nbSubSpectra, nbPoints, nStdDev*thresholdFactor);//)1.5);
-	            var peaksMax1 = this.findPeaks2DMax(data, convolutedSpectrum, nbSubSpectra, nbPoints, (nStdDev+0.5)*thresholdFactor);//2.0);
-	            for(var i=0;i<peaksMC1.length;i++)
-	                peaksMax1.push(peaksMC1[i]);
-	            //console.log(peaksMax1);
-	            return PeakOptimizer.enhanceSymmetry(this.createSignals2D(peaksMax1,spectraData,24));
+	    var nStdDev = getLoGnStdDevNMR(spectraData);
+	    if(isHomonuclear){
+	        var convolutedSpectrum = convoluteWithLoG(data, nbSubSpectra, nbPoints);
+	        var peaksMC1 = findPeaks2DLoG(data, convolutedSpectrum, nbSubSpectra, nbPoints, nStdDev*thresholdFactor);//)1.5);
+	        var peaksMax1 = findPeaks2DMax(data, convolutedSpectrum, nbSubSpectra, nbPoints, (nStdDev+0.5)*thresholdFactor);//2.0);
+	        for(var i=0;i<peaksMC1.length;i++)
+	            peaksMax1.push(peaksMC1[i]);
+	        //console.log(peaksMax1);
+	        return PeakOptimizer.enhanceSymmetry(createSignals2D(peaksMax1,spectraData,24));
 
+	    }
+	    else{
+	        var convolutedSpectrum = convoluteWithLoG(data, nbSubSpectra, nbPoints);
+	        var peaksMC1 = findPeaks2DLoG(data, convolutedSpectrum, nbSubSpectra, nbPoints, nStdDev*thresholdFactor);
+	        //Peak2D[] peaksMC1 = PeakPicking2D.findPeaks2DMax(data, nbSubSpectra, nbPoints, (nStdDev+0.5)*thresholdFactor);
+	        //Remove peaks with less than 3% of the intensity of the highest peak
+	        return createSignals2D(PeakOptimizer.clean(peaksMC1, 0.05), spectraData,24);
+	    }
+
+	}
+
+	/**
+	 Calculates the 1st derivative of the 2D matrix, using the LoG kernel approximation
+	 */
+	 function convoluteWithLoG(inputSpectrum, nRows, nCols){
+	    var ftSpectrum = new Array(nCols * nRows);
+	    for (var i = nRows * nCols-1; i >=0; i--){
+	        ftSpectrum[i] = inputSpectrum[i];
+	    }
+
+	    ftSpectrum = FFTUtils.fft2DArray(ftSpectrum, nRows, nCols);
+
+	    var dim = smallFilter.length;
+	    var ftFilterData = new Array(nCols * nRows);
+	    for(var i=nCols * nRows-1;i>=0;i--){
+	        ftFilterData[i]=0;
+	    }
+
+	    var iRow, iCol;
+	    var shift = (dim - 1) / 2;
+	    //console.log(dim);
+	    for (var ir = 0; ir < dim; ir++) {
+	        iRow = (ir - shift + nRows) % nRows;
+	        for (var ic = 0; ic < dim; ic++) {
+	            iCol = (ic - shift + nCols) % nCols;
+	            ftFilterData[iRow * nCols + iCol] = smallFilter[ir][ic];
 	        }
-	        else{
-	            var convolutedSpectrum = this.convoluteWithLoG(data, nbSubSpectra, nbPoints);
-	            var peaksMC1 = this.findPeaks2DLoG(data, convolutedSpectrum, nbSubSpectra, nbPoints, nStdDev*thresholdFactor);
-	            //Peak2D[] peaksMC1 = PeakPicking2D.findPeaks2DMax(data, nbSubSpectra, nbPoints, (nStdDev+0.5)*thresholdFactor);
-	            //Remove peaks with less than 3% of the intensity of the highest peak
-	            return this.createSignals2D(PeakOptimizer.clean(peaksMC1, 0.05), spectraData,24);
+	    }
+
+	    ftFilterData = FFTUtils.fft2DArray(ftFilterData, nRows, nCols);
+
+	    var ftRows = nRows * 2;
+	    var ftCols = nCols / 2 + 1;
+	    FFTUtils.convolute2DI(ftSpectrum, ftFilterData, ftRows, ftCols);
+
+	    return  FFTUtils.ifft2DArray(ftSpectrum, ftRows, ftCols);
+	}
+	/**
+	 Detects all the 2D-peaks in the given spectrum based on center of mass logic.
+	 */
+	function findPeaks2DLoG(inputSpectrum, convolutedSpectrum, nRows, nCols, nStdDev) {
+	    var threshold = 0;
+	    for(var i=nCols*nRows-2;i>=0;i--)
+	        threshold+=Math.pow(convolutedSpectrum[i]-convolutedSpectrum[i+1],2);
+	    threshold=-Math.sqrt(threshold);
+	    threshold*=nStdDev/nRows;
+
+	    var bitmask = new Array(nCols * nRows);
+	    for(var i=nCols * nRows-1;i>=0;i--){
+	        bitmask[i]=0;
+	    }
+	    var nbDetectedPoints = 0;
+	    var lasti=-1;
+	    for (var i = convolutedSpectrum.length-1; i >=0 ; i--) {
+	        if (convolutedSpectrum[i] < threshold) {
+	            bitmask[i] = 1;
+	            nbDetectedPoints++;
 	        }
+	    }
+	    var iStart = 0;
+	    //int ranges = 0;
+	    var peakList = [];
 
-	    },
-	    /**
-	     Calculates the 1st derivative of the 2D matrix, using the LoG kernel approximation
-	     */
-	    convoluteWithLoG : function(inputSpectrum, nRows, nCols){
-	        var ftSpectrum = new Array(nCols * nRows);
-	        for (var i = nRows * nCols-1; i >=0; i--){
-	            ftSpectrum[i] = inputSpectrum[i];
-	        }
+	    while (nbDetectedPoints != 0) {
+	        for (iStart; iStart < bitmask.length && bitmask[iStart]==0; iStart++){};
+	        //
+	        if (iStart == bitmask.length)
+	            break;
 
-	        ftSpectrum = FFTUtils.fft2DArray(ftSpectrum, nRows, nCols);
+	        nbDetectedPoints -= extractArea(inputSpectrum, convolutedSpectrum,
+	            bitmask, iStart, nRows, nCols, peakList, threshold);
+	    }
 
-	        var dim = this.smallFilter.length;
-	        var ftFilterData = new Array(nCols * nRows);
-	        for(var i=nCols * nRows-1;i>=0;i--){
-	            ftFilterData[i]=0;
-	        }
+	    if (peakList.length > 0&&DEBUG) {
+	        console.log("No peak found");
+	    }
+	    return peakList;
+	}
+	/**
+	 Detects all the 2D-peaks in the given spectrum based on the Max logic.
+	 */
+	function findPeaks2DMax(inputSpectrum, cs, nRows, nCols, nStdDev) {
+	    var threshold = 0;
+	    for(var i=nCols*nRows-2;i>=0;i--)
+	        threshold+=Math.pow(cs[i]-cs[i+1],2);
+	    threshold=-Math.sqrt(threshold);
+	    threshold*=nStdDev/nRows;
 
-	        var iRow, iCol;
-	        var shift = (dim - 1) / 2;
-	        //console.log(dim);
-	        for (var ir = 0; ir < dim; ir++) {
-	            iRow = (ir - shift + nRows) % nRows;
-	            for (var ic = 0; ic < dim; ic++) {
-	                iCol = (ic - shift + nCols) % nCols;
-	                ftFilterData[iRow * nCols + iCol] = this.smallFilter[ir][ic];
-	            }
-	        }
-
-	        ftFilterData = FFTUtils.fft2DArray(ftFilterData, nRows, nCols);
-
-	        var ftRows = nRows * 2;
-	        var ftCols = nCols / 2 + 1;
-	        FFTUtils.convolute2DI(ftSpectrum, ftFilterData, ftRows, ftCols);
-
-	        return  FFTUtils.ifft2DArray(ftSpectrum, ftRows, ftCols);
-	    },
-	    /**
-	     Detects all the 2D-peaks in the given spectrum based on center of mass logic.
-	     */
-	    findPeaks2DLoG : function(inputSpectrum, convolutedSpectrum, nRows, nCols, nStdDev) {
-	        var threshold = 0;
-	        for(var i=nCols*nRows-2;i>=0;i--)
-	            threshold+=Math.pow(convolutedSpectrum[i]-convolutedSpectrum[i+1],2);
-	        threshold=-Math.sqrt(threshold);
-	        threshold*=nStdDev/nRows;
-
-	        var bitmask = new Array(nCols * nRows);
-	        for(var i=nCols * nRows-1;i>=0;i--){
-	            bitmask[i]=0;
-	        }
-	        var nbDetectedPoints = 0;
-	        var lasti=-1;
-	        for (var i = convolutedSpectrum.length-1; i >=0 ; i--) {
-	            if (convolutedSpectrum[i] < threshold) {
-	                bitmask[i] = 1;
-	                nbDetectedPoints++;
-	            }
-	        }
-	        var iStart = 0;
-	        //int ranges = 0;
-	        var peakList = [];
-
-	        while (nbDetectedPoints != 0) {
-	            for (iStart; iStart < bitmask.length && bitmask[iStart]==0; iStart++){};
-	            //
-	            if (iStart == bitmask.length)
-	                break;
-
-	            nbDetectedPoints -= this.extractArea(inputSpectrum, convolutedSpectrum,
-	                bitmask, iStart, nRows, nCols, peakList, threshold);
-	        }
-
-	        if (peakList.length > 0&&this.DEBUG) {
-	            console.log("No peak found");
-	        }
-	        return peakList;
-	    },
-	    /**
-	     Detects all the 2D-peaks in the given spectrum based on the Max logic.
-	     */
-	    findPeaks2DMax : function(inputSpectrum, cs, nRows, nCols, nStdDev) {
-	        var threshold = 0;
-	        for(var i=nCols*nRows-2;i>=0;i--)
-	            threshold+=Math.pow(cs[i]-cs[i+1],2);
-	        threshold=-Math.sqrt(threshold);
-	        threshold*=nStdDev/nRows;
-
-	        var rowI,colI;
-	        var peakListMax = [];
-	        var tmpIndex = 0;
-	        for (var i = 0; i < cs.length; i++) {
-	            if (cs[i] < threshold) {
-	                //It is a peak?
-	                rowI=Math.floor(i/nCols);
-	                colI=i%nCols;
-	                //Verifies if this point is a peak;
-	                if(rowI>0&&rowI+1<nRows&&colI+1<nCols&&colI>0){
-	                    //It is the minimum in the same row
-	                    if(cs[i]<cs[i+1]&&cs[i]<cs[i-1]){
-	                        //It is the minimum in the previous row
-	                        tmpIndex=(rowI-1)*nCols+colI;
+	    var rowI,colI;
+	    var peakListMax = [];
+	    var tmpIndex = 0;
+	    for (var i = 0; i < cs.length; i++) {
+	        if (cs[i] < threshold) {
+	            //It is a peak?
+	            rowI=Math.floor(i/nCols);
+	            colI=i%nCols;
+	            //Verifies if this point is a peak;
+	            if(rowI>0&&rowI+1<nRows&&colI+1<nCols&&colI>0){
+	                //It is the minimum in the same row
+	                if(cs[i]<cs[i+1]&&cs[i]<cs[i-1]){
+	                    //It is the minimum in the previous row
+	                    tmpIndex=(rowI-1)*nCols+colI;
+	                    if(cs[i]<cs[tmpIndex-1]&&cs[i]<cs[tmpIndex]&&cs[i]<cs[tmpIndex+1]){
+	                        //It is the minimum in the next row
+	                        tmpIndex=(rowI+1)*nCols+colI;
 	                        if(cs[i]<cs[tmpIndex-1]&&cs[i]<cs[tmpIndex]&&cs[i]<cs[tmpIndex+1]){
-	                            //It is the minimum in the next row
-	                            tmpIndex=(rowI+1)*nCols+colI;
-	                            if(cs[i]<cs[tmpIndex-1]&&cs[i]<cs[tmpIndex]&&cs[i]<cs[tmpIndex+1]){
-	                                peakListMax.push({x:colI,y:rowI,z:inputSpectrum[i]});
-	                            }
+	                            peakListMax.push({x:colI,y:rowI,z:inputSpectrum[i]});
 	                        }
 	                    }
 	                }
 	            }
 	        }
-	        return peakListMax;
-	    },
-	    /*
-	     This function detects the peaks
-	     */
-	    extractArea : function(spectrum, convolutedSpectrum, bitmask, iStart,
-	                                                   nRows, nCols, peakList, threshold) {
-	        var iRow = Math.floor(iStart / nCols);
-	        var iCol = iStart % nCols;
-	        var peakPoints =[];
-	        //console.log(iStart+" "+iRow+" "+iCol);
-	        // scanBitmask(bitmask, convolutedSpectrum, nRows, nCols, iRow, iCol,
-	        // peakPoints);
-	        this.scanBitmask(bitmask, nRows, nCols, iRow, iCol, peakPoints);
-	        //console.log("extractArea.lng "+peakPoints.length);
-	        var x = new Array(peakPoints.length);
-	        var y = new Array(peakPoints.length);
-	        var z = new Array(peakPoints.length);
-	        var nValues = peakPoints.length;
-	        var xAverage = 0.0;
-	        var yAverage = 0.0;
-	        var zSum = 0.0;
-	        if (nValues >= 9) {
-	            if (this.DEBUG)
-	                console.log("nValues=" + nValues);
-	            var maxValue = Number.NEGATIVE_INFINITY;
-	            var maxIndex = -1;
-	            for (var i = 0; i < nValues; i++) {
-	                var pt = (peakPoints.splice(0,1))[0];
-	                x[i] = pt[0];
-	                y[i] = pt[1];
-	                z[i] = spectrum[pt[1] * nCols + pt[0]];
-	                xAverage += x[i] * z[i];
-	                yAverage += y[i] * z[i];
-	                zSum += z[i];
-	                if (z[i] > maxValue) {
-	                    maxValue = z[i];
-	                    maxIndex = i;
-	                }
-	            }
-	            if (maxIndex != -1) {
-	                xAverage /= zSum;
-	                yAverage /= zSum;
-	                var newPeak = {x:xAverage, y:yAverage, z:zSum};
-	                var minmax;
-	                minmax =StatArray.minMax(x);
-	                newPeak.minX=minmax.min;
-	                newPeak.maxX=minmax.max;
-	                minmax = StatArray.minMax(y);
-	                newPeak.minY=minmax.min;
-	                newPeak.maxY=minmax.max;
-	                peakList.push(newPeak);
-	            }
-	        }
-	        return nValues;
-	    },
-	    /*
-	     Return all the peaks(x,y points) that composes a signal.
-	     */
-	    scanBitmask : function(bitmask, nRows, nCols, iRow, iCol, peakPoints) {
-	        //console.log(nRows+" "+iRow+" "+nCols+" "+iCol);
-	        if (iRow < 0 || iCol < 0 || iCol == nCols || iRow == nRows)
-	            return;
-	        if (bitmask[iRow * nCols + iCol]) {
-	            bitmask[iRow * nCols + iCol] = 0;
-	            peakPoints.push([iCol, iRow]);
-	            this.scanBitmask(bitmask, nRows, nCols, iRow + 1, iCol, peakPoints);
-	            this.scanBitmask(bitmask, nRows, nCols, iRow - 1, iCol, peakPoints);
-	            this.scanBitmask(bitmask, nRows, nCols, iRow, iCol + 1, peakPoints);
-	            this.scanBitmask(bitmask, nRows, nCols, iRow, iCol - 1, peakPoints);
-	        }
-	    },
-	    /**
-	     This function converts a set of 2D-peaks in 2D-signals. Each signal could be composed
-	     of many 2D-peaks, and it has some additional information related to the NMR spectrum.
-	     */
-	    createSignals2D : function(peaks, spectraData, tolerance){
-	        //console.log(peaks.length);
-	        var signals=[];
-	        var nbSubSpectra = spectraData.getNbSubSpectra();
-
-	        var bf1=spectraData.observeFrequencyX();
-	        var bf2=spectraData.observeFrequencyY();
-
-	        var firstY = spectraData.getFirstY();
-	        var lastY = spectraData.getLastY();
-	        var dy = spectraData.getDeltaY();
-
-	        //console.log(firstY+" "+lastY+" "+dy+" "+nbSubSpectra);
-	        //spectraData.setActiveElement(0);
-	        var noValid=0;
-	        for (var i = peaks.length-1; i >=0 ; i--) {
-	            //console.log(peaks[i].x+" "+spectraData.arrayPointToUnits(peaks[i].x));
-	            //console.log(peaks[i].y+" "+(firstY + dy * (peaks[i].y)));
-	            peaks[i].x=(spectraData.arrayPointToUnits(peaks[i].x));
-	            peaks[i].y=(firstY + dy * (peaks[i].y));
-
-	            //console.log(peaks[i])
-	            //Still having problems to correctly detect peaks on those areas. So I'm removing everything there.
-	            if(peaks[i].y<-1||peaks[i].y>=210){
-	                peaks.splice(i,1);
-	            }
-	        }
-	        //console.log(peaks);
-	        //The connectivity matrix is an square and symmetric matrix, so we'll only store the upper diagonal in an
-	        //array like form
-	        var connectivity = [];
-	        var tmp=0;
-	        tolerance*=tolerance;
-	        //console.log(tolerance);
-	        for (var i = 0; i < peaks.length; i++) {
-	            for (var j = i; j < peaks.length; j++) {
-	                tmp=Math.pow((peaks[i].x-peaks[j].x)*bf1,2)+Math.pow((peaks[i].y-peaks[j].y)*bf2,2);
-	                //Console.log(peaks[i].getX()+" "+peaks[j].getX()+" "+tmp);
-	                if(tmp<tolerance){//30*30Hz We cannot distinguish peaks with less than 20 Hz of separation
-	                    connectivity.push(1);
-	                }
-	                else{
-	                    connectivity.push(0);
-	                }
-	            }
-	        }
-
-	        //console.log(connectivity);
-
-	        var clusters = SimpleClustering.fullClusterGenerator(connectivity);
-
-	        //console.log(clusters)
-
-	        var signals = [];
-	        if (peaks != null) {
-	            var xValue, yValue;
-	            for (var iCluster = 0; iCluster < clusters.length; iCluster++) {
-	                var signal={nucleusX:spectraData.getNucleus(1),nucleusY:spectraData.getNucleus(2)};
-	                signal.resolutionX=( spectraData.getLastX()-spectraData.getFirstX()) / spectraData.getNbPoints();
-	                signal.resolutionY=dy;
-	                var peaks2D = [];
-	                signal.shiftX = 0;
-	                signal.shiftY = 0;
-	                var sumZ = 0;
-	                for(var jPeak = clusters[iCluster].length-1;jPeak>=0;jPeak--){
-	                    if(clusters[iCluster][jPeak]==1){
-	                        peaks2D.push(peaks[jPeak]);
-	                        signal.shiftX+=peaks[jPeak].x*peaks[jPeak].z;
-	                        signal.shiftY+=peaks[jPeak].y*peaks[jPeak].z;
-	                        sumZ+=peaks[jPeak].z;
-	                    }
-	                }
-	                signal.shiftX/=sumZ;
-	                signal.shiftY/=sumZ;
-	                signal.peaks = peaks2D;
-	                signals.push(signal);
-	            }
-	        }
-	        //console.log(signals);
-	        return signals;
 	    }
+	    return peakListMax;
+	}
+	/*
+	 This function detects the peaks
+	 */
+	function extractArea(spectrum, convolutedSpectrum, bitmask, iStart,
+	                       nRows, nCols, peakList, threshold) {
+	    var iRow = Math.floor(iStart / nCols);
+	    var iCol = iStart % nCols;
+	    var peakPoints =[];
+	    //console.log(iStart+" "+iRow+" "+iCol);
+	    // scanBitmask(bitmask, convolutedSpectrum, nRows, nCols, iRow, iCol,
+	    // peakPoints);
+	    scanBitmask(bitmask, nRows, nCols, iRow, iCol, peakPoints);
+	    //console.log("extractArea.lng "+peakPoints.length);
+	    var x = new Array(peakPoints.length);
+	    var y = new Array(peakPoints.length);
+	    var z = new Array(peakPoints.length);
+	    var nValues = peakPoints.length;
+	    var xAverage = 0.0;
+	    var yAverage = 0.0;
+	    var zSum = 0.0;
+	    if (nValues >= 9) {
+	        if (DEBUG)
+	            console.log("nValues=" + nValues);
+	        var maxValue = Number.NEGATIVE_INFINITY;
+	        var maxIndex = -1;
+	        for (var i = 0; i < nValues; i++) {
+	            var pt = (peakPoints.splice(0,1))[0];
+	            x[i] = pt[0];
+	            y[i] = pt[1];
+	            z[i] = spectrum[pt[1] * nCols + pt[0]];
+	            xAverage += x[i] * z[i];
+	            yAverage += y[i] * z[i];
+	            zSum += z[i];
+	            if (z[i] > maxValue) {
+	                maxValue = z[i];
+	                maxIndex = i;
+	            }
+	        }
+	        if (maxIndex != -1) {
+	            xAverage /= zSum;
+	            yAverage /= zSum;
+	            var newPeak = {x:xAverage, y:yAverage, z:zSum};
+	            var minmax;
+	            minmax =StatArray.minMax(x);
+	            newPeak.minX=minmax.min;
+	            newPeak.maxX=minmax.max;
+	            minmax = StatArray.minMax(y);
+	            newPeak.minY=minmax.min;
+	            newPeak.maxY=minmax.max;
+	            peakList.push(newPeak);
+	        }
+	    }
+	    return nValues;
+	}
+	//How noisy is the spectrum depending on the kind of experiment.
+	function getLoGnStdDevNMR(spectraData) {
+	    if (spectraData.isHomoNuclear())
+	        return 1.5
+	    else
+	        return 3;
 	}
 
-	module.exports = PeakPicking2D;
+	/*
+	 Return all the peaks(x,y points) that composes a signal.
+	 */
+	function scanBitmask(bitmask, nRows, nCols, iRow, iCol, peakPoints) {
+	    //console.log(nRows+" "+iRow+" "+nCols+" "+iCol);
+	    if (iRow < 0 || iCol < 0 || iCol == nCols || iRow == nRows)
+	        return;
+	    if (bitmask[iRow * nCols + iCol]) {
+	        bitmask[iRow * nCols + iCol] = 0;
+	        peakPoints.push([iCol, iRow]);
+	        scanBitmask(bitmask, nRows, nCols, iRow + 1, iCol, peakPoints);
+	        scanBitmask(bitmask, nRows, nCols, iRow - 1, iCol, peakPoints);
+	        scanBitmask(bitmask, nRows, nCols, iRow, iCol + 1, peakPoints);
+	        scanBitmask(bitmask, nRows, nCols, iRow, iCol - 1, peakPoints);
+	    }
+	}
+	/**
+	 This function converts a set of 2D-peaks in 2D-signals. Each signal could be composed
+	 of many 2D-peaks, and it has some additional information related to the NMR spectrum.
+	 */
+	function createSignals2D(peaks, spectraData, tolerance){
+	    //console.log(peaks.length);
+	    var signals=[];
+	    var nbSubSpectra = spectraData.getNbSubSpectra();
+
+	    var bf1=spectraData.observeFrequencyX();
+	    var bf2=spectraData.observeFrequencyY();
+
+	    var firstY = spectraData.getFirstY();
+	    var lastY = spectraData.getLastY();
+	    var dy = spectraData.getDeltaY();
+
+	    //console.log(firstY+" "+lastY+" "+dy+" "+nbSubSpectra);
+	    //spectraData.setActiveElement(0);
+	    var noValid=0;
+	    for (var i = peaks.length-1; i >=0 ; i--) {
+	        //console.log(peaks[i].x+" "+spectraData.arrayPointToUnits(peaks[i].x));
+	        //console.log(peaks[i].y+" "+(firstY + dy * (peaks[i].y)));
+	        peaks[i].x=(spectraData.arrayPointToUnits(peaks[i].x));
+	        peaks[i].y=(firstY + dy * (peaks[i].y));
+
+	        //console.log(peaks[i])
+	        //Still having problems to correctly detect peaks on those areas. So I'm removing everything there.
+	        if(peaks[i].y<-1||peaks[i].y>=210){
+	            peaks.splice(i,1);
+	        }
+	    }
+	    //console.log(peaks);
+	    //The connectivity matrix is an square and symmetric matrix, so we'll only store the upper diagonal in an
+	    //array like form
+	    var connectivity = [];
+	    var tmp=0;
+	    tolerance*=tolerance;
+	    //console.log(tolerance);
+	    for (var i = 0; i < peaks.length; i++) {
+	        for (var j = i; j < peaks.length; j++) {
+	            tmp=Math.pow((peaks[i].x-peaks[j].x)*bf1,2)+Math.pow((peaks[i].y-peaks[j].y)*bf2,2);
+	            //Console.log(peaks[i].getX()+" "+peaks[j].getX()+" "+tmp);
+	            if(tmp<tolerance){//30*30Hz We cannot distinguish peaks with less than 20 Hz of separation
+	                connectivity.push(1);
+	            }
+	            else{
+	                connectivity.push(0);
+	            }
+	        }
+	    }
+
+	    //console.log(connectivity);
+
+	    var clusters = SimpleClustering.fullClusterGenerator(connectivity);
+
+	    //console.log(clusters)
+
+	    var signals = [];
+	    if (peaks != null) {
+	        var xValue, yValue;
+	        for (var iCluster = 0; iCluster < clusters.length; iCluster++) {
+	            var signal={nucleusX:spectraData.getNucleus(1),nucleusY:spectraData.getNucleus(2)};
+	            signal.resolutionX=( spectraData.getLastX()-spectraData.getFirstX()) / spectraData.getNbPoints();
+	            signal.resolutionY=dy;
+	            var peaks2D = [];
+	            signal.shiftX = 0;
+	            signal.shiftY = 0;
+	            var minMax1 = [Number.MAX_VALUE,0];
+	            var minMax2 = [Number.MAX_VALUE,0];
+	            var sumZ = 0;
+	            for(var jPeak = clusters[iCluster].length-1;jPeak>=0;jPeak--){
+	                if(clusters[iCluster][jPeak]==1){
+	                    peaks2D.push({
+	                        x: peaks[jPeak].x,
+	                        y: peaks[jPeak].y,
+	                        z: peaks[jPeak].z
+
+	                    }  );
+	                    signal.shiftX+=peaks[jPeak].x*peaks[jPeak].z;
+	                    signal.shiftY+=peaks[jPeak].y*peaks[jPeak].z;
+	                    sumZ+=peaks[jPeak].z;
+	                    if(peaks[jPeak].x<minMax1[0]){
+	                        minMax1[0]=peaks[jPeak].x;
+	                    }
+	                    if(peaks[jPeak].x>minMax1[1]){
+	                        minMax1[1]=peaks[jPeak].x;
+	                    }
+	                    if(peaks[jPeak].y<minMax2[0]){
+	                        minMax2[0]=peaks[jPeak].y
+	                    }
+	                    if(peaks[jPeak].y>minMax2[1]){
+	                        minMax2[1]=peaks[jPeak].y;
+	                    }
+
+	                }
+	            }
+	            signal.fromTo = [{from:minMax1[0],to:minMax1[1]},
+	                {from:minMax2[0],to:minMax2[1]}];
+	            signal.shiftX/=sumZ;
+	            signal.shiftY/=sumZ;
+	            signal.peaks = peaks2D;
+	            signals.push(signal);
+	        }
+	    }
+	    return signals;
+	}
 
 /***/ },
-/* 54 */
+/* 52 */
 /***/ function(module, exports) {
 
-	var PeakOptimizer={
-		diagonalError:0.05,
-		tolerance:0.05,
-		DEBUG:false,
-	    toleranceX : 0.025,
-	    toleranceY : 0.5,
+	'use strict';
+
+
+	var diagonalError=0.05;
+	var	tolerance=0.05;
+	const	DEBUG=false;
+
+	module.exports={
 
 	    clean: function(peaks, threshold){
 	        var max = Number.NEGATIVE_INFINITY;
@@ -16231,10 +15320,10 @@ return /******/ (function(modules) { // webpackBootstrap
 		
 		enhanceSymmetry: function(signals){
 			
-			var properties = this.initializeProperties(signals);
+			var properties = initializeProperties(signals);
 			var output = signals;
 
-			if(this.DEBUG)
+			if(DEBUG)
 				console.log("Before optimization size: "+output.size());
 			
 			//First step of the optimization: Symmetry validation
@@ -16245,7 +15334,7 @@ return /******/ (function(modules) { // webpackBootstrap
 				if(signal.peaks.length>1)
 					properties[i][1]++;
 				if(properties[i][0]==1){
-					index = this.exist(output, properties, signal,-1,true);
+					index = exist(output, properties, signal,-1,true);
 					if(index>=0){
 						properties[i][1]+=2;
 						properties[index][1]+=2;
@@ -16256,7 +15345,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			for(i=output.length-1;i>=0;i--){
 				signal = output[i];
 				if(properties[i][0]==0){
-					hits = this.checkCrossPeaks(output, properties, signal, true);
+					hits = checkCrossPeaks(output, properties, signal, true);
 					properties[i][1]+=hits;
 					//checkCrossPeaks(output, properties, signal, false);
 				}
@@ -16268,13 +15357,13 @@ return /******/ (function(modules) { // webpackBootstrap
 			for(i=output.length-1;i>=0;i--){
 				if(properties[i][0]!==0&&properties[i][1]>2){
 					count++;
-					count+=this.completeMissingIfNeeded(output,properties,output[i],properties[i]);
+					count+=completeMissingIfNeeded(output,properties,output[i],properties[i]);
 				}
 				if(properties[i][1]>=2&&properties[i][0]===0)
 					count++;
 			}
 			
-			if(this.DEBUG)
+			if(DEBUG)
 				console.log("After optimization size: "+count);
 			var  toReturn = new Array(count);
 			count--;
@@ -16291,225 +15380,224 @@ return /******/ (function(modules) { // webpackBootstrap
 			}
 			return toReturn;
 		},
-		
-		completeMissingIfNeeded: function(output, properties, thisSignal, thisProp) {
-			//Check for symmetry
-			var index = this.exist(output, properties, thisSignal,-thisProp[0],true);
-			var addedPeaks=0;
-			var newSignal = null, tmpProp=null;
-			if(index<0){//If this signal have no a symmetry image, we have to include it
-				newSignal = {nucleusX:thisSignal.nucleusX,nucleusY:thisSignal.nucleusY};
-				newSignal.resolutionX=thisSignal.resolutionX;
-				newSignal.resolutionY=thisSignal.resolutionY;
-				newSignal.shiftX=thisSignal.shiftY;
-				newSignal.shiftY=thisSignal.shiftX;
-				newSignal.peaks = [{x:thisSignal.shiftY,y:thisSignal.shiftX,z:1}];
-				output.push(newSignal);
-				tmpProp = [-thisProp[0],thisProp[1]];
-				properties.push(tmpProp);
-				addedPeaks++;
-			}
-			//Check for diagonal peaks
-			var j=0;
-			var diagX=false, diagY=false;
-			var signal;
-			for(j=output.length-1;j>=0;j--){
-				signal = output[j];
-				if(properties[j][0]===0){
-					if(Math.abs(signal.shiftX-thisSignal.shiftX)<this.diagonalError)
-						diagX=true;
-					if(Math.abs(signal.shiftY-thisSignal.shiftY)<this.diagonalError)
-						diagY=true;
-				}
-			}
-			if(diagX===false){
-				newSignal = {nucleusX:thisSignal.nucleusX,nucleusY:thisSignal.nucleusY};
-				newSignal.resolutionX=thisSignal.resolutionX;
-				newSignal.resolutionY=thisSignal.resolutionY;
-				newSignal.shiftX=thisSignal.shiftX;
-				newSignal.shiftY=thisSignal.shiftX;
-				newSignal.peaks = [{x:thisSignal.shiftX,y:thisSignal.shiftX,z:1}];
-				output.push(newSignal);
-				tmpProp = [0,thisProp[1]];
-				properties.push(tmpProp);
-				addedPeaks++;
-			}
-			if(diagY===false){
-				newSignal = {nucleusX:thisSignal.nucleusX,nucleusY:thisSignal.nucleusY};
-				newSignal.resolutionX=thisSignal.resolutionX;
-				newSignal.resolutionY=thisSignal.resolutionY;
-				newSignal.shiftX=thisSignal.shiftY;
-				newSignal.shiftY=thisSignal.shiftY;
-				newSignal.peaks = [{x:thisSignal.shiftY,y:thisSignal.shiftY,z:1}];
-				output.push(newSignal);
-				tmpProp = [0,thisProp[1]];
-				properties.push(tmpProp);
-				addedPeaks++;
-			}
-			return addedPeaks;
-			
-		},
-		
-		//Check for any diagonal peak that match this cross peak
-		checkCrossPeaks: function(output, properties, signal, updateProperties) {
-			var hits = 0, i=0, shift=signal.shiftX*4;
-			var crossPeaksX = [],crossPeaksY = [];
-			var cross;
-			for(i=output.length-1;i>=0;i--){
-				cross = output[i];
-				if(properties[i][0]!==0){
-					if(Math.abs(cross.shiftX-signal.shiftX)<this.diagonalError){
-						hits++;
-						if(updateProperties)
-							properties[i][1]++;
-						crossPeaksX.push(i);
-						shift+=cross.shiftX;
-					}
-					else{
-						if(Math.abs(cross.shiftY-signal.shiftY)<this.diagonalError){
-							hits++;
-							if(updateProperties)
-								properties[i][1]++;
-							crossPeaksY.push(i);
-							shift+=cross.shiftY;
-						}
-					}
-				}
-			}
-			//Update found crossPeaks and diagonal peak
-			shift/=(crossPeaksX.length+crossPeaksY.length+4);
-			if(crossPeaksX.length>0){
-				for( i=crossPeaksX.length-1;i>=0;i--){
-					output[crossPeaksX[i]].shiftX=shift;
-				}
-			}
-			if(crossPeaksY.length>0){
-				for( i=crossPeaksY.length-1;i>=0;i--){
-					output[crossPeaksY[i]].shiftY=shift;
-				}
-			}
-			signal.shiftX=shift;
-			signal.shiftY=shift;
-			return hits;
-		},
-
-		exist: function(output, properties, signal, type, symmetricSearch) {
-			for(var i=output.length-1;i>=0;i--){
-				if(properties[i][0]==type){
-					if(this.distanceTo(signal, output[i], symmetricSearch)<this.tolerance){
-						if(!symmetricSearch){
-							var shiftX=(output[i].shiftX+signal.shiftX)/2.0;
-							var shiftY=(output[i].shiftY+signal.shiftY)/2.0;
-							output[i].shiftX=shiftX;
-							output[i].shiftY=shiftY;
-							signal.shiftX=shiftX;
-							signal.shiftY=shiftY;
-						}
-						else{
-							var shiftX=signal.shiftX;
-							var shiftY=output[i].shiftX;
-							output[i].shiftY=shiftX;
-							signal.shiftY=shiftY;
-						}
-						return i;
-					}
-				}
-			}
-			return -1;
-		},
-		/**
-		 * We try to determine the position of each signal within the spectrum matrix.
-		 * Peaks could be of 3 types: upper diagonal, diagonal or under diagonal 1,0,-1
-		 * respectively.
-		 * @param Signals
-		 * @return A matrix containing the properties of each signal
-		 */
-		initializeProperties: function(signals){
-			var signalsProperties = new Array(signals.length);
-			for(var i=signals.length-1;i>=0;i--){
-				signalsProperties[i]=[0,0];
-				//We check if it is a diagonal peak
-				if(Math.abs(signals[i].shiftX-signals[i].shiftY)<=this.diagonalError){
-					signalsProperties[i][1]=1;
-					//We adjust the x and y value to be symmetric.
-					//In general chemical shift in the direct dimension is better than in the other one,
-					//so, we believe more to the shiftX than to the shiftY.
-					var shift = (signals[i].shiftX*2+signals[i].shiftY)/3.0;
-					signals[i].shiftX=shift;
-					signals[i].shiftY=shift;
-				}
-				else{
-					if(signals[i].shiftX-signals[i].shiftY>0)
-						signalsProperties[i][0]=1;
-					else
-						signalsProperties[i][0]=-1;
-				}
-			}
-			return signalsProperties;
-		},
-		
-		/**
-		 * This function calculates the distance between 2 nmr signals . If toImage is true, 
-		 * it will interchange x by y in the distance calculation for the second signal.
-		 */
-		distanceTo: function(a, b, toImage){
-			if(!toImage){
-				return Math.sqrt(Math.pow(a.shiftX-b.shiftX, 2)
-						+Math.pow(a.shiftY-b.shiftY, 2));
-			}
-			else{
-				return Math.sqrt(Math.pow(a.shiftX-b.shiftY, 2)
-						+Math.pow(a.shiftY-b.shiftX, 2));
-			}
-		},
 
 		/**
 		 * This function maps the corresponding 2D signals to the given set of 1D signals
 		 */
-		alignDimensions:function(signals2D,references){
-			//For each reference dimension
-			for(var i=0;i<references.length;i++){
-				var ref = references[i];
-				if(ref)
-					this._alignSingleDimension(signals2D,ref);
-			}
-		},
-
-		_alignSingleDimension: function(signals2D, references){
-			//For each 2D signal
-			var center = 0, width = 0, i, j;
-			for(i=0;i<signals2D.length;i++){
-				var signal2D = signals2D[i];
-				//For each reference 1D signal
-				for(j=0;j<references.length;j++){
-					center = (references[j].startX+references[j].stopX)/2;
-					width = Math.abs(references[j].startX-references[j].stopX)/2;
-					if(signal2D.nucleusX==references[j].nucleus){
-						//The 2D peak overlaps with the 1D signal
-						if(Math.abs(signal2D.shiftX-center)<=width){
-							signal2D._highlight.push(references[j]._highlight[0]);
-						}
-
-					}
-					if(signal2D.nucleusY==references[j].nucleus){
-						if(Math.abs(signal2D.shiftY-center)<=width){
-							signal2D._highlight.push(references[j]._highlight[0]);
-						}
-					}
-				}
-
-			}
+		alignDimensions: function(signals2D,references){
+		//For each reference dimension
+		for(var i=0;i<references.length;i++){
+			var ref = references[i];
+			if(ref)
+				alignSingleDimension(signals2D,ref);
 		}
-
+	}
 	};
 
-	module.exports = PeakOptimizer;
+	function completeMissingIfNeeded(output, properties, thisSignal, thisProp) {
+		//Check for symmetry
+		var index = exist(output, properties, thisSignal,-thisProp[0],true);
+		var addedPeaks=0;
+		var newSignal = null, tmpProp=null;
+		if(index<0){//If this signal have no a symmetry image, we have to include it
+			newSignal = {nucleusX:thisSignal.nucleusX,nucleusY:thisSignal.nucleusY};
+			newSignal.resolutionX=thisSignal.resolutionX;
+			newSignal.resolutionY=thisSignal.resolutionY;
+			newSignal.shiftX=thisSignal.shiftY;
+			newSignal.shiftY=thisSignal.shiftX;
+			newSignal.peaks = [{x:thisSignal.shiftY,y:thisSignal.shiftX,z:1}];
+			output.push(newSignal);
+			tmpProp = [-thisProp[0],thisProp[1]];
+			properties.push(tmpProp);
+			addedPeaks++;
+		}
+		//Check for diagonal peaks
+		var j=0;
+		var diagX=false, diagY=false;
+		var signal;
+		for(j=output.length-1;j>=0;j--){
+			signal = output[j];
+			if(properties[j][0]===0){
+				if(Math.abs(signal.shiftX-thisSignal.shiftX)<diagonalError)
+					diagX=true;
+				if(Math.abs(signal.shiftY-thisSignal.shiftY)<diagonalError)
+					diagY=true;
+			}
+		}
+		if(diagX===false){
+			newSignal = {nucleusX:thisSignal.nucleusX,nucleusY:thisSignal.nucleusY};
+			newSignal.resolutionX=thisSignal.resolutionX;
+			newSignal.resolutionY=thisSignal.resolutionY;
+			newSignal.shiftX=thisSignal.shiftX;
+			newSignal.shiftY=thisSignal.shiftX;
+			newSignal.peaks = [{x:thisSignal.shiftX,y:thisSignal.shiftX,z:1}];
+			output.push(newSignal);
+			tmpProp = [0,thisProp[1]];
+			properties.push(tmpProp);
+			addedPeaks++;
+		}
+		if(diagY===false){
+			newSignal = {nucleusX:thisSignal.nucleusX,nucleusY:thisSignal.nucleusY};
+			newSignal.resolutionX=thisSignal.resolutionX;
+			newSignal.resolutionY=thisSignal.resolutionY;
+			newSignal.shiftX=thisSignal.shiftY;
+			newSignal.shiftY=thisSignal.shiftY;
+			newSignal.peaks = [{x:thisSignal.shiftY,y:thisSignal.shiftY,z:1}];
+			output.push(newSignal);
+			tmpProp = [0,thisProp[1]];
+			properties.push(tmpProp);
+			addedPeaks++;
+		}
+		return addedPeaks;
+
+	}
+
+	//Check for any diagonal peak that match this cross peak
+	function checkCrossPeaks(output, properties, signal, updateProperties) {
+		var hits = 0, i=0, shift=signal.shiftX*4;
+		var crossPeaksX = [],crossPeaksY = [];
+		var cross;
+		for(i=output.length-1;i>=0;i--){
+			cross = output[i];
+			if(properties[i][0]!==0){
+				if(Math.abs(cross.shiftX-signal.shiftX)<diagonalError){
+					hits++;
+					if(updateProperties)
+						properties[i][1]++;
+					crossPeaksX.push(i);
+					shift+=cross.shiftX;
+				}
+				else{
+					if(Math.abs(cross.shiftY-signal.shiftY)<diagonalError){
+						hits++;
+						if(updateProperties)
+							properties[i][1]++;
+						crossPeaksY.push(i);
+						shift+=cross.shiftY;
+					}
+				}
+			}
+		}
+		//Update found crossPeaks and diagonal peak
+		shift/=(crossPeaksX.length+crossPeaksY.length+4);
+		if(crossPeaksX.length>0){
+			for( i=crossPeaksX.length-1;i>=0;i--){
+				output[crossPeaksX[i]].shiftX=shift;
+			}
+		}
+		if(crossPeaksY.length>0){
+			for( i=crossPeaksY.length-1;i>=0;i--){
+				output[crossPeaksY[i]].shiftY=shift;
+			}
+		}
+		signal.shiftX=shift;
+		signal.shiftY=shift;
+		return hits;
+	}
+
+	function exist(output, properties, signal, type, symmetricSearch) {
+		for(var i=output.length-1;i>=0;i--){
+			if(properties[i][0]==type){
+				if(distanceTo(signal, output[i], symmetricSearch)<tolerance){
+					if(!symmetricSearch){
+						var shiftX=(output[i].shiftX+signal.shiftX)/2.0;
+						var shiftY=(output[i].shiftY+signal.shiftY)/2.0;
+						output[i].shiftX=shiftX;
+						output[i].shiftY=shiftY;
+						signal.shiftX=shiftX;
+						signal.shiftY=shiftY;
+					}
+					else{
+						var shiftX=signal.shiftX;
+						var shiftY=output[i].shiftX;
+						output[i].shiftY=shiftX;
+						signal.shiftY=shiftY;
+					}
+					return i;
+				}
+			}
+		}
+		return -1;
+	}
+	/**
+	 * We try to determine the position of each signal within the spectrum matrix.
+	 * Peaks could be of 3 types: upper diagonal, diagonal or under diagonal 1,0,-1
+	 * respectively.
+	 * @param Signals
+	 * @return A matrix containing the properties of each signal
+	 */
+	function initializeProperties(signals){
+		var signalsProperties = new Array(signals.length);
+		for(var i=signals.length-1;i>=0;i--){
+			signalsProperties[i]=[0,0];
+			//We check if it is a diagonal peak
+			if(Math.abs(signals[i].shiftX-signals[i].shiftY)<=diagonalError){
+				signalsProperties[i][1]=1;
+				//We adjust the x and y value to be symmetric.
+				//In general chemical shift in the direct dimension is better than in the other one,
+				//so, we believe more to the shiftX than to the shiftY.
+				var shift = (signals[i].shiftX*2+signals[i].shiftY)/3.0;
+				signals[i].shiftX=shift;
+				signals[i].shiftY=shift;
+			}
+			else{
+				if(signals[i].shiftX-signals[i].shiftY>0)
+					signalsProperties[i][0]=1;
+				else
+					signalsProperties[i][0]=-1;
+			}
+		}
+		return signalsProperties;
+	}
+
+	/**
+	 * This function calculates the distance between 2 nmr signals . If toImage is true,
+	 * it will interchange x by y in the distance calculation for the second signal.
+	 */
+	function distanceTo(a, b, toImage){
+		if(!toImage){
+			return Math.sqrt(Math.pow(a.shiftX-b.shiftX, 2)
+				+Math.pow(a.shiftY-b.shiftY, 2));
+		}
+		else{
+			return Math.sqrt(Math.pow(a.shiftX-b.shiftY, 2)
+				+Math.pow(a.shiftY-b.shiftX, 2));
+		}
+	}
+
+	function alignSingleDimension(signals2D, references){
+		//For each 2D signal
+		var center = 0, width = 0, i, j;
+		for(i=0;i<signals2D.length;i++){
+			var signal2D = signals2D[i];
+			//For each reference 1D signal
+			for(j=0;j<references.length;j++){
+				center = (references[j].startX+references[j].stopX)/2;
+				width = Math.abs(references[j].startX-references[j].stopX)/2;
+				if(signal2D.nucleusX==references[j].nucleus){
+					//The 2D peak overlaps with the 1D signal
+					if(Math.abs(signal2D.shiftX-center)<=width){
+						signal2D._highlight.push(references[j]._highlight[0]);
+					}
+
+				}
+				if(signal2D.nucleusY==references[j].nucleus){
+					if(Math.abs(signal2D.shiftY-center)<=width){
+						signal2D._highlight.push(references[j]._highlight[0]);
+					}
+				}
+			}
+
+		}
+	}
 
 /***/ },
-/* 55 */
+/* 53 */
 /***/ function(module, exports) {
 
-	var SimpleClustering={
+	'use strict';
+
+	module.exports={
 
 		/*This function returns the cluster list for a given connectivity matrix.
 		*To improve the performance, the connectivity(square and symmetric) matrix 
@@ -16542,7 +15630,6 @@ return /******/ (function(modules) { // webpackBootstrap
 			    else{
 			    	nextAv=toInclude.splice(0,1);
 			    }
-			    //console.log("row: "+nextAv);
 			    cluster[nextAv]=1;
 			    available[nextAv]=0;
 			    remaining--;
@@ -16554,7 +15641,6 @@ return /******/ (function(modules) { // webpackBootstrap
 					//The element in the conn matrix
 					//console.log("index: "+r*(2*nRows-r-1)/2+c)
 					row[i]=conn[r*(2*nRows-r-1)/2+c];
-					//console.log("col: "+i+":"+row[i]);
 					//There is new elements to include in this row?
 					//Then, include it to the current cluster
 					if(row[i]==1&&available[i]==1&&cluster[i]==0){
@@ -16567,291 +15653,550 @@ return /******/ (function(modules) { // webpackBootstrap
 		}
 	}
 
-	module.exports = SimpleClustering;
-
 /***/ },
-/* 56 */
+/* 54 */
 /***/ function(module, exports) {
 
+	'use strict';
 	/**
 	 * This library formats a set of nmr1D signals to the ACS format.
 	 * Created by acastillo on 3/11/15. p
 	 */
-	var ACS=ACS || {};
-	ACS.formater =(function() {
-	    var acsString="";
-	    var parenthesis="";
-	    var spectro="";
-	    rangeForMultiplet=false;
 
-	    function fromNMRSignal1D2ACS(spectrum, options){
-	        acsString="";
-	        parenthesis="";
-	        spectro="";
-	        var solvent = null;
-	        if(options&&options.solvent)
-	            solvent = options.solvent;
-	        //options.rangeForMultiplet=false;
-	        if(options&&options.rangeForMultiplet!=undefined)
-	            rangeForMultiplet = options.rangeForMultiplet;
+	var acsString="";
+	var parenthesis="";
+	var spectro="";
+	var rangeForMultiplet=false;
 
-	        if(options&&options.ascending){
-	            spectrum.sort(function(a,b){
-	                return b.delta1- a.delta1
-	            });
-	        }
-	        else{
-	            spectrum.sort(function(a,b){
-	                return a.delta1- b.delta1
-	            });
-	        }
+	module.exports.toACS = function(spectrum, options){
+	    acsString="";
+	    parenthesis="";
+	    spectro="";
+	    var solvent = null;
+	    if(options&&options.solvent)
+	        solvent = options.solvent;
+	    if(options&&options.rangeForMultiplet!=undefined)
+	        rangeForMultiplet = options.rangeForMultiplet;
 
-	        //console.log("Range1: "+options.rangeForMultiplet);
-
-	        spectrum.type="NMR SPEC";
-	        if (spectrum[0]["nucleus"]=="1H") {
-	            formatAcs_default(spectrum, false, 2, 1, solvent);
-	        } else if (spectrum[0]["nucleus"]=="13C") {
-	            formatAcs_default(spectrum, false, 1, 0, solvent);
-	        }
-
-	        if (acsString.length>0) acsString+=".";
-
-	        return acsString;
+	    if(options&&options.ascending){
+	        spectrum.sort(function(a,b){
+	            return b.delta1- a.delta1
+	        });
+	    }
+	    else{
+	        spectrum.sort(function(a,b){
+	            return a.delta1- b.delta1
+	        });
 	    }
 
-	    /*function formatAcs_default_IR(spectra, ascending, decimalValue, smw) {
-	     appendSeparator();
-	     appendSpectroInformation(spectra);
-	     if (spectra["peakLabels"]) {
-	     var numberPeakLabels=spectra["peakLabels"].length;
-	     var minIntensity= 9999999;
-	     var maxIntensity=-9999999;
-	     for (var i=0; i<numberPeakLabels; i++) {
-	     if (spectra["peakLabels"][i].intensity<minIntensity) minIntensity=spectra["peakLabels"][i].intensity;
-	     if (spectra["peakLabels"][i].intensity>maxIntensity) maxIntensity=spectra["peakLabels"][i].intensity;
-	     }
-	     for (var i=0; i<numberPeakLabels; i++) {
-	     if (ascending) {
-	     var peakLabel=spectra["peakLabels"][i];
-	     } else {
-	     var peakLabel=spectra["peakLabels"][numberPeakLabels-i-1];
-	     }
-	     if (peakLabel) {
-	     appendSeparator();
-	     appendValue(peakLabel,decimalValue);
-	     if (smw) { // we need to add small / medium / strong
-	     if (peakLabel.intensity<((maxIntensity-minIntensity)/3+minIntensity)) acsString+=" (s)";
-	     else if (peakLabel.intensity>(maxIntensity-(maxIntensity-minIntensity)/3)) acsString+=" (w)";
-	     else acsString+=" (m)";
-	     }
-	     }
-	     }
-	     }
-	     }*/
+	    //console.log("Range1: "+options.rangeForMultiplet);
 
-	    function formatAcs_default(spectra, ascending, decimalValue, decimalJ, solvent) {
-	        appendSeparator();
-	        appendSpectroInformation(spectra, solvent);
-	        var numberSmartPeakLabels=spectra.length;
-	        //console.log("SP "+spectra);
-	        //console.log("# "+numberSmartPeakLabels);
-	        for (var i=0; i<numberSmartPeakLabels; i++) {
-	            if (ascending) {
-	                var signal=spectra[i];
+	    spectrum.type="NMR SPEC";
+	    if (spectrum[0]["nucleus"]=="1H") {
+	        formatAcs_default(spectrum, false, 2, 1, solvent);
+	    } else if (spectrum[0]["nucleus"]=="13C") {
+	        formatAcs_default(spectrum, false, 1, 0, solvent);
+	    }
+
+	    if (acsString.length>0) acsString+=".";
+
+	    return acsString;
+	}
+
+
+	module.exports.toNMRSignal = function(acsString){
+	    return JSON.parse(SDAPI.AcsParserAsJSONString(acsString));
+	}
+
+
+
+	/*function formatAcs_default_IR(spectra, ascending, decimalValue, smw) {
+	 appendSeparator();
+	 appendSpectroInformation(spectra);
+	 if (spectra["peakLabels"]) {
+	 var numberPeakLabels=spectra["peakLabels"].length;
+	 var minIntensity= 9999999;
+	 var maxIntensity=-9999999;
+	 for (var i=0; i<numberPeakLabels; i++) {
+	 if (spectra["peakLabels"][i].intensity<minIntensity) minIntensity=spectra["peakLabels"][i].intensity;
+	 if (spectra["peakLabels"][i].intensity>maxIntensity) maxIntensity=spectra["peakLabels"][i].intensity;
+	 }
+	 for (var i=0; i<numberPeakLabels; i++) {
+	 if (ascending) {
+	 var peakLabel=spectra["peakLabels"][i];
+	 } else {
+	 var peakLabel=spectra["peakLabels"][numberPeakLabels-i-1];
+	 }
+	 if (peakLabel) {
+	 appendSeparator();
+	 appendValue(peakLabel,decimalValue);
+	 if (smw) { // we need to add small / medium / strong
+	 if (peakLabel.intensity<((maxIntensity-minIntensity)/3+minIntensity)) acsString+=" (s)";
+	 else if (peakLabel.intensity>(maxIntensity-(maxIntensity-minIntensity)/3)) acsString+=" (w)";
+	 else acsString+=" (m)";
+	 }
+	 }
+	 }
+	 }
+	 }*/
+
+	function formatAcs_default(spectra, ascending, decimalValue, decimalJ, solvent) {
+	    appendSeparator();
+	    appendSpectroInformation(spectra, solvent);
+	    var numberSmartPeakLabels=spectra.length;
+	    for (var i=0; i<numberSmartPeakLabels; i++) {
+	        if (ascending) {
+	            var signal=spectra[i];
+	        } else {
+	            var signal=spectra[numberSmartPeakLabels-i-1];
+	        }
+	        if (signal) {
+	            appendSeparator();
+	            appendDelta(signal,decimalValue);
+	            appendParenthesis(signal,decimalJ);
+	        }
+	    }
+	}
+
+	function appendSpectroInformation(spectrum, solvent) {
+	    if (spectrum.type=="NMR SPEC") {
+	        if (spectrum[0].nucleus) {
+	            acsString+=formatNucleus(spectrum[0].nucleus);
+	        }
+	        acsString+=" NMR";
+	        if ((solvent) || (spectrum[0].observe)) {
+	            acsString+=" (";
+	            if (spectrum[0].observe) {
+	                acsString+=(spectrum[0].observe*1).toFixed(0)+" MHz";
+	                if (solvent) acsString+=", ";
+	            }
+	            if (solvent) {
+	                acsString+=formatMF(solvent);
+	            }
+	            acsString+=")";
+	        }
+	        acsString+=" δ ";
+	    } else if (spectrum.type=="IR") {
+	        acsString+=" IR ";
+	    } else if (spectrum.type=="MASS") {
+	        acsString+=" MASS ";
+	    }
+	}
+
+	function appendDelta(line, nbDecimal) {
+	    //console.log(line);
+	    var startX = 0,stopX=0,delta1=0;
+	    if(line.integralData.from) {
+	        if ((typeof line.integralData.from) == "string") {
+	            startX = parseFloat(line.integralData.from);
+	        }
+	        else
+	            startX = line.integralData.from;
+	    }
+	    if(line.integralData.to){
+	        if((typeof line.integralData.to)=="string"){
+	            stopX=parseFloat(line.integralData.to);
+	        }
+	        else
+	            stopX=line.integralData.to;
+	    }
+	    if(line.delta1){
+	        if((typeof line.delta1)=="string"){
+	            delta1=parseFloat(line.delta1);
+	        }
+	        else
+	            delta1=line.delta1;
+
+	    }
+	    if (line.asymmetric===true||(line.multiplicity=="m"&&rangeForMultiplet===true)) {//Is it massive??
+	        if (line.integralData.from&&line.integralData.to) {
+	            if (startX<stopX) {
+	                acsString+=startX.toFixed(nbDecimal)+"-"+stopX.toFixed(nbDecimal);
 	            } else {
-	                var signal=spectra[numberSmartPeakLabels-i-1];
+	                acsString+=stopX.toFixed(nbDecimal)+"-"+sttotoFixed(nbDecimal);
 	            }
-	            if (signal) {
-	                //console.log("X2X"+i+JSON.stringify(signal));
-	                appendSeparator();
-	                appendDelta(signal,decimalValue);
-	                appendParenthesis(signal,decimalJ);
-	                //console.log("S2S"+i);
-	            }
-	        }
-	    }
-
-	    function appendSpectroInformation(spectrum, solvent) {
-	        if (spectrum.type=="NMR SPEC") {
-	            if (spectrum[0].nucleus) {
-	                acsString+=formatNucleus(spectrum[0].nucleus);
-	            }
-	            acsString+=" NMR";
-	            if ((solvent) || (spectrum[0].observe)) {
-	                acsString+=" (";
-	                if (spectrum[0].observe) {
-	                    acsString+=(spectrum[0].observe*1).toFixed(0)+" MHz";
-	                    if (solvent) acsString+=", ";
-	                }
-	                if (solvent) {
-	                    acsString+=formatMF(solvent);
-	                }
-	                acsString+=")";
-	            }
-	            acsString+=" δ ";
-	        } else if (spectrum.type=="IR") {
-	            acsString+=" IR ";
-	        } else if (spectrum.type=="MASS") {
-	            acsString+=" MASS ";
-	        }
-	    }
-
-	    function appendDelta(line, nbDecimal) {
-	        //console.log("appendDelta1");
-	        var startX = 0,stopX=0,delta1=0;
-	        if(line.startX){
-	            if((typeof line.startX)=="string"){
-	                startX=parseFloat(line.startX);
-	            }
-	            else
-	                startX=line.startX;
-	        }
-	        if(line.stopX){
-	            if((typeof line.stopX)=="string"){
-	                stopX=parseFloat(line.stopX);
-	            }
-	            else
-	                stopX=line.stopX;
-	        }
-	        if(line.delta1){
-	            if((typeof line.delta1)=="string"){
-	                delta1=parseFloat(line.delta1);
-	            }
-	            else
-	                delta1=line.delta1;
-
-	        }
-	        //console.log("Range2: "+rangeForMultiplet+" "+line.multiplicity);
-	        if (line.asymmetric===true||(line.multiplicity=="m"&&rangeForMultiplet===true)) {//Is it massive??
-	            if (line.startX&&line.stopX) {
-	                if (startX<stopX) {
-	                    acsString+=startX.toFixed(nbDecimal)+"-"+stopX.toFixed(nbDecimal);
-	                } else {
-	                    acsString+=stopX.toFixed(nbDecimal)+"-"+startX.toFixed(nbDecimal);
-	                }
-	            } else {
-	                if(line.delta1)
-	                    acsString+=delta1.toFixed(nbDecimal);
-	            }
-	        }
-	        else{
+	        } else {
 	            if(line.delta1)
 	                acsString+=delta1.toFixed(nbDecimal);
-	            else{
-	                if(line.startX&&line.stopX){
-	                    acsString+=((startX+stopX)/2).toFixed(nbDecimal);
-	                }
-	            }
 	        }
 	    }
-
-	    function appendValue(line, nbDecimal) {
-	        if (line.xPosition) {
-	            acsString+=line.xPosition.toFixed(nbDecimal);
-	        }
-	    }
-
-	    function appendParenthesis(line, nbDecimal) {
-	        //console.log("appendParenthesis1");
-	        // need to add assignment - coupling - integration
-	        parenthesis="";
-	        appendMultiplicity(line);
-	        appendIntegration(line);
-	        appendCoupling(line,nbDecimal);
-	        appendAssignment(line);
-
-
-	        if (parenthesis.length>0) {
-	            acsString+=" ("+parenthesis+")";
-	        }
-	        //console.log("appendParenthesis2");
-	    }
-
-	    function appendIntegration(line) {
-	        if (line.pubIntegration) {
-	            appendParenthesisSeparator();
-	            parenthesis+=line.pubIntegration;
-	        } else if (line.integralData) {
-	            appendParenthesisSeparator();
-	            parenthesis+=line.integralData.value.toFixed(0)+" H";
-	        }
-	    }
-
-	    function appendAssignment(line) {
-	        if (line.pubAssignment) {
-	            appendParenthesisSeparator();
-	            parenthesis+=formatAssignment(line.pubAssignment);
-	        }
+	    else{
+	        if(line.delta1)
+	            acsString+=delta1.toFixed(nbDecimal);
 	        else{
-	            if (line.assignment) {
-	                appendParenthesisSeparator();
-	                parenthesis+=formatAssignment(line.assignment);
+	            if(line.integralData.from&&line.integralData.to){
+	                acsString+=((startX+stopX)/2).toFixed(nbDecimal);
 	            }
 	        }
 	    }
+	}
 
-	    function appendMultiplicity(line) {
-	        if (line.pubMultiplicity) {
+	function appendValue(line, nbDecimal) {
+	    if (line.xPosition) {
+	        acsString+=line.xPosition.toFixed(nbDecimal);
+	    }
+	}
+
+	function appendParenthesis(line, nbDecimal) {
+	    // need to add assignment - coupling - integration
+	    parenthesis="";
+	    appendMultiplicity(line);
+	    appendIntegration(line);
+	    appendCoupling(line,nbDecimal);
+	    appendAssignment(line);
+
+
+	    if (parenthesis.length>0) {
+	        acsString+=" ("+parenthesis+")";
+	    }
+	}
+
+	function appendIntegration(line) {
+	    if (line.pubIntegration) {
+	        appendParenthesisSeparator();
+	        parenthesis+=line.pubIntegration;
+	    } else if (line.integralData) {
+	        appendParenthesisSeparator();
+	        parenthesis+=line.integralData.value.toFixed(0)+" H";
+	    }
+	}
+
+	function appendAssignment(line) {
+	    if (line.pubAssignment) {
+	        appendParenthesisSeparator();
+	        parenthesis+=formatAssignment(line.pubAssignment);
+	    }
+	    else{
+	        if (line.assignment) {
 	            appendParenthesisSeparator();
-	            parenthesis+=line.pubMultiplicity;
-	        } else if (line.multiplicity) {
-	            appendParenthesisSeparator();
-	            parenthesis+=line.multiplicity;
+	            parenthesis+=formatAssignment(line.assignment);
 	        }
 	    }
+	}
 
-	    function appendCoupling(line, nbDecimal) {
-	        if (line.nmrJs) {
-	            var j="<i>J</i> = ";
-	            for (var i=0; i<line.nmrJs.length; i++) {
-	                var coupling=line.nmrJs[i].coupling;
-	                if (j.length>11) j+=", ";
-	                j+=coupling.toFixed(nbDecimal);
+	function appendMultiplicity(line) {
+	    if (line.pubMultiplicity) {
+	        appendParenthesisSeparator();
+	        parenthesis+=line.pubMultiplicity;
+	    } else if (line.multiplicity) {
+	        appendParenthesisSeparator();
+	        parenthesis+=line.multiplicity;
+	    }
+	}
+
+	function appendCoupling(line, nbDecimal) {
+	    if (line.nmrJs) {
+	        var j="<i>J</i> = ";
+	        for (var i=0; i<line.nmrJs.length; i++) {
+	            var coupling=line.nmrJs[i].coupling;
+	            if (j.length>11) j+=", ";
+	            j+=coupling.toFixed(nbDecimal);
+	        }
+	        appendParenthesisSeparator();
+	        parenthesis+=j+" Hz";
+	    }
+
+	}
+
+	function formatAssignment(assignment) {
+	    assignment=assignment.replace(/([0-9])/g,"<sub>$1</sub>");
+	    assignment=assignment.replace(/\"([^\"]*)\"/g,"<i>$1</i>");
+	    return assignment;
+	}
+
+	function formatMF(mf) {
+	    mf=mf.replace(/([0-9])/g,"<sub>$1</sub>");
+	    return mf;
+	}
+
+	function formatNucleus(nucleus) {
+	    nucleus=nucleus.replace(/([0-9])/g,"<sup>$1</sup>");
+	    return nucleus;
+	}
+
+	function appendSeparator() {
+	    if ((acsString.length>0) && (! acsString.match(/ $/))) {
+	        acsString+=", ";
+	    }
+	}
+
+	function appendParenthesisSeparator() {
+	    if ((parenthesis.length>0) && (! parenthesis.match(", $"))) parenthesis+=", ";
+	}
+
+
+/***/ },
+/* 55 */
+/***/ function(module, exports) {
+
+	'use strict';
+	/**
+	 * This library formats a set of nmr1D signals to the ACS format.
+	 * Created by acastillo on 3/11/15. p
+	 */
+
+	var acsString="";
+	var parenthesis="";
+	var spectro="";
+	var rangeForMultiplet=false;
+
+	module.exports.toACS = function(spectrum, options){
+	    acsString="";
+	    parenthesis="";
+	    spectro="";
+	    var solvent = null;
+	    if(options&&options.solvent)
+	        solvent = options.solvent;
+	    if(options&&options.rangeForMultiplet!=undefined)
+	        rangeForMultiplet = options.rangeForMultiplet;
+
+	    if(options&&options.ascending){
+	        spectrum.sort(function(a,b){
+	            return b.from- a.from
+	        });
+	    }
+	    else{
+	        spectrum.sort(function(a,b){
+	            return a.from- b.from
+	        });
+	    }
+
+	    spectrum.type="NMR SPEC";
+	    if (options&&options.nucleus=="1H") {
+	        formatAcs_default(spectrum, false, 2, 1, solvent, options);
+	    }
+	    if (options&&options.nucleus=="13C") {
+	        formatAcs_default(spectrum, false, 1, 0, solvent,options);
+	    }
+
+	    if (acsString.length>0) acsString+=".";
+
+	    return acsString;
+	}
+
+	module.exports.toNMRSignal = function(acsString){
+	    //TODO Create the function that reconstructs the signals from the ACS string
+	    return null;
+	}
+
+	/*function formatAcs_default_IR(spectra, ascending, decimalValue, smw) {
+	 appendSeparator();
+	 appendSpectroInformation(spectra);
+	 if (spectra["peakLabels"]) {
+	 var numberPeakLabels=spectra["peakLabels"].length;
+	 var minIntensity= 9999999;
+	 var maxIntensity=-9999999;
+	 for (var i=0; i<numberPeakLabels; i++) {
+	 if (spectra["peakLabels"][i].intensity<minIntensity) minIntensity=spectra["peakLabels"][i].intensity;
+	 if (spectra["peakLabels"][i].intensity>maxIntensity) maxIntensity=spectra["peakLabels"][i].intensity;
+	 }
+	 for (var i=0; i<numberPeakLabels; i++) {
+	 if (ascending) {
+	 var peakLabel=spectra["peakLabels"][i];
+	 } else {
+	 var peakLabel=spectra["peakLabels"][numberPeakLabels-i-1];
+	 }
+	 if (peakLabel) {
+	 appendSeparator();
+	 appendValue(peakLabel,decimalValue);
+	 if (smw) { // we need to add small / medium / strong
+	 if (peakLabel.intensity<((maxIntensity-minIntensity)/3+minIntensity)) acsString+=" (s)";
+	 else if (peakLabel.intensity>(maxIntensity-(maxIntensity-minIntensity)/3)) acsString+=" (w)";
+	 else acsString+=" (m)";
+	 }
+	 }
+	 }
+	 }
+	 }*/
+
+	function formatAcs_default(spectra, ascending, decimalValue, decimalJ, solvent, options) {
+	    appendSeparator();
+	    appendSpectroInformation(spectra, solvent, options);
+	    var numberSmartPeakLabels=spectra.length;
+	    for (var i=0; i<numberSmartPeakLabels; i++) {
+	        if (ascending) {
+	            var signal=spectra[i];
+	        } else {
+	            var signal=spectra[numberSmartPeakLabels-i-1];
+	        }
+	        if (signal) {
+	            appendSeparator();
+	            appendDelta(signal,decimalValue);
+	            appendParenthesis(signal,decimalJ);
+	        }
+	    }
+	}
+
+	function appendSpectroInformation(spectrum, solvent, options) {
+	    if (spectrum.type=="NMR SPEC") {
+	        if (options.nucleus) {
+	            acsString+=formatNucleus(options.nucleus);
+	        }
+	        acsString+=" NMR";
+	        if ((solvent) || (options.observe)) {
+	            acsString+=" (";
+	            if (options.observe) {
+	                acsString+=(options.observe*1).toFixed(0)+" MHz";
+	                if (solvent) acsString+=", ";
 	            }
+	            if (solvent) {
+	                acsString+=formatMF(solvent);
+	            }
+	            acsString+=")";
+	        }
+	        acsString+=" δ ";
+	    } else if (spectrum.type=="IR") {
+	        acsString+=" IR ";
+	    } else if (spectrum.type=="MASS") {
+	        acsString+=" MASS ";
+	    }
+	}
+
+	function appendDelta(line, nbDecimal) {
+	    var startX = 0,stopX=0,delta1=0, asymmetric;
+	    if(line.from){
+	        if((typeof line.from)=="string"){
+	            startX=parseFloat(line.from);
+	        }
+	        else
+	            startX=line.from;
+	    }
+	    if(line.to){
+	        if((typeof line.to)=="string"){
+	            stopX=parseFloat(line.to);
+	        }
+	        else
+	            stopX=line.to;
+	    }
+	    if(line.signal[0].delta){
+	        if((typeof line.signal[0].delta)=="string"){
+	            delta1=parseFloat(line.signal[0].delta);
+	        }
+	        else
+	            delta1=line.signal[0].delta;
+	    }
+	    else{
+	        asymmetric = true;
+	    }
+	    //console.log("Range2: "+rangeForMultiplet+" "+line.multiplicity);
+	    if (asymmetric===true||(line.signal[0].multiplicity=="m"&&rangeForMultiplet===true)) {//Is it massive??
+	        if (line.from&&line.to) {
+	            if (startX<stopX) {
+	                acsString+=startX.toFixed(nbDecimal)+"-"+stopX.toFixed(nbDecimal);
+	            } else {
+	                acsString+=stopX.toFixed(nbDecimal)+"-"+startX.toFixed(nbDecimal);
+	            }
+	        } else {
+	            if(line.signal[0].delta)
+	                acsString+="?";
+	        }
+	    }
+	    else{
+	        if(line.signal[0].delta)
+	            acsString+=delta1.toFixed(nbDecimal);
+	        else{
+	            if(line.from&&line.to){
+	                acsString+=((startX+stopX)/2).toFixed(nbDecimal);
+	            }
+	        }
+	    }
+	}
+
+	function appendValue(line, nbDecimal) {
+	    if (line.xPosition) {
+	        acsString+=line.xPosition.toFixed(nbDecimal);
+	    }
+	}
+
+	function appendParenthesis(line, nbDecimal) {
+	    //console.log("appendParenthesis1");
+	    // need to add assignment - coupling - integration
+	    parenthesis="";
+	    appendMultiplicity(line);
+	    appendIntegration(line);
+	    appendCoupling(line,nbDecimal);
+	    appendAssignment(line);
+
+
+	    if (parenthesis.length>0) {
+	        acsString+=" ("+parenthesis+")";
+	    }
+	    //console.log("appendParenthesis2");
+	}
+
+	function appendIntegration(line) {
+	    if (line.pubIntegration) {
+	        appendParenthesisSeparator();
+	        parenthesis+=line.pubIntegration;
+	    } else if (line.integral) {
+	        appendParenthesisSeparator();
+	        parenthesis+=line.integral.toFixed(0)+" H";
+	    }
+	}
+
+	function appendAssignment(line) {
+	    if (line.signal[0].pubAssignment) {
+	        appendParenthesisSeparator();
+	        parenthesis+=formatAssignment(line.signal[0].pubAssignment);
+	    }
+	    else{
+	        if (line.signal[0].assignment) {
 	            appendParenthesisSeparator();
-	            parenthesis+=j+" Hz";
-	        }
-
-	    }
-
-	    function formatAssignment(assignment) {
-	        assignment=assignment.replace(/([0-9])/g,"<sub>$1</sub>");
-	        assignment=assignment.replace(/\"([^\"]*)\"/g,"<i>$1</i>");
-	        return assignment;
-	    }
-
-	    function formatMF(mf) {
-	        mf=mf.replace(/([0-9])/g,"<sub>$1</sub>");
-	        return mf;
-	    }
-
-	    function formatNucleus(nucleus) {
-	        nucleus=nucleus.replace(/([0-9])/g,"<sup>$1</sup>");
-	        return nucleus;
-	    }
-
-	    function appendSeparator() {
-	        if ((acsString.length>0) && (! acsString.match(/ $/))) {
-	            acsString+=", ";
+	            parenthesis+=formatAssignment(line.signal[0].assignment);
 	        }
 	    }
+	}
 
-	    function appendParenthesisSeparator() {
-	        if ((parenthesis.length>0) && (! parenthesis.match(", $"))) parenthesis+=", ";
+	function appendMultiplicity(line) {
+	    if (line.signal[0].pubMultiplicity) {
+	        appendParenthesisSeparator();
+	        parenthesis+=line.pubMultiplicity;
+	    } else if (line.signal[0].multiplicity) {
+	        appendParenthesisSeparator();
+	        parenthesis+=line.signal[0].multiplicity;
 	    }
+	}
 
-	    function fromACS2NMRSignal1D(acsString){
-	        return JSON.parse(SDAPI.AcsParserAsJSONString(acsString));
+	function appendCoupling(line, nbDecimal) {
+	    if (line.signal[0].j) {
+	        var Js = line.signal[0].j;
+	        var j="<i>J</i> = ";
+	        for (var i=0; i<Js.length; i++) {
+	            var coupling=Js[i].coupling;
+	            if (j.length>11) j+=", ";
+	            j+=coupling.toFixed(nbDecimal);
+	        }
+	        appendParenthesisSeparator();
+	        parenthesis+=j+" Hz";
 	    }
+	}
 
-	    return {
-	        toACS:fromNMRSignal1D2ACS,
-	        toNMRSignal:fromACS2NMRSignal1D
+	function formatAssignment(assignment) {
+	    assignment=assignment.replace(/([0-9])/g,"<sub>$1</sub>");
+	    assignment=assignment.replace(/\"([^\"]*)\"/g,"<i>$1</i>");
+	    return assignment;
+	}
+
+	function formatMF(mf) {
+	    mf=mf.replace(/([0-9])/g,"<sub>$1</sub>");
+	    return mf;
+	}
+
+	function formatNucleus(nucleus) {
+	    nucleus=nucleus.replace(/([0-9])/g,"<sup>$1</sup>");
+	    return nucleus;
+	}
+
+	function appendSeparator() {
+	    if ((acsString.length>0) && (! acsString.match(/ $/))) {
+	        acsString+=", ";
 	    }
-	})();
+	}
 
-	module.exports=ACS;
+	function appendParenthesisSeparator() {
+	    if ((parenthesis.length>0) && (! parenthesis.match(", $"))) parenthesis+=", ";
+	}
+
 
 /***/ }
 /******/ ])
