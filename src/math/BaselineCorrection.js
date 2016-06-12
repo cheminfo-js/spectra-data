@@ -3,23 +3,6 @@
  * Created by Abol on 5/31/2016.
  */
 
-/**
-package org.cheminfo.hook.math.peakdetection;
-
-import java.util.Arrays;
-
-import org.cheminfo.hook.math.fft.Convolution;
-import org.cheminfo.hook.math.util.MathUtils;
-
-import ca.uol.aig.fftpack.Complex1D;
-import ca.uol.aig.fftpack.ComplexDoubleFFT;
-
-
- *
- * @author Marco Engeler
- *
- */
-
 //var  isDebug = false; @TODO Debug
 
 function haarWhittakerBaselineCorrection(data, bitmask, waveletScale, whittakerLambda) {
@@ -45,7 +28,7 @@ function haarWhittakerBaselineCorrection2D(data, nRows, nCols, waveletScale, whi
         while (weights[i] === 0)
             weights[i--] = 1;
         tmpRow = Whittaker.whittakerFirstDifferences(tmpRow, weights, whittakerLambda);
-
+    
         for (i = 0; i < nCols; i++) {
             baseline[iRow * nCols + i] = data[iRow * nCols + i] - tmpRow[i];
         }
