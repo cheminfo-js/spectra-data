@@ -60,8 +60,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.SD = __webpack_require__(1);
 	exports.NMR = __webpack_require__(8);
 	exports.NMR2D = __webpack_require__(50);
-	exports.ACS = __webpack_require__(54);
-	exports.ACS2 = __webpack_require__(55);
+	exports.formater = __webpack_require__(54);
+	//exports.ACS2 = require('./AcsParserNew');
 	exports.JAnalyzer = __webpack_require__(10);
 	//exports.SD2 = require('/SD2');
 
@@ -15655,292 +15655,107 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 54 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	/**
 	 * This library formats a set of nmr1D signals to the ACS format.
 	 * Created by acastillo on 3/11/15. p
 	 */
+	var old = __webpack_require__(55);
 
 	var acsString="";
 	var parenthesis="";
 	var spectro="";
 	var rangeForMultiplet=false;
 
-	module.exports.toACS = function(spectrum, options){
-	    acsString="";
-	    parenthesis="";
-	    spectro="";
-	    var solvent = null;
-	    if(options&&options.solvent)
-	        solvent = options.solvent;
-	    if(options&&options.rangeForMultiplet!=undefined)
-	        rangeForMultiplet = options.rangeForMultiplet;
-
-	    if(options&&options.ascending){
-	        spectrum.sort(function(a,b){
-	            return b.delta1- a.delta1
-	        });
+	module.exports.nmrJ = function(Js, options){
+	    var Jstring = "";
+	    var opt = Object.assign({},{separator:", ", nbDecimal:2}, options);
+	    var j;
+	    for(var i=0;i<Js.length;i++){
+	        j = Js[i];
+	        if (j.length>11) j+=opt.separator;
+	        Jstring+=j.multiplicity+" "+j.coupling.toFixed(opt.nbDecimal);
 	    }
-	    else{
-	        spectrum.sort(function(a,b){
-	            return a.delta1- b.delta1
-	        });
-	    }
-
-	    //console.log("Range1: "+options.rangeForMultiplet);
-
-	    spectrum.type="NMR SPEC";
-	    if (spectrum[0]["nucleus"]=="1H") {
-	        formatAcs_default(spectrum, false, 2, 1, solvent);
-	    } else if (spectrum[0]["nucleus"]=="13C") {
-	        formatAcs_default(spectrum, false, 1, 0, solvent);
-	    }
-
-	    if (acsString.length>0) acsString+=".";
-
-	    return acsString;
+	    return Jstring;
 	}
 
+	module.exports.toVector=function(ranges, opt){
+	    var options = opt||{};
+	    var from = options.from;
+	    var to = options.to;
+	    var nbPoints = options.nbPoints||16*1024;
+	    var fnName = options.function||"gaussian";
+	    var nWidth = options.nWidth || 4;
 
-	module.exports.toNMRSignal = function(acsString){
-	    return JSON.parse(SDAPI.AcsParserAsJSONString(acsString));
-	}
-
-
-
-	/*function formatAcs_default_IR(spectra, ascending, decimalValue, smw) {
-	 appendSeparator();
-	 appendSpectroInformation(spectra);
-	 if (spectra["peakLabels"]) {
-	 var numberPeakLabels=spectra["peakLabels"].length;
-	 var minIntensity= 9999999;
-	 var maxIntensity=-9999999;
-	 for (var i=0; i<numberPeakLabels; i++) {
-	 if (spectra["peakLabels"][i].intensity<minIntensity) minIntensity=spectra["peakLabels"][i].intensity;
-	 if (spectra["peakLabels"][i].intensity>maxIntensity) maxIntensity=spectra["peakLabels"][i].intensity;
-	 }
-	 for (var i=0; i<numberPeakLabels; i++) {
-	 if (ascending) {
-	 var peakLabel=spectra["peakLabels"][i];
-	 } else {
-	 var peakLabel=spectra["peakLabels"][numberPeakLabels-i-1];
-	 }
-	 if (peakLabel) {
-	 appendSeparator();
-	 appendValue(peakLabel,decimalValue);
-	 if (smw) { // we need to add small / medium / strong
-	 if (peakLabel.intensity<((maxIntensity-minIntensity)/3+minIntensity)) acsString+=" (s)";
-	 else if (peakLabel.intensity>(maxIntensity-(maxIntensity-minIntensity)/3)) acsString+=" (w)";
-	 else acsString+=" (m)";
-	 }
-	 }
-	 }
-	 }
-	 }*/
-
-	function formatAcs_default(spectra, ascending, decimalValue, decimalJ, solvent) {
-	    appendSeparator();
-	    appendSpectroInformation(spectra, solvent);
-	    var numberSmartPeakLabels=spectra.length;
-	    for (var i=0; i<numberSmartPeakLabels; i++) {
-	        if (ascending) {
-	            var signal=spectra[i];
-	        } else {
-	            var signal=spectra[numberSmartPeakLabels-i-1];
-	        }
-	        if (signal) {
-	            appendSeparator();
-	            appendDelta(signal,decimalValue);
-	            appendParenthesis(signal,decimalJ);
+	    var peaks = [];
+	    for(var i=0;i<ranges.length;i++){
+	        var range = ranges[i];
+	        for(var j=0;j<range.signal.length;j++){
+	            peaks=peaks.concat(range.signal[j].peak);
 	        }
 	    }
-	}
 
-	function appendSpectroInformation(spectrum, solvent) {
-	    if (spectrum.type=="NMR SPEC") {
-	        if (spectrum[0].nucleus) {
-	            acsString+=formatNucleus(spectrum[0].nucleus);
-	        }
-	        acsString+=" NMR";
-	        if ((solvent) || (spectrum[0].observe)) {
-	            acsString+=" (";
-	            if (spectrum[0].observe) {
-	                acsString+=(spectrum[0].observe*1).toFixed(0)+" MHz";
-	                if (solvent) acsString+=", ";
-	            }
-	            if (solvent) {
-	                acsString+=formatMF(solvent);
-	            }
-	            acsString+=")";
-	        }
-	        acsString+=" δ ";
-	    } else if (spectrum.type=="IR") {
-	        acsString+=" IR ";
-	    } else if (spectrum.type=="MASS") {
-	        acsString+=" MASS ";
-	    }
-	}
-
-	function appendDelta(line, nbDecimal) {
-	    //console.log(line);
-	    var startX = 0,stopX=0,delta1=0;
-	    if(line.integralData.from) {
-	        if ((typeof line.integralData.from) == "string") {
-	            startX = parseFloat(line.integralData.from);
-	        }
-	        else
-	            startX = line.integralData.from;
-	    }
-	    if(line.integralData.to){
-	        if((typeof line.integralData.to)=="string"){
-	            stopX=parseFloat(line.integralData.to);
-	        }
-	        else
-	            stopX=line.integralData.to;
-	    }
-	    if(line.delta1){
-	        if((typeof line.delta1)=="string"){
-	            delta1=parseFloat(line.delta1);
-	        }
-	        else
-	            delta1=line.delta1;
-
-	    }
-	    if (line.asymmetric===true||(line.multiplicity=="m"&&rangeForMultiplet===true)) {//Is it massive??
-	        if (line.integralData.from&&line.integralData.to) {
-	            if (startX<stopX) {
-	                acsString+=startX.toFixed(nbDecimal)+"-"+stopX.toFixed(nbDecimal);
-	            } else {
-	                acsString+=stopX.toFixed(nbDecimal)+"-"+sttotoFixed(nbDecimal);
-	            }
-	        } else {
-	            if(line.delta1)
-	                acsString+=delta1.toFixed(nbDecimal);
-	        }
-	    }
-	    else{
-	        if(line.delta1)
-	            acsString+=delta1.toFixed(nbDecimal);
-	        else{
-	            if(line.integralData.from&&line.integralData.to){
-	                acsString+=((startX+stopX)/2).toFixed(nbDecimal);
+	    if(!from){
+	        from = Number.MAX_VALUE;
+	        for(var i=0;i<peaks.length;i++){
+	            if(peaks[i].x-peaks[i].width*nWidth<from){
+	                from = peaks[i].x-peaks[i].width*nWidth;
 	            }
 	        }
 	    }
-	}
 
-	function appendValue(line, nbDecimal) {
-	    if (line.xPosition) {
-	        acsString+=line.xPosition.toFixed(nbDecimal);
-	    }
-	}
-
-	function appendParenthesis(line, nbDecimal) {
-	    // need to add assignment - coupling - integration
-	    parenthesis="";
-	    appendMultiplicity(line);
-	    appendIntegration(line);
-	    appendCoupling(line,nbDecimal);
-	    appendAssignment(line);
-
-
-	    if (parenthesis.length>0) {
-	        acsString+=" ("+parenthesis+")";
-	    }
-	}
-
-	function appendIntegration(line) {
-	    if (line.pubIntegration) {
-	        appendParenthesisSeparator();
-	        parenthesis+=line.pubIntegration;
-	    } else if (line.integralData) {
-	        appendParenthesisSeparator();
-	        parenthesis+=line.integralData.value.toFixed(0)+" H";
-	    }
-	}
-
-	function appendAssignment(line) {
-	    if (line.pubAssignment) {
-	        appendParenthesisSeparator();
-	        parenthesis+=formatAssignment(line.pubAssignment);
-	    }
-	    else{
-	        if (line.assignment) {
-	            appendParenthesisSeparator();
-	            parenthesis+=formatAssignment(line.assignment);
+	    if(!to){
+	        to = Number.MIN_VALUE;
+	        for(var i=0;i<peaks.length;i++){
+	            if(peaks[i].x+peaks[i].width*nWidth>to){
+	                to = peaks[i].x+peaks[i].width*nWidth;
+	            }
 	        }
 	    }
-	}
 
-	function appendMultiplicity(line) {
-	    if (line.pubMultiplicity) {
-	        appendParenthesisSeparator();
-	        parenthesis+=line.pubMultiplicity;
-	    } else if (line.multiplicity) {
-	        appendParenthesisSeparator();
-	        parenthesis+=line.multiplicity;
+
+	    var x = new Array(nbPoints);
+	    var y = new Array(nbPoints);
+	    var dx = (to-from)/(nbPoints-1);
+	    for(var i=0;i<nbPoints;i++){
+	        x[i] = from+i*dx;
+	        y[i] = 0;
 	    }
-	}
 
-	function appendCoupling(line, nbDecimal) {
-	    if (line.nmrJs) {
-	        var j="<i>J</i> = ";
-	        for (var i=0; i<line.nmrJs.length; i++) {
-	            var coupling=line.nmrJs[i].coupling;
-	            if (j.length>11) j+=", ";
-	            j+=coupling.toFixed(nbDecimal);
+	    for(var i=0;i<peaks.length;i++){
+	        var peak = peaks[i];
+	        if(peak.x>from && peak.x<to){
+	            var index = Math.round((peak.x-from)/dx);
+	            var w = Math.round(peak.width*nWidth/dx);
+	            if(fnName=="gaussian"){
+	                for(var j=index-w;j<index+w;j++){
+	                    if(j>=0&&j<nbPoints){
+	                        y[j]+=peak.intensity*Math.exp(-0.5*Math.pow((peak.x-x[j])/(peak.width/2),2));
+	                    }
+	                }
+	            }else{
+	                for(var j=index-w;j<index+w;j++){
+	                    if(j>=0&&j<nbPoints){
+	                        y[j]+=peak.intensity*Math.pow(peak.width,2)/(Math.pow(peak.x-x[j],2)+Math.pow(peak.width/2,2));
+
+	                    }
+	                }
+	            }
+
 	        }
-	        appendParenthesisSeparator();
-	        parenthesis+=j+" Hz";
 	    }
 
+	    return {x:x,y:y};
 	}
-
-	function formatAssignment(assignment) {
-	    assignment=assignment.replace(/([0-9])/g,"<sub>$1</sub>");
-	    assignment=assignment.replace(/\"([^\"]*)\"/g,"<i>$1</i>");
-	    return assignment;
-	}
-
-	function formatMF(mf) {
-	    mf=mf.replace(/([0-9])/g,"<sub>$1</sub>");
-	    return mf;
-	}
-
-	function formatNucleus(nucleus) {
-	    nucleus=nucleus.replace(/([0-9])/g,"<sup>$1</sup>");
-	    return nucleus;
-	}
-
-	function appendSeparator() {
-	    if ((acsString.length>0) && (! acsString.match(/ $/))) {
-	        acsString+=", ";
-	    }
-	}
-
-	function appendParenthesisSeparator() {
-	    if ((parenthesis.length>0) && (! parenthesis.match(", $"))) parenthesis+=", ";
-	}
-
-
-/***/ },
-/* 55 */
-/***/ function(module, exports) {
-
-	'use strict';
-	/**
-	 * This library formats a set of nmr1D signals to the ACS format.
-	 * Created by acastillo on 3/11/15. p
-	 */
-
-	var acsString="";
-	var parenthesis="";
-	var spectro="";
-	var rangeForMultiplet=false;
 
 	module.exports.toACS = function(spectrum, options){
+
+	    if(spectrum[0].delta1){//Old signals format
+	        return old.toACS(spectrum, options);
+	    }
+
 	    acsString="";
 	    parenthesis="";
 	    spectro="";
@@ -16169,6 +15984,241 @@ return /******/ (function(modules) { // webpackBootstrap
 	        appendParenthesisSeparator();
 	        parenthesis+=j+" Hz";
 	    }
+	}
+
+	function formatAssignment(assignment) {
+	    assignment=assignment.replace(/([0-9])/g,"<sub>$1</sub>");
+	    assignment=assignment.replace(/\"([^\"]*)\"/g,"<i>$1</i>");
+	    return assignment;
+	}
+
+	function formatMF(mf) {
+	    mf=mf.replace(/([0-9])/g,"<sub>$1</sub>");
+	    return mf;
+	}
+
+	function formatNucleus(nucleus) {
+	    nucleus=nucleus.replace(/([0-9])/g,"<sup>$1</sup>");
+	    return nucleus;
+	}
+
+	function appendSeparator() {
+	    if ((acsString.length>0) && (! acsString.match(/ $/))) {
+	        acsString+=", ";
+	    }
+	}
+
+	function appendParenthesisSeparator() {
+	    if ((parenthesis.length>0) && (! parenthesis.match(", $"))) parenthesis+=", ";
+	}
+
+
+/***/ },
+/* 55 */
+/***/ function(module, exports) {
+
+	'use strict';
+	/**
+	 * This library formats a set of nmr1D signals to the ACS format.
+	 * Created by acastillo on 3/11/15. p
+	 */
+
+	var acsString="";
+	var parenthesis="";
+	var spectro="";
+	var rangeForMultiplet=false;
+
+	module.exports.toACS = function(spectrum, options){
+	    acsString="";
+	    parenthesis="";
+	    spectro="";
+	    var solvent = null;
+	    if(options&&options.solvent)
+	        solvent = options.solvent;
+	    if(options&&options.rangeForMultiplet!=undefined)
+	        rangeForMultiplet = options.rangeForMultiplet;
+
+	    if(options&&options.ascending){
+	        spectrum.sort(function(a,b){
+	            return b.delta1- a.delta1
+	        });
+	    }
+	    else{
+	        spectrum.sort(function(a,b){
+	            return a.delta1- b.delta1
+	        });
+	    }
+
+	    //console.log("Range1: "+options.rangeForMultiplet);
+
+	    spectrum.type="NMR SPEC";
+	    if (spectrum[0]["nucleus"]=="1H") {
+	        formatAcs_default(spectrum, false, 2, 1, solvent);
+	    } else if (spectrum[0]["nucleus"]=="13C") {
+	        formatAcs_default(spectrum, false, 1, 0, solvent);
+	    }
+
+	    if (acsString.length>0) acsString+=".";
+
+	    return acsString;
+	}
+
+	function formatAcs_default(spectra, ascending, decimalValue, decimalJ, solvent) {
+	    appendSeparator();
+	    appendSpectroInformation(spectra, solvent);
+	    var numberSmartPeakLabels=spectra.length;
+	    for (var i=0; i<numberSmartPeakLabels; i++) {
+	        if (ascending) {
+	            var signal=spectra[i];
+	        } else {
+	            var signal=spectra[numberSmartPeakLabels-i-1];
+	        }
+	        if (signal) {
+	            appendSeparator();
+	            appendDelta(signal,decimalValue);
+	            appendParenthesis(signal,decimalJ);
+	        }
+	    }
+	}
+
+	function appendSpectroInformation(spectrum, solvent) {
+	    if (spectrum.type=="NMR SPEC") {
+	        if (spectrum[0].nucleus) {
+	            acsString+=formatNucleus(spectrum[0].nucleus);
+	        }
+	        acsString+=" NMR";
+	        if ((solvent) || (spectrum[0].observe)) {
+	            acsString+=" (";
+	            if (spectrum[0].observe) {
+	                acsString+=(spectrum[0].observe*1).toFixed(0)+" MHz";
+	                if (solvent) acsString+=", ";
+	            }
+	            if (solvent) {
+	                acsString+=formatMF(solvent);
+	            }
+	            acsString+=")";
+	        }
+	        acsString+=" δ ";
+	    } else if (spectrum.type=="IR") {
+	        acsString+=" IR ";
+	    } else if (spectrum.type=="MASS") {
+	        acsString+=" MASS ";
+	    }
+	}
+
+	function appendDelta(line, nbDecimal) {
+	    //console.log(line);
+	    var startX = 0,stopX=0,delta1=0;
+	    if(line.integralData.from) {
+	        if ((typeof line.integralData.from) == "string") {
+	            startX = parseFloat(line.integralData.from);
+	        }
+	        else
+	            startX = line.integralData.from;
+	    }
+	    if(line.integralData.to){
+	        if((typeof line.integralData.to)=="string"){
+	            stopX=parseFloat(line.integralData.to);
+	        }
+	        else
+	            stopX=line.integralData.to;
+	    }
+	    if(line.delta1){
+	        if((typeof line.delta1)=="string"){
+	            delta1=parseFloat(line.delta1);
+	        }
+	        else
+	            delta1=line.delta1;
+
+	    }
+	    if (line.asymmetric===true||(line.multiplicity=="m"&&rangeForMultiplet===true)) {//Is it massive??
+	        if (line.integralData.from&&line.integralData.to) {
+	            if (startX<stopX) {
+	                acsString+=startX.toFixed(nbDecimal)+"-"+stopX.toFixed(nbDecimal);
+	            } else {
+	                acsString+=stopX.toFixed(nbDecimal)+"-"+sttotoFixed(nbDecimal);
+	            }
+	        } else {
+	            if(line.delta1)
+	                acsString+=delta1.toFixed(nbDecimal);
+	        }
+	    }
+	    else{
+	        if(line.delta1)
+	            acsString+=delta1.toFixed(nbDecimal);
+	        else{
+	            if(line.integralData.from&&line.integralData.to){
+	                acsString+=((startX+stopX)/2).toFixed(nbDecimal);
+	            }
+	        }
+	    }
+	}
+
+	function appendValue(line, nbDecimal) {
+	    if (line.xPosition) {
+	        acsString+=line.xPosition.toFixed(nbDecimal);
+	    }
+	}
+
+	function appendParenthesis(line, nbDecimal) {
+	    // need to add assignment - coupling - integration
+	    parenthesis="";
+	    appendMultiplicity(line);
+	    appendIntegration(line);
+	    appendCoupling(line,nbDecimal);
+	    appendAssignment(line);
+
+
+	    if (parenthesis.length>0) {
+	        acsString+=" ("+parenthesis+")";
+	    }
+	}
+
+	function appendIntegration(line) {
+	    if (line.pubIntegration) {
+	        appendParenthesisSeparator();
+	        parenthesis+=line.pubIntegration;
+	    } else if (line.integralData) {
+	        appendParenthesisSeparator();
+	        parenthesis+=line.integralData.value.toFixed(0)+" H";
+	    }
+	}
+
+	function appendAssignment(line) {
+	    if (line.pubAssignment) {
+	        appendParenthesisSeparator();
+	        parenthesis+=formatAssignment(line.pubAssignment);
+	    }
+	    else{
+	        if (line.assignment) {
+	            appendParenthesisSeparator();
+	            parenthesis+=formatAssignment(line.assignment);
+	        }
+	    }
+	}
+
+	function appendMultiplicity(line) {
+	    if (line.pubMultiplicity) {
+	        appendParenthesisSeparator();
+	        parenthesis+=line.pubMultiplicity;
+	    } else if (line.multiplicity) {
+	        appendParenthesisSeparator();
+	        parenthesis+=line.multiplicity;
+	    }
+	}
+
+	function appendCoupling(line, nbDecimal) {
+	    if (line.nmrJs) {
+	        var j="<i>J</i> = ";
+	        for (var i=0; i<line.nmrJs.length; i++) {
+	            var coupling=line.nmrJs[i].coupling;
+	            if (j.length>11) j+=", ";
+	            j+=coupling.toFixed(nbDecimal);
+	        }
+	        appendParenthesisSeparator();
+	        parenthesis+=j+" Hz";
+	    }
+
 	}
 
 	function formatAssignment(assignment) {
