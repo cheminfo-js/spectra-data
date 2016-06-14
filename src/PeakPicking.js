@@ -121,7 +121,7 @@ module.exports = function(spectrum, optionsEx){
         signals[i]._highlight=[signals[i].signalID];
     }
 
-    removeImpurities(signals, spectrum.getSolventName(),options.nH);
+    //removeImpurities(signals, spectrum.getSolventName(),options.nH);
 
     if(options.format==="new"){
         var newSignals = new Array(signals.length);
