@@ -1,6 +1,6 @@
 {
   "name": "spectra-data",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "description": "spectra-data project - manipulate spectra",
   "keywords": [
     "spectra-data",
@@ -35,7 +35,7 @@
   "dependencies": {
     "jcampconverter": "^2.4.5",
     "ml-stat": "^1.2.0",
-    "ml-array-utils":"0.2.3",
+    "ml-array-utils": "0.2.3",
     "ml-matrix": "^1.0.4",
     "ml-gsd": "^1.1.5",
     "ml-fft": "1.0.5",
