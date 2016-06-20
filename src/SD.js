@@ -2,7 +2,8 @@
 // small note on the best way to define array
 // http://jsperf.com/lp-array-and-loops/2
 
-var StatArray = require('ml-stat/array');
+var StatArray = require('ml-stat').array;
+var ArrayUtils = require('ml-array-utils');
 var JcampConverter = require("jcampconverter");
 var JcampCreator = require("./jcampEncoder/JcampCreator");
 var extend = require("extend");
@@ -385,23 +386,7 @@ SD.prototype.getMinMaxY=function(i) {
  * @returns {number}
  */
 SD.prototype.getNoiseLevel=function(){
-    var mean = 0,stddev=0;
-    var y = this.getYData();
-    var length = this.getNbPoints(),i=0;
-    for(i = 0; i < length; i++){
-        mean+=y[i];
-    }
-    mean/=this.getNbPoints();
-    var averageDeviations = new Array(length);
-    for (i = 0; i < length; i++)
-        averageDeviations[i] = Math.abs(y[i] - mean);
-    averageDeviations.sort();
-    if (length % 2 == 1) {
-        stddev = averageDeviations[(length-1)/2] / 0.6745;
-    } else {
-        stddev = 0.5*(averageDeviations[length/2]+averageDeviations[length/2-1]) / 0.6745;
-    }
-
+    var stddev = StatArray.robustMeanAndStdev(this.getYData()).stdev;
     return stddev*this.getNMRPeakThreshold(this.getNucleus(1));
 }
 
@@ -485,12 +470,7 @@ SD.prototype.getDeltaX=function(){
  * @param max   Maximum desired value for Y
  */
 SD.prototype.setMinMax=function(min,max) {
-    var y = this.getYData();
-    var minMax = StatArray.minMax(y);
-    var factor = (max - min)/(minMax.max-minMax.min);
-    for(var i=0;i< y.length;i++){
-        y[i]=(y[i]-minMax.min)*factor+min;
-    }
+    ArrayUtils.scale(this.getYData(),{min:min,max:max,inplace:true});
 }
 
 /**
@@ -499,12 +479,7 @@ SD.prototype.setMinMax=function(min,max) {
  * @param min   Minimum desired value for Y
  */
 SD.prototype.setMin=function(min) {
-    var y = this.getYData();
-    var currentMin = StatArray.min(y);
-    var factor = min/currentMin;
-    for(var i=0;i< y.length;i++){
-        y[i]*=factor;
-    }
+    ArrayUtils.scale(this.getYData(),{min:min,inplace:true});
 }
 
 /**
@@ -513,12 +488,7 @@ SD.prototype.setMin=function(min) {
  * @param max   Maximum desired value for Y
  */
 SD.prototype.setMax=function(max) {
-    var y = this.getYData();
-    var currentMin = StatArray.max(y);
-    var factor = max/currentMin;
-    for(var i=0;i< y.length;i++){
-        y[i]*=factor;
-    }
+    ArrayUtils.scale(this.getYData(),{max:max,inplace:true});
 }
 
 /**
@@ -554,12 +524,12 @@ SD.prototype.shift=function(globalShift) {
         this.getSpectrum().firstX+=globalShift;
         this.getSpectrum().lastX+=globalShift;
     }
-
 }
 
 /**
  * @function fillWith(from, to, value)
  * This function fills a zone of the spectrum with the given value.
+ * If value is undefined it will suppress the elements
  * @param from
  * @param to
  * @param fillWith
@@ -587,8 +557,15 @@ SD.prototype.fillWith=function(from, to, value) {
             start=0;
         if(end>=this.getNbPoints)
             end=this.getNbPoints-1;
-        for(i=start;i<=end;i++){
+
+        if(isUndefined(value)){
+            y.splice(start,end-start);
+            x.splice(start,end-start);
+        }
+        else{
+            for(i=start;i<=end;i++){
                 y[i]=value;
+            }
         }
     }
 }
@@ -601,33 +578,7 @@ SD.prototype.fillWith=function(from, to, value) {
  * @param to
  */
 SD.prototype.suppressZone=function(from, to) {
-    var tmp, start, end, x, y;
-    if(from > to) {
-        var tmp = from;
-        from = to;
-        to = tmp;
-    }
-
-    for(var i=0;i<this.getNbSubSpectra();i++){
-        this.setActiveElement(i);
-        x = this.getXData();
-        y = this.getYData();
-        start = this.unitsToArrayPoint(from);
-        end = this.unitsToArrayPoint(to);
-        if(start > end){
-            tmp = start;
-            start = end;
-            end = tmp;
-        }
-        if(start<0)
-            start=0;
-        if(end>=this.getNbPoints)
-            end=this.getNbPoints-1;
-        for(i=end;i>=start;i--){
-            y.splice(i,1);
-            x.splice(i,1);
-        }
-    }
+    this.fillWith(from,to);
     this.setDataClass(this.DATACLASS_PEAK);
 }
 
@@ -804,54 +755,7 @@ SD.prototype.getArea = function(from, to){
  * @returns [x,y]
  */
 SD.prototype.getVector = function(from, to, nPoints){
-    var x = this.getSpectraDataX();
-    var y = this.getSpectraDataY();
-    var result = [];
-    var start = 0, end = x.length- 1,direction=1;
-    var reversed = false;
-
-    if(x[0]>x[1]){
-        direction = -1;
-        start= x.length-1;
-        end = 0;
-    }
-
-    if(from > to){
-        var tmp = from;
-        from = to;
-        to = tmp;
-        reversed = true;
-    }
-    //console.log(x[end]+" "+from+" "+x[start]+" "+to);
-    if(x[start]>to||x[end]<from){
-        //console.log("ssss");
-        return [];
-    }
-
-    while(x[start]<from){start+=direction;}
-    while(x[end]>to){end-=direction;}
-
-    var winPoints = Math.abs(end-start)+1;
-    if(!nPoints){
-        nPoints = winPoints;
-    }
-    var xwin = new Array(nPoints);
-    var ywin = new Array(nPoints);
-    var index = 0;
-
-    if(direction==-1)
-        index=nPoints-1;
-
-    var di = winPoints/nPoints;
-    var i=start-direction;
-    for(var k=0;k<nPoints;k++) {
-        i += Math.round(di * direction);
-        //console.log(i+" "+y[i]);
-        xwin[index] = x[i];
-        ywin[index] = y[i];
-        index += direction;
-    }
-    return [xwin,ywin];
+    return ArrayUtils.getEquallySpacedData(this.getSpectraDataX(), this.getSpectraDataY(), {from: from, to:to, numberOfPoints:nPoints});
 }
 
 /**
@@ -886,4 +790,3 @@ SD.prototype.toJcamp=function(options) {
 
 
 module.exports = SD;
-
