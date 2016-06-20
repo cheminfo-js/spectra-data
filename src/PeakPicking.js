@@ -36,15 +36,18 @@ module.exports = function(spectrum, optionsEx){
             broadRatio:0.0025,
             smoothY:true,
             nL:4,
+            functionType:"gaussian",
+            broadWidth:0.25,
             sgOptions:{windowSize: 9, polynomial: 3}
         },
         options.gsdOptions);
 
     var data = spectrum.getXYData();
     var peakList = GSD.gsd(data[0],data[1], gsdOptions);
-    var peakList = GSD.post.joinBroadPeaks(peakList,{width:0.25});
+    if(gsdOptions.broadWidth)
+        peakList = GSD.post.joinBroadPeaks(peakList,{width:gsdOptions.broadWidth});
     if(options.optimize)
-        peakList = GSD.post.optimizePeaks(peakList,data[0],data[1],gsdOptions.nL,"lorentzian");
+        peakList = GSD.post.optimizePeaks(peakList,data[0],data[1],gsdOptions.nL,gsdOptions.functionType);
 
     peakList = clearList(peakList, noiseLevel);
     var signals = detectSignals(peakList, spectrum, options.nH, options.integralFn);
@@ -121,7 +124,7 @@ module.exports = function(spectrum, optionsEx){
         signals[i]._highlight=[signals[i].signalID];
     }
 
-    removeImpurities(signals, spectrum.getSolventName(),options.nH);
+    //removeImpurities(signals, spectrum.getSolventName(),options.nH);
 
     if(options.format==="new"){
         var newSignals = new Array(signals.length);

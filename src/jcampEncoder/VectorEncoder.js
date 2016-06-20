@@ -316,3 +316,9 @@ module.exports = {
     DIFDUPencod,
     DIFencod
 };
+
+'mode strict';
+
+
+
+
