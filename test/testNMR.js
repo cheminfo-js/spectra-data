@@ -12,12 +12,8 @@ function createSpectraData(filename, label, data) {
 
 
 
-describe('spectra-data test', function () {
+describe('spectra-data test ethylvinylether/1h.jdx', function () {
     var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
-
-    it('getVector', function () {
-        spectrum.getVector(0.0,10,4*1024).length.should.equal(4*1024);
-    });
 
     it('getNucleus', function () {
         spectrum.getNucleus().should.equal("1H");
@@ -75,8 +71,10 @@ describe('spectra-data test', function () {
         //console.log(peakPicking[0]);
         peakPicking[0].signal[0].peak.length.should.equal(4);
     });
-    
-    
+
+    it('getVector', function () {
+        spectrum.getVector(0.0,10,4*1024).length.should.equal(4*1024);
+    });
 
 
 

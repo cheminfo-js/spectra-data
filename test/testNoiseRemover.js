@@ -12,8 +12,8 @@ function createSpectraData(filename, label, data) {
 
 
 
-describe('spectra-data test', function () {
-    it.skip('getNucleus', function () {
+describe('spectra-data test nmrPeakDetection', function () {
+    it.skip('number of peaks', function () {
         var spectrum = createSpectraData("/data/indometacin/1h.dx");
         //console.log(spectrum.nmrPeakDetection);
         var peakPicking = spectrum.nmrPeakDetection({
