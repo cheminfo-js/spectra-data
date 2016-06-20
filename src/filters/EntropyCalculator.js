@@ -194,7 +194,7 @@ function getMinMaxTarget(){
 
 var smallFilter = [ 0, 2.7, 7.4, 20.1, 54.6, 148.4, 0, -148.4, -54.6, -20.1, -7.4, -2.7, 0 ];
 
-function convolute( dataIn){
+function convolute(dataIn){
     var nbPoints = dataIn.length;
     var nbSubSpectra = 1;
     var nRows = nbSubSpectra;
