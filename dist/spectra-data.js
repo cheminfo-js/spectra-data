@@ -2088,7 +2088,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	function scale(input, options){
 	    var y;
-	    if(options.inplace){
+	    if(options.inPlace){
 	        y = input;
 	    }
 	    else{
@@ -2122,7 +2122,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	    }
 	    return y;
-
 	}
 
 	module.exports = {
@@ -2169,8 +2168,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 	function getEquallySpacedData(x, y, options) {
 	    if (x.length>1 && x[0]>x[1]) {
-	        x=x.reverse();
-	        y=y.reverse();
+	        x=x.slice().reverse();
+	        y=y.slice().reverse();
 	    }
 
 	    var xLength = x.length;
@@ -4661,15 +4660,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	            broadRatio:0.0025,
 	            smoothY:true,
 	            nL:4,
+	            functionType:"gaussian",
+	            broadWidth:0.25,
 	            sgOptions:{windowSize: 9, polynomial: 3}
 	        },
 	        options.gsdOptions);
 
 	    var data = spectrum.getXYData();
 	    var peakList = GSD.gsd(data[0],data[1], gsdOptions);
-	    var peakList = GSD.post.joinBroadPeaks(peakList,{width:0.25});
+	    if(gsdOptions.broadWidth)
+	        peakList = GSD.post.joinBroadPeaks(peakList,{width:gsdOptions.broadWidth});
 	    if(options.optimize)
-	        peakList = GSD.post.optimizePeaks(peakList,data[0],data[1],gsdOptions.nL,"lorentzian");
+	        peakList = GSD.post.optimizePeaks(peakList,data[0],data[1],gsdOptions.nL,gsdOptions.functionType);
 
 	    peakList = clearList(peakList, noiseLevel);
 	    var signals = detectSignals(peakList, spectrum, options.nH, options.integralFn);
