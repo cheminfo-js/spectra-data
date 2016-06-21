@@ -629,7 +629,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if(end>=this.getNbPoints)
 	            end=this.getNbPoints-1;
 
-	        if(isUndefined(value)){
+	        if(typeof value !== "number"){
 	            y.splice(start,end-start);
 	            x.splice(start,end-start);
 	        }
