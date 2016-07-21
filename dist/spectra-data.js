@@ -60,7 +60,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.SD = __webpack_require__(1);
 	exports.NMR = __webpack_require__(15);
 	exports.NMR2D = __webpack_require__(58);
-	exports.formatter = __webpack_require__(62);
+	exports.formatter = __webpack_require__(69);
 	//exports.ACS2 = require('./AcsParserNew');
 	exports.JAnalyzer = __webpack_require__(17);
 	//exports.SD2 = require('/SD2');
@@ -694,6 +694,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @param  name The parameter name
 	 * @param  defvalue The default value
 	 * @returns {number}
+	 */
+
+	/**
+	 *
+	 * @param name
+	 * @param defvalue
+	 * @returns {*}
 	 */
 	SD.prototype.getParamDouble = function(name, defvalue){
 	    var value = this.sd.info[name];
@@ -2483,17 +2490,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        
 	    }
 
-	    /*
-	     options.keepSpectra: keep the original spectra for a 2D
-	     options.xy: true // create x / y array instead of a 1D array
-	     options.keepRecordsRegExp: which fields do we keep
-	     */
-
 	    function convert(jcamp, options) {
 	        options = options || {};
 
 	        var keepRecordsRegExp = /^$/;
 	        if (options.keepRecordsRegExp) keepRecordsRegExp = options.keepRecordsRegExp;
+	        var wantXY = !options.withoutXY;
 
 	        var start = Date.now();
 
@@ -2591,6 +2593,36 @@ return /******/ (function(modules) { // webpackBootstrap
 	                }
 	            }
 
+	            if (dataLabel === 'XYDATA') {
+	                if (wantXY) {
+	                    prepareSpectrum(result, spectrum);
+	                    // well apparently we should still consider it is a PEAK TABLE if there are no '++' after
+	                    if (dataValue.match(/.*\+\+.*/)) {
+	                        if (options.fastParse === false) {
+	                            parseXYDataRegExp(spectrum, dataValue, result);
+	                        } else {
+	                            if (!spectrum.deltaX) {
+	                                spectrum.deltaX = (spectrum.lastX - spectrum.firstX) / (spectrum.nbPoints - 1);
+	                            }
+	                            fastParseXYData(spectrum, dataValue, result);
+	                        }
+	                    } else {
+	                        parsePeakTable(spectrum, dataValue, result);
+	                    }
+	                    spectra.push(spectrum);
+	                    spectrum = new Spectrum();
+	                }
+	                continue;
+	            } else if (dataLabel === 'PEAKTABLE') {
+	                if (wantXY) {
+	                    prepareSpectrum(result, spectrum);
+	                    parsePeakTable(spectrum, dataValue, result);
+	                    spectra.push(spectrum);
+	                    spectrum = new Spectrum();
+	                }
+	                continue;
+	            }
+
 
 	            if (dataLabel === 'TITLE') {
 	                spectrum.title = dataValue;
@@ -2681,28 +2713,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                }
 	            } else if (dataLabel === 'RETENTIONTIME') {
 	                spectrum.pageValue = parseFloat(dataValue);
-	            } else if (dataLabel === 'XYDATA') {
-	                prepareSpectrum(result, spectrum);
-	                // well apparently we should still consider it is a PEAK TABLE if there are no '++' after
-	                if (dataValue.match(/.*\+\+.*/)) {
-	                    if (options.fastParse === false) {
-	                        parseXYDataRegExp(spectrum, dataValue, result);
-	                    } else {
-	                        if (!spectrum.deltaX) {
-	                            spectrum.deltaX = (spectrum.lastX - spectrum.firstX) / (spectrum.nbPoints - 1);
-	                        }
-	                        fastParseXYData(spectrum, dataValue, result);
-	                    }
-	                } else {
-	                    parsePeakTable(spectrum, dataValue, result);
-	                }
-	                spectra.push(spectrum);
-	                spectrum = new Spectrum();
-	            } else if (dataLabel === 'PEAKTABLE') {
-	                prepareSpectrum(result, spectrum);
-	                parsePeakTable(spectrum, dataValue, result);
-	                spectra.push(spectrum);
-	                spectrum = new Spectrum();
 	            } else if (isMSField(dataLabel)) {
 	                spectrum[convertMSFieldToLabel(dataLabel)] = dataValue;
 	            }
@@ -2730,7 +2740,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            result.ntuples = newNtuples;
 	        }
 
-	        if (result.twoD) {
+	        if (result.twoD && wantXY) {
 	            add2D(result, options);
 	            if (result.profiling) result.profiling.push({
 	                action: 'Finished countour plot calculation',
@@ -2746,7 +2756,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            options.xy = true;
 	        }
 
-	        if (options.xy) { // the spectraData should not be a oneD array but an object with x and y
+	        if (options.xy && wantXY) { // the spectraData should not be a oneD array but an object with x and y
 	            if (spectra.length > 0) {
 	                for (var i = 0; i < spectra.length; i++) {
 	                    var spectrum = spectra[i];
@@ -2771,7 +2781,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 
 	        // maybe it is a GC (HPLC) / MS. In this case we add a new format
-	        if (isGCMS) {
+	        if (isGCMS && wantXY) {
 	            if (options.newGCMS) {
 	                addNewGCMS(result);
 	            } else {
@@ -2926,8 +2936,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    function add2D(result, options) {
 	        var zData = convertTo3DZ(result.spectra);
-	        result.contourLines = generateContourLines(zData, options);
-	        delete zData.z;
+	        if (!options.noContour) {
+	            result.contourLines = generateContourLines(zData, options);
+	            delete zData.z;
+	        }
 	        result.minMax = zData;
 	    }
 
@@ -2935,7 +2947,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function generateContourLines(zData, options) {
 	        var noise = zData.noise;
 	        var z = zData.z;
-	        var contourLevels = [];
 	        var nbLevels = options.nbContourLevels || 7;
 	        var noiseMultiplier = options.noiseMultiplier === undefined ? 5 : options.noiseMultiplier;
 	        var povarHeight0, povarHeight1, povarHeight2, povarHeight3;
@@ -2964,8 +2975,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        //
 	        // ---------------------d------
 
+	        var iter = nbLevels * 2;
+	        var contourLevels = new Array(iter);
 	        var lineZValue;
-	        for (var level = 0; level < nbLevels * 2; level++) { // multiply by 2 for positif and negatif
+	        for (var level = 0; level < iter; level++) { // multiply by 2 for positif and negatif
 	            var contourLevel = {};
 	            contourLevels[level] = contourLevel;
 	            var side = level % 2;
@@ -2973,7 +2986,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (side === 0) {
 	                lineZValue = factor + noiseMultiplier * noise;
 	            } else {
-	                lineZValue = -factor - noiseMultiplier * noise;
+	                lineZValue = (0 - factor) - noiseMultiplier * noise;
 	            }
 	            var lines = [];
 	            contourLevel.zValue = lineZValue;
@@ -3081,7 +3094,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        spectrum.isXYdata = true;
 	        // TODO to be improved using 2 array {x:[], y:[]}
 	        var currentData = [];
-	        var currentPosition = 0;
 	        spectrum.data = [currentData];
 
 
@@ -3152,8 +3164,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                                skipFirstValue = false;
 	                            } else {
 	                                if (isDifference) {
-	                                    if (currentValue === 0) lastDifference = 0;
-	                                    else lastDifference = isNegative ? -currentValue : currentValue;
+	                                    lastDifference = isNegative ? (0 - currentValue) : currentValue;
 	                                    isLastDifference = true;
 	                                    isDifference = false;
 	                                }
@@ -3162,18 +3173,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	                                    if (isLastDifference) {
 	                                        currentY += lastDifference;
 	                                    } else {
-	                                        if (currentValue === 0) currentY = 0;
-	                                        else currentY = isNegative ? -currentValue : currentValue;
+	                                        currentY = isNegative ? (0 - currentValue) : currentValue;
 	                                    }
-
-	                                    //  console.log("Separator",isNegative ?
-	                                    //          -currentValue : currentValue,
-	                                    //      "isDiff", isDifference, "isDup", isDuplicate,
-	                                    //      "lastDif", lastDifference, "dup:", duplicate, "y", currentY);
-
-	                                    // push is slightly slower ... (we loose 10%)
-	                                    currentData[currentPosition++] = currentX;
-	                                    currentData[currentPosition++] = currentY * yFactor;
+	                                    currentData.push(currentX);
+	                                    currentData.push(currentY * yFactor);
 	                                    currentX += deltaX;
 	                                }
 	                            }
@@ -3263,14 +3266,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // counts for around 20% of the time
 	        var lines = value.split(/,? *,?[;\r\n]+ */);
 
-	        var k = 0;
 	        for (i = 1, ii = lines.length; i < ii; i++) {
 	            values = lines[i].trim().replace(removeCommentRegExp, '').split(peakTableSplitRegExp);
 	            if (values.length % 2 === 0) {
 	                for (j = 0, jj = values.length; j < jj; j = j + 2) {
 	                    // takes around 40% of the time to add and parse the 2 values nearly exclusively because of parseFloat
-	                    currentData[k++] = (parseFloat(values[j]) * spectrum.xFactor);
-	                    currentData[k++] = (parseFloat(values[j + 1]) * spectrum.yFactor);
+	                    currentData.push(parseFloat(values[j]) * spectrum.xFactor);
+	                    currentData.push(parseFloat(values[j + 1]) * spectrum.yFactor);
 	                }
 	            } else {
 	                result.logs.push('Format error: ' + values);
@@ -16163,7 +16165,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var peakPicking2D = __webpack_require__(59);
 	var PeakOptimizer = __webpack_require__(60);
 	var JcampConverter=__webpack_require__(10);
-	var stat = __webpack_require__(2);
+	//var stat = require("ml-stat");
 
 	/**
 	 * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
@@ -16427,11 +16429,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	var lib = __webpack_require__(48);
 	var PeakOptimizer = __webpack_require__(60);
 	var SimpleClustering =  __webpack_require__(61);
-	var StatArray = __webpack_require__(3);
-	var FFTUtils = lib.FFTUtils;
+	var matrixPeakFinders =  __webpack_require__(62);
+	var FFTUtils = __webpack_require__(48).FFTUtils;
 
 	const DEBUG = false;
 	const smallFilter = [
@@ -16454,11 +16455,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var nbSubSpectra = spectraData.getNbSubSpectra();
 
 	    var data = new Array(nbPoints * nbSubSpectra);
-	    //var data = new Array(nbPoints * nbSubSpectra/2);
-
 	    var isHomonuclear = spectraData.isHomoNuclear();
-
-	    //var sum = new Array(nbPoints);
 
 	    for (var iSubSpectra = 0; iSubSpectra < nbSubSpectra; iSubSpectra++) {
 	        var spectrum = spectraData.getYData(iSubSpectra);
@@ -16474,193 +16471,25 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    var nStdDev = getLoGnStdDevNMR(spectraData);
 	    if(isHomonuclear){
-	        var convolutedSpectrum = convoluteWithLoG(data, nbSubSpectra, nbPoints);
-	        var peaksMC1 = findPeaks2DLoG(data, convolutedSpectrum, nbSubSpectra, nbPoints, nStdDev*thresholdFactor);//)1.5);
-	        var peaksMax1 = findPeaks2DMax(data, convolutedSpectrum, nbSubSpectra, nbPoints, (nStdDev+0.5)*thresholdFactor);//2.0);
+	        var convolutedSpectrum = FFTUtils.convolute(data, smallFilter, nbSubSpectra, nbPoints);
+	        var peaksMC1 = matrixPeakFinders.findPeaks2DRegion(data, {filteredData:convolutedSpectrum, rows:nbSubSpectra, cols: nbPoints, nStdDev:nStdDev*thresholdFactor});//)1.5);
+	        var peaksMax1 = matrixPeakFinders.findPeaks2DMax(data, {filteredData:convolutedSpectrum, rows:nbSubSpectra, cols: nbPoints, nStdDev:(nStdDev+0.5)*thresholdFactor});//2.0);
 	        for(var i=0;i<peaksMC1.length;i++)
 	            peaksMax1.push(peaksMC1[i]);
-	        //console.log(peaksMax1);
 	        return PeakOptimizer.enhanceSymmetry(createSignals2D(peaksMax1,spectraData,24));
 
 	    }
 	    else{
-	        var convolutedSpectrum = convoluteWithLoG(data, nbSubSpectra, nbPoints);
-	        var peaksMC1 = findPeaks2DLoG(data, convolutedSpectrum, nbSubSpectra, nbPoints, nStdDev*thresholdFactor);
-	        //Peak2D[] peaksMC1 = PeakPicking2D.findPeaks2DMax(data, nbSubSpectra, nbPoints, (nStdDev+0.5)*thresholdFactor);
+	        var convolutedSpectrum = FFTUtils.convolute(data, smallFilter, nbSubSpectra, nbPoints);
+	        var peaksMC1 = matrixPeakFinders.findPeaks2DRegion(data, {filteredData: convolutedSpectrum, rows: nbSubSpectra, cols: nbPoints, nStdDev: nStdDev*thresholdFactor});
+	        //Peak2D[] peaksMC1 = matrixPeakFinders.findPeaks2DMax(data, nbSubSpectra, nbPoints, (nStdDev+0.5)*thresholdFactor);
 	        //Remove peaks with less than 3% of the intensity of the highest peak
 	        return createSignals2D(PeakOptimizer.clean(peaksMC1, 0.05), spectraData,24);
 	    }
 
 	}
 
-	/**
-	 Calculates the 1st derivative of the 2D matrix, using the LoG kernel approximation
-	 */
-	 function convoluteWithLoG(inputSpectrum, nRows, nCols){
-	    var ftSpectrum = new Array(nCols * nRows);
-	    for (var i = nRows * nCols-1; i >=0; i--){
-	        ftSpectrum[i] = inputSpectrum[i];
-	    }
 
-	    ftSpectrum = FFTUtils.fft2DArray(ftSpectrum, nRows, nCols);
-
-	    var dim = smallFilter.length;
-	    var ftFilterData = new Array(nCols * nRows);
-	    for(var i=nCols * nRows-1;i>=0;i--){
-	        ftFilterData[i]=0;
-	    }
-
-	    var iRow, iCol;
-	    var shift = (dim - 1) / 2;
-	    //console.log(dim);
-	    for (var ir = 0; ir < dim; ir++) {
-	        iRow = (ir - shift + nRows) % nRows;
-	        for (var ic = 0; ic < dim; ic++) {
-	            iCol = (ic - shift + nCols) % nCols;
-	            ftFilterData[iRow * nCols + iCol] = smallFilter[ir][ic];
-	        }
-	    }
-
-	    ftFilterData = FFTUtils.fft2DArray(ftFilterData, nRows, nCols);
-
-	    var ftRows = nRows * 2;
-	    var ftCols = nCols / 2 + 1;
-	    FFTUtils.convolute2DI(ftSpectrum, ftFilterData, ftRows, ftCols);
-
-	    return  FFTUtils.ifft2DArray(ftSpectrum, ftRows, ftCols);
-	}
-	/**
-	 Detects all the 2D-peaks in the given spectrum based on center of mass logic.
-	 */
-	function findPeaks2DLoG(inputSpectrum, convolutedSpectrum, nRows, nCols, nStdDev) {
-	    var threshold = 0;
-	    for(var i=nCols*nRows-2;i>=0;i--)
-	        threshold+=Math.pow(convolutedSpectrum[i]-convolutedSpectrum[i+1],2);
-	    threshold=-Math.sqrt(threshold);
-	    threshold*=nStdDev/nRows;
-
-	    var bitmask = new Array(nCols * nRows);
-	    for(var i=nCols * nRows-1;i>=0;i--){
-	        bitmask[i]=0;
-	    }
-	    var nbDetectedPoints = 0;
-	    var lasti=-1;
-	    for (var i = convolutedSpectrum.length-1; i >=0 ; i--) {
-	        if (convolutedSpectrum[i] < threshold) {
-	            bitmask[i] = 1;
-	            nbDetectedPoints++;
-	        }
-	    }
-	    var iStart = 0;
-	    //int ranges = 0;
-	    var peakList = [];
-
-	    while (nbDetectedPoints != 0) {
-	        for (iStart; iStart < bitmask.length && bitmask[iStart]==0; iStart++){};
-	        //
-	        if (iStart == bitmask.length)
-	            break;
-
-	        nbDetectedPoints -= extractArea(inputSpectrum, convolutedSpectrum,
-	            bitmask, iStart, nRows, nCols, peakList, threshold);
-	    }
-
-	    if (peakList.length > 0&&DEBUG) {
-	        console.log("No peak found");
-	    }
-	    return peakList;
-	}
-	/**
-	 Detects all the 2D-peaks in the given spectrum based on the Max logic.
-	 */
-	function findPeaks2DMax(inputSpectrum, cs, nRows, nCols, nStdDev) {
-	    var threshold = 0;
-	    for(var i=nCols*nRows-2;i>=0;i--)
-	        threshold+=Math.pow(cs[i]-cs[i+1],2);
-	    threshold=-Math.sqrt(threshold);
-	    threshold*=nStdDev/nRows;
-
-	    var rowI,colI;
-	    var peakListMax = [];
-	    var tmpIndex = 0;
-	    for (var i = 0; i < cs.length; i++) {
-	        if (cs[i] < threshold) {
-	            //It is a peak?
-	            rowI=Math.floor(i/nCols);
-	            colI=i%nCols;
-	            //Verifies if this point is a peak;
-	            if(rowI>0&&rowI+1<nRows&&colI+1<nCols&&colI>0){
-	                //It is the minimum in the same row
-	                if(cs[i]<cs[i+1]&&cs[i]<cs[i-1]){
-	                    //It is the minimum in the previous row
-	                    tmpIndex=(rowI-1)*nCols+colI;
-	                    if(cs[i]<cs[tmpIndex-1]&&cs[i]<cs[tmpIndex]&&cs[i]<cs[tmpIndex+1]){
-	                        //It is the minimum in the next row
-	                        tmpIndex=(rowI+1)*nCols+colI;
-	                        if(cs[i]<cs[tmpIndex-1]&&cs[i]<cs[tmpIndex]&&cs[i]<cs[tmpIndex+1]){
-	                            peakListMax.push({x:colI,y:rowI,z:inputSpectrum[i]});
-	                        }
-	                    }
-	                }
-	            }
-	        }
-	    }
-	    return peakListMax;
-	}
-	/*
-	 This function detects the peaks
-	 */
-	function extractArea(spectrum, convolutedSpectrum, bitmask, iStart,
-	                       nRows, nCols, peakList, threshold) {
-	    var iRow = Math.floor(iStart / nCols);
-	    var iCol = iStart % nCols;
-	    var peakPoints =[];
-	    //console.log(iStart+" "+iRow+" "+iCol);
-	    // scanBitmask(bitmask, convolutedSpectrum, nRows, nCols, iRow, iCol,
-	    // peakPoints);
-	    scanBitmask(bitmask, nRows, nCols, iRow, iCol, peakPoints);
-	    //console.log("extractArea.lng "+peakPoints.length);
-	    var x = new Array(peakPoints.length);
-	    var y = new Array(peakPoints.length);
-	    var z = new Array(peakPoints.length);
-	    var nValues = peakPoints.length;
-	    var xAverage = 0.0;
-	    var yAverage = 0.0;
-	    var zSum = 0.0;
-	    if (nValues >= 9) {
-	        if (DEBUG)
-	            console.log("nValues=" + nValues);
-	        var maxValue = Number.NEGATIVE_INFINITY;
-	        var maxIndex = -1;
-	        for (var i = 0; i < nValues; i++) {
-	            var pt = (peakPoints.splice(0,1))[0];
-	            x[i] = pt[0];
-	            y[i] = pt[1];
-	            z[i] = spectrum[pt[1] * nCols + pt[0]];
-	            xAverage += x[i] * z[i];
-	            yAverage += y[i] * z[i];
-	            zSum += z[i];
-	            if (z[i] > maxValue) {
-	                maxValue = z[i];
-	                maxIndex = i;
-	            }
-	        }
-	        if (maxIndex != -1) {
-	            xAverage /= zSum;
-	            yAverage /= zSum;
-	            var newPeak = {x:xAverage, y:yAverage, z:zSum};
-	            var minmax;
-	            minmax =StatArray.minMax(x);
-	            newPeak.minX=minmax.min;
-	            newPeak.maxX=minmax.max;
-	            minmax = StatArray.minMax(y);
-	            newPeak.minY=minmax.min;
-	            newPeak.maxY=minmax.max;
-	            peakList.push(newPeak);
-	        }
-	    }
-	    return nValues;
-	}
 	//How noisy is the spectrum depending on the kind of experiment.
 	function getLoGnStdDevNMR(spectraData) {
 	    if (spectraData.isHomoNuclear())
@@ -16669,54 +16498,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return 3;
 	}
 
-	/*
-	 Return all the peaks(x,y points) that composes a signal.
-	 */
-	function scanBitmask(bitmask, nRows, nCols, iRow, iCol, peakPoints) {
-	    //console.log(nRows+" "+iRow+" "+nCols+" "+iCol);
-	    if (iRow < 0 || iCol < 0 || iCol == nCols || iRow == nRows)
-	        return;
-	    if (bitmask[iRow * nCols + iCol]) {
-	        bitmask[iRow * nCols + iCol] = 0;
-	        peakPoints.push([iCol, iRow]);
-	        scanBitmask(bitmask, nRows, nCols, iRow + 1, iCol, peakPoints);
-	        scanBitmask(bitmask, nRows, nCols, iRow - 1, iCol, peakPoints);
-	        scanBitmask(bitmask, nRows, nCols, iRow, iCol + 1, peakPoints);
-	        scanBitmask(bitmask, nRows, nCols, iRow, iCol - 1, peakPoints);
-	    }
-	}
 	/**
 	 This function converts a set of 2D-peaks in 2D-signals. Each signal could be composed
 	 of many 2D-peaks, and it has some additional information related to the NMR spectrum.
 	 */
 	function createSignals2D(peaks, spectraData, tolerance){
-	    //console.log(peaks.length);
-	    var signals=[];
-	    var nbSubSpectra = spectraData.getNbSubSpectra();
 
 	    var bf1=spectraData.observeFrequencyX();
 	    var bf2=spectraData.observeFrequencyY();
 
 	    var firstY = spectraData.getFirstY();
-	    var lastY = spectraData.getLastY();
 	    var dy = spectraData.getDeltaY();
 
-	    //console.log(firstY+" "+lastY+" "+dy+" "+nbSubSpectra);
-	    //spectraData.setActiveElement(0);
-	    var noValid=0;
 	    for (var i = peaks.length-1; i >=0 ; i--) {
-	        //console.log(peaks[i].x+" "+spectraData.arrayPointToUnits(peaks[i].x));
-	        //console.log(peaks[i].y+" "+(firstY + dy * (peaks[i].y)));
 	        peaks[i].x=(spectraData.arrayPointToUnits(peaks[i].x));
 	        peaks[i].y=(firstY + dy * (peaks[i].y));
 
-	        //console.log(peaks[i])
 	        //Still having problems to correctly detect peaks on those areas. So I'm removing everything there.
 	        if(peaks[i].y<-1||peaks[i].y>=210){
 	            peaks.splice(i,1);
 	        }
 	    }
-	    //console.log(peaks);
 	    //The connectivity matrix is an square and symmetric matrix, so we'll only store the upper diagonal in an
 	    //array like form
 	    var connectivity = [];
@@ -16726,7 +16528,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    for (var i = 0; i < peaks.length; i++) {
 	        for (var j = i; j < peaks.length; j++) {
 	            tmp=Math.pow((peaks[i].x-peaks[j].x)*bf1,2)+Math.pow((peaks[i].y-peaks[j].y)*bf2,2);
-	            //Console.log(peaks[i].getX()+" "+peaks[j].getX()+" "+tmp);
 	            if(tmp<tolerance){//30*30Hz We cannot distinguish peaks with less than 20 Hz of separation
 	                connectivity.push(1);
 	            }
@@ -16736,15 +16537,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	    }
 
-	    //console.log(connectivity);
-
 	    var clusters = SimpleClustering.fullClusterGenerator(connectivity);
-
-	    //console.log(clusters)
 
 	    var signals = [];
 	    if (peaks != null) {
-	        var xValue, yValue;
 	        for (var iCluster = 0; iCluster < clusters.length; iCluster++) {
 	            var signal={nucleusX:spectraData.getNucleus(1),nucleusY:spectraData.getNucleus(2)};
 	            signal.resolutionX=( spectraData.getLastX()-spectraData.getFirstX()) / spectraData.getNbPoints();
@@ -16807,7 +16603,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    clean: function(peaks, threshold){
 	        var max = Number.NEGATIVE_INFINITY;
-	        var i,peak;
+	        var i;
 	        //double min = Double.MAX_VALUE;
 	        for(i=peaks.length-1;i>=0;i--){
 	            if(Math.abs(peaks[i].z)>max)
@@ -16888,13 +16684,13 @@ return /******/ (function(modules) { // webpackBootstrap
 		 * This function maps the corresponding 2D signals to the given set of 1D signals
 		 */
 		alignDimensions: function(signals2D,references){
-		//For each reference dimension
-		for(var i=0;i<references.length;i++){
-			var ref = references[i];
-			if(ref)
-				alignSingleDimension(signals2D,ref);
+			//For each reference dimension
+			for(var i=0;i<references.length;i++){
+				var ref = references[i];
+				if(ref)
+					alignSingleDimension(signals2D,ref);
+			}
 		}
-	}
 	};
 
 	function completeMissingIfNeeded(output, properties, thisSignal, thisProp) {
@@ -17170,12 +16966,1106 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict'
+	/**
+	 * Created by acastillo on 7/7/16.
+	 */
+	var StatArray = __webpack_require__(3);
+	var convolution = __webpack_require__(63);
+	var labeling = __webpack_require__(67);
+
+
+	const smallFilter = [
+	    [0, 0, 1, 2, 2, 2, 1, 0, 0],
+	    [0, 1, 4, 7, 7, 7, 4, 1, 0],
+	    [1, 4, 5, 3, 0, 3, 5, 4, 1],
+	    [2, 7, 3, -12, -23, -12, 3, 7, 2],
+	    [2, 7, 0, -23, -40, -23, 0, 7, 2],
+	    [2, 7, 3, -12, -23, -12, 3, 7, 2],
+	    [1, 4, 5, 3, 0, 3, 5, 4, 1],
+	    [0, 1, 3, 7, 7, 7, 3, 1, 0],
+	    [0, 0, 1, 2, 2, 2, 1, 0, 0]];
+
+	const DEBUG = false;
+
+	/**
+	 Detects all the 2D-peaks in the given spectrum based on center of mass logic.
+	 */
+	function findPeaks2DRegion(input, opt) {
+	    var options = Object.assign({},{nStdev:3, kernel:smallFilter}, opt);
+	    var tmp = convolution.matrix2Array(input);
+	    var inputData = tmp.data;
+	    var i;
+	    if(tmp.rows&&tmp.cols){
+	        options.rows = tmp.rows;
+	        options.cols = tmp.cols;
+	    }
+	    var nRows = options.rows;
+	    var nCols = options.cols;
+	    if(!nRows||!nCols){
+	        throw new Error("Invalid number of rows or columns "+nRows+" "+nCols);
+	    }
+
+	    var customFilter = options.kernel;
+	    var cs = options.filteredData;
+	    if(!cs)
+	        cs = convolution.fft(inputData, customFilter, options);
+
+	    var nStdDev = options.nStdev;
+
+	    var threshold = 0;
+	    for( i=nCols*nRows-2;i>=0;i--)
+	        threshold+=Math.pow(cs[i]-cs[i+1],2);
+	    threshold=-Math.sqrt(threshold);
+	    threshold*=nStdDev/nRows;
+
+	    var bitmask = new Array(nCols * nRows);
+	    for( i=nCols * nRows-1;i>=0;i--){
+	        bitmask[i]=0;
+	    }
+	    var nbDetectedPoints = 0;
+	    for ( i = cs.length-1; i >=0 ; i--) {
+	        if (cs[i] < threshold) {
+	            bitmask[i] = 1;
+	            nbDetectedPoints++;
+	        }
+	    }
+
+	    var pixels = labeling(bitmask, nCols, nRows, {neighbours:8});
+	    var peakList  = extractPeaks(pixels, inputData, nRows, nCols);
+
+	    if (peakList.length > 0&&DEBUG) {
+	        console.log("No peak found");
+	    }
+	    return peakList;
+	}
+	/**
+	 Detects all the 2D-peaks in the given spectrum based on the Max logic.
+	 amc
+	 */
+	function findPeaks2DMax(input, opt) {
+	    var options = Object.assign({},{nStdev:3, kernel:smallFilter}, opt);
+	    var tmp = convolution.matrix2Array(input);
+	    var inputData = tmp.data;
+
+	    if(tmp.rows&&tmp.cols){
+	        options.rows = tmp.rows;
+	        options.cols = tmp.cols;
+	    }
+	    var nRows = options.rows;
+	    var nCols = options.cols;
+	    if(!nRows||!nCols){
+	        throw new Error("Invalid number of rows or columns "+nRows+" "+nCols);
+	    }
+
+	    var customFilter = options.kernel;
+	    var cs = options.filteredData;
+	    if(!cs)
+	        cs = convolution.fft(inputData, customFilter, options);
+
+
+	    var nStdDev = options.nStdev;
+	    var threshold = 0;
+	    for( var i=nCols*nRows-2;i>=0;i--)
+	        threshold+=Math.pow(cs[i]-cs[i+1],2);
+	    threshold=-Math.sqrt(threshold);
+	    threshold*=nStdDev/nRows;
+
+	    var rowI,colI;
+	    var peakListMax = [];
+	    var tmpIndex = 0;
+	    for ( var i = 0; i < cs.length; i++) {
+	        if (cs[i] < threshold) {
+	            //It is a peak?
+	            rowI=Math.floor(i/nCols);
+	            colI=i%nCols;
+	            //Verifies if this point is a peak;
+	            if(rowI>0&&rowI+1<nRows&&colI+1<nCols&&colI>0){
+	                //It is the minimum in the same row
+	                if(cs[i]<cs[i+1]&&cs[i]<cs[i-1]){
+	                    //It is the minimum in the previous row
+	                    tmpIndex=(rowI-1)*nCols+colI;
+	                    if(cs[i]<cs[tmpIndex-1]&&cs[i]<cs[tmpIndex]&&cs[i]<cs[tmpIndex+1]){
+	                        //It is the minimum in the next row
+	                        tmpIndex=(rowI+1)*nCols+colI;
+	                        if(cs[i]<cs[tmpIndex-1]&&cs[i]<cs[tmpIndex]&&cs[i]<cs[tmpIndex+1]){
+	                            peakListMax.push({x:colI,y:rowI,z:inputData[i]});
+	                        }
+	                    }
+	                }
+	            }
+	        }
+	    }
+	    return peakListMax;
+	}
+
+	function extractPeaks(pixels, data, nRow, nCols){
+	    //console.log(JSON.stringify(pixels));
+	    //How many different groups we have?
+	    var labels = {};
+	    var row, col, tmp, i;
+	    for( i = 0; i < pixels.length; i++){
+	        if(pixels[i]!=0){
+	            col = i%nCols;
+	            row = (i-col) / nCols;
+	            if(labels[pixels[i]]){
+	                tmp = labels[pixels[i]];
+	                tmp.x+=col*data[i];
+	                tmp.y+=row*data[i];
+	                tmp.z+=data[i];
+	                if( col < tmp.minX)
+	                    tmp.minX = col;
+	                if( col > tmp.maxX)
+	                    tmp.maxX = col;
+	                if( row < tmp.minY)
+	                    tmp.minY = row;
+	                if( row > tmp.maxY)
+	                    tmp.maxY = row;
+	            }
+	            else{
+	                labels[pixels[i]]={
+	                    x:col*data[i],
+	                    y:row*data[i],
+	                    z:data[i],
+	                    minX:col,
+	                    maxX:col,
+	                    minY:row,
+	                    maxY:row
+	                };
+	            }
+	        }
+	    }
+	    var keys = Object.keys(labels);
+	    var peakList = new Array(keys.length);
+	    for( i = 0; i < keys.length; i++ ){
+	        peakList[i] = labels[keys[i]];
+	        peakList[i].x/=peakList[i].z;
+	        peakList[i].y/=peakList[i].z;
+	    }
+	    return peakList;
+	}
+
+	module.exports={
+	    findPeaks2DRegion:findPeaks2DRegion,
+	    findPeaks2DMax:findPeaks2DMax
+	};
+
+
+/***/ },
+/* 63 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict;'
+	/**
+	 * Created by acastillo on 7/7/16.
+	 */
+	var FFTUtils = __webpack_require__(64).FFTUtils;
+
+	function convolutionFFT(input, kernel, opt) {
+	    var tmp = matrix2Array(input);
+	    var inputData = tmp.data;
+	    var options = Object.assign({normalize : false, divisor : 1, rows:tmp.rows, cols:tmp.cols}, opt);
+
+	    var nRows, nCols;
+	    if (options.rows&&options.cols) {
+	        nRows = options.rows;
+	        nCols = options.cols;
+	    }
+	    else {
+	        throw new Error("Invalid number of rows or columns " + nRows + " " + nCols)
+	    }
+
+	    var divisor = options.divisor;
+	    var i,j;
+	    var kHeight =  kernel.length;
+	    var kWidth =  kernel[0].length;
+	    if (options.normalize) {
+	        divisor = 0;
+	        for (i = 0; i < kHeight; i++)
+	            for (j = 0; j < kWidth; j++)
+	                divisor += kernel[i][j];
+	    }
+	    if (divisor === 0) {
+	        throw new RangeError('convolution: The divisor is equal to zero');
+	    }
+
+	    var radix2Sized = FFTUtils.toRadix2(inputData, nRows, nCols);
+	    var conv = FFTUtils.convolute(radix2Sized.data, kernel, radix2Sized.rows, radix2Sized.cols);
+	    conv = FFTUtils.crop(conv, radix2Sized.rows, radix2Sized.cols, nRows, nCols);
+
+	    if(divisor!=0){
+	        for(i=0;i<conv.length;i++){
+	            conv[i]/divisor;
+	        }
+	    }
+
+	    return conv;
+	}
+
+	function convolutionDirect(input, kernel, opt) {
+	    var tmp = matrix2Array(input);
+	    var inputData = tmp.data;
+	    var options = Object.assign({normalize : false, divisor : 1, rows:tmp.rows, cols:tmp.cols}, opt);
+
+	    var nRows, nCols;
+	    if (options.rows&&options.cols) {
+	        nRows = options.rows;
+	        nCols = options.cols;
+	    }
+	    else {
+	        throw new Error("Invalid number of rows or columns " + nRows + " " + nCols)
+	    }
+
+	    var divisor = options.divisor;
+	    var kHeight =  kernel.length;
+	    var kWidth =  kernel[0].length;
+	    var i, j, x, y, index, sum, kVal, row, col;
+	    if (options.normalize) {
+	        divisor = 0;
+	        for (i = 0; i < kHeight; i++)
+	            for (j = 0; j < kWidth; j++)
+	                divisor += kernel[i][j];
+	    }
+	    if (divisor === 0) {
+	        throw new RangeError('convolution: The divisor is equal to zero');
+	    }
+
+	    var output = new Array(nRows*nCols);
+
+	    var hHeight = Math.floor(kHeight/2);
+	    var hWidth = Math.floor(kWidth/2);
+
+	    for (y = 0; y < nRows; y++) {
+	        for (x = 0; x < nCols; x++) {
+	            sum = 0;
+	            for ( j = 0; j < kHeight; j++) {
+	                for ( i = 0; i < kWidth; i++) {
+	                    kVal = kernel[kHeight - j - 1][kWidth - i - 1];
+	                    row = (y + j -hHeight + nRows) % nRows;
+	                    col = (x + i - hWidth + nCols) % nCols;
+	                    index = (row * nCols + col);
+	                    sum += inputData[index] * kVal;
+	                }
+	            }
+	            index = (y * nCols + x);
+	            output[index]= sum / divisor;
+	        }
+	    }
+	    return output;
+	}
+
+
+
+	function LoG(sigma, nPoints, options){
+	    var factor = 1000;
+	    if(options&&options.factor){
+	        factor = options.factor;
+	    }
+
+	    var kernel = new Array(nPoints);
+	    var i,j,tmp,y2,tmp2;
+
+	    factor*=-1;//-1/(Math.PI*Math.pow(sigma,4));
+	    var center = (nPoints-1)/2;
+	    var sigma2 = 2*sigma*sigma;
+	    for( i=0;i<nPoints;i++){
+	        kernel[i]=new Array(nPoints);
+	        y2 = (i-center)*(i-center);
+	        for( j=0;j<nPoints;j++){
+	            tmp = -((j-center)*(j-center)+y2)/sigma2;
+	            kernel[i][j]=Math.round(factor*(1+tmp)*Math.exp(tmp));
+	        }
+	    }
+
+	    return kernel;
+	}
+
+	function matrix2Array(input){
+	    var inputData=input;
+	    var nRows, nCols;
+	    if(typeof input[0]!="number"){
+	        nRows = input.length;
+	        nCols = input[0].length;
+	        inputData = new Array(nRows*nCols);
+	        for(var i=0;i<nRows;i++){
+	            for(var j=0;j<nCols;j++){
+	                inputData[i*nCols+j]=input[i][j];
+	            }
+	        }
+	    }
+	    else{
+	        var tmp = Math.sqrt(input.length);
+	        if(Number.isInteger(tmp)){
+	            nRows=tmp;
+	            nCols=tmp;
+	        }
+	    }
+
+	    return {data:inputData,rows:nRows,cols:nCols};
+	}
+
+
+	module.exports = {
+	    fft:convolutionFFT,
+	    direct:convolutionDirect,
+	    kernelFactory:{LoG:LoG},
+	    matrix2Array:matrix2Array
+	};
+
+/***/ },
+/* 64 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	exports.FFTUtils = __webpack_require__(65);
+	exports.FFT = __webpack_require__(66);
+
+
+/***/ },
+/* 65 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict'
+
+	var FFT = __webpack_require__(66);
+
+	var FFTUtils= {
+	    DEBUG : false,
+
+	    /**
+	     * Calculates the inverse of a 2D Fourier transform
+	     *
+	     * @param ft
+	     * @param ftRows
+	     * @param ftCols
+	     * @return
+	     */
+	    ifft2DArray : function(ft, ftRows, ftCols){
+	        var tempTransform = new Array(ftRows * ftCols);
+	        var nRows = ftRows / 2;
+	        var nCols = (ftCols - 1) * 2;
+	        // reverse transform columns
+	        FFT.init(nRows);
+	        var tmpCols = {re: new Array(nRows), im: new Array(nRows)};
+	        for (var iCol = 0; iCol < ftCols; iCol++) {
+	            for (var iRow = nRows - 1; iRow >= 0; iRow--) {
+	                tmpCols.re[iRow] = ft[(iRow * 2) * ftCols + iCol];
+	                tmpCols.im[iRow] = ft[(iRow * 2 + 1) * ftCols + iCol];
+	            }
+	            //Unnormalized inverse transform
+	            FFT.bt(tmpCols.re, tmpCols.im);
+	            for (var iRow = nRows - 1; iRow >= 0; iRow--) {
+	                tempTransform[(iRow * 2) * ftCols + iCol] = tmpCols.re[iRow];
+	                tempTransform[(iRow * 2 + 1) * ftCols + iCol] = tmpCols.im[iRow];
+	            }
+	        }
+
+	        // reverse row transform
+	        var finalTransform = new Array(nRows * nCols);
+	        FFT.init(nCols);
+	        var tmpRows = {re: new Array(nCols), im: new Array(nCols)};
+	        var scale = nCols * nRows;
+	        for (var iRow = 0; iRow < ftRows; iRow += 2) {
+	            tmpRows.re[0] = tempTransform[iRow * ftCols];
+	            tmpRows.im[0] = tempTransform[(iRow + 1) * ftCols];
+	            for (var iCol = 1; iCol < ftCols; iCol++) {
+	                tmpRows.re[iCol] = tempTransform[iRow * ftCols + iCol];
+	                tmpRows.im[iCol] = tempTransform[(iRow + 1) * ftCols + iCol];
+	                tmpRows.re[nCols - iCol] = tempTransform[iRow * ftCols + iCol];
+	                tmpRows.im[nCols - iCol] = -tempTransform[(iRow + 1) * ftCols + iCol];
+	            }
+	            //Unnormalized inverse transform
+	            FFT.bt(tmpRows.re, tmpRows.im);
+
+	            var indexB = (iRow / 2) * nCols;
+	            for (var iCol = nCols - 1; iCol >= 0; iCol--) {
+	                finalTransform[indexB + iCol] = tmpRows.re[iCol] / scale;
+	            }
+	        }
+	        return finalTransform;
+	    },
+	    /**
+	     * Calculates the fourier transform of a matrix of size (nRows,nCols) It is
+	     * assumed that both nRows and nCols are a power of two
+	     *
+	     * On exit the matrix has dimensions (nRows * 2, nCols / 2 + 1) where the
+	     * even rows contain the real part and the odd rows the imaginary part of the
+	     * transform
+	     * @param data
+	     * @param nRows
+	     * @param nCols
+	     * @return
+	     */
+	    fft2DArray:function(data, nRows, nCols, opt) {
+	        var options = Object.assign({},{inplace:true})
+	        var ftCols = (nCols / 2 + 1);
+	        var ftRows = nRows * 2;
+	        var tempTransform = new Array(ftRows * ftCols);
+	        FFT.init(nCols);
+	        // transform rows
+	        var tmpRows = {re: new Array(nCols), im: new Array(nCols)};
+	        var row1 = {re: new Array(nCols), im: new Array(nCols)}
+	        var row2 = {re: new Array(nCols), im: new Array(nCols)}
+	        var index, iRow0, iRow1, iRow2, iRow3;
+	        for (var iRow = 0; iRow < nRows / 2; iRow++) {
+	            index = (iRow * 2) * nCols;
+	            tmpRows.re = data.slice(index, index + nCols);
+
+	            index = (iRow * 2 + 1) * nCols;
+	            tmpRows.im = data.slice(index, index + nCols);
+
+	            FFT.fft1d(tmpRows.re, tmpRows.im);
+
+	            this.reconstructTwoRealFFT(tmpRows, row1, row2);
+	            //Now lets put back the result into the output array
+	            iRow0 = (iRow * 4) * ftCols;
+	            iRow1 = (iRow * 4 + 1) * ftCols;
+	            iRow2 = (iRow * 4 + 2) * ftCols;
+	            iRow3 = (iRow * 4 + 3) * ftCols;
+	            for (var k = ftCols - 1; k >= 0; k--) {
+	                tempTransform[iRow0 + k] = row1.re[k];
+	                tempTransform[iRow1 + k] = row1.im[k];
+	                tempTransform[iRow2 + k] = row2.re[k];
+	                tempTransform[iRow3 + k] = row2.im[k];
+	            }
+	        }
+
+	        //console.log(tempTransform);
+	        row1 = null;
+	        row2 = null;
+	        // transform columns
+	        var finalTransform = new Array(ftRows * ftCols);
+
+	        FFT.init(nRows);
+	        var tmpCols = {re: new Array(nRows), im: new Array(nRows)};
+	        for (var iCol = ftCols - 1; iCol >= 0; iCol--) {
+	            for (var iRow = nRows - 1; iRow >= 0; iRow--) {
+	                tmpCols.re[iRow] = tempTransform[(iRow * 2) * ftCols + iCol];
+	                tmpCols.im[iRow] = tempTransform[(iRow * 2 + 1) * ftCols + iCol];
+	                //TODO Chech why this happens
+	                if(isNaN(tmpCols.re[iRow])){
+	                    tmpCols.re[iRow]=0;
+	                }
+	                if(isNaN(tmpCols.im[iRow])){
+	                    tmpCols.im[iRow]=0;
+	                }
+	            }
+	            FFT.fft1d(tmpCols.re, tmpCols.im);
+	            for (var iRow = nRows - 1; iRow >= 0; iRow--) {
+	                finalTransform[(iRow * 2) * ftCols + iCol] = tmpCols.re[iRow];
+	                finalTransform[(iRow * 2 + 1) * ftCols + iCol] = tmpCols.im[iRow];
+	            }
+	        }
+
+	        //console.log(finalTransform);
+	        return finalTransform;
+
+	    },
+	    /**
+	     *
+	     * @param fourierTransform
+	     * @param realTransform1
+	     * @param realTransform2
+	     *
+	     * Reconstructs the individual Fourier transforms of two simultaneously
+	     * transformed series. Based on the Symmetry relationships (the asterisk
+	     * denotes the complex conjugate)
+	     *
+	     * F_{N-n} = F_n^{*} for a purely real f transformed to F
+	     *
+	     * G_{N-n} = G_n^{*} for a purely imaginary g transformed to G
+	     *
+	     */
+	    reconstructTwoRealFFT:function(fourierTransform, realTransform1, realTransform2) {
+	        var length = fourierTransform.re.length;
+
+	        // the components n=0 are trivial
+	        realTransform1.re[0] = fourierTransform.re[0];
+	        realTransform1.im[0] = 0.0;
+	        realTransform2.re[0] = fourierTransform.im[0];
+	        realTransform2.im[0] = 0.0;
+	        var rm, rp, im, ip, j;
+	        for (var i = length / 2; i > 0; i--) {
+	            j = length - i;
+	            rm = 0.5 * (fourierTransform.re[i] - fourierTransform.re[j]);
+	            rp = 0.5 * (fourierTransform.re[i] + fourierTransform.re[j]);
+	            im = 0.5 * (fourierTransform.im[i] - fourierTransform.im[j]);
+	            ip = 0.5 * (fourierTransform.im[i] + fourierTransform.im[j]);
+	            realTransform1.re[i] = rp;
+	            realTransform1.im[i] = im;
+	            realTransform1.re[j] = rp;
+	            realTransform1.im[j] = -im;
+	            realTransform2.re[i] = ip;
+	            realTransform2.im[i] = -rm;
+	            realTransform2.re[j] = ip;
+	            realTransform2.im[j] = rm;
+	        }
+	    },
+
+	    /**
+	     * In place version of convolute 2D
+	     *
+	     * @param ftSignal
+	     * @param ftFilter
+	     * @param ftRows
+	     * @param ftCols
+	     * @return
+	     */
+	    convolute2DI:function(ftSignal, ftFilter, ftRows, ftCols) {
+	        var re, im;
+	        for (var iRow = 0; iRow < ftRows / 2; iRow++) {
+	            for (var iCol = 0; iCol < ftCols; iCol++) {
+	                //
+	                re = ftSignal[(iRow * 2) * ftCols + iCol]
+	                    * ftFilter[(iRow * 2) * ftCols + iCol]
+	                    - ftSignal[(iRow * 2 + 1) * ftCols + iCol]
+	                    * ftFilter[(iRow * 2 + 1) * ftCols + iCol];
+	                im = ftSignal[(iRow * 2) * ftCols + iCol]
+	                    * ftFilter[(iRow * 2 + 1) * ftCols + iCol]
+	                    + ftSignal[(iRow * 2 + 1) * ftCols + iCol]
+	                    * ftFilter[(iRow * 2) * ftCols + iCol];
+	                //
+	                ftSignal[(iRow * 2) * ftCols + iCol] = re;
+	                ftSignal[(iRow * 2 + 1) * ftCols + iCol] = im;
+	            }
+	        }
+	    },
+	    /**
+	     *
+	     * @param data
+	     * @param kernel
+	     * @param nRows
+	     * @param nCols
+	     * @returns {*}
+	     */
+	    convolute:function(data, kernel, nRows, nCols, opt){
+	        var ftSpectrum = new Array(nCols * nRows);
+	        for (var i = 0; i<nRows * nCols; i++){
+	            ftSpectrum[i] = data[i];
+	        }
+
+	        ftSpectrum = this.fft2DArray(ftSpectrum, nRows, nCols);
+
+
+	        var dimR = kernel.length;
+	        var dimC = kernel[0].length;
+	        var ftFilterData = new Array(nCols * nRows);
+	        for(var i=0;i<nCols * nRows;i++){
+	            ftFilterData[i]=0;
+	        }
+
+	        var iRow, iCol;
+	        var shiftR = Math.floor((dimR - 1) / 2);
+	        var shiftC = Math.floor((dimC - 1) / 2);
+	        for (var ir = 0; ir < dimR; ir++) {
+	            iRow = (ir - shiftR + nRows) % nRows;
+	            for (var ic = 0; ic < dimC; ic++) {
+	                iCol = (ic - shiftC + nCols) % nCols;
+	                ftFilterData[iRow * nCols + iCol] = kernel[ir][ic];
+	            }
+	        }
+	        ftFilterData = this.fft2DArray(ftFilterData, nRows, nCols);
+
+	        var ftRows = nRows * 2;
+	        var ftCols = nCols / 2 + 1;
+	        this.convolute2DI(ftSpectrum, ftFilterData, ftRows, ftCols);
+
+	        return this.ifft2DArray(ftSpectrum, ftRows, ftCols);
+	    },
+
+
+	    toRadix2:function(data, nRows, nCols){
+	        var i,j,irow, icol;
+	        var cols = nCols, rows = nRows, prows=0, pcols=0;
+	        if(!(nCols !== 0 && (nCols & (nCols - 1)) === 0)) {
+	            //Then we have to make a pading to next radix2
+	            cols = 0;
+	            while((nCols>>++cols)!=0);
+	            cols=1<<cols;
+	            pcols = cols-nCols;
+	        }
+	        if(!(nRows !== 0 && (nRows & (nRows - 1)) === 0)) {
+	            //Then we have to make a pading to next radix2
+	            rows = 0;
+	            while((nRows>>++rows)!=0);
+	            rows=1<<rows;
+	            prows = (rows-nRows)*cols;
+	        }
+	        if(rows==nRows&&cols==nCols)//Do nothing. Returns the same input!!! Be careful
+	            return {data:data, rows:nRows, cols:nCols};
+
+	        var output = new Array(rows*cols);
+	        var shiftR = Math.floor((rows-nRows)/2)-nRows;
+	        var shiftC = Math.floor((cols-nCols)/2)-nCols;
+
+	        for( i=0;i<rows;i++){
+	            irow = i*cols;
+	            icol = ((i-shiftR) % nRows) * nCols;
+	            for( j = 0;j<cols;j++){
+	                output[irow+j]=data[(icol+(j-shiftC) % nCols) ];
+	            }
+	        }
+	        return {data:output, rows:rows, cols:cols};
+	    },
+
+	    /**
+	     * Crop the given matrix to fit the corresponding number of rows and columns
+	     */
+	    crop:function(data, rows, cols, nRows, nCols, opt){
+
+	        if(rows == nRows && cols == nCols)//Do nothing. Returns the same input!!! Be careful
+	            return data;
+
+	        var options = Object.assign({}, opt);
+
+	        var output = new Array(nCols*nRows);
+
+	        var shiftR = Math.floor((rows-nRows)/2);
+	        var shiftC = Math.floor((cols-nCols)/2);
+	        var irow, icol, i, j;
+
+	        for( i=0;i<nRows;i++){
+	            irow = i*nRows;
+	            icol = (i+shiftR)*cols;
+	            for( j = 0;j<nCols;j++){
+	                output[irow+j]=data[icol+(j+shiftC)];
+	            }
+	        }
+
+	        return output;
+	    }
+	}
+
+	module.exports = FFTUtils;
+
+
+/***/ },
+/* 66 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Fast Fourier Transform module
+	 * 1D-FFT/IFFT, 2D-FFT/IFFT (radix-2)
+	 */
+	var FFT = (function(){
+	  var FFT;  
+	  
+	  if(true) {
+	    FFT = exports;   // for CommonJS
+	  } else {
+	    FFT = {};
+	  }
+	  
+	  var version = {
+	    release: '0.3.0',
+	    date: '2013-03'
+	  };
+	  FFT.toString = function() {
+	    return "version " + version.release + ", released " + version.date;
+	  };
+
+	  // core operations
+	  var _n = 0,          // order
+	      _bitrev = null,  // bit reversal table
+	      _cstb = null;    // sin/cos table
+
+	  var core = {
+	    init : function(n) {
+	      if(n !== 0 && (n & (n - 1)) === 0) {
+	        _n = n;
+	        core._initArray();
+	        core._makeBitReversalTable();
+	        core._makeCosSinTable();
+	      } else {
+	        throw new Error("init: radix-2 required");
+	      }
+	    },
+	    // 1D-FFT
+	    fft1d : function(re, im) {
+	      core.fft(re, im, 1);
+	    },
+	    // 1D-IFFT
+	    ifft1d : function(re, im) {
+	      var n = 1/_n;
+	      core.fft(re, im, -1);
+	      for(var i=0; i<_n; i++) {
+	        re[i] *= n;
+	        im[i] *= n;
+	      }
+	    },
+	     // 1D-IFFT
+	    bt1d : function(re, im) {
+	      core.fft(re, im, -1);
+	    },
+	    // 2D-FFT Not very useful if the number of rows have to be equal to cols
+	    fft2d : function(re, im) {
+	      var tre = [],
+	          tim = [],
+	          i = 0;
+	      // x-axis
+	      for(var y=0; y<_n; y++) {
+	        i = y*_n;
+	        for(var x1=0; x1<_n; x1++) {
+	          tre[x1] = re[x1 + i];
+	          tim[x1] = im[x1 + i];
+	        }
+	        core.fft1d(tre, tim);
+	        for(var x2=0; x2<_n; x2++) {
+	          re[x2 + i] = tre[x2];
+	          im[x2 + i] = tim[x2];
+	        }
+	      }
+	      // y-axis
+	      for(var x=0; x<_n; x++) {
+	        for(var y1=0; y1<_n; y1++) {
+	          i = x + y1*_n;
+	          tre[y1] = re[i];
+	          tim[y1] = im[i];
+	        }
+	        core.fft1d(tre, tim);
+	        for(var y2=0; y2<_n; y2++) {
+	          i = x + y2*_n;
+	          re[i] = tre[y2];
+	          im[i] = tim[y2];
+	        }
+	      }
+	    },
+	    // 2D-IFFT
+	    ifft2d : function(re, im) {
+	      var tre = [],
+	          tim = [],
+	          i = 0;
+	      // x-axis
+	      for(var y=0; y<_n; y++) {
+	        i = y*_n;
+	        for(var x1=0; x1<_n; x1++) {
+	          tre[x1] = re[x1 + i];
+	          tim[x1] = im[x1 + i];
+	        }
+	        core.ifft1d(tre, tim);
+	        for(var x2=0; x2<_n; x2++) {
+	          re[x2 + i] = tre[x2];
+	          im[x2 + i] = tim[x2];
+	        }
+	      }
+	      // y-axis
+	      for(var x=0; x<_n; x++) {
+	        for(var y1=0; y1<_n; y1++) {
+	          i = x + y1*_n;
+	          tre[y1] = re[i];
+	          tim[y1] = im[i];
+	        }
+	        core.ifft1d(tre, tim);
+	        for(var y2=0; y2<_n; y2++) {
+	          i = x + y2*_n;
+	          re[i] = tre[y2];
+	          im[i] = tim[y2];
+	        }
+	      }
+	    },
+	    // core operation of FFT
+	    fft : function(re, im, inv) {
+	      var d, h, ik, m, tmp, wr, wi, xr, xi,
+	          n4 = _n >> 2;
+	      // bit reversal
+	      for(var l=0; l<_n; l++) {
+	        m = _bitrev[l];
+	        if(l < m) {
+	          tmp = re[l];
+	          re[l] = re[m];
+	          re[m] = tmp;
+	          tmp = im[l];
+	          im[l] = im[m];
+	          im[m] = tmp;
+	        }
+	      }
+	      // butterfly operation
+	      for(var k=1; k<_n; k<<=1) {
+	        h = 0;
+	        d = _n/(k << 1);
+	        for(var j=0; j<k; j++) {
+	          wr = _cstb[h + n4];
+	          wi = inv*_cstb[h];
+	          for(var i=j; i<_n; i+=(k<<1)) {
+	            ik = i + k;
+	            xr = wr*re[ik] + wi*im[ik];
+	            xi = wr*im[ik] - wi*re[ik];
+	            re[ik] = re[i] - xr;
+	            re[i] += xr;
+	            im[ik] = im[i] - xi;
+	            im[i] += xi;
+	          }
+	          h += d;
+	        }
+	      }
+	    },
+	    // initialize the array (supports TypedArray)
+	    _initArray : function() {
+	      if(typeof Uint32Array !== 'undefined') {
+	        _bitrev = new Uint32Array(_n);
+	      } else {
+	        _bitrev = [];
+	      }
+	      if(typeof Float64Array !== 'undefined') {
+	        _cstb = new Float64Array(_n*1.25);
+	      } else {
+	        _cstb = [];
+	      }
+	    },
+	    // zero padding
+	    _paddingZero : function() {
+	      // TODO
+	    },
+	    // makes bit reversal table
+	    _makeBitReversalTable : function() {
+	      var i = 0,
+	          j = 0,
+	          k = 0;
+	      _bitrev[0] = 0;
+	      while(++i < _n) {
+	        k = _n >> 1;
+	        while(k <= j) {
+	          j -= k;
+	          k >>= 1;
+	        }
+	        j += k;
+	        _bitrev[i] = j;
+	      }
+	    },
+	    // makes trigonometiric function table
+	    _makeCosSinTable : function() {
+	      var n2 = _n >> 1,
+	          n4 = _n >> 2,
+	          n8 = _n >> 3,
+	          n2p4 = n2 + n4,
+	          t = Math.sin(Math.PI/_n),
+	          dc = 2*t*t,
+	          ds = Math.sqrt(dc*(2 - dc)),
+	          c = _cstb[n4] = 1,
+	          s = _cstb[0] = 0;
+	      t = 2*dc;
+	      for(var i=1; i<n8; i++) {
+	        c -= dc;
+	        dc += t*c;
+	        s += ds;
+	        ds -= t*s;
+	        _cstb[i] = s;
+	        _cstb[n4 - i] = c;
+	      }
+	      if(n8 !== 0) {
+	        _cstb[n8] = Math.sqrt(0.5);
+	      }
+	      for(var j=0; j<n4; j++) {
+	        _cstb[n2 - j]  = _cstb[j];
+	      }
+	      for(var k=0; k<n2p4; k++) {
+	        _cstb[k + n2] = -_cstb[k];
+	      }
+	    }
+	  };
+	  // aliases (public APIs)
+	  var apis = ['init', 'fft1d', 'ifft1d', 'fft2d', 'ifft2d'];
+	  for(var i=0; i<apis.length; i++) {
+	    FFT[apis[i]] = core[apis[i]];
+	  }
+	  FFT.bt = core.bt1d;
+	  FFT.fft = core.fft1d;
+	  FFT.ifft = core.ifft1d;
+	  
+	  return FFT;
+	}).call(this);
+
+
+/***/ },
+/* 67 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict'
+
+	const DisjointSet = __webpack_require__(68);
+
+	const direction4X = [-1, 0];
+	const direction4Y = [0, -1];
+	const neighbours4 = [null, null];
+
+	const direction8X = [-1, -1, 0, 1];
+	const direction8Y = [0, -1, -1, -1];
+	const neighbours8 = [null, null, null, null];
+
+	function ccLabeling(mask, width, height, options) {
+	    options = options || {};
+	    const neighbours = options.neighbours || 8;
+
+	    var directionX;
+	    var directionY;
+	    var neighboursList;
+	    if (neighbours === 8) {
+	        directionX = direction8X;
+	        directionY = direction8Y;
+	        neighboursList = neighbours8;
+	    } else if (neighbours === 4) {
+	        directionX = direction4X;
+	        directionY = direction4Y;
+	        neighboursList = neighbours4;
+	    } else {
+	        throw new RangeError('unsupported neighbours count: ' + neighbours);
+	    }
+
+	    const size = mask.length;
+	    const labels = new Array(size);
+	    const pixels = new Int16Array(size);
+	    const linked = new DisjointSet();
+	    var index;
+	    var currentLabel = 1;
+	    for (var j = 0; j < height; j++) {
+	        for (var i = 0; i < width; i++) {
+	            // true means out of background
+	            var smallestNeighbor = null;
+	            index = i + j * width;
+
+	            if (mask[index]) {
+	                for (var k = 0; k < neighboursList.length; k++) {
+	                    var ii = i + directionX[k];
+	                    var jj = j + directionY[k];
+	                    if (ii >= 0 && jj >= 0 && ii < width && jj < height) {
+	                        var neighbor = labels[ii + jj * width];
+	                        if (!neighbor) {
+	                            neighboursList[k] = null;
+	                        } else {
+	                            neighboursList[k] = neighbor;
+	                            if (!smallestNeighbor || neighboursList[k].value < smallestNeighbor.value) {
+	                                smallestNeighbor = neighboursList[k];
+	                            }
+	                        }
+	                    }
+	                }
+	                if (!smallestNeighbor) {
+	                    labels[index] = linked.add(currentLabel++);
+	                } else {
+	                    labels[index] = smallestNeighbor;
+	                    for (var k = 0; k < neighboursList.length; k++) {
+	                        if (neighboursList[k] && neighboursList[k] !== smallestNeighbor) {
+	                            linked.union(smallestNeighbor, neighboursList[k]);
+	                        }
+	                    }
+	                }
+	            }
+	        }
+	    }
+
+	    for (var j = 0; j < height; j++) {
+	        for (var i = 0; i < width; i++) {
+	            index = i + j * width;
+	            if (mask[index]) {
+	                pixels[index] = linked.find(labels[index]).value;
+	            }
+	        }
+	    }
+	    return pixels;
+
+	}
+
+	module.exports = ccLabeling;
+
+
+/***/ },
+/* 68 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	/**
+	 * @class DisjointSet
+	 */
+	class DisjointSet {
+	    constructor() {
+	        this.nodes = new Map();
+	    }
+
+	    /**
+	     * Adds an element as a new set
+	     * @param {*} value
+	     * @return {DisjointSetNode} Object holding the element
+	     */
+	    add(value) {
+	        var node = this.nodes.get(value);
+	        if (!node) {
+	            node = new DisjointSetNode(value);
+	            this.nodes.set(value, node);
+	        }
+	        return node;
+	    }
+
+	    /**
+	     * Merges the sets that contain x and y
+	     * @param {DisjointSetNode} x
+	     * @param {DisjointSetNode} y
+	     */
+	    union(x, y) {
+	        const rootX = this.find(x);
+	        const rootY = this.find(y);
+	        if (rootX === rootY) {
+	            return;
+	        }
+	        if (rootX.rank < rootY.rank) {
+	            rootX.parent = rootY;
+	        } else if (rootX.rank > rootY.rank) {
+	            rootY.parent = rootX;
+	        } else {
+	            rootY.parent = rootX;
+	            rootX.rank++;
+	        }
+	    }
+
+	    /**
+	     * Finds and returns the root node of the set that contains node
+	     * @param {DisjointSetNode} node
+	     * @return {DisjointSetNode}
+	     */
+	    find(node) {
+	        var rootX = node;
+	        while (rootX.parent !== null) {
+	            rootX = rootX.parent;
+	        }
+	        var toUpdateX = node;
+	        while (toUpdateX.parent !== null) {
+	            var toUpdateParent = toUpdateX;
+	            toUpdateX = toUpdateX.parent;
+	            toUpdateParent.parent = rootX;
+	        }
+	        return rootX;
+	    }
+
+	    /**
+	     * Returns true if x and y belong to the same set
+	     * @param {DisjointSetNode} x
+	     * @param {DisjointSetNode} y
+	     */
+	    connected(x, y) {
+	        return this.find(x) === this.find(y);
+	    }
+	}
+
+	module.exports = DisjointSet;
+
+	function DisjointSetNode(value) {
+	    this.value = value;
+	    this.parent = null;
+	    this.rank = 0;
+	}
+
+
+/***/ },
+/* 69 */
+/***/ function(module, exports, __webpack_require__) {
+
 	'use strict';
 	/**
 	 * This library formats a set of nmr1D signals to the ACS format.
 	 * Created by acastillo on 3/11/15. p
 	 */
-	var old = __webpack_require__(63);
+	var old = __webpack_require__(70);
 
 	var acsString="";
 	var parenthesis="";
@@ -17547,7 +18437,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 63 */
+/* 70 */
 /***/ function(module, exports) {
 
 	'use strict';
