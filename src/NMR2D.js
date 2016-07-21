@@ -4,7 +4,7 @@ var SD = require('./SD');
 var peakPicking2D = require('./PeakPicking2D');
 var PeakOptimizer = require("./PeakOptimizer");
 var JcampConverter=require("jcampconverter");
-var stat = require("ml-stat");
+//var stat = require("ml-stat");
 
 /**
  * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)

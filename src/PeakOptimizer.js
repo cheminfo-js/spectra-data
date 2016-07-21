@@ -9,7 +9,7 @@ module.exports={
 
     clean: function(peaks, threshold){
         var max = Number.NEGATIVE_INFINITY;
-        var i,peak;
+        var i;
         //double min = Double.MAX_VALUE;
         for(i=peaks.length-1;i>=0;i--){
             if(Math.abs(peaks[i].z)>max)
@@ -90,13 +90,13 @@ module.exports={
 	 * This function maps the corresponding 2D signals to the given set of 1D signals
 	 */
 	alignDimensions: function(signals2D,references){
-	//For each reference dimension
-	for(var i=0;i<references.length;i++){
-		var ref = references[i];
-		if(ref)
-			alignSingleDimension(signals2D,ref);
+		//For each reference dimension
+		for(var i=0;i<references.length;i++){
+			var ref = references[i];
+			if(ref)
+				alignSingleDimension(signals2D,ref);
+		}
 	}
-}
 };
 
 function completeMissingIfNeeded(output, properties, thisSignal, thisProp) {

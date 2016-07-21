@@ -624,6 +624,13 @@ SD.prototype.getMaxPeak = function(){
  * @param  defvalue The default value
  * @returns {number}
  */
+
+/**
+ *
+ * @param name
+ * @param defvalue
+ * @returns {*}
+ */
 SD.prototype.getParamDouble = function(name, defvalue){
     var value = this.sd.info[name];
     if(!value)
