@@ -18142,9 +18142,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    }
 	                }
 	            }else{
+	                var factor = peak[intensity]*Math.pow(peak.width,2)/4;
 	                for(var j=index-w;j<index+w;j++){
 	                    if(j>=0&&j<nbPoints){
-	                        y[j]+=peak[intensity]*Math.pow(peak.width,2)/(Math.pow(peak.x-x[j],2)+Math.pow(peak.width/2,2));
+	                        y[j]+=factor/(Math.pow(peak.x-x[j],2)+Math.pow(peak.width/2,2));
 
 	                    }
 	                }
