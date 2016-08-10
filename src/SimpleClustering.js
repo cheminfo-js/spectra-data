@@ -17,6 +17,7 @@ module.exports.fullClusterGenerator = function fullClusterGenerator(conMat) {
 				return fullClusterGeneratorVector(conn);
 			}
 		}
+
 	}
 
 function fullClusterGeneratorVector(conn){
