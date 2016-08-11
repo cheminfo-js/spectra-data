@@ -1,7 +1,7 @@
 'use strict';
 
 var PeakOptimizer = require("./PeakOptimizer");
-var SimpleClustering =  require("./SimpleClustering");
+var simpleClustering =  require("ml-simple-clustering");
 var matrixPeakFinders =  require("ml-matrix-peaks-finder");
 var FFTUtils = require("ml-fft").FFTUtils;
 
@@ -108,7 +108,7 @@ function createSignals2D(peaks, spectraData, tolerance){
         }
     }
 
-    var clusters = SimpleClustering.fullClusterGenerator(connectivity);
+    var clusters = simpleClustering(connectivity);
 
     var signals = [];
     if (peaks != null) {
