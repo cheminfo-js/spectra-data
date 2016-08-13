@@ -20,7 +20,7 @@ const defaultOptions = {
     optimize:true,
     idPrefix:"",
     format:"old",
-    frecuencyCluster:16
+    frequencyCluster:16
 };
 
 
@@ -51,7 +51,7 @@ module.exports = function(spectrum, optionsEx){
         peakList = GSD.post.optimizePeaks(peakList,data[0],data[1],gsdOptions.nL,gsdOptions.functionType);
 
     peakList = clearList(peakList, noiseLevel);
-    var signals = detectSignals(peakList, spectrum, options.nH, options.integralFn, options.frecuencyCluster);
+    var signals = detectSignals(peakList, spectrum, options.nH, options.integralFn, options.frequencyCluster);
 
     //Remove all the signals with small integral
     if(options.clean||false){
@@ -94,7 +94,7 @@ module.exports = function(spectrum, optionsEx){
                     var peaks1 = [];
                     for(var j=peaksO.length-1;j>=0;j--)
                         peaks1.push(peaksO[j]);
-                    var newSignals = detectSignals(peaks1, spectrum, nHi, options.integralFn, options.frecuencyCluster);
+                    var newSignals = detectSignals(peaks1, spectrum, nHi, options.integralFn, options.frequencyCluster);
 
                     for(j=0;j<newSignals.length;j++)
                         signals.push(newSignals[j]);
@@ -325,14 +325,14 @@ function updateIntegrals(signals, nH){
  "peaks":[{"intensity":60066147,"x":3.42752}]
  }
  */
-function detectSignals(peakList, spectrum, nH, integralType, frecuencyCluster){
+function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster){
 
     var frequency = spectrum.observeFrequencyX();
     var signals = [];
     var signal1D = {};
     var prevPeak = {x:100000,y:0,width:0};
     var peaks=null;
-    var rangeX = frecuencyCluster / frequency; //Peaks withing this range are considered to belongs to the same signal1D
+    var rangeX = frequencyCluster / frequency; //Peaks withing this range are considered to belongs to the same signal1D
     var spectrumIntegral = 0;
     var cs,sum, i,j;
     var dx = (spectrum.getX(1)-spectrum.getX(0))>0?1:-1;
