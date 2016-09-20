@@ -1153,7 +1153,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        stdev = 0.5 * (averageDeviations[length / 2] + averageDeviations[length / 2 - 1]) / 0.6745;
 	    }
 
-	    return {mean, stdev};
+	    return {
+	        mean: mean,
+	        stdev: stdev
+	    };
 	};
 
 	exports.quartiles = function quartiles(values, alreadySorted) {
@@ -1402,7 +1405,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (matrix[i][j] > max) max = matrix[i][j];
 	        }
 	    }
-	    return {min, max};
+	    return {
+	        min:min,
+	        max:max
+	    };
 	};
 
 	exports.entropy = function entropy(matrix, eps) {
@@ -2972,9 +2978,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	    }
 
+	    function getMedian(data) {
+	        data = data.sort(compareNumbers);
+	        var l = data.length;
+	        return data[Math.floor(l / 2)];
+	    }
+
+	    function compareNumbers(a, b) {
+	        return a - b;
+	    }
 
 	    function convertTo3DZ(spectra) {
-	        var noise = 0;
 	        var minZ = spectra[0].data[0][0];
 	        var maxZ = minZ;
 	        var ySize = spectra.length;
@@ -2988,9 +3002,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                z[i][j] = value;
 	                if (value < minZ) minZ = value;
 	                if (value > maxZ) maxZ = value;
-	                if (i !== 0 && j !== 0) {
-	                    noise += Math.abs(value - z[i][j - 1]) + Math.abs(value - z[i - 1][j]);
-	                }
 	            }
 	        }
 	        return {
@@ -3001,7 +3012,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            maxY: spectra[ySize - 1].pageValue,
 	            minZ: minZ,
 	            maxZ: maxZ,
-	            noise: noise / ((ySize - 1) * (xSize - 1) * 2)
+	            noise: getMedian(z[0].map(Math.abs))
 	        };
 
 	    }
@@ -4717,7 +4728,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    integralFn:0,
 	    optimize:true,
 	    idPrefix:"",
-	    format:"old"
+	    format:"old",
+	    frequencyCluster:16
 	};
 
 
@@ -4748,7 +4760,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        peakList = GSD.post.optimizePeaks(peakList,data[0],data[1],gsdOptions.nL,gsdOptions.functionType);
 
 	    peakList = clearList(peakList, noiseLevel);
-	    var signals = detectSignals(peakList, spectrum, options.nH, options.integralFn);
+	    var signals = detectSignals(peakList, spectrum, options.nH, options.integralFn, options.frequencyCluster);
 
 	    //Remove all the signals with small integral
 	    if(options.clean||false){
@@ -4791,7 +4803,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    var peaks1 = [];
 	                    for(var j=peaksO.length-1;j>=0;j--)
 	                        peaks1.push(peaksO[j]);
-	                    var newSignals = detectSignals(peaks1, spectrum, nHi, options.integralFn);
+	                    var newSignals = detectSignals(peaks1, spectrum, nHi, options.integralFn, options.frequencyCluster);
 
 	                    for(j=0;j<newSignals.length;j++)
 	                        signals.push(newSignals[j]);
@@ -5022,14 +5034,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	 "peaks":[{"intensity":60066147,"x":3.42752}]
 	 }
 	 */
-	function detectSignals(peakList, spectrum, nH, integralType){
+	function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster){
 
 	    var frequency = spectrum.observeFrequencyX();
 	    var signals = [];
 	    var signal1D = {};
 	    var prevPeak = {x:100000,y:0,width:0};
 	    var peaks=null;
-	    var rangeX = 16/frequency;//Peaks withing this range are considered to belongs to the same signal1D
+	    var rangeX = frequencyCluster / frequency; //Peaks withing this range are considered to belongs to the same signal1D
 	    var spectrumIntegral = 0;
 	    var cs,sum, i,j;
 	    var dx = (spectrum.getX(1)-spectrum.getX(0))>0?1:-1;
@@ -16502,7 +16514,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	'use strict';
 
 	var PeakOptimizer = __webpack_require__(60);
-	var SimpleClustering =  __webpack_require__(61);
+	var simpleClustering =  __webpack_require__(61);
 	var matrixPeakFinders =  __webpack_require__(62);
 	var FFTUtils = __webpack_require__(48).FFTUtils;
 
@@ -16609,7 +16621,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	    }
 
-	    var clusters = SimpleClustering.fullClusterGenerator(connectivity);
+	    var clusters = simpleClustering(connectivity);
 
 	    var signals = [];
 	    if (peaks != null) {
@@ -16966,73 +16978,114 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 61 */
 /***/ function(module, exports) {
 
+	/**
+	 * Created by acastillo on 8/8/16.
+	 */
 	'use strict';
 
-	module.exports.fullClusterGenerator = function fullClusterGenerator(conMat) {
-			if(typeof conMat[0] === "number"){
-				return fullClusterGeneratorVector(conMat);
-			}
-			else{
-				if(typeof conMat[0] === "array"){
-					var nRows = conMat.length;
-					var conn = new Array(nRows*(nRows-1)/2);
-					var index = 0;
-					for(var i=0;i<nRows-1;i++){
-						for(var j=i+1;j<nRows;j++){
-							conn[index++]= conMat[i][j];
-						}
-					}
-					return fullClusterGeneratorVector(conn);
-				}
-			}
+	const defOptions = {
+	    threshold:0,
+	    out:"assignment"
+	};
+	//TODO Consider a matrix of distances too
+	module.exports = function fullClusterGenerator(conMat, opt) {
+	    const options = Object.assign({}, defOptions, opt);
+	    var clList, i, j, k;
+	    if(typeof conMat[0] === "number"){
+	        clList = fullClusterGeneratorVector(conMat);
+	    }
+	    else{
+	        if(typeof conMat[0] === "object"){
+	            var nRows = conMat.length;
+	            var conn = new Array(nRows*(nRows+1)/2);
+	            var index = 0;
+	            for(var i=0;i<nRows;i++){
+	                for(var j=i;j<nRows;j++){
+	                    if(conMat[i][j]>options.threshold)
+	                        conn[index++]= 1;
+	                    else
+	                        conn[index++]= 0;
+	                }
+	            }
+	            clList = fullClusterGeneratorVector(conn);
+	        }
+	    }
+	    if (options.out === "indexes" || options.out === "values") {
+	        var result = new Array(clList.length);
+	        for(i=0;i<clList.length;i++){
+	            result[i] = [];
+	            for(j=0;j<clList[i].length;j++){
+	                if(clList[i][j] != 0){
+	                    result[i].push(j);
+	                }
+	            }
+	        }
+	        if (options.out === "values") {
+	            var resultAsMatrix = new Array(result.length);
+	            for (i = 0; i<result.length;i++){
+	                resultAsMatrix[i]=new Array(result[i].length);
+	                for(j = 0; j < result[i].length; j++){
+	                    resultAsMatrix[i][j]=new Array(result[i].length);
+	                    for(k = 0; k < result[i].length; k++){
+	                        resultAsMatrix[i][j][k]=conMat[result[i][j]][result[i][k]];
+	                    }
+	                }
+	            }
+	            return resultAsMatrix;
+	        }
+	        else{
+	            return result;
+	        }
+	    }
 
-		}
+	    return clList;
+
+	}
 
 	function fullClusterGeneratorVector(conn){
-		var nRows = Math.sqrt(conn.length*2+0.25)-0.5;
-		//console.log("nRows: "+nRows+" - "+conn.length);
-		var clusterList = [];
-		var available = new Array(nRows);
-		var remaining = nRows, i=0;
-		var cluster = [];
-		//Mark all the elements as available
-		for(i=nRows-1;i>=0;i--){
-			available[i]=1;
-		}
-		var nextAv=-1;
-		var toInclude = [];
-		while(remaining>0){
-			if(toInclude.length===0){
-				//If there is no more elements to include. Start a new cluster
-				cluster = new Array(nRows);
-				for(i=nRows-1;i>=0;i--)
-					cluster[i]=0;
-				clusterList.push(cluster);
-				for(nextAv = nRows-1;available[nextAv]==0;nextAv--){};
-			}
-			else{
-				nextAv=toInclude.splice(0,1);
-			}
-			cluster[nextAv]=1;
-			available[nextAv]=0;
-			remaining--;
-			//Copy the next available row
-			var row = new Array(nRows);
-			for(i=nRows-1;i>=0;i--){
-				var c=Math.max(nextAv,i);
-				var r=Math.min(nextAv,i);
-				//The element in the conn matrix
-				//console.log("index: "+r*(2*nRows-r-1)/2+c)
-				row[i]=conn[r*(2*nRows-r-1)/2+c];
-				//There is new elements to include in this row?
-				//Then, include it to the current cluster
-				if(row[i]==1&&available[i]==1&&cluster[i]==0){
-					toInclude.push(i);
-					cluster[i]=1;
-				}
-			}
-		}
-		return clusterList;
+	    var nRows = Math.sqrt(conn.length*2+0.25)-0.5;
+	    var clusterList = [];
+	    var available = new Array(nRows);
+	    var remaining = nRows, i=0;
+	    var cluster = [];
+	    //Mark all the elements as available
+	    for(i=nRows-1;i>=0;i--){
+	        available[i]=1;
+	    }
+	    var nextAv=-1;
+	    var toInclude = [];
+	    while(remaining>0){
+	        if(toInclude.length===0){
+	            //If there is no more elements to include. Start a new cluster
+	            cluster = new Array(nRows);
+	            for(i = 0;i < nRows ;i++)
+	                cluster[i]=0;
+	            clusterList.push(cluster);
+	            for(nextAv = 0;available[nextAv]==0;nextAv++){};
+	        }
+	        else{
+	            nextAv=toInclude.splice(0,1);
+	        }
+	        cluster[nextAv]=1;
+	        available[nextAv]=0;
+	        remaining--;
+	        //Copy the next available row
+	        var row = new Array(nRows);
+	        for( i = 0;i < nRows;i++){
+	            var c=Math.max(nextAv,i);
+	            var r=Math.min(nextAv,i);
+	            //The element in the conn matrix
+	            //console.log("index: "+r*(2*nRows-r-1)/2+c)
+	            row[i]=conn[r*(2*nRows-r-1)/2+c];
+	            //There is new elements to include in this row?
+	            //Then, include it to the current cluster
+	            if(row[i]==1&&available[i]==1&&cluster[i]==0){
+	                toInclude.push(i);
+	                cluster[i]=1;
+	            }
+	        }
+	    }
+	    return clusterList;
 	}
 
 /***/ },
@@ -18145,6 +18198,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	var spectro="";
 	var rangeForMultiplet=false;
 
+	module.exports = __webpack_require__(71);
+
+	module.exports.update = function(ranges){
+	    for (var i=0; i<ranges.length; i++){
+	        var range = ranges[i];
+	        for (var j=0; j<range.signal.length; j++){
+	            var signal = range.signal[j];
+	            if (signal.j && ! signal.multiplicity) {
+	                signal.multiplicity = "";
+	                for (var k=0; k<signal.j.length;k++){
+	                    signal.multiplicity+=signal.j[k].multiplicity;
+	                }
+	            }
+	        }
+	    }
+
+	    return ranges;
+	}
+
 	module.exports.nmrJ = function(Js, options){
 	    var Jstring = "";
 	    var opt = Object.assign({},{separator:", ", nbDecimal:2}, options);
@@ -18744,6 +18816,83 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if ((parenthesis.length>0) && (! parenthesis.match(", $"))) parenthesis+=", ";
 	}
 
+
+/***/ },
+/* 71 */
+/***/ function(module, exports) {
+
+	/**
+	 * Created by acastillo on 8/17/16.
+	 */
+	'use strict';
+
+	//lineWidth in Hz frequency in MHz
+	const defaultOptions = {lineWidth:1, frequency: 400};
+
+	module.exports.prediction2Ranges = function(predictions, opt){
+	    const options = Object.assign({}, defaultOptions, opt);
+	    //1. Collapse all the equivalent predictions
+	    const nPredictions = predictions.length;
+	    const ids = new Array(nPredictions);
+	    var i, j, diaIDs, prediction, width, center, jc;
+	    for(i = 0 ; i < nPredictions; i++) {
+	        if(!ids[predictions[i].diaIDs[0]]) {
+	            ids[predictions[i].diaIDs[0]] = [i]
+	        }
+	        else{
+	            ids[predictions[i].diaIDs[0]].push(i);
+	        }
+	    }
+	    const idsKeys = Object.keys(ids);
+	    const result = new Array(idsKeys.length);
+
+	    for(i = 0; i < idsKeys.length; i++) {
+	        diaIDs = ids[idsKeys[i]];
+	        prediction = predictions[diaIDs[0]];
+	        width = 0;
+	        jc = prediction.j;
+	        if(jc){
+	            for(j = 0; j < jc.length; j++) {
+	                width+=jc[j].coupling;
+	            }
+	        }
+
+	        width+= 2*options.lineWidth;//Add 2 times the spectral lineWidth
+
+	        width/=options.frequency;
+
+	        result[i] = {from: prediction.delta-width,
+	                    to:prediction.delta+width,
+	                    integral:1,
+	                    signal:[ predictions[diaIDs[0]] ]};
+	        for(j = 1; j < diaIDs.length; j++) {
+	            result[i].signal.push(predictions[diaIDs[j]]);
+	            result[i].integral++;
+	        }
+	    }
+	    //2. Merge the overlaping ranges
+	    for(i  =  0; i < result.length; i++) {
+	        result[i]._highlight = result[i].signal[0].diaIDs;
+	        center = (result[i].from + result[i].to)/2;
+	        width = Math.abs(result[i].from - result[i].to);
+	        for(j  = result.length - 1; j > i; j--) {
+	            //Does it overlap?
+	            if(Math.abs(center - (result[j].from + result[j].to)/2)
+	                <= Math.abs(width + Math.abs(result[j].from - result[j].to))/2){
+	                result[i].from = Math.min(result[i].from, result[j].from);
+	                result[i].to = Math.max(result[i].to, result[j].to);
+	                result[i].integral = result[i].integral + result[j].integral;
+	                result[i]._highlight.push(result[j].signal[0].diaIDs[0]);
+	                result.splice(j,1);
+	                j = result.length - 1;
+	                center = (result[i].from + result[i].to)/2;
+	                width = Math.abs(result[i].from - result[i].to);
+	            }
+	        }
+	    }
+
+	    return result;
+	}
 
 /***/ }
 /******/ ])
