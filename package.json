@@ -39,7 +39,7 @@
     "ml-matrix": "^1.0.4",
     "ml-gsd": "^1.1.5",
     "ml-fft": "1.0.5",
-    "nmr-range": "^0.1.8",
+    "nmr-range": "^0.1.9",
     "ml-matrix-peaks-finder": "0.2.1",
     "extend": "^3.0.0",
     "ml-simple-clustering": "0.1.0"
