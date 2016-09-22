@@ -18542,11 +18542,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function appendCoupling(line, nbDecimal) {
-	    if (line.signal[0].j) {
+	    if ("sm".indexOf(line.signal[0].multiplicty) < 0 && line.signal[0].j) {
 	        var Js = line.signal[0].j;
 	        var j="<i>J</i> = ";
 	        for (var i=0; i<Js.length; i++) {
-	            var coupling=Js[i].coupling;
+	            var coupling=Js[i].coupling || 0;
 	            if (j.length>11) j+=", ";
 	            j+=coupling.toFixed(nbDecimal);
 	        }
