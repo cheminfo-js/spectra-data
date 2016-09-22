@@ -18325,6 +18325,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return old.toACS(spectrum, options);
 	    }
 
+	    spectrum = module.exports.update(spectrum);
+
 	    acsString="";
 	    parenthesis="";
 	    spectro="";
@@ -18542,7 +18544,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function appendCoupling(line, nbDecimal) {
-	    if ("sm".indexOf(line.signal[0].multiplicty) < 0
+	    if ("sm".indexOf(line.signal[0].multiplicity) < 0
 	            && line.signal[0].j && line.signal[0].j.length > 0) {
 	        var Js = line.signal[0].j;
 	        var j="<i>J</i> = ";
