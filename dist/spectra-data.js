@@ -18217,6 +18217,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return ranges;
 	}
 
+	module.exports.updateIntegrals = function(signals, options) {
+	    var  factor = options.factor || 1 ;
+	    var i;
+	    if(options.sum) {
+	        var nH = options.sum || 1;
+	        var sumObserved=0;
+	        for(i = 0; i < signals.length; i++) {
+	            sumObserved += Math.round(signals[i].integral);
+	        }
+	        factor = nH/sumObserved;
+	    }
+	    for(i = 0; i < signals.length; i++) {
+	        signals[i].integral *= factor;
+	    }
+
+	    return signals;
+	}
+
 	module.exports.nmrJ = function(Js, options){
 	    var Jstring = "";
 	    var opt = Object.assign({},{separator:", ", nbDecimal:2}, options);
