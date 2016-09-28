@@ -824,6 +824,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return area*Math.abs(this.getDeltaX());
 	},
 
+	SD.prototype.updateIntegrals = function(ranges, options){
+	    var sum = 0;
+	    var that = this;
+	    ranges.forEach(function (range, index) {
+	        range.integral = that.getArea(range.from, range.to);
+	        sum += range.integral;
+	    });
+	    if(options.nH){
+	        var factor = options.nH / sum;
+	        ranges.forEach(function (range, index) {
+	            range.integral *= factor;
+	        });
+	    }
+	},
+
 	/**
 	 * @function getVector(from, to, nPoints)
 	 * Returns a equally spaced vector within the given window.
