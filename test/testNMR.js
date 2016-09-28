@@ -67,7 +67,7 @@ describe('spectra-data test ethylvinylether/1h.jdx', function () {
     });
 
     it('Check peak-picking in the new format', function () {
-        var peakPicking = spectrum.nmrPeakDetection({"nH":8, realTop:true, thresholdFactor:1,clean:true,compile:true, idPrefix:"1H",format:"new"});
+        var peakPicking = spectrum.nmrPeakDetection({"nH":8, realTop:true, thresholdFactor:1, clean:true,compile:true, idPrefix:"1H",format:"new"});
         //console.log(peakPicking[0]);
         peakPicking[0].signal[0].peak.length.should.equal(4);
     });
@@ -76,7 +76,14 @@ describe('spectra-data test ethylvinylether/1h.jdx', function () {
         spectrum.getVector(0.0,10,4*1024).length.should.equal(4*1024);
     });
 
-
+    it('updateIntegrals', function () {
+        var peakPicking = spectrum.nmrPeakDetection({"nH":8, realTop:true, thresholdFactor:1,clean:true,compile:true, idPrefix:"1H",format:"new"});
+        peakPicking[0].to = 6.47;
+        var integral0 = peakPicking[0].integral;
+        spectrum.updateIntegrals(peakPicking,{nH:8});
+        peakPicking[0].integral.should.approximately(0.45,0.05);
+        //console.log(peakPicking);
+    });
 
 });
 
