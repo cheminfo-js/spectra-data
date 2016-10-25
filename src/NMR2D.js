@@ -33,6 +33,9 @@ class NMR2D extends SD {
         return new NMR2D(spectrum);
     }
 
+    static fromBruker (jcamp, options){
+
+    }
     /**
      * @function isHomoNuclear()
      * Returns true if the it is an homo-nuclear experiment

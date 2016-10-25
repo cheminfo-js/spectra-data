@@ -50,7 +50,7 @@ describe('spectra-data test ethylvinylether/1h.jdx', function () {
     });
 
     it('Checking Y array', function () {
-        var y=spectrum.getYData();
+        var y = spectrum.getYData();
         y.should.be.instanceof(Array).and.have.lengthOf(16384);
         y[0].should.equal(-119886);
     });
@@ -83,7 +83,7 @@ describe('spectra-data test ethylvinylether/1h.jdx', function () {
         var ranges = spectrum.nmrPeakDetection({"nH":nH, realTop:true, thresholdFactor:1,clean:true,compile:true, idPrefix:"1H",format:"new"});
         ranges[0].to = 6.47;
         var integral0 = ranges[0].integral;
-        spectrum.updateIntegrals(ranges,{nH:nH});
+        spectrum.updateIntegrals(ranges, {nH:nH});
         ranges[0].integral.should.approximately(integral0/2,integral0/nH);
     });
 
