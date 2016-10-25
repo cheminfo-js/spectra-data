@@ -336,8 +336,8 @@ function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster){
     var spectrumIntegral = 0;
     var cs,sum, i,j;
     var dx = (spectrum.getX(1)-spectrum.getX(0))>0?1:-1;
-    for(i=0;i<peakList.length;i++){
-        if(Math.abs(peakList[i].x-prevPeak.x)>rangeX){
+    for( i = 0; i < peakList.length; i++) {
+        if(Math.abs(peakList[i].x-prevPeak.x)>rangeX) {
             signal1D = {nbPeaks:1,units:"PPM",
                 "startX":peakList[i].x-peakList[i].width,
                 "stopX":peakList[i].x+peakList[i].width,
@@ -388,11 +388,14 @@ function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster){
         spectrumIntegral+=integral.value;
 
     }
-    for(var i=0;i<signals.length;i++){
-        //console.log(integral.value);
-        var integral = signals[i].integralData;
-        integral.value*=nH/spectrumIntegral;
+    if(nH !== 0) {
+        for(var i=0;i<signals.length;i++){
+            //console.log(integral.value);
+            var integral = signals[i].integralData;
+            integral.value*=nH/spectrumIntegral;
+        }
     }
+
 
     return signals;
 }
