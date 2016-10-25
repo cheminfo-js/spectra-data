@@ -26,12 +26,15 @@ class NMR extends SD{
      * @option keepRecordsRegExp
      * @returns {NMR}
      */
-    fromJcamp = function(jcamp,options) {
+    static fromJcamp(jcamp, options) {
         options = Object.assign({}, {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/}, options);
         var spectrum = JcampConverter.convert(jcamp, options);
         return new NMR(spectrum);
     }
 
+    static fromBruker (jcamp, options){
+
+    }
 
     /**
      * @function getNucleus(dim)

@@ -27,7 +27,7 @@ class NMR2D extends SD {
      * @option keepRecordsRegExp
      * @returns {NMR2D}
      */
-    fromJcamp(jcamp,options) {
+    static fromJcamp(jcamp,options) {
         options = Object.assign({}, {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/}, options);
         var spectrum = JcampConverter.convert(jcamp, options);
         return new NMR2D(spectrum);

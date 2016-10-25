@@ -18,9 +18,11 @@ describe('spectra-data test ethylvinylether/1h.jdx', function () {
     it('getNucleus', function () {
         spectrum.getNucleus().should.equal("1H");
     });
+
     it('getSolventName', function () {
         spectrum.getSolventName().should.equal("DMSO");
     });
+
     it('getFirstX', function () {
         spectrum.getFirstX().should.equal(11.00659);
     });
@@ -76,7 +78,7 @@ describe('spectra-data test ethylvinylether/1h.jdx', function () {
         spectrum.getVector(0.0,10,4*1024).length.should.equal(4*1024);
     });
 
-    it.only('updateIntegrals', function () {
+    it('updateIntegrals', function () {
         var nH = 8;
         var ranges = spectrum.nmrPeakDetection({"nH":nH, realTop:true, thresholdFactor:1,clean:true,compile:true, idPrefix:"1H",format:"new"});
         ranges[0].to = 6.47;

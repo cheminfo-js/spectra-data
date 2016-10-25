@@ -8,18 +8,18 @@ var JcampConverter = require("jcampconverter");
 var JcampCreator = require("./jcampEncoder/JcampCreator");
 var extend = require("extend");
 
-class SD{
+class SD {
     /**
      * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
      * @param sd
      * @constructor
      */
     constructor(sd) {
-        this.DATACLASS_XY=1;
-        this.DATACLASS_PEAK=2;
+        this.DATACLASS_XY = 1;
+        this.DATACLASS_PEAK = 2;
 
-        this.sd=sd;
-        this.activeElement= 0;
+        this.sd = sd;
+        this.activeElement = 0;
     }
 
     /**
@@ -32,7 +32,7 @@ class SD{
      * @option keepRecordsRegExp
      * @returns {SD}
      */
-    fromJcamp(jcamp, options) {
+    static fromJcamp(jcamp, options) {
         options = Object.assign({}, {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/}, options);
         var spectrum = JcampConverter.convert(jcamp, options);
         return new SD(spectrum);
