@@ -777,8 +777,72 @@ class SD {
      * @returns [x,y]
      */
     getVector(from, to, nPoints) {
-        return ArrayUtils.getEquallySpacedData(this.getSpectraDataX(), this.getSpectraDataY(),
-            {from: from, to:to, numberOfPoints:nPoints});
+        if(nPoints){
+            return ArrayUtils.getEquallySpacedData(this.getSpectraDataX(), this.getSpectraDataY(),
+                {from: from, to:to, numberOfPoints:nPoints});
+        }
+        else{
+            return this.getPointsInWindow(from, to);
+        }
+    }
+
+    /**
+     * Returns all the point in a given window.
+     * Not tested, you have to know what you are doing
+     * @param from
+     * @param to
+     * @param nPoints
+     * @returns {*}
+     */
+    getPointsInWindow(from, to, nPoints){
+        var x = this.getSpectraDataX();
+        var y = this.getSpectraDataY();
+        var result = [];
+        var start = 0, end = x.length- 1,direction=1;
+        var reversed = false;
+
+        if(x[0]>x[1]){
+            direction = -1;
+            start= x.length-1;
+            end = 0;
+        }
+
+        if(from > to){
+            var tmp = from;
+            from = to;
+            to = tmp;
+            reversed = true;
+        }
+        //console.log(x[end]+" "+from+" "+x[start]+" "+to);
+        if(x[start]>to||x[end]<from){
+            //console.log("ssss");
+            return [];
+        }
+
+        while(x[start]<from){start+=direction;}
+        while(x[end]>to){end-=direction;}
+
+        var winPoints = Math.abs(end-start)+1;
+        if(!nPoints){
+            nPoints = winPoints;
+        }
+        var xwin = new Array(nPoints);
+        var ywin = new Array(nPoints);
+        var index = 0;
+
+        if(direction==-1)
+            index=nPoints-1;
+
+        var di = winPoints/nPoints;
+        var i=start-direction;
+        for(var k=0;k<nPoints;k++) {
+            i += Math.round(di * direction);
+            //console.log(i+" "+y[i]);
+            xwin[index] = x[i];
+            ywin[index] = y[i];
+            index += direction;
+        }
+        return [xwin,ywin];
     }
 
     /**

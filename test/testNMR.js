@@ -74,6 +74,13 @@ describe('spectra-data test ethylvinylether/1h.jdx', function () {
         peakPicking[0].signal[0].peak.length.should.equal(4);
     });
 
+    it('Check peak-picking in zone', function () {
+        var peakPicking = spectrum.nmrPeakDetection({"nH":8, realTop:true, thresholdFactor:1, clean:true,compile:true, idPrefix:"1H",format:"new", from:1, to:2});
+        //console.log(peakPicking[0]);
+        peakPicking.length.should.eql(1);
+        peakPicking[0].signal[0].multiplicity.should.eql("t");
+    });
+
     it('getVector', function () {
         spectrum.getVector(0.0,10,4*1024).length.should.equal(4*1024);
     });

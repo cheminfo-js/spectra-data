@@ -20,7 +20,7 @@ const defaultOptions = {
     optimize:true,
     idPrefix:"",
     format:"old",
-    frequencyCluster:16
+    frequencyCluster:16,
 };
 
 
@@ -44,6 +44,10 @@ module.exports = function(spectrum, optionsEx){
         options.gsdOptions);
 
     var data = spectrum.getXYData();
+    if(options.from && options.to){
+        data = spectrum.getVector(options.from, options.to);
+    }
+
     var peakList = GSD.gsd(data[0],data[1], gsdOptions);
     if(gsdOptions.broadWidth)
         peakList = GSD.post.joinBroadPeaks(peakList,{width:gsdOptions.broadWidth});
