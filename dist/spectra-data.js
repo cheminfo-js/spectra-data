@@ -79,808 +79,809 @@ return /******/ (function(modules) { // webpackBootstrap
 	var JcampCreator = __webpack_require__(12);
 	var extend = __webpack_require__(14);
 
-	/**
-	 * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
-	 * @param sd
-	 * @constructor
-	 */
-	function SD(sd) {
-	    this.DATACLASS_XY=1;
-	    this.DATACLASS_PEAK=2;
+	class SD {
+	    /**
+	     * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
+	     * @param sd
+	     * @constructor
+	     */
+	    constructor(sd) {
+	        this.DATACLASS_XY = 1;
+	        this.DATACLASS_PEAK = 2;
 
-	    this.sd=sd;
-	    this.activeElement=0;
-	}
-
-	/**
-	 * @function fromJcamp(jcamp,options)
-	 * Construct the object from the given jcamp.
-	 * @param jcamp
-	 * @param options
-	 * @option xy
-	 * @option keepSpectra
-	 * @option keepRecordsRegExp
-	 * @returns {SD}
-	 */
-	SD.fromJcamp = function(jcamp, options) {
-	    options = Object.assign({}, {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/}, options);
-	    var spectrum= JcampConverter.convert(jcamp,options);
-	    return new SD(spectrum);
-	}
-
-
-	/**
-	 * @function setActiveElement(nactiveSpectrum);
-	 * This function sets the nactiveSpectrum sub-spectrum as active
-	 * @param index of the sub-spectrum to set as active
-	 */
-	SD.prototype.setActiveElement = function(nactiveSpectrum){
-	    this.activeElement=nactiveSpectrum;
-	}
-
-	/**
-	 * @function getActiveElement();
-	 * This function returns the index of the active sub-spectrum.
-	 * @returns {number|*}
-	 */
-	SD.prototype.getActiveElement = function(){
-	    return this.activeElement;
-	}
-
-	/**
-	 * @function getXUnits()
-	 * This function returns the units of the independent dimension.
-	 * @returns {xUnit|*|M.xUnit}
-	 */
-	SD.prototype.getXUnits = function(){
-	    return this.getSpectrum().xUnit;
-	}
-
-	/**
-	 * @function setXUnits()
-	 * This function returns the units of the independent dimension.
-	 * @returns {xUnit|*|M.xUnit}
-	 */
-	SD.prototype.setXUnits = function(units){
-	    this.getSpectrum().xUnit=units;
-	}
-
-	/**
-	 * @function getYUnits()
-	 * * This function returns the units of the dependent variable.
-	 * @returns {yUnit|*|M.yUnit}
-	 */
-	SD.prototype.getYUnits = function(){
-	    return this.getSpectrum().yUnit;
-	}
-
-	/**
-	 * @function getSpectraVariable()
-	 * This function returns the information about the dimensions
-	 * @returns {*}
-	 */
-	SD.prototype.getSpectraVariable = function(dim){
-	    return this.sd.ntuples[dim];
-	}
-
-	/**
-	 * @function getNbPoints()
-	 * Return the number of points in the current spectrum
-	 * @param i sub-spectrum
-	 * @returns {*}
-	 */
-	SD.prototype.getNbPoints=function(i){
-	    return this.getSpectrumData(i).y.length;
-	}
-
-	/**
-	 * @function getFirstX()
-	 * Return the first value of the direct dimension
-	 * @param i sub-spectrum
-	 * @returns {number}
-	 */
-	SD.prototype.getFirstX=function(i) {
-	    i=i||this.activeElement;
-	    return this.sd.spectra[i].firstX;
-	}
-
-	/**
-	 * @function setFirstX()
-	 * Set the firstX for this spectrum. You have to force and update of the xAxis after!!!
-	 * @param x
-	 * @param i sub-spectrum
-	 */
-	SD.prototype.setFirstX=function(x, i) {
-	    i=i||this.activeElement;
-	    this.sd.spectra[i].firstX=x;
-	}
-
-	/**
-	 * @function getLastX()
-	 * Return the last value of the direct dimension
-	 * @param i sub-spectrum
-	 * @returns {number}
-	 */
-	SD.prototype.getLastX=function(i) {
-	    i=i||this.activeElement;
-	    return this.sd.spectra[i].lastX;
-	}
-
-	/**
-	 * @function setLastX()
-	 * Set the last value of the direct dimension. You have to force and update of the xAxis after!!!
-	 * @param x
-	 * @param i sub-spectrum
-	 */
-	SD.prototype.setLastX=function(x, i) {
-	    i=i||this.activeElement;
-	    this.sd.spectra[i].lastX=x;
-	}
-
-	/**
-	 */
-	/**
-	 * Return the first value of the direct dimension
-	 * @param i sub-spectrum
-	 * @returns {number}
-	 */
-	SD.prototype.getFirstY=function(i) {
-	    i=i||this.activeElement;
-	    return this.sd.spectra[i].firstY;
-	}
-
-	/**
-	 * @function setFirstY()
-	 * Set the first value of the indirect dimension. Only valid for 2D spectra.
-	 * @param y
-	 * @param i sub-spectrum
-	 */
-	SD.prototype.setFirstY=function(y, i) {
-	    i=i||this.activeElement;
-	    this.sd.spectra[i].firstY = y;
-	}
-
-	/**
-	 * @function getLastY
-	 * Return the first value of the indirect dimension. Only valid for 2D spectra.
-	 * @returns {number}
-	 */
-	SD.prototype.getLastY = function(i){
-	    i=i||this.activeElement;
-	    return this.sd.spectra[i].lastY;
-	}
-
-	/**
-	 * @function setLastY()
-	 * Return the first value of the indirect dimension
-	 * @param y
-	 * @param i sub-spectrum
-	 */
-	SD.prototype.setLastY = function(y, i){
-	    i=i||this.activeElement;
-	    this.sd.spectra[i].lastY = y;
-	}
-
-	/**
-	 * @function setDataClass()
-	 * Set the spectrum data_class. It could be DATACLASS_PEAK=1 or DATACLASS_XY=2
-	 * @param dataClass
-	 */
-	SD.prototype.setDataClass = function(dataClass){
-	    if(dataClass==this.DATACLASS_PEAK) {
-	        this.getSpectrum().isPeaktable = true;
-	        this.getSpectrum().isXYdata = false;
+	        this.sd = sd;
+	        this.activeElement = 0;
 	    }
-	    if(dataClass==this.DATACLASS_XY){
-	        this.getSpectrum().isXYdata = true;
-	        this.getSpectrum().isPeaktable = false;
+
+	    /**
+	     * @function fromJcamp(jcamp,options)
+	     * Construct the object from the given jcamp.
+	     * @param jcamp
+	     * @param options
+	     * @option xy
+	     * @option keepSpectra
+	     * @option keepRecordsRegExp
+	     * @returns {SD}
+	     */
+	    static fromJcamp(jcamp, options) {
+	        options = Object.assign({}, {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/}, options);
+	        var spectrum = JcampConverter.convert(jcamp, options);
+	        return new SD(spectrum);
 	    }
-	}
 
-	/**
-	 * @function isDataClassPeak();
-	 * Is this a PEAKTABLE spectrum?
-	 * @returns {*}
-	 */
-	SD.prototype.isDataClassPeak = function(){
-	    if(this.getSpectrum().isPeaktable)
-	        return  this.getSpectrum().isPeaktable;
-	    return false;
-	}
+	    /**
+	     * @function setActiveElement(nactiveSpectrum);
+	     * This function sets the nactiveSpectrum sub-spectrum as active
+	     * @param index of the sub-spectrum to set as active
+	     */
+	    setActiveElement(nactiveSpectrum) {
+	        this.activeElement=nactiveSpectrum;
+	    }
 
-	/**
-	 * @function isDataClassXY();
-	 * Is this a XY spectrum?
-	 * @returns {*}
-	 */
-	SD.prototype.isDataClassXY = function(){
-	    if(this.getSpectrum().isXYdata)
-	        return  this.getSpectrum().isXYdata;
-	    return false
-	}
+	    /**
+	     * @function getActiveElement();
+	     * This function returns the index of the active sub-spectrum.
+	     * @returns {number|*}
+	     */
+	    getActiveElement() {
+	        return this.activeElement;
+	    }
 
-	/**
-	 * @function setDataType()
-	 * Set the data type for this spectrum. It could be one of the following:
-	 ["INFRARED"||"IR","IV","NDNMRSPEC","NDNMRFID","NMRSPEC","NMRFID","HPLC","MASS"
-	 * "UV", "RAMAN" "GC"|| "GASCHROMATOGRAPH","CD"|| "DICHRO","XY","DEC"]
-	 * @param dataType
-	 */
-	SD.prototype.setDataType = function(dataType){
-	    this.getSpectrum().dataType=dataType;
-	}
+	    /**
+	     * @function getXUnits()
+	     * This function returns the units of the independent dimension.
+	     * @returns {xUnit|*|M.xUnit}
+	     */
+	    getXUnits() {
+	        return this.getSpectrum().xUnit;
+	    }
 
-	/**
-	 * @function getDataType()
-	 * Return the dataType(see: setDataType )
-	 * @returns {string|string|*|string}
-	 */
-	SD.prototype.getDataType = function(){
-	    return this.getSpectrum().dataType;
-	}
+	    /**
+	     * @function setXUnits()
+	     * This function returns the units of the independent dimension.
+	     * @returns {xUnit|*|M.xUnit}
+	     */
+	    setXUnits(units) {
+	        this.getSpectrum().xUnit=units;
+	    }
+	    /**
+	     * @function getYUnits()
+	     * * This function returns the units of the dependent variable.
+	     * @returns {yUnit|*|M.yUnit}
+	     */
+	    getYUnits(){
+	        return this.getSpectrum().yUnit;
+	    }
 
-	/**
-	 * @function getSpectrumData()
-	 * Return the i-th sub-spectrum data in the current spectrum
-	 * @param i
-	 * @returns {this.sd.spectra[i].data[0]}
-	 */
-	SD.prototype.getSpectrumData=function(i) {
-	    i=i||this.activeElement;
-	    return this.sd.spectra[i].data[0];
-	}
+	    /**
+	     * @function getSpectraVariable()
+	     * This function returns the information about the dimensions
+	     * @returns {*}
+	     */
+	    getSpectraVariable(dim){
+	        return this.sd.ntuples[dim];
+	    }
 
-	/**
-	 * @function getSpectrum()
-	 * Return the i-th sub-spectra in the current spectrum
-	 * @param i
-	 * @returns {this.sd.spectra[i]}
-	 */
-	SD.prototype.getSpectrum=function(i) {
-	    i=i||this.activeElement;
-	    return this.sd.spectra[i];
-	}
+	    /**
+	     * @function getNbPoints()
+	     * Return the number of points in the current spectrum
+	     * @param i sub-spectrum
+	     * @returns {*}
+	     */
+	    getNbPoints(i){
+	        return this.getSpectrumData(i).y.length;
+	    }
 
-	/**
-	 * @function getNbSubSpectra()
-	 * Return the amount of sub-spectra in this object
-	 * @returns {*}
-	 */
-	SD.prototype.getNbSubSpectra=function(){
-	    return this.sd.spectra.length;
-	}
+	    /**
+	     * @function getFirstX()
+	     * Return the first value of the direct dimension
+	     * @param i sub-spectrum
+	     * @returns {number}
+	     */
+	    getFirstX(i) {
+	        i = i || this.activeElement;
+	        return this.sd.spectra[i].firstX;
+	    }
 
-	/**
-	 * @function getXData()
-	 *  Returns an array containing the x values of the spectrum
-	 * @param i sub-spectrum Default:activeSpectrum
-	 * @returns {Array}
-	 */
-	SD.prototype.getXData=function(i){
-	    return this.getSpectrumData(i).x;
-	}
+	    /**
+	     * @function setFirstX()
+	     * Set the firstX for this spectrum. You have to force and update of the xAxis after!!!
+	     * @param x
+	     * @param i sub-spectrum
+	     */
+	    setFirstX(x, i) {
+	        i = i || this.activeElement;
+	        this.sd.spectra[i].firstX = x;
+	    }
 
-	/**
-	 * @function getYData()
-	 * This function returns a double array containing the values with the intensities for the current sub-spectrum.
-	 * @param i sub-spectrum Default:activeSpectrum
-	 * @returns {Array}
-	 */
-	SD.prototype.getYData=function(i){
-	    return this.getSpectrumData(i).y;
-	}
-
-	/**
-	 * @function getX()
-	 * Returns the x value at the specified index for the active sub-spectrum.
-	 * @param i array index between 0 and spectrum.getNbPoints()-1
-	 * @returns {number}
-	 */
-	SD.prototype.getX=function(i){
-	    return this.getXData()[i];
-	}
-
-	/**
-	 * @function getY()
-	 * Returns the y value at the specified index for the active sub-spectrum.
-	 * @param i array index between 0 and spectrum.getNbPoints()-1
-	 * @returns {number}
-	 */
-	SD.prototype.getY=function(i){
-	    return this.getYData()[i];
-	}
-
-	/**
-	 * @function getXYData();
-	 * Returns a double[2][nbPoints] where the first row contains the x values and the second row the y values.
-	 * @param i sub-spectrum Default:activeSpectrum
-	 * @returns {*[]}
-	 */
-	SD.prototype.getXYData=function(i){
-	    return [this.getXData(i),this.getYData(i)];
-	}
-
-	/**
-	 * @function getTitle
-	 * Return the title of the current spectrum.
-	 * @param i sub-spectrum Default:activeSpectrum
-	 * @returns {*}
-	 */
-	SD.prototype.getTitle=function(i) {
-	    return this.getSpectrum(i).title;
-	}
-
-	/**
-	 * @function setTitle(newTitle);
-	 * Set the title of this spectrum.
-	 * @param newTitle The new title
-	 * @param i sub-spectrum Default:activeSpectrum
-	 */
-	SD.prototype.setTitle=function(newTitle,i) {
-	    this.getSpectrum(i).title=newTitle;
-	}
-
-	/**
-	 * @function getMinY(i)
-	 * This function returns the minimal value of Y
-	 * @param i sub-spectrum Default:activeSpectrum
-	 * @returns {number}
-	 */
-	SD.prototype.getMinY=function(i) {
-	    return  StatArray.min(this.getYData(i));
-	}
-
-	/**
-	 * @function getMaxY(i)
-	 * This function returns the maximal value of Y
-	 * @param i sub-spectrum Default:activeSpectrum
-	 * @returns {number}
-	 */
-	SD.prototype.getMaxY=function(i) {
-	    return  StatArray.max(this.getYData(i));
-	}
-
-	/**
-	 * @function getMinMax(i)
-	 * Return the min and max value of Y
-	 * @param i sub-spectrum Default:activeSpectrum
-	 * @returns {{min, max}|*}
-	 */
-	SD.prototype.getMinMaxY=function(i) {
-	    return  StatArray.minMax(this.getYData(i));
-	}
+	    /**
+	     * @function getLastX()
+	     * Return the last value of the direct dimension
+	     * @param i sub-spectrum
+	     * @returns {number}
+	     */
+	    getLastX(i) {
+	        i = i||this.activeElement;
+	        return this.sd.spectra[i].lastX;
+	    }
 
 
-	/**
-	 * @function getNoiseLevel()
-	 * Get the noise threshold level of the current spectrum. It uses median instead of the mean
-	 * @returns {number}
-	 */
-	SD.prototype.getNoiseLevel=function(){
-	    var stddev = StatArray.robustMeanAndStdev(this.getYData()).stdev;
-	    return stddev*this.getNMRPeakThreshold(this.getNucleus(1));
-	}
+	    /**
+	     * @function setLastX()
+	     * Set the last value of the direct dimension. You have to force and update of the xAxis after!!!
+	     * @param x
+	     * @param i sub-spectrum
+	     */
+	    setLastX(x, i) {
+	        i = i||this.activeElement;
+	        this.sd.spectra[i].lastX=x;
+	    }
 
-	/**
-	 * @function arrayPointToUnits(doublePoint)
-	 * Return the xValue for the given index.
-	 * @param doublePoint
-	 * @returns {number}
-	 */
-	SD.prototype.arrayPointToUnits=function(doublePoint){
-	    return (this.getFirstX() - (doublePoint* (this.getFirstX() - this.getLastX()) / (this.getNbPoints()-1)));
-	}
+	    /**
+	     */
+	    /**
+	     * Return the first value of the direct dimension
+	     * @param i sub-spectrum
+	     * @returns {number}
+	     */
+	    getFirstY(i) {
+	        i = i||this.activeElement;
+	        return this.sd.spectra[i].firstY;
+	    }
 
-	/**
-	 * @function unitsToArrayPoint(inValue)
-	 * Returns the index-value for the data array corresponding to a X-value in
-	 * units for the element of spectraData to which it is linked (spectraNb).
-	 * This method makes use of spectraData.getFirstX(), spectraData.getLastX()
-	 * and spectraData.getNbPoints() to derive the return value if it of data class XY
-	 * It performs a binary search if the spectrum is a peak table
-	 * @param inValue
-	 *            (value in Units to be converted)
-	 * @return {number} An integer representing the index value of the inValue
-	 */
-	SD.prototype.unitsToArrayPoint=function(inValue){
-	    if (this.isDataClassXY()) {
-	        return Math.round((this.getFirstX() - inValue) * (-1.0 / this.getDeltaX()));
-	    } else if (this.isDataClassPeak())
-	    {
-	        var currentArrayPoint = 0,upperLimit=this.getNbPoints()-1, lowerLimit=0, midPoint;
-	        //If inverted scale
-	        if(this.getFirstX()>this.getLastX()){
-	            upperLimit=0;
-	            lowerLimit=this.getNbPoints()-1;
+	    /**
+	     * @function setFirstY()
+	     * Set the first value of the indirect dimension. Only valid for 2D spectra.
+	     * @param y
+	     * @param i sub-spectrum
+	     */
+	    setFirstY(y, i) {
+	        i =i||this.activeElement;
+	        this.sd.spectra[i].firstY = y;
+	    }
 
-	            if(inValue>this.getFirstX())
-	                return this.getNbPoints();
-	            if(inValue<this.getLastX())
-	                return -1;
+	    /**
+	     * @function getLastY
+	     * Return the first value of the indirect dimension. Only valid for 2D spectra.
+	     * @returns {number}
+	     */
+	    getLastY(i) {
+	        i = i || this.activeElement;
+	        return this.sd.spectra[i].lastY;
+	    }
+
+	    /**
+	     * @function setLastY()
+	     * Return the first value of the indirect dimension
+	     * @param y
+	     * @param i sub-spectrum
+	     */
+	    setLastY(y, i){
+	        i = i || this.activeElement;
+	        this.sd.spectra[i].lastY = y;
+	    }
+
+	    /**
+	     * @function setDataClass()
+	     * Set the spectrum data_class. It could be DATACLASS_PEAK=1 or DATACLASS_XY=2
+	     * @param dataClass
+	     */
+	    setDataClass(dataClass) {
+	        if(dataClass == this.DATACLASS_PEAK) {
+	            this.getSpectrum().isPeaktable = true;
+	            this.getSpectrum().isXYdata = false;
 	        }
-	        else{
-	            if(inValue<this.getFirstX())
-	                return -1;
-	            if(inValue>this.getLastX())
-	                return this.getNbPoints();
+	        if(dataClass == this.DATACLASS_XY) {
+	            this.getSpectrum().isXYdata = true;
+	            this.getSpectrum().isPeaktable = false;
 	        }
+	    }
 
-	        while (Math.abs(upperLimit-lowerLimit) > 1)
+	    /**
+	     * @function isDataClassPeak();
+	     * Is this a PEAKTABLE spectrum?
+	     * @returns {*}
+	     */
+	    isDataClassPeak() {
+	        if(this.getSpectrum().isPeaktable)
+	            return  this.getSpectrum().isPeaktable;
+	        return false;
+	    }
+
+	    /**
+	     * @function isDataClassXY();
+	     * Is this a XY spectrum?
+	     * @returns {*}
+	     */
+	    isDataClassXY() {
+	        if(this.getSpectrum().isXYdata)
+	            return  this.getSpectrum().isXYdata;
+	        return false
+	    }
+
+	    /**
+	     * @function setDataType()
+	     * Set the data type for this spectrum. It could be one of the following:
+	     ["INFRARED"||"IR","IV","NDNMRSPEC","NDNMRFID","NMRSPEC","NMRFID","HPLC","MASS"
+	     * "UV", "RAMAN" "GC"|| "GASCHROMATOGRAPH","CD"|| "DICHRO","XY","DEC"]
+	     * @param dataType
+	     */
+	    setDataType(dataType) {
+	        this.getSpectrum().dataType = dataType;
+	    }
+
+	    /**
+	     * @function getDataType()
+	     * Return the dataType(see: setDataType )
+	     * @returns {string|string|*|string}
+	     */
+	    getDataType() {
+	        return this.getSpectrum().dataType;
+	    }
+
+	    /**
+	     * @function getSpectrumData()
+	     * Return the i-th sub-spectrum data in the current spectrum
+	     * @param i
+	     * @returns {this.sd.spectra[i].data[0]}
+	     */
+	    getSpectrumData(i) {
+	        i = i || this.activeElement;
+	        return this.sd.spectra[i].data[0];
+	    }
+
+	    /**
+	     * @function getSpectrum()
+	     * Return the i-th sub-spectra in the current spectrum
+	     * @param i
+	     * @returns {this.sd.spectra[i]}
+	     */
+	    getSpectrum(i) {
+	        i = i || this.activeElement;
+	        return this.sd.spectra[i];
+	    }
+
+	    /**
+	     * @function getNbSubSpectra()
+	     * Return the amount of sub-spectra in this object
+	     * @returns {*}
+	     */
+	    getNbSubSpectra() {
+	        return this.sd.spectra.length;
+	    }
+
+	    /**
+	     * @function getXData()
+	     *  Returns an array containing the x values of the spectrum
+	     * @param i sub-spectrum Default:activeSpectrum
+	     * @returns {Array}
+	     */
+	    getXData(i) {
+	        return this.getSpectrumData(i).x;
+	    }
+
+	    /**
+	     * @function getYData()
+	     * This function returns a double array containing the values with the intensities for the current sub-spectrum.
+	     * @param i sub-spectrum Default:activeSpectrum
+	     * @returns {Array}
+	     */
+	    getYData(i) {
+	        return this.getSpectrumData(i).y;
+	    }
+
+	    /**
+	     * @function getX()
+	     * Returns the x value at the specified index for the active sub-spectrum.
+	     * @param i array index between 0 and spectrum.getNbPoints()-1
+	     * @returns {number}
+	     */
+	    getX(i) {
+	        return this.getXData()[i];
+	    }
+
+	    /**
+	     * @function getY()
+	     * Returns the y value at the specified index for the active sub-spectrum.
+	     * @param i array index between 0 and spectrum.getNbPoints()-1
+	     * @returns {number}
+	     */
+	    getY(i) {
+	        return this.getYData()[i];
+	    }
+
+	    /**
+	     * @function getXYData();
+	     * Returns a double[2][nbPoints] where the first row contains the x values and the second row the y values.
+	     * @param i sub-spectrum Default:activeSpectrum
+	     * @returns {*[]}
+	     */
+	    getXYData(i) {
+	        return [this.getXData(i),this.getYData(i)];
+	    }
+
+	    /**
+	     * @function getTitle
+	     * Return the title of the current spectrum.
+	     * @param i sub-spectrum Default:activeSpectrum
+	     * @returns {*}
+	     */
+	    getTitle(i) {
+	        return this.getSpectrum(i).title;
+	    }
+
+	    /**
+	     * @function setTitle(newTitle);
+	     * Set the title of this spectrum.
+	     * @param newTitle The new title
+	     * @param i sub-spectrum Default:activeSpectrum
+	     */
+	    setTitle(newTitle,i) {
+	        this.getSpectrum(i).title = newTitle;
+	    }
+
+	    /**
+	     * @function getMinY(i)
+	     * This function returns the minimal value of Y
+	     * @param i sub-spectrum Default:activeSpectrum
+	     * @returns {number}
+	     */
+	    getMinY(i) {
+	        return  StatArray.min(this.getYData(i));
+	    }
+
+	    /**
+	     * @function getMaxY(i)
+	     * This function returns the maximal value of Y
+	     * @param i sub-spectrum Default:activeSpectrum
+	     * @returns {number}
+	     */
+	    getMaxY(i) {
+	        return  StatArray.max(this.getYData(i));
+	    }
+
+	    /**
+	     * @function getMinMax(i)
+	     * Return the min and max value of Y
+	     * @param i sub-spectrum Default:activeSpectrum
+	     * @returns {{min, max}|*}
+	     */
+	    getMinMaxY(i) {
+	        return  StatArray.minMax(this.getYData(i));
+	    }
+
+
+	    /**
+	     * @function getNoiseLevel()
+	     * Get the noise threshold level of the current spectrum. It uses median instead of the mean
+	     * @returns {number}
+	     */
+	    getNoiseLevel() {
+	        var stddev = StatArray.robustMeanAndStdev(this.getYData()).stdev;
+	        return stddev*this.getNMRPeakThreshold(this.getNucleus(1));
+	    }
+
+	    /**
+	     * @function arrayPointToUnits(doublePoint)
+	     * Return the xValue for the given index.
+	     * @param doublePoint
+	     * @returns {number}
+	     */
+	    arrayPointToUnits(doublePoint) {
+	        return (this.getFirstX() - (doublePoint * (this.getFirstX() - this.getLastX()) / (this.getNbPoints()-1)));
+	    }
+
+	    /**
+	     * @function unitsToArrayPoint(inValue)
+	     * Returns the index-value for the data array corresponding to a X-value in
+	     * units for the element of spectraData to which it is linked (spectraNb).
+	     * This method makes use of spectraData.getFirstX(), spectraData.getLastX()
+	     * and spectraData.getNbPoints() to derive the return value if it of data class XY
+	     * It performs a binary search if the spectrum is a peak table
+	     * @param inValue
+	     *            (value in Units to be converted)
+	     * @return {number} An integer representing the index value of the inValue
+	     */
+	    unitsToArrayPoint(inValue) {
+	        if (this.isDataClassXY()) {
+	            return Math.round((this.getFirstX() - inValue) * (-1.0 / this.getDeltaX()));
+	        } else if (this.isDataClassPeak())
 	        {
-	            midPoint=Math.round(Math.floor((upperLimit+lowerLimit)/2));
-	            //x=this.getX(midPoint);
-	            if(this.getX(midPoint)==inValue)
-	                return midPoint;
-	            if(this.getX(midPoint)>inValue)
-	                upperLimit=midPoint;
-	            else
-	                lowerLimit=midPoint;
+	            var currentArrayPoint = 0,upperLimit=this.getNbPoints()-1, lowerLimit= 0, midPoint;
+	            //If inverted scale
+	            if(this.getFirstX() > this.getLastX()) {
+	                upperLimit = 0;
+	                lowerLimit = this.getNbPoints()-1;
+
+	                if(inValue > this.getFirstX())
+	                    return this.getNbPoints();
+	                if(inValue < this.getLastX())
+	                    return -1;
+	            }
+	            else{
+	                if(inValue < this.getFirstX())
+	                    return -1;
+	                if(inValue > this.getLastX())
+	                    return this.getNbPoints();
+	            }
+
+	            while (Math.abs(upperLimit-lowerLimit) > 1)
+	            {
+	                midPoint = Math.round(Math.floor((upperLimit+lowerLimit)/2));
+	                //x=this.getX(midPoint);
+	                if(this.getX(midPoint) == inValue)
+	                    return midPoint;
+	                if(this.getX(midPoint) > inValue)
+	                    upperLimit = midPoint;
+	                else
+	                    lowerLimit = midPoint;
+	            }
+	            currentArrayPoint = lowerLimit;
+	            if(Math.abs(this.getX(lowerLimit)-inValue) > Math.abs(this.getX(upperLimit)-inValue))
+	                currentArrayPoint = upperLimit;
+	            return currentArrayPoint;
+	        } else {
+	            return 0;
 	        }
-	        currentArrayPoint=lowerLimit;
-	        if(Math.abs(this.getX(lowerLimit)-inValue)>Math.abs(this.getX(upperLimit)-inValue))
-	            currentArrayPoint=upperLimit;
-	        return currentArrayPoint;
-	    } else {
-	        return 0;
-	    }
-	}
-
-	/**
-	 * @function getDeltaX()
-	 * Returns the separation between 2 consecutive points in the spectrum domain
-	 * @returns {number}
-	 */
-	SD.prototype.getDeltaX=function(){
-	    return (this.getLastX()-this.getFirstX()) / (this.getNbPoints()-1);
-	}
-
-	/**
-	 * @function setMinMax(min,max)
-	 * This function scales the values of Y between the min and max parameters
-	 * @param min   Minimum desired value for Y
-	 * @param max   Maximum desired value for Y
-	 */
-	SD.prototype.setMinMax=function(min,max) {
-	    ArrayUtils.scale(this.getYData(),{min:min,max:max,inplace:true});
-	}
-
-	/**
-	 * @function setMin(min)
-	 * This function scales the values of Y to fit the min parameter
-	 * @param min   Minimum desired value for Y
-	 */
-	SD.prototype.setMin=function(min) {
-	    ArrayUtils.scale(this.getYData(),{min:min,inplace:true});
-	}
-
-	/**
-	 * @function setMax(max)
-	 * This function scales the values of Y to fit the max parameter
-	 * @param max   Maximum desired value for Y
-	 */
-	SD.prototype.setMax=function(max) {
-	    ArrayUtils.scale(this.getYData(),{max:max,inplace:true});
-	}
-
-	/**
-	 * @function YShift(value)
-	 * This function shifts the values of Y
-	 * @param value Distance of the shift
-	 */
-	SD.prototype.YShift=function(value) {
-	    var y = this.getSpectrumData().y;
-	    var length = this.getNbPoints(),i=0;
-	    for(i=0;i<length;i++){
-	        y[i]+=value;
-	    }
-	    this.getSpectrum().firstY+=value;
-	    this.getSpectrum().lastY+=value;
-	}
-
-	/**
-	 * @function shift(globalShift)
-	 * This function shift the given spectraData. After this function is applied, all the peaks in the
-	 * spectraData will be found at xi+globalShift
-	 * @param globalShift
-	 */
-	SD.prototype.shift=function(globalShift) {
-	    for(var i=0;i<this.getNbSubSpectra();i++){
-	        this.setActiveElement(i);
-	        var x = this.getSpectrumData().x;
-	        var length = this.getNbPoints(),i=0;
-	        for(i=0;i<length;i++){
-	            x[i]+=globalShift;
-	        }
-
-	        this.getSpectrum().firstX+=globalShift;
-	        this.getSpectrum().lastX+=globalShift;
-	    }
-	}
-
-	/**
-	 * @function fillWith(from, to, value)
-	 * This function fills a zone of the spectrum with the given value.
-	 * If value is undefined it will suppress the elements
-	 * @param from
-	 * @param to
-	 * @param fillWith
-	 */
-	SD.prototype.fillWith=function(from, to, value) {
-	    var tmp, start, end, x, y;
-	    if(from > to) {
-	        var tmp = from;
-	        from = to;
-	        to = tmp;
 	    }
 
-	    for(var i=0;i<this.getNbSubSpectra();i++){
-	        this.setActiveElement(i);
-	        x = this.getXData();
-	        y = this.getYData();
-	        start = this.unitsToArrayPoint(from);
-	        end = this.unitsToArrayPoint(to);
-	        if(start > end){
-	            tmp = start;
-	            start = end;
-	            end = tmp;
-	        }
-	        if(start<0)
-	            start=0;
-	        if(end>=this.getNbPoints)
-	            end=this.getNbPoints-1;
+	    /**
+	     * @function getDeltaX()
+	     * Returns the separation between 2 consecutive points in the spectrum domain
+	     * @returns {number}
+	     */
+	    getDeltaX() {
+	        return (this.getLastX()-this.getFirstX()) / (this.getNbPoints()-1);
+	    }
 
-	        if(typeof value !== "number"){
-	            y.splice(start,end-start);
-	            x.splice(start,end-start);
+	    /**
+	     * @function setMinMax(min,max)
+	     * This function scales the values of Y between the min and max parameters
+	     * @param min   Minimum desired value for Y
+	     * @param max   Maximum desired value for Y
+	     */
+	    setMinMax(min,max) {
+	        ArrayUtils.scale(this.getYData(),{min:min,max:max,inplace:true});
+	    }
+
+	    /**
+	     * @function setMin(min)
+	     * This function scales the values of Y to fit the min parameter
+	     * @param min   Minimum desired value for Y
+	     */
+	    setMin(min) {
+	        ArrayUtils.scale(this.getYData(),{min:min,inplace:true});
+	    }
+
+	    /**
+	     * @function setMax(max)
+	     * This function scales the values of Y to fit the max parameter
+	     * @param max   Maximum desired value for Y
+	     */
+	    setMax(max) {
+	        ArrayUtils.scale(this.getYData(),{max:max,inplace:true});
+	    }
+
+	    /**
+	     * @function YShift(value)
+	     * This function shifts the values of Y
+	     * @param value Distance of the shift
+	     */
+	    YShift(value) {
+	        var y = this.getSpectrumData().y;
+	        var length = this.getNbPoints(),i = 0;
+	        for(i = 0; i<length; i++) {
+	            y[i] += value;
 	        }
-	        else{
-	            for(i=start;i<=end;i++){
-	                y[i]=value;
+	        this.getSpectrum().firstY += value;
+	        this.getSpectrum().lastY += value;
+	    }
+
+	    /**
+	     * @function shift(globalShift)
+	     * This function shift the given spectraData. After this function is applied, all the peaks in the
+	     * spectraData will be found at xi+globalShift
+	     * @param globalShift
+	     */
+	    shift(globalShift) {
+	        for(var i = 0; i < this.getNbSubSpectra(); i++) {
+	            this.setActiveElement(i);
+	            var x = this.getSpectrumData().x;
+	            var length = this.getNbPoints(), i = 0;
+	            for(i = 0; i < length; i++) {
+	                x[i] += globalShift;
+	            }
+
+	            this.getSpectrum().firstX += globalShift;
+	            this.getSpectrum().lastX += globalShift;
+	        }
+	    }
+
+	    /**
+	     * @function fillWith(from, to, value)
+	     * This function fills a zone of the spectrum with the given value.
+	     * If value is undefined it will suppress the elements
+	     * @param from
+	     * @param to
+	     * @param fillWith
+	     */
+	    fillWith(from, to, value) {
+	        var tmp, start, end, x, y;
+	        if(from > to) {
+	            var tmp = from;
+	            from = to;
+	            to = tmp;
+	        }
+
+	        for(var i = 0; i < this.getNbSubSpectra(); i++) {
+	            this.setActiveElement(i);
+	            x = this.getXData();
+	            y = this.getYData();
+	            start = this.unitsToArrayPoint(from);
+	            end = this.unitsToArrayPoint(to);
+	            if(start > end) {
+	                tmp = start;
+	                start = end;
+	                end = tmp;
+	            }
+	            if(start < 0)
+	                start = 0;
+	            if(end >= this.getNbPoints)
+	                end = this.getNbPoints-1;
+
+	            if(typeof value !== "number") {
+	                y.splice(start,end-start);
+	                x.splice(start,end-start);
+	            }
+	            else{
+	                for(i = start; i <= end; i++) {
+	                    y[i] = value;
+	                }
 	            }
 	        }
 	    }
-	}
 
-	/**
-	 * @function suppressZone(from, to)
-	 * This function suppress a zone from the given spectraData within the given x range.
-	 * Returns a spectraData of type PEAKDATA without peaks in the given region
-	 * @param from
-	 * @param to
-	 */
-	SD.prototype.suppressZone=function(from, to) {
-	    this.fillWith(from,to);
-	    this.setDataClass(this.DATACLASS_PEAK);
-	}
+	    /**
+	     * @function suppressZone(from, to)
+	     * This function suppress a zone from the given spectraData within the given x range.
+	     * Returns a spectraData of type PEAKDATA without peaks in the given region
+	     * @param from
+	     * @param to
+	     */
+	    suppressZone(from, to) {
+	        this.fillWith(from, to);
+	        this.setDataClass(this.DATACLASS_PEAK);
+	    }
 
 
-	/**
-	 * @function peakPicking(parameters)
-	 * This function performs a simple peak detection in a spectraData. The parameters that can be specified are:
-	 * Returns a two dimensional array of double specifying [x,y] of the detected peaks.
-	 * @option from:    Lower limit.
-	 * @option to:      Upper limit.
-	 * @option threshold: The minimum intensity to consider a peak as a signal, expressed as a percentage of the highest peak.
-	 * @option stdev: Number of standard deviation of the noise for the threshold calculation if a threshold is not specified.
-	 * @option resolution: The maximum resolution of the spectrum for considering peaks.
-	 * @option yInverted: Is it a Y inverted spectrum?(like an IR spectrum)
-	 * @option smooth: A function for smoothing the spectraData before the detection. If your are dealing with
-	 * experimental spectra, smoothing will make the algorithm less prune to false positives.
-	 */
-	SD.prototype.simplePeakPicking=function(parameters) {
-	    //@TODO implements this filter
-	}
+	    /**
+	     * @function peakPicking(parameters)
+	     * This function performs a simple peak detection in a spectraData. The parameters that can be specified are:
+	     * Returns a two dimensional array of double specifying [x,y] of the detected peaks.
+	     * @option from:    Lower limit.
+	     * @option to:      Upper limit.
+	     * @option threshold: The minimum intensity to consider a peak as a signal, expressed as a percentage of the highest peak.
+	     * @option stdev: Number of standard deviation of the noise for the threshold calculation if a threshold is not specified.
+	     * @option resolution: The maximum resolution of the spectrum for considering peaks.
+	     * @option yInverted: Is it a Y inverted spectrum?(like an IR spectrum)
+	     * @option smooth: A function for smoothing the spectraData before the detection. If your are dealing with
+	     * experimental spectra, smoothing will make the algorithm less prune to false positives.
+	     */
+	    simplePeakPicking(parameters) {
+	        //@TODO implements this filter
+	    }
 
-	/**
-	 * @function getMaxPeak()
-	 * Get the maximum peak
-	 * @returns {[x, y]}
-	 */
-	SD.prototype.getMaxPeak = function(){
-	    var y = this.getSpectraDataY();
-	    var max=y[0], index=0;
-	    for(var i=0;i< y.length;i++){
-	        if(max<y[i]){
-	            max = y[i];
-	            index=i;
+	    /**
+	     * @function getMaxPeak()
+	     * Get the maximum peak
+	     * @returns {[x, y]}
+	     */
+	    getMaxPeak() {
+	        var y = this.getSpectraDataY();
+	        var max = y[0], index = 0;
+	        for(var i = 0; i < y.length; i++) {
+	            if(max < y[i]) {
+	                max = y[i];
+	                index = i;
+	            }
+	        }
+	        return [this.getX(index),max];
+	    }
+
+	    /**
+	     * @function getParamDouble(name, defvalue);
+	     * Get the value of the parameter
+	     * @param  name The parameter name
+	     * @param  defvalue The default value
+	     * @returns {number}
+	     */
+
+	    /**
+	     *
+	     * @param name
+	     * @param defvalue
+	     * @returns {*}
+	     */
+	    getParamDouble(name, defvalue) {
+	        var value = this.sd.info[name];
+	        if(!value)
+	            value = defvalue;
+	        return value;
+	    }
+
+	    /**
+	     * @function getParamString(name, defvalue);
+	     * Get the value of the parameter
+	     * @param  name The parameter name
+	     * @param  defvalue The default value
+	     * @returns {string}
+	     */
+	    getParamString(name, defvalue) {
+	        var value = this.sd.info[name];
+	        if(!value)
+	            value = defvalue;
+	        return value+"";
+	    }
+
+	    /**
+	     * @function getParamInt(name, defvalue);
+	     * Get the value of the parameter
+	     * @param  name The parameter name
+	     * @param  defvalue The default value
+	     * @returns {number}
+	     */
+	    getParamInt(name, defvalue) {
+	        var value = this.sd.info[name];
+	        if(!value)
+	            value = defvalue;
+	        return value;
+	    }
+
+	    /**
+	     * @function getParam(name, defvalue);
+	     * Get the value of the parameter
+	     * @param  name The parameter name
+	     * @param  defvalue The default value
+	     * @returns {*}
+	     */
+	    getParam(name, defvalue) {
+	        var value = this.sd.info[name];
+	        if(!value)
+	            value = defvalue;
+	        return value;
+	    }
+
+	    /**
+	     * @function containsParam(name)
+	     *True if the spectrum.info contains the given parameter
+	     * @param name
+	     * @returns {boolean}
+	     */
+	    containsParam(name) {
+	        if(this.sd.info[name]){
+	            return true;
+	        }
+	        return false;
+	    }
+
+	    /**
+	     * @function getSpectraDataY()
+	     * Return the y elements of the current spectrum. Same as getYData. Kept for backward compatibility.
+	     * @returns {Array}
+	     */
+	    getSpectraDataY() {
+	        return this.getYData();
+	    }
+
+	    /**
+	     * @function getSpectraDataX()
+	     * Return the x elements of the current spectrum. Same as getXData. Kept for backward compatibility.
+	     * @returns {Array}
+	     */
+	    getSpectraDataX() {
+	        return this.getXData();
+	    }
+
+	    /**
+	     * @function resetMinMax()
+	     * Update min max values of X and Yaxis.
+	     */
+	    resetMinMax() {
+	        //TODO Impelement this function
+	    }
+
+	    /**
+	     * @function putParam(name, value)
+	     * Set a new parameter to this spectrum
+	     * @param name
+	     * @param value
+	     */
+	    putParam(name, value) {
+	        this.sd.info[name] = value;
+	    }
+
+	    /**
+	     * @function getArea(from, to)
+	     * This function returns the area under the spectrum in the given window
+	     * @param from in spectrum units
+	     * @param to in spectrum units
+	     * @returns {number}
+	     */
+	    getArea(from, to) {
+	        var i0 = this.unitsToArrayPoint(from);
+	        var ie = this.unitsToArrayPoint(to);
+	        var area = 0;
+	        if(i0 > ie) {
+	            var tmp = i0;
+	            i0 = ie;
+	            ie = tmp;
+	        }
+	        i0 = i0 < 0?0:i0;
+	        ie = ie >= this.getNbPoints()?this.getNbPoints()-1:ie;
+	        for(var i = i0; i < ie; i++) {
+	            area += this.getY(i);
+	        }
+	        return area * Math.abs(this.getDeltaX());
+	    }
+
+	    updateIntegrals(ranges, options){
+	        var sum = 0;
+	        var that = this;
+	        ranges.forEach(function (range, index) {
+	            range.integral = that.getArea(range.from, range.to);
+	            sum += range.integral;
+	        });
+	        if(options.nH){
+	            var factor = options.nH / sum;
+	            ranges.forEach(function (range, index) {
+	                range.integral *= factor;
+	            });
 	        }
 	    }
-	    return [this.getX(index),max];
-	}
 
-	/**
-	 * @function getParamDouble(name, defvalue);
-	 * Get the value of the parameter
-	 * @param  name The parameter name
-	 * @param  defvalue The default value
-	 * @returns {number}
-	 */
-
-	/**
-	 *
-	 * @param name
-	 * @param defvalue
-	 * @returns {*}
-	 */
-	SD.prototype.getParamDouble = function(name, defvalue){
-	    var value = this.sd.info[name];
-	    if(!value)
-	        value = defvalue;
-	    return value;
-	}
-
-	/**
-	 * @function getParamString(name, defvalue);
-	 * Get the value of the parameter
-	 * @param  name The parameter name
-	 * @param  defvalue The default value
-	 * @returns {string}
-	 */
-	SD.prototype.getParamString = function(name, defvalue){
-	    var value = this.sd.info[name];
-	    if(!value)
-	        value = defvalue;
-	    return value+"";
-	}
-
-	/**
-	 * @function getParamInt(name, defvalue);
-	 * Get the value of the parameter
-	 * @param  name The parameter name
-	 * @param  defvalue The default value
-	 * @returns {number}
-	 */
-	SD.prototype.getParamInt = function(name, defvalue){
-	    var value = this.sd.info[name];
-	    if(!value)
-	        value = defvalue;
-	    return value;
-	}
-
-	/**
-	 * @function getParam(name, defvalue);
-	 * Get the value of the parameter
-	 * @param  name The parameter name
-	 * @param  defvalue The default value
-	 * @returns {*}
-	 */
-	SD.prototype.getParam = function(name, defvalue){
-	    var value = this.sd.info[name];
-	    if(!value)
-	        value = defvalue;
-	    return value;
-	}
-
-	/**
-	 * @function containsParam(name)
-	 *True if the spectrum.info contains the given parameter
-	 * @param name
-	 * @returns {boolean}
-	 */
-	SD.prototype.containsParam = function(name){
-	    if(this.sd.info[name]){
-	        return true;
+	    /**
+	     * @function getVector(from, to, nPoints)
+	     * Returns a equally spaced vector within the given window.
+	     * @param from in spectrum units
+	     * @param to in spectrum units
+	     * @param nPoints number of points to return(!!!sometimes it is not possible to return exactly the required nbPoints)
+	     * @returns [x,y]
+	     */
+	    getVector(from, to, nPoints) {
+	        return ArrayUtils.getEquallySpacedData(this.getSpectraDataX(), this.getSpectraDataY(),
+	            {from: from, to:to, numberOfPoints:nPoints});
 	    }
-	    return false;
-	}
 
-	/**
-	 * @function getSpectraDataY()
-	 * Return the y elements of the current spectrum. Same as getYData. Kept for backward compatibility.
-	 * @returns {Array}
-	 */
-	SD.prototype.getSpectraDataY = function(){
-	    return this.getYData();
-	}
-
-	/**
-	 * @function getSpectraDataX()
-	 * Return the x elements of the current spectrum. Same as getXData. Kept for backward compatibility.
-	 * @returns {Array}
-	 */
-	SD.prototype.getSpectraDataX = function(){
-	    return this.getXData();
-	}
-
-	/**
-	 * @function resetMinMax()
-	 * Update min max values of X and Yaxis.
-	 */
-	SD.prototype.resetMinMax = function(){
-	    //TODO Impelement this function
-	}
-
-	/**
-	 * @function putParam(name, value)
-	 * Set a new parameter to this spectrum
-	 * @param name
-	 * @param value
-	 */
-	SD.prototype.putParam = function(name, value){
-	    this.sd.info[name]=value;
-	}
-
-	/**
-	 * @function getArea(from, to)
-	 * This function returns the area under the spectrum in the given window
-	 * @param from in spectrum units
-	 * @param to in spectrum units
-	 * @returns {number}
-	 */
-	SD.prototype.getArea = function(from, to){
-	    var i0 = this.unitsToArrayPoint(from);
-	    var ie = this.unitsToArrayPoint(to);
-	    var area = 0;
-	    if(i0>ie){
-	        var tmp = i0;
-	        i0 = ie;
-	        ie = tmp;
+	    /**
+	     * @function is2D()
+	     * Is it a 2D spectrum?
+	     * @returns {boolean}
+	     */
+	    is2D() {
+	        if(typeof this.sd.twoD == "undefined")
+	            return false;
+	        return this.sd.twoD;
 	    }
-	    i0=i0<0?0:i0;
-	    ie=ie>=this.getNbPoints()?this.getNbPoints()-1:ie;
-	    for(var i=i0;i<ie;i++){
-	        area+= this.getY(i);
+
+	    /**
+	     * @function toJcamp(options)
+	     * This function creates a String that represents the given spectraData in the format JCAM-DX 5.0
+	     * The X,Y data can be compressed using one of the methods described in:
+	     * "JCAMP-DX. A STANDARD FORMAT FOR THE EXCHANGE OF ION MOBILITY SPECTROMETRY DATA",
+	     *  http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
+	     * @option encode: ['FIX','SQZ','DIF','DIFDUP','CVS','PAC'] (Default: 'DIFDUP')
+	     * @option yfactor: The YFACTOR. It allows to compress the data by removing digits from the ordinate. (Default: 1)
+	     * @option type: ["NTUPLES", "SIMPLE"] (Default: "SIMPLE")
+	     * @option keep: A set of user defined parameters of the given SpectraData to be stored in the jcamp.
+	     * @returns a string containing the jcamp-DX file
+	     * @example SD.toJcamp(spectraData,{encode:'DIFDUP',yfactor:0.01,type:"SIMPLE",keep:['#batchID','#url']});
+	     */
+	    toJcamp(options) {
+	        var defaultOptions = {"encode":"DIFDUP","yFactor":1,"type":"SIMPLE","keep":[]};
+	        options = extend({}, defaultOptions, options);
+	        return JcampCreator.convert(this, options.encode, options.yFactor, options.type, options.keep);
 	    }
-	    return area*Math.abs(this.getDeltaX());
-	},
-
-	SD.prototype.updateIntegrals = function(ranges, options){
-	    var sum = 0;
-	    var that = this;
-	    ranges.forEach(function (range, index) {
-	        range.integral = that.getArea(range.from, range.to);
-	        sum += range.integral;
-	    });
-	    if(options.nH){
-	        var factor = options.nH / sum;
-	        ranges.forEach(function (range, index) {
-	            range.integral *= factor;
-	        });
-	    }
-	},
-
-	/**
-	 * @function getVector(from, to, nPoints)
-	 * Returns a equally spaced vector within the given window.
-	 * @param from in spectrum units
-	 * @param to in spectrum units
-	 * @param nPoints number of points to return(!!!sometimes it is not possible to return exactly the required nbPoints)
-	 * @returns [x,y]
-	 */
-	SD.prototype.getVector = function(from, to, nPoints){
-	    return ArrayUtils.getEquallySpacedData(this.getSpectraDataX(), this.getSpectraDataY(), {from: from, to:to, numberOfPoints:nPoints});
 	}
-
-	/**
-	 * @function is2D()
-	 * Is it a 2D spectrum?
-	 * @returns {boolean}
-	 */
-	SD.prototype.is2D = function(){
-	    if(typeof this.sd.twoD == "undefined")
-	        return false;
-	    return this.sd.twoD;
-	}
-
-	/**
-	 * @function toJcamp(options)
-	 * This function creates a String that represents the given spectraData in the format JCAM-DX 5.0
-	 * The X,Y data can be compressed using one of the methods described in:
-	 * "JCAMP-DX. A STANDARD FORMAT FOR THE EXCHANGE OF ION MOBILITY SPECTROMETRY DATA",
-	 *  http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
-	 * @option encode: ['FIX','SQZ','DIF','DIFDUP','CVS','PAC'] (Default: 'DIFDUP')
-	 * @option yfactor: The YFACTOR. It allows to compress the data by removing digits from the ordinate. (Default: 1)
-	 * @option type: ["NTUPLES", "SIMPLE"] (Default: "SIMPLE")
-	 * @option keep: A set of user defined parameters of the given SpectraData to be stored in the jcamp.
-	 * @returns a string containing the jcamp-DX file
-	 * @example SD.toJcamp(spectraData,{encode:'DIFDUP',yfactor:0.01,type:"SIMPLE",keep:['#batchID','#url']});
-	 */
-	SD.prototype.toJcamp=function(options) {
-	    var defaultOptions = {"encode":"DIFDUP","yFactor":1,"type":"SIMPLE","keep":[]};
-	    options = extend({}, defaultOptions, options);
-	    return JcampCreator.convert(this, options.encode, options.yFactor, options.type, options.keep);
-	}
-
 
 	module.exports = SD;
 
@@ -2528,13 +2529,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	/**
 	 * Performs a binary search of value in array
-	 * @param array - Array in which value will be searched. It must be sorted.
-	 * @param value - Value to search in array
+	 * @param {number[]} array - Array in which value will be searched. It must be sorted.
+	 * @param {number} value - Value to search in array
 	 * @return {number} If value is found, returns its index in array. Otherwise, returns a negative number indicating where the value should be inserted: -(index + 1)
 	 */
-	function binarySearch(array, value) {
-	    var low = 0;
-	    var high = array.length - 1;
+	function binarySearch(array, value, options) {
+	    options = options || {};
+	    var low = options.from || 0;
+	    var high = options.to || array.length - 1;
 
 	    while (low <= high) {
 	        var mid = (low + high) >>> 1;
@@ -4382,338 +4384,339 @@ return /******/ (function(modules) { // webpackBootstrap
 	var fft = __webpack_require__(48);
 	var Filters = __webpack_require__(51);
 
-	/**
-	 * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
-	 * @param sd
-	 * @constructor
-	 */
-	function NMR(sd) {
-	    SD.call(this, sd); // Héritage
-	}
+	class NMR extends SD{
+	    /**
+	     * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
+	     * @param sd
+	     * @constructor
+	     */
+	    constructor(sd) {
+	        super(sd);
+	    }
 
-	NMR.prototype = Object.create(SD.prototype);
-	NMR.prototype.constructor = NMR;
+	    /**
+	     * @function fromJcamp(jcamp,options)
+	     * Construct the object from the given jcamp.
+	     * @param jcamp
+	     * @param options
+	     * @option xy
+	     * @option keepSpectra
+	     * @option keepRecordsRegExp
+	     * @returns {NMR}
+	     */
+	    static fromJcamp(jcamp, options) {
+	        options = Object.assign({}, {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/}, options);
+	        var spectrum = JcampConverter.convert(jcamp, options);
+	        return new NMR(spectrum);
+	    }
 
-	/**
-	 * @function fromJcamp(jcamp,options)
-	 * Construct the object from the given jcamp.
-	 * @param jcamp
-	 * @param options
-	 * @option xy
-	 * @option keepSpectra
-	 * @option keepRecordsRegExp
-	 * @returns {NMR}
-	 */
-	NMR.fromJcamp = function(jcamp,options) {
-	    options = Object.assign({}, {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/}, options);
-	    var spectrum= JcampConverter.convert(jcamp,options);
-	    return new NMR(spectrum);
-	}
+	    static fromBruker (jcamp, options){
 
-	/**
-	 * @function getNucleus(dim)
-	 * Returns the observed nucleus. A dimension parameter is accepted for compatibility with 2DNMR
-	 * @param dim
-	 * @returns {*}
-	 */
-	NMR.prototype.getNucleus=function(dim){
-	    if(!dim||dim==0||dim==1)
-	        return this.sd.xType;
-	    else{
-	        return "";
+	    }
+
+	    /**
+	     * @function getNucleus(dim)
+	     * Returns the observed nucleus. A dimension parameter is accepted for compatibility with 2DNMR
+	     * @param dim
+	     * @returns {*}
+	     */
+	    getNucleus(dim) {
+	        if(!dim || dim == 0 || dim == 1)
+	            return this.sd.xType;
+	        else {
+	            return "";
+	        }
+	    }
+
+	    /**
+	     * @function getSolventName()
+	     * Returns the solvent name.
+	     * @returns {string|XML}
+	     */
+	    getSolventName() {
+	        return (this.sd.info[".SOLVENTNAME"] || this.sd.info["$SOLVENT"] || "").replace("<","").replace(">","");
+	    }
+
+	    /**
+	     * @function observeFrequencyX()
+	     * Returns the observe frequency in the direct dimension
+	     * @returns {number}
+	     */
+	    observeFrequencyX() {
+	        return this.sd.spectra[0].observeFrequency;
+	    }
+
+	    /**
+	     * @function getNMRPeakThreshold(nucleus)
+	     * Returns the noise factor depending on the nucleus.
+	     * @param nucleus
+	     * @returns {number}
+	     */
+	    getNMRPeakThreshold(nucleus) {
+	        if (nucleus == "1H")
+	            return 3.0;
+	        if (nucleus =="13C")
+	            return 5.0;
+	        return 1.0;
+	    }
+
+
+
+	    /**
+	     * @function addNoise(SNR)
+	     * This function adds white noise to the the given spectraData. The intensity of the noise is
+	     * calculated from the given signal to noise ratio.
+	     * @param SNR Signal to noise ratio
+	     * @returns this object
+	     */
+	    addNoise(SNR) {
+	        //@TODO Implement addNoise filter
+	    }
+
+
+	    /**
+	     * @function addSpectraDatas(spec2,factor1,factor2,autoscale )
+	     *  This filter performs a linear combination of two spectraDatas.
+	     * A=spec1
+	     * B=spec2
+	     * After to apply this filter you will get:
+	     *      A=A*factor1+B*factor2
+	     * if autoscale is set to 'true' then you will obtain:
+	     *  A=A*factor1+B*k*factor2
+	     * Where the k is a factor such that the maximum peak in A is equal to the maximum peak in spectraData2
+	     * @param spec2 spectraData2
+	     * @param factor1 linear factor for spec1
+	     * @param factor2 linear factor for spec2
+	     * @param autoscale Auto-adjust scales before combine the spectraDatas
+	     * @returns this object
+	     * @example spec1 = addSpectraDatas(spec1,spec2,1,-1, false) This subtract spec2 from spec1
+	     */
+	    addSpectraDatas(spec2, factor1, factor2, autoscale ) {
+	        //@TODO Implement addSpectraDatas filter
+
+	    }
+
+	    /**
+	     * @function autoBaseline()
+	     * Automatically corrects the base line of a given spectraData. After this process the spectraData
+	     * should have meaningful integrals.
+	     * @returns this object
+	     */
+	    autoBaseline( ) {
+	        //@TODO Implement autoBaseline filter
+	    }
+
+	    /**
+	     * @function fourierTransform()
+	     * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be of type NMR_FID or 2DNMR_FID
+	     * @returns this object
+	     */
+	    fourierTransform( ) {
+	        return Filters.fourierTransform(this);
+	    }
+
+	    /**
+	     * @function postFourierTransform(ph1corr)
+	     * This filter makes an phase 1 correction that corrects the problem of the spectra that has been obtained
+	     * on spectrometers using the Bruker digital filters. This method is used in cases when the BrukerSpectra
+	     * filter could not find the correct number of points to perform a circular shift.
+	     * The actual problem is that not all of the spectra has the necessary parameters for use only one method for
+	     * correcting the problem of the Bruker digital filters.
+	     * @param spectraData A fourier transformed spectraData.
+	     * @param ph1corr Phase 1 correction value in radians.
+	     * @returns this object
+	     */
+	    postFourierTransform(ph1corr) {
+	        return Filters.phaseCorrection(0, ph1corr);
+	    }
+
+	    /**
+	     * @function zeroFilling(nPointsX [,nPointsY])
+	     * This function increase the size of the spectrum, filling the new positions with zero values. Doing it one
+	     * could increase artificially the spectral resolution.
+	     * @param nPointsX Number of new zero points in the direct dimension
+	     * @param nPointsY Number of new zero points in the indirect dimension
+	     * @returns this object
+	     */
+	    zeroFilling(nPointsX, nPointsY) {
+	        return Filters.zeroFilling(this, nPointsX, nPointsY);
+	    }
+
+	    /**
+	     * @function  haarWhittakerBaselineCorrection(waveletScale,whittakerLambda)
+	     * Applies a baseline correction as described in J Magn Resonance 183 (2006) 145-151 10.1016/j.jmr.2006.07.013
+	     * The needed parameters are the wavelet scale and the lambda used in the whittaker smoother.
+	     * @param waveletScale To be described
+	     * @param whittakerLambda To be described
+	     * @returns this object
+	     */
+	    haarWhittakerBaselineCorrection(waveletScale, whittakerLambda) {
+	        //@TODO Implement haarWhittakerBaselineCorrection filter
+	    }
+
+	    /**
+	     * @function whittakerBaselineCorrection(whittakerLambda,ranges)
+	     * Applies a baseline correction as described in J Magn Resonance 183 (2006) 145-151 10.1016/j.jmr.2006.07.013
+	     * The needed parameters are the Wavelet scale and the lambda used in the Whittaker smoother.
+	     * @param waveletScale To be described
+	     * @param whittakerLambda To be described
+	     * @param ranges A string containing the ranges of no signal.
+	     * @returns this object
+	     */
+	    whittakerBaselineCorrection(whittakerLambda,ranges) {
+	        //@TODO Implement whittakerBaselineCorrection filter
+	    }
+
+	    /**
+	     * @function brukerFilter()
+	     * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
+	     * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
+	     * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
+	     * @returns this object
+	     */
+	    brukerFilter() {
+	        return Filters.digitalFilter(this, {"brukerFilter":true});
+	    }
+
+	    /**
+	     * @function digitalFilter(options)
+	     * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
+	     * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
+	     * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
+	     * @option nbPoints: The number of points to shift. Positive values will shift the values to the rigth
+	     * and negative values will do to the left.
+	     * @option brukerSpectra
+	     * @returns this object
+	     */
+	    digitalFilter(options) {
+	        return Filters.digitalFilter(this, options);
+	    }
+
+	    /**
+	     * @function apodization(functionName, lineBroadening)
+	     * Apodization of a spectraData object.
+	     * @param spectraData An spectraData of type NMR_FID
+	     * @param functionName Valid values for functionsName are
+	     *  Exponential, exp
+	     *  Hamming, hamming
+	     *  Gaussian, gauss
+	     *  TRAF, traf
+	     *  Sine Bell, sb
+	     *  Sine Bell Squared, sb2
+	     * @param lineBroadening The parameter LB should either be a line broadening factor in Hz
+	     * or alternatively an angle given by degrees for sine bell functions and the like.
+	     * @returns this object
+	     * @example SD.apodization("exp", lineBroadening)
+	     */
+	    apodization(functionName, lineBroadening) {
+	        return Filters.apodization(this, {"functionName":functionName,
+	            "lineBroadening":lineBroadening});
+
+	    }
+
+	    /**
+	     * @function echoAntiechoFilter();
+	     * That decodes an Echo-Antiecho 2D spectrum.
+	     * @returns this object
+	     */
+	    echoAntiechoFilter() {
+	        //@TODO Implement echoAntiechoFilter filter
+	    }
+
+	    /**
+	     * @function SNVFilter()
+	     * This function apply a Standard Normal Variate Transformation over the given spectraData. Mainly used for IR spectra.
+	     * @returns this object
+	     */
+	    SNVFilter() {
+	        //@TODO Implement SNVFilter
+	    }
+
+	    /**
+	     * @function powerFilter(power)
+	     * This function applies a power to all the Y values.<br>If the power is less than 1 and the spectrum has negative values, it will be shifted so that the lowest value is zero
+	     * @param   power   The power to apply
+	     * @returns this object
+	     */
+	    powerFilter(power) {
+	        var minY = this.getMinY();
+	        if(power < 1 && minY < 0) {
+	            this.YShift(-1*minY);
+	            console.warn("SD.powerFilter: The spectrum had negative values and was automatically shifted before applying the function.");
+	        }
+	        //@TODO Implement powerFilter
+	    }
+
+	    /**
+	     * @function logarithmFilter(base)
+	     * This function applies a log to all the Y values.<br>If the spectrum has negative or zero values, it will be shifted so that the lowest value is 1
+	     * @param   base    The base to use
+	     * @returns this object
+	     */
+	    logarithmFilter(base) {
+	        var minY = this.getMinY();
+	        if(minY <= 0) {
+	            this.YShift((-1*minY)+1);
+	            console.warn("SD.logarithmFilter: The spectrum had negative values and was automatically shifted before applying the function.");
+	        }
+	        //@TODO Implement logarithmFilter filter
+	    }
+
+
+	    /**
+	     * @function correlationFilter(func)
+	     * This function correlates the given spectraData with the given vector func. The correlation
+	     * operation (*) is defined as:
+	     *
+	     *                    __ inf
+	     *  c(x)=f(x)(*)g(x)= \        f(x)*g(x+i)
+	     *                   ./
+	     *                    -- i=-inf
+	     * @param func A double array containing the function to correlates the spectraData
+	     * @returns this object
+	     * @example var smoothedSP = SD.correlationFilter(spectraData,[1,1]) returns a smoothed version of the
+	     * given spectraData.
+	     */
+	    correlationFilter(func) {
+	        //@TODO Implement correlationFilter filter
+	    }
+
+	    /**
+	     * @function  phaseCorrection(phi0, phi1)
+	     * Applies the phase correction (phi0,phi1) to a Fourier transformed spectraData. The angles must be given in radians.
+	     * @param phi0 Zero order phase correction
+	     * @param phi1 One order phase correction
+	     * @returns this object
+	     */
+	    phaseCorrection(phi0, phi1) {
+	        return Filters.phaseCorrection(this, phi0, phi1);
+	    }
+
+	    /**
+	     * @function automaticPhase()
+	     * This function determines automatically the correct parameters phi0 and phi1 for a phaseCorrection
+	     * function and applies it.
+	     * @returns this object
+	     */
+	    automaticPhase() {
+	        //@TODO Implement automaticPhase filter
+	    }
+
+
+	    /**
+	     * @function nmrPeakDetection(parameters);
+	     * This function process the given spectraData and tries to determine the NMR signals. Returns an NMRSignal1D array containing all the detected 1D-NMR Signals
+	     * @param parameters A JSONObject containing the optional parameters:
+	     * @option fromX:   Lower limit.
+	     * @option toX:     Upper limit.
+	     * @option threshold: The minimum intensity to consider a peak as a signal, expressed as a percentage of the highest peak.
+	     * @option stdev: Number of standard deviation of the noise for the threshold calculation if a threshold is not specified.
+	     * @returns {*}
+	     */
+	    nmrPeakDetection(parameters) {
+	        return peakPicking(this, parameters);
 	    }
 	}
-
-	/**
-	 * @function getSolventName()
-	 * Returns the solvent name.
-	 * @returns {string|XML}
-	 */
-	NMR.prototype.getSolventName=function(){
-	    return (this.sd.info[".SOLVENTNAME"]||this.sd.info["$SOLVENT"]||"").replace("<","").replace(">","");
-	}
-
-	/**
-	 * @function observeFrequencyX()
-	 * Returns the observe frequency in the direct dimension
-	 * @returns {number}
-	 */
-	NMR.prototype.observeFrequencyX=function(){
-	    return this.sd.spectra[0].observeFrequency;
-	}
-
-	/**
-	 * @function getNMRPeakThreshold(nucleus)
-	 * Returns the noise factor depending on the nucleus.
-	 * @param nucleus
-	 * @returns {number}
-	 */
-	NMR.prototype.getNMRPeakThreshold=function(nucleus) {
-	    if (nucleus == "1H")
-	        return 3.0;
-	    if (nucleus =="13C")
-	        return 5.0;
-	    return 1.0;
-	}
-
-
-	    
-	/**
-	 * @function addNoise(SNR)
-	 * This function adds white noise to the the given spectraData. The intensity of the noise is 
-	 * calculated from the given signal to noise ratio.
-	 * @param SNR Signal to noise ratio
-	 * @returns this object
-	 */
-	 NMR.prototype.addNoise=function(SNR) {
-	     //@TODO Implement addNoise filter
-	}
-
-
-	/**
-	 * @function addSpectraDatas(spec2,factor1,factor2,autoscale )   
-	 *  This filter performs a linear combination of two spectraDatas.
-	 * A=spec1
-	 * B=spec2
-	 * After to apply this filter you will get:
-	 *      A=A*factor1+B*factor2
-	 * if autoscale is set to 'true' then you will obtain:
-	 *  A=A*factor1+B*k*factor2
-	 * Where the k is a factor such that the maximum peak in A is equal to the maximum peak in spectraData2 
-	 * @param spec2 spectraData2
-	 * @param factor1 linear factor for spec1
-	 * @param factor2 linear factor for spec2
-	 * @param autoscale Auto-adjust scales before combine the spectraDatas
-	 * @returns this object
-	 * @example spec1 = addSpectraDatas(spec1,spec2,1,-1, false) This subtract spec2 from spec1
-	*/
-	NMR.prototype.addSpectraDatas=function(spec2,factor1,factor2,autoscale ) {
-	    //@TODO Implement addSpectraDatas filter
-
-	}
-
-	/**
-	 * @function autoBaseline()
-	 * Automatically corrects the base line of a given spectraData. After this process the spectraData
-	 * should have meaningful integrals.
-	 * @returns this object
-	 */
-	NMR.prototype.autoBaseline=function( ) {
-	    //@TODO Implement autoBaseline filter
-	}
-
-	/**
-	 * @function fourierTransform()
-	 * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be of type NMR_FID or 2DNMR_FID
-	 * @returns this object
-	 */
-	NMR.prototype.fourierTransform=function( ) {
-	    return Filters.fourierTransform(this);
-	}
-
-	/**
-	 * @function postFourierTransform(ph1corr)
-	 * This filter makes an phase 1 correction that corrects the problem of the spectra that has been obtained 
-	 * on spectrometers using the Bruker digital filters. This method is used in cases when the BrukerSpectra 
-	 * filter could not find the correct number of points to perform a circular shift.
-	 * The actual problem is that not all of the spectra has the necessary parameters for use only one method for 
-	 * correcting the problem of the Bruker digital filters.
-	 * @param spectraData A fourier transformed spectraData.
-	 * @param ph1corr Phase 1 correction value in radians.
-	 * @returns this object
-	 */
-	NMR.prototype.postFourierTransform=function(ph1corr) {
-	    return Filters.phaseCorrection(0,ph1corr);
-	}
-
-	/**
-	 * @function zeroFilling(nPointsX [,nPointsY])
-	 * This function increase the size of the spectrum, filling the new positions with zero values. Doing it one 
-	 * could increase artificially the spectral resolution.
-	 * @param nPointsX Number of new zero points in the direct dimension
-	 * @param nPointsY Number of new zero points in the indirect dimension
-	 * @returns this object
-	 */
-	NMR.prototype.zeroFilling=function(nPointsX, nPointsY) {
-	    return Filters.zeroFilling(this,nPointsX, nPointsY);
-	}
-
-	/**
-	 * @function  haarWhittakerBaselineCorrection(waveletScale,whittakerLambda)
-	 * Applies a baseline correction as described in J Magn Resonance 183 (2006) 145-151 10.1016/j.jmr.2006.07.013
-	 * The needed parameters are the wavelet scale and the lambda used in the whittaker smoother.
-	 * @param waveletScale To be described
-	 * @param whittakerLambda To be described
-	 * @returns this object
-	 */
-	NMR.prototype.haarWhittakerBaselineCorrection=function(waveletScale,whittakerLambda) {
-	    //@TODO Implement haarWhittakerBaselineCorrection filter
-	}
-
-	/**
-	 * @function whittakerBaselineCorrection(whittakerLambda,ranges)
-	 * Applies a baseline correction as described in J Magn Resonance 183 (2006) 145-151 10.1016/j.jmr.2006.07.013
-	 * The needed parameters are the Wavelet scale and the lambda used in the Whittaker smoother.
-	 * @param waveletScale To be described
-	 * @param whittakerLambda To be described
-	 * @param ranges A string containing the ranges of no signal.
-	 * @returns this object
-	 */
-	NMR.prototype.whittakerBaselineCorrection=function(whittakerLambda,ranges) {
-	    //@TODO Implement whittakerBaselineCorrection filter
-	}
-
-	/**
-	 * @function brukerFilter()
-	 * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that 
-	 * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the 
-	 * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
-	 * @returns this object
-	 */
-	NMR.prototype.brukerFilter=function() {
-	    return Filters.digitalFilter(this, {"brukerFilter":true});
-	}
-
-	/**
-	 * @function digitalFilter(options)
-	 * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
-	 * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
-	 * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
-	 * @option nbPoints: The number of points to shift. Positive values will shift the values to the rigth
-	 * and negative values will do to the left.
-	 * @option brukerSpectra
-	 * @returns this object
-	 */
-	NMR.prototype.digitalFilter=function(options) {
-	    return Filters.digitalFilter(this, options);
-	}
-
-	/**
-	 * @function apodization(functionName, lineBroadening)
-	 * Apodization of a spectraData object.
-	 * @param spectraData An spectraData of type NMR_FID
-	 * @param functionName Valid values for functionsName are
-	 *  Exponential, exp
-	 *  Hamming, hamming
-	 *  Gaussian, gauss
-	 *  TRAF, traf
-	 *  Sine Bell, sb
-	 *  Sine Bell Squared, sb2
-	 * @param lineBroadening The parameter LB should either be a line broadening factor in Hz 
-	 * or alternatively an angle given by degrees for sine bell functions and the like.
-	 * @returns this object
-	 * @example SD.apodization("exp", lineBroadening)
-	 */
-	NMR.prototype.apodization=function(functionName, lineBroadening) {
-	    return Filters.apodization(this,{"functionName":functionName,
-	                            "lineBroadening":lineBroadening});
-
-	}
-
-	/**
-	 * @function echoAntiechoFilter();
-	 * That decodes an Echo-Antiecho 2D spectrum.
-	 * @returns this object
-	 */
-	NMR.prototype.echoAntiechoFilter=function() {
-	    //@TODO Implement echoAntiechoFilter filter
-	}
-
-	/**
-	 * @function SNVFilter()
-	 * This function apply a Standard Normal Variate Transformation over the given spectraData. Mainly used for IR spectra.
-	 * @returns this object
-	 */
-	NMR.prototype.SNVFilter=function() {
-	    //@TODO Implement SNVFilter
-	}
-
-	/**
-	 * @function powerFilter(power)
-	 * This function applies a power to all the Y values.<br>If the power is less than 1 and the spectrum has negative values, it will be shifted so that the lowest value is zero 
-	 * @param   power   The power to apply
-	 * @returns this object
-	 */
-	NMR.prototype.powerFilter=function(power) {
-	    var minY=this.getMinY();
-	    if(power<1 && minY<0){
-	        this.YShift(-1*minY);
-	        console.warn("SD.powerFilter: The spectrum had negative values and was automatically shifted before applying the function.");
-	    }
-	    //@TODO Implement powerFilter
-	}
-
-	/**
-	 * @function logarithmFilter(base)
-	 * This function applies a log to all the Y values.<br>If the spectrum has negative or zero values, it will be shifted so that the lowest value is 1 
-	 * @param   base    The base to use
-	 * @returns this object
-	 */
-	NMR.prototype.logarithmFilter=function(base) {
-	    var minY=this.getMinY();
-	    if(minY<=0){
-	        this.YShift((-1*minY)+1);
-	        console.warn("SD.logarithmFilter: The spectrum had negative values and was automatically shifted before applying the function.");
-	    }
-	   //@TODO Implement logarithmFilter filter
-	}
-
-
-	/**
-	 * @function correlationFilter(func) 
-	 * This function correlates the given spectraData with the given vector func. The correlation
-	 * operation (*) is defined as:
-	 * 
-	 *                    __ inf
-	 *  c(x)=f(x)(*)g(x)= \        f(x)*g(x+i)
-	 *                   ./    
-	 *                    -- i=-inf
-	 * @param func A double array containing the function to correlates the spectraData
-	 * @returns this object
-	 * @example var smoothedSP = SD.correlationFilter(spectraData,[1,1]) returns a smoothed version of the
-	 * given spectraData. 
-	 */
-	NMR.prototype.correlationFilter=function(func) {
-	    //@TODO Implement correlationFilter filter
-	}
-
-	/**
-	 * @function  phaseCorrection(phi0, phi1)
-	 * Applies the phase correction (phi0,phi1) to a Fourier transformed spectraData. The angles must be given in radians.
-	 * @param phi0 Zero order phase correction
-	 * @param phi1 One order phase correction
-	 * @returns this object
-	*/
-	NMR.prototype.phaseCorrection=function(phi0, phi1) {
-	    return Filters.phaseCorrection(this, phi0, phi1);
-	}
-
-	/**
-	 * @function automaticPhase() 
-	 * This function determines automatically the correct parameters phi0 and phi1 for a phaseCorrection
-	 * function and applies it.
-	 * @returns this object
-	 */ 
-	NMR.prototype.automaticPhase=function() {
-	    //@TODO Implement automaticPhase filter
-	}
-
-
-	/**
-	 * @function nmrPeakDetection(parameters);
-	 * This function process the given spectraData and tries to determine the NMR signals. Returns an NMRSignal1D array containing all the detected 1D-NMR Signals
-	 * @param parameters A JSONObject containing the optional parameters:
-	 * @option fromX:   Lower limit.
-	 * @option toX:     Upper limit.
-	 * @option threshold: The minimum intensity to consider a peak as a signal, expressed as a percentage of the highest peak. 
-	 * @option stdev: Number of standard deviation of the noise for the threshold calculation if a threshold is not specified.
-	 * @returns {*}
-	 */
-	NMR.prototype.nmrPeakDetection=function(parameters) {
-	    return peakPicking(this, parameters);
-	}
-
-
 
 	module.exports = NMR;
 
@@ -5060,8 +5063,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var spectrumIntegral = 0;
 	    var cs,sum, i,j;
 	    var dx = (spectrum.getX(1)-spectrum.getX(0))>0?1:-1;
-	    for(i=0;i<peakList.length;i++){
-	        if(Math.abs(peakList[i].x-prevPeak.x)>rangeX){
+	    for( i = 0; i < peakList.length; i++) {
+	        if(Math.abs(peakList[i].x-prevPeak.x)>rangeX) {
 	            signal1D = {nbPeaks:1,units:"PPM",
 	                "startX":peakList[i].x-peakList[i].width,
 	                "stopX":peakList[i].x+peakList[i].width,
@@ -5112,11 +5115,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        spectrumIntegral+=integral.value;
 
 	    }
-	    for(var i=0;i<signals.length;i++){
-	        //console.log(integral.value);
-	        var integral = signals[i].integralData;
-	        integral.value*=nH/spectrumIntegral;
+	    if(nH !== 0) {
+	        for(var i=0;i<signals.length;i++){
+	            //console.log(integral.value);
+	            var integral = signals[i].integralData;
+	            integral.value*=nH/spectrumIntegral;
+	        }
 	    }
+
 
 	    return signals;
 	}
@@ -16264,260 +16270,260 @@ return /******/ (function(modules) { // webpackBootstrap
 	var peakPicking2D = __webpack_require__(59);
 	var PeakOptimizer = __webpack_require__(60);
 	var JcampConverter=__webpack_require__(10);
-	//var stat = require("ml-stat");
 
-	/**
-	 * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
-	 * @param sd
-	 * @constructor
-	 */
-	function NMR2D(sd) {
-	    SD.call(this, sd); // Héritage
-	}
 
-	NMR2D.prototype = Object.create(SD.prototype);
-	NMR2D.prototype.constructor = NMR2D;
-
-	/**
-	 * @function fromJcamp(jcamp,options)
-	 * Construct the object from the given jcamp.
-	 * @param jcamp
-	 * @param options
-	 * @option xy
-	 * @option keepSpectra
-	 * @option keepRecordsRegExp
-	 * @returns {NMR2D}
-	 */
-	NMR2D.fromJcamp = function(jcamp,options) {
-	    options = Object.assign({}, {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/}, options);
-	    var spectrum= JcampConverter.convert(jcamp,options);
-	    return new NMR2D(spectrum);
-	}
-
-	/**
-	 * @function isHomoNuclear()
-	 * Returns true if the it is an homo-nuclear experiment
-	 * @returns {boolean}
-	 */
-	NMR2D.prototype.isHomoNuclear=function(){
-	    return this.sd.xType==this.sd.yType;
-	}
-
-	/**
-	 * @function observeFrequencyX()
-	 * Returns the observe frequency in the direct dimension
-	 * @returns {*}
-	 */
-	NMR2D.prototype.observeFrequencyX=function(){
-	    return this.sd.spectra[0].observeFrequency;
-	}
-	/**
-	 * @function observeFrequencyY()
-	 * Returns the observe frequency in the indirect dimension
-	 * @returns {*}
-	 */
-	NMR2D.prototype.observeFrequencyY=function(){
-	    return this.sd.indirectFrequency;
-	}
-
-	/**
-	 * @function getSolventName()
-	 * Returns the solvent name.
-	 * @returns {string|XML}
-	 */
-	NMR2D.prototype.getSolventName=function(){
-	    return (this.sd.info[".SOLVENTNAME"]||this.sd.info["$SOLVENT"]).replace("<","").replace(">","");
-	}
-
-	/**
-	 * @function getXUnits()
-	 * This function returns the units of the direct dimension. It overrides the SD getXUnits function
-	 * @returns {ntuples.units|*|b.units}
-	 */
-	NMR2D.prototype.getXUnits = function(){
-	    return this.sd.ntuples[1].units;
-	}
-	/**
-	 * @function getYUnits()
-	 * This function returns the units of the indirect dimension. It overrides the SD getYUnits function
-	 * @returns {ntuples.units|*|b.units}
-	 */
-	NMR2D.prototype.getYUnits = function(){
-	    return this.sd.ntuples[0].units;
-	}
-	/**
-	 * @function getZUnits()
-	 * Returns the units of the dependent variable
-	 * @returns {ntuples.units|*|b.units}
-	 */
-	NMR2D.prototype.getZUnits = function(){
-	    return this.sd.ntuples[2].units;
-	}
-	/**
-	 * @function getLastY()
-	 * Returns the min value in the indirect dimension.
-	 * @returns {sd.minMax.maxY}
-	 */
-	NMR2D.prototype.getLastY = function(){
-	    return this.sd.minMax.maxY;
-	}
-	/**
-	 * @function getFirstY()
-	 * Returns the min value in the indirect dimension.
-	 * @returns {sd.minMax.minY}
-	 */
-	NMR2D.prototype.getFirstY = function(){
-	    return this.sd.minMax.minY;
-	}
-	/**
-	 * @function getDeltaY()
-	 * Returns the separation between 2 consecutive points in the indirect domain
-	 * @returns {number}
-	 */
-	NMR2D.prototype.getDeltaY=function(){
-	    return ( this.getLastY()-this.getFirstY()) / (this.getNbSubSpectra()-1);
-	}
-
-	/**
-	 * @function nmrPeakDetection2D(options)
-	 * This function process the given spectraData and tries to determine the NMR signals. 
-	 + Returns an NMRSignal2D array containing all the detected 2D-NMR Signals
-	 * @param	options:+Object			Object containing the options
-	 * @option	thresholdFactor:number	A factor to scale the automatically determined noise threshold.
-	 * @returns [*]	set of NMRSignal2D
-	 */
-	NMR2D.prototype.nmrPeakDetection2D=function(options){
-	    options = options||{};
-	    if(!options.thresholdFactor)
-	        options.thresholdFactor=1;
-	    var id = Math.round(Math.random()*255);
-	    if(options.idPrefix){
-	        id=options.idPrefix;
+	class NMR2D extends SD {
+	    /**
+	     * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
+	     * @param sd
+	     * @constructor
+	     */
+	    constructor(sd) {
+	        super(sd); 
 	    }
-	    var peakList = peakPicking2D(this, options.thresholdFactor);
 
-	    //lets add an unique ID for each peak.
-	    for(var i=0;i<peakList.length;i++){
-	        peakList[i]._highlight=[id+"_"+i];
-	        peakList[i].signalID = id+"_"+i;
+
+	    /**
+	     * @function fromJcamp(jcamp,options)
+	     * Construct the object from the given jcamp.
+	     * @param jcamp
+	     * @param options
+	     * @option xy
+	     * @option keepSpectra
+	     * @option keepRecordsRegExp
+	     * @returns {NMR2D}
+	     */
+	    static fromJcamp(jcamp,options) {
+	        options = Object.assign({}, {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/}, options);
+	        var spectrum = JcampConverter.convert(jcamp, options);
+	        return new NMR2D(spectrum);
 	    }
-	    if(options.references)
-	        PeakOptimizer.alignDimensions(peakList,options.references);
 
-	    if(options.format==="new"){
-	        var newSignals = new Array(peakList.length);
-	        var minMax1, minMax2;
-	        for(var k=peakList.length-1;k>=0;k--){
-	            var signal = peakList[k];
-	            newSignals[k]={
-	                fromTo:signal.fromTo,
-	                integral:signal.intensity||1,
-	                remark:"",
-	                signal:[{
-	                    peak:signal.peaks,
-	                    delta:[signal.shiftX, signal.shiftY]
-	                }],
-	                _highlight:signal._highlight,
-	                signalID:signal.signalID,
-	            };
+	    /**
+	     * @function isHomoNuclear()
+	     * Returns true if the it is an homo-nuclear experiment
+	     * @returns {boolean}
+	     */
+	    isHomoNuclear(){
+	        return this.sd.xType == this.sd.yType;
+	    }
+
+	    /**
+	     * @function observeFrequencyX()
+	     * Returns the observe frequency in the direct dimension
+	     * @returns {*}
+	     */
+	    observeFrequencyX() {
+	        return this.sd.spectra[0].observeFrequency;
+	    }
+	    /**
+	     * @function observeFrequencyY()
+	     * Returns the observe frequency in the indirect dimension
+	     * @returns {*}
+	     */
+	    observeFrequencyY() {
+	        return this.sd.indirectFrequency;
+	    }
+
+	    /**
+	     * @function getSolventName()
+	     * Returns the solvent name.
+	     * @returns {string|XML}
+	     */
+	    getSolventName() {
+	        return (this.sd.info[".SOLVENTNAME"] || this.sd.info["$SOLVENT"]).replace("<","").replace(">","");
+	    }
+
+	    /**
+	     * @function getXUnits()
+	     * This function returns the units of the direct dimension. It overrides the SD getXUnits function
+	     * @returns {ntuples.units|*|b.units}
+	     */
+	    getXUnits() {
+	        return this.sd.ntuples[1].units;
+	    }
+	    /**
+	     * @function getYUnits()
+	     * This function returns the units of the indirect dimension. It overrides the SD getYUnits function
+	     * @returns {ntuples.units|*|b.units}
+	     */
+	    getYUnits() {
+	        return this.sd.ntuples[0].units;
+	    }
+	    /**
+	     * @function getZUnits()
+	     * Returns the units of the dependent variable
+	     * @returns {ntuples.units|*|b.units}
+	     */
+	    getZUnits() {
+	        return this.sd.ntuples[2].units;
+	    }
+	    /**
+	     * @function getLastY()
+	     * Returns the min value in the indirect dimension.
+	     * @returns {sd.minMax.maxY}
+	     */
+	    getLastY() {
+	        return this.sd.minMax.maxY;
+	    }
+	    /**
+	     * @function getFirstY()
+	     * Returns the min value in the indirect dimension.
+	     * @returns {sd.minMax.minY}
+	     */
+	    getFirstY() {
+	        return this.sd.minMax.minY;
+	    }
+	    /**
+	     * @function getDeltaY()
+	     * Returns the separation between 2 consecutive points in the indirect domain
+	     * @returns {number}
+	     */
+	    getDeltaY() {
+	        return ( this.getLastY() - this.getFirstY()) / (this.getNbSubSpectra()-1);
+	    }
+
+	    /**
+	     * @function nmrPeakDetection2D(options)
+	     * This function process the given spectraData and tries to determine the NMR signals.
+	     + Returns an NMRSignal2D array containing all the detected 2D-NMR Signals
+	     * @param	options:+Object			Object containing the options
+	     * @option	thresholdFactor:number	A factor to scale the automatically determined noise threshold.
+	     * @returns [*]	set of NMRSignal2D
+	     */
+	    nmrPeakDetection2D(options){
+	        options = options||{};
+	        if(!options.thresholdFactor)
+	            options.thresholdFactor = 1;
+	        var id = Math.round(Math.random()*255);
+	        if(options.idPrefix){
+	            id = options.idPrefix;
 	        }
-	        peakList = newSignals;
+	        var peakList = peakPicking2D(this, options.thresholdFactor);
+
+	        //lets add an unique ID for each peak.
+	        for(var i = 0;i < peakList.length; i++) {
+	            peakList[i]._highlight = [id+"_"+i];
+	            peakList[i].signalID = id+"_"+i;
+	        }
+	        if(options.references)
+	            PeakOptimizer.alignDimensions(peakList, options.references);
+
+	        if(options.format === "new") {
+	            var newSignals = new Array(peakList.length);
+	            for(var k = peakList.length - 1; k >= 0; k--) {
+	                var signal = peakList[k];
+	                newSignals[k]={
+	                    fromTo:signal.fromTo,
+	                    integral:signal.intensity||1,
+	                    remark:"",
+	                    signal:[{
+	                        peak:signal.peaks,
+	                        delta:[signal.shiftX, signal.shiftY]
+	                    }],
+	                    _highlight:signal._highlight,
+	                    signalID:signal.signalID,
+	                };
+	            }
+	            peakList = newSignals;
+	        }
+
+
+	        return peakList;
+	    }
+
+	    /**
+	     * @function getNMRPeakThreshold(nucleus)
+	     * Returns the noise factor depending on the nucleus.
+	     * @param nucleus
+	     * @returns {number}
+	     */
+	    getNMRPeakThreshold(nucleus) {
+	        if (nucleus == "1H")
+	            return 3.0;
+	        if (nucleus =="13C")
+	            return 5.0;
+	        return 1.0;
+	    }
+
+	    /**
+	     * @function getNucleus(dim)
+	     * Returns the observed nucleus in the specified dimension
+	     * @param dim
+	     * @returns {string}
+	     */
+	    getNucleus(dim) {
+	        if(dim == 1)
+	            return this.sd.xType;
+	        if(dim == 2)
+	            return this.sd.yType;
+	        return this.sd.xType;
 	    }
 
 
-	    return peakList;
+	    /**
+	     * @function zeroFilling(nPointsX [,nPointsY])
+	     * This function increase the size of the spectrum, filling the new positions with zero values. Doing it one
+	     * could increase artificially the spectral resolution.
+	     * @param nPointsX Number of new zero points in the direct dimension
+	     * @param nPointsY Number of new zero points in the indirect dimension
+	     * @returns this object
+	     */
+	    zeroFilling(nPointsX, nPointsY) {
+	        return Filters.zeroFilling(this,nPointsX, nPointsY);
+	    }
+
+	    /**
+	     * @function brukerFilter()
+	     * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
+	     * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
+	     * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
+	     * @returns this object
+	     */
+	    brukerFilter() {
+	        return Filters.digitalFilter(this, {"brukerFilter":true});
+	    }
+
+	    /**
+	     * @function digitalFilter(options)
+	     * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
+	     * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
+	     * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
+	     * @option nbPoints: The number of points to shift. Positive values will shift the values to the rigth
+	     * and negative values will do to the left.
+	     * @option brukerSpectra
+	     * @returns this object
+	     */
+	    digitalFilter(options) {
+	        return Filters.digitalFilter(this, options);
+	    }
+
+
+	    /**
+	     * @function fourierTransform()
+	     * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be of type NMR_FID or 2DNMR_FID
+	     * @returns this object
+	     */
+	    fourierTransform( ) {
+	        return Filters.fourierTransform(this);
+	    }
+
+	    /**
+	     * @function postFourierTransform(ph1corr)
+	     * This filter makes an phase 1 correction that corrects the problem of the spectra that has been obtained
+	     * on spectrometers using the Bruker digital filters. This method is used in cases when the BrukerSpectra
+	     * filter could not find the correct number of points to perform a circular shift.
+	     * The actual problem is that not all of the spectra has the necessary parameters for use only one method for
+	     * correcting the problem of the Bruker digital filters.
+	     * @param spectraData A fourier transformed spectraData.
+	     * @param ph1corr Phase 1 correction value in radians.
+	     * @returns this object
+	     */
+	    postFourierTransform(ph1corr) {
+	        return Filters.phaseCorrection(0,ph1corr);
+	    }
 	}
 
-	/**
-	 * @function getNMRPeakThreshold(nucleus)
-	 * Returns the noise factor depending on the nucleus.
-	 * @param nucleus
-	 * @returns {number}
-	 */
-	NMR2D.prototype.getNMRPeakThreshold=function(nucleus) {
-	    if (nucleus == "1H")
-	        return 3.0;
-	    if (nucleus =="13C")
-	        return 5.0;
-	    return 1.0;
-	}
-
-	/**
-	 * @function getNucleus(dim)
-	 * Returns the observed nucleus in the specified dimension
-	 * @param dim
-	 * @returns {string}
-	 */
-	NMR2D.prototype.getNucleus=function(dim){
-	    if(dim==1)
-	        return this.sd.xType;
-	    if(dim==2)
-	        return this.sd.yType;
-	    return this.sd.xType;
-	}
-
-
-	/**
-	 * @function zeroFilling(nPointsX [,nPointsY])
-	 * This function increase the size of the spectrum, filling the new positions with zero values. Doing it one
-	 * could increase artificially the spectral resolution.
-	 * @param nPointsX Number of new zero points in the direct dimension
-	 * @param nPointsY Number of new zero points in the indirect dimension
-	 * @returns this object
-	 */
-	NMR2D.prototype.zeroFilling=function(nPointsX, nPointsY) {
-	    return Filters.zeroFilling(this,nPointsX, nPointsY);
-	}
-
-	/**
-	 * @function brukerFilter()
-	 * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
-	 * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
-	 * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
-	 * @returns this object
-	 */
-	NMR2D.prototype.brukerFilter=function() {
-	    return Filters.digitalFilter(this, {"brukerFilter":true});
-	}
-
-	/**
-	 * @function digitalFilter(options)
-	 * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
-	 * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
-	 * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
-	 * @option nbPoints: The number of points to shift. Positive values will shift the values to the rigth
-	 * and negative values will do to the left.
-	 * @option brukerSpectra
-	 * @returns this object
-	 */
-	NMR2D.prototype.digitalFilter=function(options) {
-	    return Filters.digitalFilter(this, options);
-	}
-
-
-	/**
-	 * @function fourierTransform()
-	 * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be of type NMR_FID or 2DNMR_FID
-	 * @returns this object
-	 */
-	NMR2D.prototype.fourierTransform=function( ) {
-	    return Filters.fourierTransform(this);
-	}
-
-	/**
-	 * @function postFourierTransform(ph1corr)
-	 * This filter makes an phase 1 correction that corrects the problem of the spectra that has been obtained
-	 * on spectrometers using the Bruker digital filters. This method is used in cases when the BrukerSpectra
-	 * filter could not find the correct number of points to perform a circular shift.
-	 * The actual problem is that not all of the spectra has the necessary parameters for use only one method for
-	 * correcting the problem of the Bruker digital filters.
-	 * @param spectraData A fourier transformed spectraData.
-	 * @param ph1corr Phase 1 correction value in radians.
-	 * @returns this object
-	 */
-	NMR2D.prototype.postFourierTransform=function(ph1corr) {
-	    return Filters.phaseCorrection(0,ph1corr);
-	}
 
 	module.exports = NMR2D;
 
