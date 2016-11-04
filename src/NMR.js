@@ -2,11 +2,11 @@
 
 var SD = require('./SD');
 var peakPicking = require('./PeakPicking');
-var JcampConverter=require("jcampconverter");
-var fft = require("ml-fft");
-var Filters = require("./filters/Filters.js");
+var JcampConverter = require('jcampconverter');
+var fft = require('ml-fft');
+var Filters = require('./filters/Filters.js');
 
-class NMR extends SD{
+class NMR extends SD {
     /**
      * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
      * @param sd
@@ -27,12 +27,12 @@ class NMR extends SD{
      * @returns {NMR}
      */
     static fromJcamp(jcamp, options) {
-        options = Object.assign({}, {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/}, options);
+        options = Object.assign({}, {xy: true, keepSpectra: true, keepRecordsRegExp: /^.+$/}, options);
         var spectrum = JcampConverter.convert(jcamp, options);
         return new NMR(spectrum);
     }
 
-    static fromBruker (jcamp, options){
+    static fromBruker(jcamp, options) {
 
     }
 
@@ -43,10 +43,10 @@ class NMR extends SD{
      * @returns {*}
      */
     getNucleus(dim) {
-        if(!dim || dim == 0 || dim == 1)
+        if (!dim || dim == 0 || dim == 1)            {
             return this.sd.xType;
-        else {
-            return "";
+        }        else {
+            return '';
         }
     }
 
@@ -56,7 +56,7 @@ class NMR extends SD{
      * @returns {string|XML}
      */
     getSolventName() {
-        return (this.sd.info[".SOLVENTNAME"] || this.sd.info["$SOLVENT"] || "").replace("<","").replace(">","");
+        return (this.sd.info['.SOLVENTNAME'] || this.sd.info.$SOLVENT || '').replace('<', '').replace('>', '');
     }
 
     /**
@@ -75,13 +75,14 @@ class NMR extends SD{
      * @returns {number}
      */
     getNMRPeakThreshold(nucleus) {
-        if (nucleus == "1H")
+        if (nucleus == '1H')            {
             return 3.0;
-        if (nucleus =="13C")
+        }
+        if (nucleus == '13C')            {
             return 5.0;
+        }
         return 1.0;
     }
-
 
 
     /**
@@ -113,7 +114,7 @@ class NMR extends SD{
      * @returns this object
      * @example spec1 = addSpectraDatas(spec1,spec2,1,-1, false) This subtract spec2 from spec1
      */
-    addSpectraDatas(spec2, factor1, factor2, autoscale ) {
+    addSpectraDatas(spec2, factor1, factor2, autoscale) {
         //@TODO Implement addSpectraDatas filter
 
     }
@@ -124,7 +125,7 @@ class NMR extends SD{
      * should have meaningful integrals.
      * @returns this object
      */
-    autoBaseline( ) {
+    autoBaseline() {
         //@TODO Implement autoBaseline filter
     }
 
@@ -133,7 +134,7 @@ class NMR extends SD{
      * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be of type NMR_FID or 2DNMR_FID
      * @returns this object
      */
-    fourierTransform( ) {
+    fourierTransform() {
         return Filters.fourierTransform(this);
     }
 
@@ -185,7 +186,7 @@ class NMR extends SD{
      * @param ranges A string containing the ranges of no signal.
      * @returns this object
      */
-    whittakerBaselineCorrection(whittakerLambda,ranges) {
+    whittakerBaselineCorrection(whittakerLambda, ranges) {
         //@TODO Implement whittakerBaselineCorrection filter
     }
 
@@ -197,7 +198,7 @@ class NMR extends SD{
      * @returns this object
      */
     brukerFilter() {
-        return Filters.digitalFilter(this, {"brukerFilter":true});
+        return Filters.digitalFilter(this, {'brukerFilter': true});
     }
 
     /**
@@ -231,8 +232,8 @@ class NMR extends SD{
      * @example SD.apodization("exp", lineBroadening)
      */
     apodization(functionName, lineBroadening) {
-        return Filters.apodization(this, {"functionName":functionName,
-            "lineBroadening":lineBroadening});
+        return Filters.apodization(this, {'functionName': functionName,
+            'lineBroadening': lineBroadening});
 
     }
 
@@ -262,9 +263,9 @@ class NMR extends SD{
      */
     powerFilter(power) {
         var minY = this.getMinY();
-        if(power < 1 && minY < 0) {
-            this.YShift(-1*minY);
-            console.warn("SD.powerFilter: The spectrum had negative values and was automatically shifted before applying the function.");
+        if (power < 1 && minY < 0) {
+            this.YShift(-1 * minY);
+            console.warn('SD.powerFilter: The spectrum had negative values and was automatically shifted before applying the function.');
         }
         //@TODO Implement powerFilter
     }
@@ -277,9 +278,9 @@ class NMR extends SD{
      */
     logarithmFilter(base) {
         var minY = this.getMinY();
-        if(minY <= 0) {
-            this.YShift((-1*minY)+1);
-            console.warn("SD.logarithmFilter: The spectrum had negative values and was automatically shifted before applying the function.");
+        if (minY <= 0) {
+            this.YShift((-1 * minY) + 1);
+            console.warn('SD.logarithmFilter: The spectrum had negative values and was automatically shifted before applying the function.');
         }
         //@TODO Implement logarithmFilter filter
     }

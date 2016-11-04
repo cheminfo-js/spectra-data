@@ -1,5 +1,5 @@
 'use strict';
-var converter = require("jcampconverter");
+var converter = require('jcampconverter');
 
 var spectraData = require('..');
 describe('spectra-data test library name', function () {
