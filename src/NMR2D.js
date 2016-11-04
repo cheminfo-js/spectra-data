@@ -2,8 +2,8 @@
 
 var SD = require('./SD');
 var peakPicking2D = require('./PeakPicking2D');
-var PeakOptimizer = require("./PeakOptimizer");
-var JcampConverter=require("jcampconverter");
+var PeakOptimizer = require('./PeakOptimizer');
+var JcampConverter = require('jcampconverter');
 
 
 class NMR2D extends SD {
@@ -13,7 +13,7 @@ class NMR2D extends SD {
      * @constructor
      */
     constructor(sd) {
-        super(sd); 
+        super(sd);
     }
 
 
@@ -28,12 +28,12 @@ class NMR2D extends SD {
      * @returns {NMR2D}
      */
     static fromJcamp(jcamp, options) {
-        options = Object.assign({}, {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/}, options);
+        options = Object.assign({}, {xy: true, keepSpectra: true, keepRecordsRegExp: /^.+$/}, options);
         var spectrum = JcampConverter.convert(jcamp, options);
         return new NMR2D(spectrum);
     }
 
-    static fromBruker (jcamp, options){
+    static fromBruker(jcamp, options) {
 
     }
     /**
@@ -41,7 +41,7 @@ class NMR2D extends SD {
      * Returns true if the it is an homo-nuclear experiment
      * @returns {boolean}
      */
-    isHomoNuclear(){
+    isHomoNuclear() {
         return this.sd.xType == this.sd.yType;
     }
 
@@ -68,7 +68,7 @@ class NMR2D extends SD {
      * @returns {string|XML}
      */
     getSolventName() {
-        return (this.sd.info[".SOLVENTNAME"] || this.sd.info["$SOLVENT"]).replace("<","").replace(">","");
+        return (this.sd.info['.SOLVENTNAME'] || this.sd.info.$SOLVENT).replace('<', '').replace('>', '');
     }
 
     /**
@@ -117,7 +117,7 @@ class NMR2D extends SD {
      * @returns {number}
      */
     getDeltaY() {
-        return ( this.getLastY() - this.getFirstY()) / (this.getNbSubSpectra()-1);
+        return (this.getLastY() - this.getFirstY()) / (this.getNbSubSpectra() - 1);
     }
 
     /**
@@ -128,38 +128,40 @@ class NMR2D extends SD {
      * @option	thresholdFactor:number	A factor to scale the automatically determined noise threshold.
      * @returns [*]	set of NMRSignal2D
      */
-    nmrPeakDetection2D(options){
-        options = options||{};
-        if(!options.thresholdFactor)
+    nmrPeakDetection2D(options) {
+        options = options || {};
+        if (!options.thresholdFactor)            {
             options.thresholdFactor = 1;
-        var id = Math.round(Math.random()*255);
-        if(options.idPrefix){
+        }
+        var id = Math.round(Math.random() * 255);
+        if (options.idPrefix) {
             id = options.idPrefix;
         }
         var peakList = peakPicking2D(this, options.thresholdFactor);
 
         //lets add an unique ID for each peak.
-        for(var i = 0;i < peakList.length; i++) {
-            peakList[i]._highlight = [id+"_"+i];
-            peakList[i].signalID = id+"_"+i;
+        for (var i = 0; i < peakList.length; i++) {
+            peakList[i]._highlight = [id + '_' + i];
+            peakList[i].signalID = id + '_' + i;
         }
-        if(options.references)
+        if (options.references)            {
             PeakOptimizer.alignDimensions(peakList, options.references);
+        }
 
-        if(options.format === "new") {
+        if (options.format === 'new') {
             var newSignals = new Array(peakList.length);
-            for(var k = peakList.length - 1; k >= 0; k--) {
+            for (var k = peakList.length - 1; k >= 0; k--) {
                 var signal = peakList[k];
-                newSignals[k]={
-                    fromTo:signal.fromTo,
-                    integral:signal.intensity||1,
-                    remark:"",
-                    signal:[{
-                        peak:signal.peaks,
-                        delta:[signal.shiftX, signal.shiftY]
+                newSignals[k] = {
+                    fromTo: signal.fromTo,
+                    integral: signal.intensity || 1,
+                    remark: '',
+                    signal: [{
+                        peak: signal.peaks,
+                        delta: [signal.shiftX, signal.shiftY]
                     }],
-                    _highlight:signal._highlight,
-                    signalID:signal.signalID,
+                    _highlight: signal._highlight,
+                    signalID: signal.signalID,
                 };
             }
             peakList = newSignals;
@@ -176,10 +178,12 @@ class NMR2D extends SD {
      * @returns {number}
      */
     getNMRPeakThreshold(nucleus) {
-        if (nucleus == "1H")
+        if (nucleus == '1H')            {
             return 3.0;
-        if (nucleus =="13C")
+        }
+        if (nucleus == '13C')            {
             return 5.0;
+        }
         return 1.0;
     }
 
@@ -190,10 +194,12 @@ class NMR2D extends SD {
      * @returns {string}
      */
     getNucleus(dim) {
-        if(dim == 1)
+        if (dim == 1)            {
             return this.sd.xType;
-        if(dim == 2)
+        }
+        if (dim == 2)            {
             return this.sd.yType;
+        }
         return this.sd.xType;
     }
 
@@ -207,7 +213,7 @@ class NMR2D extends SD {
      * @returns this object
      */
     zeroFilling(nPointsX, nPointsY) {
-        return Filters.zeroFilling(this,nPointsX, nPointsY);
+        return Filters.zeroFilling(this, nPointsX, nPointsY);
     }
 
     /**
@@ -218,7 +224,7 @@ class NMR2D extends SD {
      * @returns this object
      */
     brukerFilter() {
-        return Filters.digitalFilter(this, {"brukerFilter":true});
+        return Filters.digitalFilter(this, {'brukerFilter': true});
     }
 
     /**
@@ -241,7 +247,7 @@ class NMR2D extends SD {
      * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be of type NMR_FID or 2DNMR_FID
      * @returns this object
      */
-    fourierTransform( ) {
+    fourierTransform() {
         return Filters.fourierTransform(this);
     }
 
@@ -257,7 +263,7 @@ class NMR2D extends SD {
      * @returns this object
      */
     postFourierTransform(ph1corr) {
-        return Filters.phaseCorrection(0,ph1corr);
+        return Filters.phaseCorrection(0, ph1corr);
     }
 }
 

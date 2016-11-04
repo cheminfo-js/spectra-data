@@ -8,19 +8,18 @@ function createSpectraData(filename, label, data) {
         FS.readFileSync(__dirname + filename).toString()
     );
     return spectrum;
-};
-
+}
 
 
 describe('spectra-data test ethylvinylether/1h.jdx', function () {
-    var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
+    var spectrum = createSpectraData('/data/ethylvinylether/1h.jdx');
 
     it('getNucleus', function () {
-        spectrum.getNucleus().should.equal("1H");
+        spectrum.getNucleus().should.equal('1H');
     });
 
     it('getSolventName', function () {
-        spectrum.getSolventName().should.equal("DMSO");
+        spectrum.getSolventName().should.equal('DMSO');
     });
 
     it('getFirstX', function () {
@@ -44,7 +43,7 @@ describe('spectra-data test ethylvinylether/1h.jdx', function () {
     });
 
     it('Checking X array', function () {
-        var x=spectrum.getXData();
+        var x = spectrum.getXData();
         x.should.be.instanceof(Array).and.have.lengthOf(16384);
         x[0].should.equal(11.00659);
     });
@@ -56,7 +55,7 @@ describe('spectra-data test ethylvinylether/1h.jdx', function () {
     });
 
     it('Checking XY array', function () {
-        var xy=spectrum.getXYData();
+        var xy = spectrum.getXYData();
         xy.should.be.instanceof(Array).and.have.lengthOf(2);
         xy[0].should.be.instanceof(Array).and.have.lengthOf(16384);
         xy[1].should.be.instanceof(Array).and.have.lengthOf(16384);
@@ -69,31 +68,30 @@ describe('spectra-data test ethylvinylether/1h.jdx', function () {
     });
 
     it('Check peak-picking in the new format', function () {
-        var peakPicking = spectrum.nmrPeakDetection({"nH":8, realTop:true, thresholdFactor:1, clean:true,compile:true, idPrefix:"1H",format:"new"});
+        var peakPicking = spectrum.nmrPeakDetection({'nH': 8, realTop: true, thresholdFactor: 1, clean: true, compile: true, idPrefix: '1H', format: 'new'});
         //console.log(peakPicking[0]);
         peakPicking[0].signal[0].peak.length.should.equal(4);
     });
 
     it('Check peak-picking in zone', function () {
-        var peakPicking = spectrum.nmrPeakDetection({"nH":8, realTop:true, thresholdFactor:1, clean:true,compile:true, idPrefix:"1H",format:"new", from:1, to:2});
+        var peakPicking = spectrum.nmrPeakDetection({'nH': 8, realTop: true, thresholdFactor: 1, clean: true, compile: true, idPrefix: '1H', format: 'new', from: 1, to: 2});
         //console.log(peakPicking[0]);
         peakPicking.length.should.eql(1);
-        peakPicking[0].signal[0].multiplicity.should.eql("t");
+        peakPicking[0].signal[0].multiplicity.should.eql('t');
     });
 
     it('getVector', function () {
-        spectrum.getVector(0.0,10,4*1024).length.should.equal(4*1024);
+        spectrum.getVector(0.0, 10, 4 * 1024).length.should.equal(4 * 1024);
     });
 
     it('updateIntegrals', function () {
         var nH = 8;
-        var ranges = spectrum.nmrPeakDetection({"nH":nH, realTop:true, thresholdFactor:1,clean:true,compile:true, idPrefix:"1H",format:"new"});
+        var ranges = spectrum.nmrPeakDetection({'nH': nH, realTop: true, thresholdFactor: 1, clean: true, compile: true, idPrefix: '1H', format: 'new'});
         ranges[0].to = 6.47;
         var integral0 = ranges[0].integral;
-        spectrum.updateIntegrals(ranges, {nH:nH});
-        ranges[0].integral.should.approximately(integral0/2,integral0/nH);
+        spectrum.updateIntegrals(ranges, {nH: nH});
+        ranges[0].integral.should.approximately(integral0 / 2, integral0 / nH);
     });
 
 });
-
 

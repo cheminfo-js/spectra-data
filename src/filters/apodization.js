@@ -3,7 +3,7 @@
  * Created by acastillo on 4/26/16.
  */
 
-function apodization(spectraData, parameters){
+function apodization(spectraData, parameters) {
     //org.cheminfo.hook.nemo.filters.ApodizationFilter
 
     /*public String toString() {
