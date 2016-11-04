@@ -2,7 +2,7 @@
 /**
  * Created by acastillo on 4/26/16.
  */
-function phaseCorrection(spectraData, phi0, phi1){
+function phaseCorrection(spectraData, phi0, phi1) {
     //System.out.println(spectraData.toString());
     var nbPoints = spectraData.getNbPoints();
     var reData = spectraData.getYData(0);
@@ -15,8 +15,8 @@ function phaseCorrection(spectraData, phi0, phi1){
         //double phi0 = phi.getX();
         //double phi1 = phi.getY();
 
-    if(false) System.out.println(" ph0 = "+phi0);
-    if(false) System.out.println(" ph1 = "+phi1);
+    if (false) System.out.println(' ph0 = ' + phi0);
+    if (false) System.out.println(' ph1 = ' + phi1);
 
     var delta = phi1 / nbPoints;
     var alpha = 2 * Math.pow(Math.sin(delta / 2), 2);
@@ -27,27 +27,27 @@ function phaseCorrection(spectraData, phi0, phi1){
 
     var reTmp, imTmp;
     var index;
-        for (var i = 0; i < nbPoints; i++) {
-            index = nbPoints - i - 1;
-            index = i;
-            reTmp = reData[index] * cosTheta - imData[index] * sinTheta;
-            imTmp = reData[index] * sinTheta + imData[index] * cosTheta;
-            reData[index] = reTmp;
-            imData[index] = imTmp;
+    for (var i = 0; i < nbPoints; i++) {
+        index = nbPoints - i - 1;
+        index = i;
+        reTmp = reData[index] * cosTheta - imData[index] * sinTheta;
+        imTmp = reData[index] * sinTheta + imData[index] * cosTheta;
+        reData[index] = reTmp;
+        imData[index] = imTmp;
             // calculate angles i+1 from i
-            cosThetaNew = cosTheta - (alpha * cosTheta + beta * sinTheta);
-            sinThetaNew = sinTheta - (alpha * sinTheta - beta * cosTheta);
-            cosTheta = cosThetaNew;
-            sinTheta = sinThetaNew;
-        }
+        cosThetaNew = cosTheta - (alpha * cosTheta + beta * sinTheta);
+        sinThetaNew = sinTheta - (alpha * sinTheta - beta * cosTheta);
+        cosTheta = cosThetaNew;
+        sinTheta = sinThetaNew;
+    }
         //toApply--;
     //}
 
     spectraData.resetMinMax();
     //spectraData.updateDefaults();
     //spectraData.updateY();
-    spectraData.putParam("PHC0", phi0);
-    spectraData.putParam("PHC1", phi1);
+    spectraData.putParam('PHC0', phi0);
+    spectraData.putParam('PHC1', phi1);
 }
 
 module.exports = phaseCorrection;

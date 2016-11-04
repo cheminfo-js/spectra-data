@@ -9,46 +9,48 @@
  * @example rotate([1,2,3,4],-1) -> [2,3,4,1]
  * @param array
  */
-function rotate(array,shift){
+function rotate(array, shift) {
     var nbPoints = array.length;
     //Lets calculate the lest amount of points to shift.
     //It decreases the amount of validations in the loop
-    shift = shift%nbPoints;
+    shift = shift % nbPoints;
 
-    if(Math.abs(shift)>nbPoints/2){
-        shift = shift>0?shift-nbPoints:shift+nbPoints;
+    if (Math.abs(shift) > nbPoints / 2) {
+        shift = shift > 0 ? shift - nbPoints : shift + nbPoints;
     }
 
-    if(shift!=0){
-        var currentIndex=0, nextIndex=shift;
+    if (shift != 0) {
+        var currentIndex = 0, nextIndex = shift;
         var toMove = nbPoints;
         var current = array[currentIndex], next;
         var lastFirstIndex = shift;
-        var direction = shift>0?1:-1;
+        var direction = shift > 0 ? 1 : -1;
 
-        while(toMove>0){
-            nextIndex = putInRange(nextIndex,nbPoints);
+        while (toMove > 0) {
+            nextIndex = putInRange(nextIndex, nbPoints);
             next = array[nextIndex];
             array[nextIndex] = current;
-            nextIndex+=shift;
+            nextIndex += shift;
             current = next;
             toMove--;
 
-            if(nextIndex==lastFirstIndex){
-                nextIndex = putInRange(nextIndex+direction,nbPoints);
+            if (nextIndex == lastFirstIndex) {
+                nextIndex = putInRange(nextIndex + direction, nbPoints);
                 lastFirstIndex = nextIndex;
-                currentIndex = putInRange(nextIndex-shift,nbPoints);
+                currentIndex = putInRange(nextIndex - shift, nbPoints);
                 current = array[currentIndex];
             }
         }
     }
 }
 
-function putInRange(value, nbPoints){
-    if(value<0)
-        value+=nbPoints;
-    if(value>=nbPoints)
-        value-=nbPoints;
+function putInRange(value, nbPoints) {
+    if (value < 0)        {
+        value += nbPoints;
+    }
+    if (value >= nbPoints)        {
+        value -= nbPoints;
+    }
     return value;
 }
 

@@ -7,22 +7,20 @@ function createSpectraData(filename, label, data) {
         FS.readFileSync(__dirname + filename).toString()
     );
     return spectrum;
-};
-
-
+}
 
 
 describe('spectra-data test nmrPeakDetection', function () {
     it.skip('number of peaks', function () {
-        var spectrum = createSpectraData("/data/indometacin/1h.dx");
+        var spectrum = createSpectraData('/data/indometacin/1h.dx');
         //console.log(spectrum.nmrPeakDetection);
         var peakPicking = spectrum.nmrPeakDetection({
-            "nH": 16,
+            'nH': 16,
             realTop: true,
             thresholdFactor: 1,
             clean: true,
             compile: true,
-            idPrefix: "1H"
+            idPrefix: '1H'
         });
 
 
@@ -32,5 +30,4 @@ describe('spectra-data test nmrPeakDetection', function () {
 
 
 });
-
 
