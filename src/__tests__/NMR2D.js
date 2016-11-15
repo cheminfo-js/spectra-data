@@ -12,7 +12,7 @@ function createSpectraData(filename, label, data) {
 
 
 describe('spectra-data examples indometacin/hmbc.dx', function () {
-    var spectrum = createSpectraData('/data/indometacin/hmbc.dx');
+    var spectrum = createSpectraData('/../../data-test/indometacin/hmbc.dx');
 
     it('getNucleus', function () {
         spectrum.getNucleus(1).should.equal('1H');

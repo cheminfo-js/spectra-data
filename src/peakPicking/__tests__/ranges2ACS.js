@@ -3,7 +3,7 @@
  */
 'use strict';
 
-var Data = require('..');
+var Data = require('../../..');
 var FS = require('fs');
 
 function createSpectraData(filename, label, data) {
@@ -15,7 +15,7 @@ function createSpectraData(filename, label, data) {
 
 
 describe('spectra-data examples peak picking in ACS format', function () {
-    var spectrum = createSpectraData('/data/ethylbenzene/h1_0.jdx');
+    var spectrum = createSpectraData('/../../../data-test/ethylbenzene/h1_0.jdx');
     var peakPicking = spectrum.nmrPeakDetection({'nH': 10, realTop: true, thresholdFactor: 0.8, clean: true, compile: true});
     var peakPicking2 = spectrum.nmrPeakDetection({'nH': 10, realTop: true, thresholdFactor: 0.8, clean: true, compile: true, format: 'new'});
     it('format ACS', function () {

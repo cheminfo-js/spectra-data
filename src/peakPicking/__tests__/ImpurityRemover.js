@@ -1,5 +1,5 @@
 'use strict';
-var Data = require('..');
+var Data = require('../../..');
 var FS = require('fs');
 
 function createSpectraData(filename, label, data) {
@@ -12,7 +12,7 @@ function createSpectraData(filename, label, data) {
 
 describe('spectra-data examples nmrPeakDetection', function () {
     it.skip('number of peaks', function () {
-        var spectrum = createSpectraData('/data/indometacin/1h.dx');
+        var spectrum = createSpectraData('/../../../data-test/indometacin/1h.dx');
         //console.log(spectrum.nmrPeakDetection);
         var peakPicking = spectrum.nmrPeakDetection({
             'nH': 16,

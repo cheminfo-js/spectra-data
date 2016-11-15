@@ -3,7 +3,7 @@
  */
 'use strict';
 
-var Data = require('..');
+var Data = require('../../..');
 var FS = require('fs');
 
 function createSpectraData(filename, label, data) {
@@ -16,7 +16,7 @@ function createSpectraData(filename, label, data) {
 
 describe('spectra-data examples peak picking', function () {
     var nH = 8;
-    var spectrum = createSpectraData('/data/ethylvinylether/1h.jdx');
+    var spectrum = createSpectraData('/../../../data-test/ethylvinylether/1h.jdx');
     var peakPicking = spectrum.nmrPeakDetection({'nH': nH, realTop: true, thresholdFactor: 1, clean: true, compile: true, idPrefix: '1H'});
     //console.log(Data.ACS.formater.toACS(peakPicking,{solvent:spectrum.getSolventName()}));
     //console.log(peakPicking);
@@ -58,7 +58,5 @@ describe('spectra-data examples peak picking', function () {
         peakPicking[4].integralData.from.should.lessThan(1.286);
         peakPicking[4].integralData.to.should.greaterThan(1.330);
     });
-
-
 });
 

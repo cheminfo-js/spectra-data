@@ -4,7 +4,7 @@
 
 'use strict';
 
-var Data = require('..');
+var Data = require('../../..');
 var FS = require('fs');
 
 function createSpectraData(filename, label, data) {
@@ -14,7 +14,7 @@ function createSpectraData(filename, label, data) {
     return spectrum;
 }
 
-var spectrum = createSpectraData('/data/ethylvinylether/1h.jdx');
+var spectrum = createSpectraData('/../../../data-test/ethylvinylether/1h.jdx');
 var createdJcamp0 = spectrum.toJcamp({type: 'SIMPLE'});
 var createdJcamp1 = spectrum.toJcamp({type: 'NTUPLES'});
 
