@@ -19,7 +19,7 @@ var createdJcamp0 = spectrum.toJcamp({type: 'SIMPLE'});
 var createdJcamp1 = spectrum.toJcamp({type: 'NTUPLES'});
 
 
-describe('toJcamp spectra-data test', function () {
+describe('toJcamp spectra-data examples', function () {
     var spectrum0 = Data.NMR.fromJcamp(createdJcamp0, {fastParse: false});
    // console.log(createdJcamp0);
     var spectrum1 = Data.NMR.fromJcamp(createdJcamp1, {fastParse: false});

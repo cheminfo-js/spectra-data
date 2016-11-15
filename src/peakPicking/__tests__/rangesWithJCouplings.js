@@ -14,7 +14,7 @@ function createSpectraData(filename, label, data) {
 }
 
 
-describe('spectra-data test peak picking', function () {
+describe('spectra-data examples peak picking', function () {
     var nH = 8;
     var spectrum = createSpectraData('/data/ethylvinylether/1h.jdx');
     var peakPicking = spectrum.nmrPeakDetection({'nH': nH, realTop: true, thresholdFactor: 1, clean: true, compile: true, idPrefix: '1H'});
@@ -51,7 +51,7 @@ describe('spectra-data test peak picking', function () {
         peakPicking[0].signalID.substr(0, 3).should.equal('1H_');
     });
 
-    it('test integration and multiplet limits', function () {
+    it('examples integration and multiplet limits', function () {
         peakPicking[4].startX.should.lessThan(1.290);
         peakPicking[4].stopX.should.greaterThan(1.325);
 

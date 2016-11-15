@@ -3130,7 +3130,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        lines.push(pBx * dx + x0);
 	                        lines.push(pBy * dy + y0);
 	                    }
-	                    // test around the diagonal
+	                    // examples around the diagonal
 	                    if (isOver1 !== isOver2) {
 	                        pAx = (povar + 1 - (lineZValue - povarHeight1) / (povarHeight2 - povarHeight1)) * dx + x0;
 	                        pAy = (iSubSpectra + (lineZValue - povarHeight1) / (povarHeight2 - povarHeight1)) * dy + y0;

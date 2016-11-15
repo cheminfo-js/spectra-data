@@ -1,9 +1,10 @@
 'use strict';
 
 var SD = require('./SD');
-var peakPicking2D = require('./PeakPicking2D');
-var PeakOptimizer = require('./PeakOptimizer');
+var peakPicking2D = require('./peakPicking/PeakPicking2D');
+var PeakOptimizer = require('./peakPicking/PeakOptimizer');
 var JcampConverter = require('jcampconverter');
+var Brukerconverter = require("brukerconverter");
 
 
 class NMR2D extends SD {
@@ -33,8 +34,22 @@ class NMR2D extends SD {
         return new NMR2D(spectrum);
     }
 
-    static fromBruker(jcamp, options) {
-
+    static fromBruker(brukerFile, options) {
+        options = Object.assign({}, {xy: true, keepSpectra: true, keepRecordsRegExp: /^.+$/}, options);
+        var brukerSpectra = null;
+        if(Array.isArray(brukerFile)) {
+            //It is a folder
+            brukerSpectra = Brukerconverter.converFolder(brukerFile, options);
+        } else {
+            //It is a zip
+            brukerSpectra = Brukerconverter.convertZip(brukerFile, options);
+        }
+        if(brukerSpectra) {
+            return brukerSpectra.map(function(spectrum) {
+                return new NMR2D(spectrum);
+            });
+        }
+        return null;
     }
     /**
      * @function isHomoNuclear()

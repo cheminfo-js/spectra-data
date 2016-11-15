@@ -11,7 +11,7 @@ function createSpectraData(filename, label, data) {
 }
 
 
-describe('spectra-data test ethylvinylether/1h.jdx', function () {
+describe('spectra-data examples ethylvinylether/1h.jdx', function () {
     var spectrum = createSpectraData('/data/ethylvinylether/1h.jdx');
 
     it('getNucleus', function () {

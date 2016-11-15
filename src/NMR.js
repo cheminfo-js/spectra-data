@@ -1,10 +1,12 @@
 'use strict';
 
 var SD = require('./SD');
-var peakPicking = require('./PeakPicking');
+var peakPicking = require('./peakPicking/PeakPicking');
 var JcampConverter = require('jcampconverter');
 var fft = require('ml-fft');
 var Filters = require('./filters/Filters.js');
+var Brukerconverter = require("brukerconverter");
+
 
 class NMR extends SD {
     /**
@@ -32,8 +34,22 @@ class NMR extends SD {
         return new NMR(spectrum);
     }
 
-    static fromBruker(jcamp, options) {
-
+    static fromBruker(brukerFile, options) {
+        options = Object.assign({}, {xy: true, keepSpectra: true, keepRecordsRegExp: /^.+$/}, options);
+        var brukerSpectra = null;
+        if(Array.isArray(brukerFile)) {
+            //It is a folder
+            brukerSpectra = Brukerconverter.converFolder(brukerFile, options);
+        } else {
+            //It is a zip
+            brukerSpectra = Brukerconverter.convertZip(brukerFile, options);
+        }
+        if(brukerSpectra) {
+            return brukerSpectra.map(function(spectrum) {
+                return new NMR(spectrum);
+            });
+        }
+        return null;
     }
 
     /**

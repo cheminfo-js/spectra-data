@@ -524,8 +524,6 @@ function updateScore(candidates, peakList, maxIntensity, frequency) {
             }
         }
     }
-
-    //console.log(score/candidates.length+ " -> "+candidates);
     //Lets remove the candidates to be impurities.
     //It would be equivalent to mark the peaks as valid again
     if (score / candidates.length < 0.5) {

@@ -14,7 +14,7 @@ function createSpectraData(filename, label, data) {
 }
 
 
-describe('spectra-data test Filters', function () {
+describe('spectra-data examples Filters', function () {
     var nH = 8;
 
     //console.log(Data.ACS.formater.toACS(peakPicking,{solvent:spectrum.getSolventName()}));
