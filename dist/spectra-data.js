@@ -4700,7 +4700,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	/**
-	 * @function nmrPeakDetection(parameters);
+	 * @function getRanges(parameters);
 	 * This function process the given spectraData and tries to determine the NMR signals. Returns an NMRSignal1D array containing all the detected 1D-NMR Signals
 	 * @param parameters A JSONObject containing the optional parameters:
 	 * @option fromX:   Lower limit.
@@ -4709,7 +4709,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @option stdev: Number of standard deviation of the noise for the threshold calculation if a threshold is not specified.
 	 * @returns {*}
 	 */
-	NMR.prototype.nmrPeakDetection=function(parameters) {
+	NMR.prototype.getRanges=function(parameters) {
 	    return peakPicking(this, parameters);
 	}
 
@@ -16379,14 +16379,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	/**
-	 * @function nmrPeakDetection2D(options)
+	 * @function getZones(options)
 	 * This function process the given spectraData and tries to determine the NMR signals. 
 	 + Returns an NMRSignal2D array containing all the detected 2D-NMR Signals
 	 * @param	options:+Object			Object containing the options
 	 * @option	thresholdFactor:number	A factor to scale the automatically determined noise threshold.
 	 * @returns [*]	set of NMRSignal2D
 	 */
-	NMR2D.prototype.nmrPeakDetection2D=function(options){
+	NMR2D.prototype.getZones=function(options){
 	    options = options||{};
 	    if(!options.thresholdFactor)
 	        options.thresholdFactor=1;

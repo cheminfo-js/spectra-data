@@ -136,14 +136,14 @@ class NMR2D extends SD {
     }
 
     /**
-     * @function nmrPeakDetection2D(options)
+     * @function getZones(options)
      * This function process the given spectraData and tries to determine the NMR signals.
      + Returns an NMRSignal2D array containing all the detected 2D-NMR Signals
      * @param	options:+Object			Object containing the options
      * @option	thresholdFactor:number	A factor to scale the automatically determined noise threshold.
      * @returns [*]	set of NMRSignal2D
      */
-    nmrPeakDetection2D(options) {
+    getZones(options) {
         options = options || {};
         if (!options.thresholdFactor)            {
             options.thresholdFactor = 1;
@@ -164,10 +164,10 @@ class NMR2D extends SD {
         }
 
         if (options.format === 'new') {
-            var newSignals = new Array(peakList.length);
+            var zones = new Array(peakList.length);
             for (var k = peakList.length - 1; k >= 0; k--) {
                 var signal = peakList[k];
-                newSignals[k] = {
+                zones[k] = {
                     fromTo: signal.fromTo,
                     integral: signal.intensity || 1,
                     remark: '',
@@ -179,7 +179,7 @@ class NMR2D extends SD {
                     signalID: signal.signalID,
                 };
             }
-            peakList = newSignals;
+            peakList = zones;
         }
 
 

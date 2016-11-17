@@ -77,7 +77,7 @@ describe('spectra-data examples indometacin/hmbc.dx', function () {
     });
 
     it('Peak picking 2D', function () {
-        var signals2D = spectrum.nmrPeakDetection2D(
+        var signals2D = spectrum.getZones(
             {'thresholdFactor': 1,
                 'idPrefix': 'hmbc_',
                 'format': 'new'

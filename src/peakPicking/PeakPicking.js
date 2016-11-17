@@ -101,10 +101,10 @@ module.exports = function (spectrum, optionsEx) {
                     for (j = peaksO.length - 1; j >= 0; j--)                        {
                         peaks1.push(peaksO[j]);
                     }
-                    let newSignals = detectSignals(peaks1, spectrum, nHi, options.integralFn, options.frequencyCluster);
+                    let ranges = detectSignals(peaks1, spectrum, nHi, options.integralFn, options.frequencyCluster);
 
-                    for (j = 0; j < newSignals.length; j++)                        {
-                        signals.push(newSignals[j]);
+                    for (j = 0; j < ranges.length; j++)                        {
+                        signals.push(ranges[j]);
                     }
                 }
             }
@@ -137,10 +137,10 @@ module.exports = function (spectrum, optionsEx) {
     //removeImpurities(signals, spectrum.getSolventName(),options.nH);
 
     if (options.format === 'new') {
-        let newSignals = new Array(signals.length);
+        let ranges = new Array(signals.length);
         for (i = 0; i < signals.length; i++) {
             var signal = signals[i];
-            newSignals[i] = {
+            ranges[i] = {
                 from: signal.integralData.from,
                 to: signal.integralData.to,
                 integral: signal.integralData.value,
@@ -157,13 +157,13 @@ module.exports = function (spectrum, optionsEx) {
 
             };
             if (signal.nmrJs) {
-                newSignals[i].signal[0].j = signal.nmrJs;
+                ranges[i].signal[0].j = signal.nmrJs;
             }
             if (!signal.asymmetric || signal.multiplicity === 'm') {
-                newSignals[i].signal[0].delta = signal.delta1;
+                ranges[i].signal[0].delta = signal.delta1;
             }
         }
-        signals = newSignals;
+        signals = ranges;
     }
 
     return signals;

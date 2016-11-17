@@ -7,12 +7,12 @@
 var options1D = {type: 'rect', line: 0, lineLabel: 1, labelColor: 'red', strokeColor: 'red', strokeWidth: '1px', fillColor: 'green', width: 0.05, height: 10, toFixed: 1};
 var options2D = {type: 'rect', labelColor: 'red', strokeColor: 'red', strokeWidth: '1px', fillColor: 'green', width: '6px', height: '6px'};
 
-function annotations1D(signals, optionsG) {
+function annotations1D(ranges, optionsG) {
     var options = Object.assign({}, options1D, optionsG);
     var height = options.height;
     var annotations = [];
-    for (var i = 0; i < signals.length; i++) {
-        var prediction = signals[i];
+    for (var i = 0; i < ranges.length; i++) {
+        var prediction = ranges[i];
         var annotation = {};
 
         annotations.push(annotation);
@@ -59,11 +59,11 @@ function annotations1D(signals, optionsG) {
     return annotations;
 }
 
-function annotations2D(signals2D, optionsG) {
+function annotations2D(zones, optionsG) {
     var options = Object.assign({}, options2D, optionsG);
     var annotations = [];
-    for (var k = signals2D.length - 1; k >= 0; k--) {
-        var signal = signals2D[k];
+    for (var k = zones.length - 1; k >= 0; k--) {
+        var signal = zones[k];
         var annotation = {};
         annotation.type = options.type;
         annotation._highlight = signal._highlight;//["cosy"+k];
