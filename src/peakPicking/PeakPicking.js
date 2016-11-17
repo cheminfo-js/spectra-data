@@ -5,10 +5,10 @@
  * through Global Spectral Deconvolution (GSD)
  * http://www.spectroscopyeurope.com/images/stories/ColumnPDFs/TD_23_1.pdf
  */
-var JAnalyzer = require('./JAnalyzer');
-var GSD = require('ml-gsd');
+const JAnalyzer = require('./JAnalyzer');
+const GSD = require('ml-gsd');
 //var extend = require("extend");
-var removeImpurities = require('./ImpurityRemover');
+//var removeImpurities = require('./ImpurityRemover');
 
 const defaultOptions = {
     nH: 99,
@@ -61,7 +61,7 @@ module.exports = function (spectrum, optionsEx) {
 
     //Remove all the signals with small integral
     if (options.clean || false) {
-        for (var i = signals.length - 1; i >= 0; i--) {
+        for (i = signals.length - 1; i >= 0; i--) {
             if (signals[i].integralData.value < 0.5) {
                 signals.splice(i, 1);
             }
@@ -74,8 +74,8 @@ module.exports = function (spectrum, optionsEx) {
             //console.log("Sum "+signals[i].integralData.value);
             JAnalyzer.compilePattern(signals[i]);
 
-            if (signals[i].maskPattern && signals[i].multiplicity != 'm'
-                && signals[i].multiplicity != '') {
+            if (signals[i].maskPattern && signals[i].multiplicity !== 'm'
+                && signals[i].multiplicity !== '') {
                 //Create a new signal with the removed peaks
                 nHi = 0;
                 sum = 0;
@@ -98,10 +98,10 @@ module.exports = function (spectrum, optionsEx) {
                     nHi = nHi * signals[i].integralData.value / sum;
                     signals[i].integralData.value -= nHi;
                     var peaks1 = [];
-                    for (var j = peaksO.length - 1; j >= 0; j--)                        {
+                    for (j = peaksO.length - 1; j >= 0; j--)                        {
                         peaks1.push(peaksO[j]);
                     }
-                    var newSignals = detectSignals(peaks1, spectrum, nHi, options.integralFn, options.frequencyCluster);
+                    let newSignals = detectSignals(peaks1, spectrum, nHi, options.integralFn, options.frequencyCluster);
 
                     for (j = 0; j < newSignals.length; j++)                        {
                         signals.push(newSignals[j]);
@@ -117,7 +117,7 @@ module.exports = function (spectrum, optionsEx) {
     });
     //Remove all the signals with small integral
     if (options.clean || false) {
-        for (var i = signals.length - 1; i >= 0; i--) {
+        for (i = signals.length - 1; i >= 0; i--) {
             //console.log(signals[i]);
             if (signals[i].integralData.value < 0.5) {
                 signals.splice(i, 1);
@@ -125,7 +125,7 @@ module.exports = function (spectrum, optionsEx) {
         }
     }
 
-    for (var i = 0; i < signals.length; i++) {
+    for (i = 0; i < signals.length; i++) {
         if (options.idPrefix && options.idPrefix.length > 0)            {
             signals[i].signalID = options.idPrefix + '_' + (i + 1);
         }        else            {
@@ -137,8 +137,8 @@ module.exports = function (spectrum, optionsEx) {
     //removeImpurities(signals, spectrum.getSolventName(),options.nH);
 
     if (options.format === 'new') {
-        var newSignals = new Array(signals.length);
-        for (var i = 0; i < signals.length; i++) {
+        let newSignals = new Array(signals.length);
+        for (i = 0; i < signals.length; i++) {
             var signal = signals[i];
             newSignals[i] = {
                 from: signal.integralData.from,
@@ -159,7 +159,7 @@ module.exports = function (spectrum, optionsEx) {
             if (signal.nmrJs) {
                 newSignals[i].signal[0].j = signal.nmrJs;
             }
-            if (!signal.asymmetric || signal.multiplicity == 'm') {
+            if (!signal.asymmetric || signal.multiplicity === 'm') {
                 newSignals[i].signal[0].delta = signal.delta1;
             }
         }
@@ -193,7 +193,7 @@ function clearList(peakList, threshold) {
  * @param peaks
  * @param rowWise
  */
-function sampling(spectrum, peaks, rowWise) {
+/*function sampling(spectrum, peaks, rowWise) {
     var i0, ie, ic, i, j, nbPoints;
     var xy = [];
     if (i0 > ie) {
@@ -243,7 +243,7 @@ function sampling(spectrum, peaks, rowWise) {
     if (rowWise) {
         x = [xy[0][0]], y = [xy[0][1]];
         for (i = 1; i < xy.length; i++) {
-            if (x[index] != xy[i][0]) {
+            if (x[index] !== xy[i][0]) {
                 x.push(xy[i][0]);
                 y.push(xy[i][1]);
                 index++;
@@ -252,7 +252,7 @@ function sampling(spectrum, peaks, rowWise) {
     }    else {
         x = [[xy[0][0]]], y = [[xy[0][1]]];
         for (i = 1; i < xy.length; i++) {
-            if (x[index][0] != xy[i][0]) {
+            if (x[index][0] !== xy[i][0]) {
                 x.push([xy[i][0]]);
                 y.push([xy[i][1]]);
                 index++;
@@ -262,6 +262,7 @@ function sampling(spectrum, peaks, rowWise) {
     return [x, y];
 
 }
+*/
 
 function getVector(spectrum, from, to, rowWise) {
     var i0 = spectrum.unitsToArrayPoint(from);
@@ -289,7 +290,7 @@ function getVector(spectrum, from, to, rowWise) {
 
 
 function updateLimits(signal) {
-    if (signal.multiplicity != 'm' && signal.multiplicity != '') {
+    if (signal.multiplicity !== 'm' && signal.multiplicity !== '') {
         //Remove the integral of the removed peaks
         var peaksO = signal.peaks;
         var nbPeaks0 = peaksO.length, index = 0, factor = 0, toRemove = 0;
@@ -311,7 +312,7 @@ function updateIntegrals(signals, nH) {
     for (i = 0; i < signals.length; i++) {
         sumObserved += Math.round(signals[i].integralData.value);
     }
-    if (sumObserved != nH) {
+    if (sumObserved !== nH) {
 
         sumIntegral = nH / sumObserved;
         for (i = 0; i < signals.length; i++) {
@@ -384,7 +385,7 @@ function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
         }
         signals[i].delta1 = cs / sum;
 
-        if (integralType == 0)            {
+        if (integralType === 0)            {
             integral.value = sum;
         }        else {
             integral.value = spectrum.getArea(integral.from, integral.to);//*nH/spectrumIntegral;

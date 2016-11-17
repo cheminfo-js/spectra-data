@@ -196,11 +196,11 @@ class SD {
      * @param dataClass
      */
     setDataClass(dataClass) {
-        if (dataClass == this.DATACLASS_PEAK) {
+        if (dataClass === this.DATACLASS_PEAK) {
             this.getSpectrum().isPeaktable = true;
             this.getSpectrum().isXYdata = false;
         }
-        if (dataClass == this.DATACLASS_XY) {
+        if (dataClass === this.DATACLASS_XY) {
             this.getSpectrum().isXYdata = true;
             this.getSpectrum().isPeaktable = false;
         }
@@ -441,7 +441,7 @@ class SD {
             while (Math.abs(upperLimit - lowerLimit) > 1)            {
                 midPoint = Math.round(Math.floor((upperLimit + lowerLimit) / 2));
                 //x=this.getX(midPoint);
-                if (this.getX(midPoint) == inValue)                    {
+                if (this.getX(midPoint) === inValue)                    {
                     return midPoint;
                 }
                 if (this.getX(midPoint) > inValue)                    {
@@ -519,12 +519,12 @@ class SD {
      * @param globalShift
      */
     shift(globalShift) {
-        for (var i = 0; i < this.getNbSubSpectra(); i++) {
+        for (let i = 0; i < this.getNbSubSpectra(); i++) {
             this.setActiveElement(i);
             var x = this.getSpectrumData().x;
-            var length = this.getNbPoints(), i = 0;
-            for (i = 0; i < length; i++) {
-                x[i] += globalShift;
+            var length = this.getNbPoints(), j = 0;
+            for (j = 0; j < length; j++) {
+                x[j] += globalShift;
             }
 
             this.getSpectrum().firstX += globalShift;
@@ -543,7 +543,7 @@ class SD {
     fillWith(from, to, value) {
         var tmp, start, end, x, y;
         if (from > to) {
-            var tmp = from;
+            tmp = from;
             from = to;
             to = tmp;
         }
@@ -603,9 +603,11 @@ class SD {
      * @option smooth: A function for smoothing the spectraData before the detection. If your are dealing with
      * experimental spectra, smoothing will make the algorithm less prune to false positives.
      */
+    /*
     simplePeakPicking(parameters) {
         //@TODO implements this filter
     }
+    */
 
     /**
      * @function getMaxPeak()
@@ -767,13 +769,13 @@ class SD {
     updateIntegrals(ranges, options) {
         var sum = 0;
         var that = this;
-        ranges.forEach(function (range, index) {
+        ranges.forEach(function (range) {
             range.integral = that.getArea(range.from, range.to);
             sum += range.integral;
         });
         if (options.nH) {
             var factor = options.nH / sum;
-            ranges.forEach(function (range, index) {
+            ranges.forEach(function (range) {
                 range.integral *= factor;
             });
         }
@@ -807,9 +809,7 @@ class SD {
     getPointsInWindow(from, to, nPoints) {
         var x = this.getSpectraDataX();
         var y = this.getSpectraDataY();
-        var result = [];
         var start = 0, end = x.length - 1, direction = 1;
-        var reversed = false;
 
         if (x[0] > x[1]) {
             direction = -1;
@@ -821,7 +821,6 @@ class SD {
             var tmp = from;
             from = to;
             to = tmp;
-            reversed = true;
         }
         //console.log(x[end]+" "+from+" "+x[start]+" "+to);
         if (x[start] > to || x[end] < from) {
@@ -844,7 +843,7 @@ class SD {
         var ywin = new Array(nPoints);
         var index = 0;
 
-        if (direction == -1)            {
+        if (direction === -1)            {
             index = nPoints - 1;
         }
 
@@ -866,7 +865,7 @@ class SD {
      * @returns {boolean}
      */
     is2D() {
-        if (typeof this.sd.twoD == 'undefined')            {
+        if (typeof this.sd.twoD === 'undefined')            {
             return false;
         }
         return this.sd.twoD;

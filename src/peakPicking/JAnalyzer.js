@@ -5,12 +5,11 @@
  * Created by acastillo on 4/5/15.
  */
 
-const pascalTriangle  =  [[0], [1], [1, 1], [1, 2, 1], [1, 3, 3, 1], [1, 4, 6, 4, 1], [1, 5, 10, 10, 5, 1], [1, 6, 15, 20, 15, 6, 1]];
 const patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
 var symRatio = 1.5;
 var maxErrorIter1 = 2.5;//Hz
 var maxErrorIter2 = 1;//Hz
-var DEBUG = false;
+const DEBUG = false;
 
 module.exports = {
     /**
@@ -19,7 +18,7 @@ module.exports = {
      * @param signal
      */
     compilePattern: function (signal) {
-        if (DEBUG)console.log('Debugin...');
+        if (DEBUG) console.log('Debugin...');
 
         signal.multiplicity = 'm';//By default the multiplicity is massive
         // 1.1 symmetrize
@@ -41,7 +40,7 @@ module.exports = {
                 //signal.peaksCompX = peaks;
                 var validPattern = false;//It will change to true, when we find the good patter
                 //Lets check if the signal could be a singulet.
-                if (peaks.length == 1 && n === 0) {
+                if (peaks.length === 1 && n === 0) {
                     validPattern = true;
                 }                else {
                     if (peaks.length <= 1) {
@@ -128,7 +127,7 @@ module.exports = {
                     // All the intensities have to match to accept the multiplet
                     validPattern = true;
                     for (i = 0; i < pattern.length; i++) {
-                        if (pattern[i].intensity != heights[i])                            {
+                        if (pattern[i].intensity !== heights[i])                            {
                             validPattern = false;
                         }
                     }
@@ -176,6 +175,9 @@ function updateSignal(signal, Jc) {
 
 /**
  * Returns the multiplet in the compact format
+ * @param signal
+ * @param Jc
+ * @returns {string}
  */
 function  abstractPattern(signal, Jc) {
     var tol = 0.05, i, pattern = '', cont = 1;
@@ -206,7 +208,9 @@ function  abstractPattern(signal, Jc) {
 }
 
 /**
- *This function creates an ideal pattern from the given J-couplings
+ * This function creates an ideal pattern from the given J-couplings
+ * @param Jc
+ * @returns {*[]}
  */
 function idealPattern(Jc) {
     var hsum = Math.pow(2, Jc.length), i, j;
@@ -235,6 +239,9 @@ function idealPattern(Jc) {
 
 /**
  * Find a combination of integer heights Hi, one from each Si, that sums to 2n.
+ * @param ranges
+ * @param value
+ * @returns {*}
  */
 function getNextCombination(ranges, value) {
     var half = Math.ceil(ranges.values.length / 2), lng = ranges.values.length;
