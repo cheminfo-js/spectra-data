@@ -4,9 +4,9 @@
 
 var StatArray = require('ml-stat').array;
 var ArrayUtils = require('ml-array-utils');
-var JcampConverter = require("jcampconverter");
-var JcampCreator = require("./jcampEncoder/JcampCreator");
-var extend = require("extend");
+var JcampConverter = require('jcampconverter');
+var JcampCreator = require('./jcampEncoder/JcampCreator');
+var extend = require('extend');
 
 class SD {
     /**
@@ -33,7 +33,7 @@ class SD {
      * @returns {SD}
      */
     static fromJcamp(jcamp, options) {
-        options = Object.assign({}, {xy:true,keepSpectra:true,keepRecordsRegExp:/^.+$/}, options);
+        options = Object.assign({}, {xy: true, keepSpectra: true, keepRecordsRegExp: /^.+$/}, options);
         var spectrum = JcampConverter.convert(jcamp, options);
         return new SD(spectrum);
     }
@@ -44,7 +44,7 @@ class SD {
      * @param index of the sub-spectrum to set as active
      */
     setActiveElement(nactiveSpectrum) {
-        this.activeElement=nactiveSpectrum;
+        this.activeElement = nactiveSpectrum;
     }
 
     /**
@@ -71,14 +71,14 @@ class SD {
      * @returns {xUnit|*|M.xUnit}
      */
     setXUnits(units) {
-        this.getSpectrum().xUnit=units;
+        this.getSpectrum().xUnit = units;
     }
     /**
      * @function getYUnits()
      * * This function returns the units of the dependent variable.
      * @returns {yUnit|*|M.yUnit}
      */
-    getYUnits(){
+    getYUnits() {
         return this.getSpectrum().yUnit;
     }
 
@@ -87,7 +87,7 @@ class SD {
      * This function returns the information about the dimensions
      * @returns {*}
      */
-    getSpectraVariable(dim){
+    getSpectraVariable(dim) {
         return this.sd.ntuples[dim];
     }
 
@@ -97,7 +97,7 @@ class SD {
      * @param i sub-spectrum
      * @returns {*}
      */
-    getNbPoints(i){
+    getNbPoints(i) {
         return this.getSpectrumData(i).y.length;
     }
 
@@ -130,7 +130,7 @@ class SD {
      * @returns {number}
      */
     getLastX(i) {
-        i = i||this.activeElement;
+        i = i || this.activeElement;
         return this.sd.spectra[i].lastX;
     }
 
@@ -142,8 +142,8 @@ class SD {
      * @param i sub-spectrum
      */
     setLastX(x, i) {
-        i = i||this.activeElement;
-        this.sd.spectra[i].lastX=x;
+        i = i || this.activeElement;
+        this.sd.spectra[i].lastX = x;
     }
 
     /**
@@ -154,7 +154,7 @@ class SD {
      * @returns {number}
      */
     getFirstY(i) {
-        i = i||this.activeElement;
+        i = i || this.activeElement;
         return this.sd.spectra[i].firstY;
     }
 
@@ -165,7 +165,7 @@ class SD {
      * @param i sub-spectrum
      */
     setFirstY(y, i) {
-        i =i||this.activeElement;
+        i = i || this.activeElement;
         this.sd.spectra[i].firstY = y;
     }
 
@@ -185,7 +185,7 @@ class SD {
      * @param y
      * @param i sub-spectrum
      */
-    setLastY(y, i){
+    setLastY(y, i) {
         i = i || this.activeElement;
         this.sd.spectra[i].lastY = y;
     }
@@ -196,11 +196,11 @@ class SD {
      * @param dataClass
      */
     setDataClass(dataClass) {
-        if(dataClass == this.DATACLASS_PEAK) {
+        if (dataClass === this.DATACLASS_PEAK) {
             this.getSpectrum().isPeaktable = true;
             this.getSpectrum().isXYdata = false;
         }
-        if(dataClass == this.DATACLASS_XY) {
+        if (dataClass === this.DATACLASS_XY) {
             this.getSpectrum().isXYdata = true;
             this.getSpectrum().isPeaktable = false;
         }
@@ -212,8 +212,9 @@ class SD {
      * @returns {*}
      */
     isDataClassPeak() {
-        if(this.getSpectrum().isPeaktable)
+        if (this.getSpectrum().isPeaktable)            {
             return  this.getSpectrum().isPeaktable;
+        }
         return false;
     }
 
@@ -223,9 +224,10 @@ class SD {
      * @returns {*}
      */
     isDataClassXY() {
-        if(this.getSpectrum().isXYdata)
+        if (this.getSpectrum().isXYdata)            {
             return  this.getSpectrum().isXYdata;
-        return false
+        }
+        return false;
     }
 
     /**
@@ -326,7 +328,7 @@ class SD {
      * @returns {*[]}
      */
     getXYData(i) {
-        return [this.getXData(i),this.getYData(i)];
+        return [this.getXData(i), this.getYData(i)];
     }
 
     /**
@@ -345,7 +347,7 @@ class SD {
      * @param newTitle The new title
      * @param i sub-spectrum Default:activeSpectrum
      */
-    setTitle(newTitle,i) {
+    setTitle(newTitle, i) {
         this.getSpectrum(i).title = newTitle;
     }
 
@@ -387,7 +389,7 @@ class SD {
      */
     getNoiseLevel() {
         var stddev = StatArray.robustMeanAndStdev(this.getYData()).stdev;
-        return stddev*this.getNMRPeakThreshold(this.getNucleus(1));
+        return stddev * this.getNMRPeakThreshold(this.getNucleus(1));
     }
 
     /**
@@ -397,7 +399,7 @@ class SD {
      * @returns {number}
      */
     arrayPointToUnits(doublePoint) {
-        return (this.getFirstX() - (doublePoint * (this.getFirstX() - this.getLastX()) / (this.getNbPoints()-1)));
+        return (this.getFirstX() - (doublePoint * (this.getFirstX() - this.getLastX()) / (this.getNbPoints() - 1)));
     }
 
     /**
@@ -414,40 +416,44 @@ class SD {
     unitsToArrayPoint(inValue) {
         if (this.isDataClassXY()) {
             return Math.round((this.getFirstX() - inValue) * (-1.0 / this.getDeltaX()));
-        } else if (this.isDataClassPeak())
-        {
-            var currentArrayPoint = 0,upperLimit=this.getNbPoints()-1, lowerLimit= 0, midPoint;
+        } else if (this.isDataClassPeak())        {
+            var currentArrayPoint = 0, upperLimit = this.getNbPoints() - 1, lowerLimit = 0, midPoint;
             //If inverted scale
-            if(this.getFirstX() > this.getLastX()) {
+            if (this.getFirstX() > this.getLastX()) {
                 upperLimit = 0;
-                lowerLimit = this.getNbPoints()-1;
+                lowerLimit = this.getNbPoints() - 1;
 
-                if(inValue > this.getFirstX())
+                if (inValue > this.getFirstX())                    {
                     return this.getNbPoints();
-                if(inValue < this.getLastX())
+                }
+                if (inValue < this.getLastX())                    {
                     return -1;
-            }
-            else{
-                if(inValue < this.getFirstX())
+                }
+            }            else {
+                if (inValue < this.getFirstX())                    {
                     return -1;
-                if(inValue > this.getLastX())
+                }
+                if (inValue > this.getLastX())                    {
                     return this.getNbPoints();
+                }
             }
 
-            while (Math.abs(upperLimit-lowerLimit) > 1)
-            {
-                midPoint = Math.round(Math.floor((upperLimit+lowerLimit)/2));
+            while (Math.abs(upperLimit - lowerLimit) > 1)            {
+                midPoint = Math.round(Math.floor((upperLimit + lowerLimit) / 2));
                 //x=this.getX(midPoint);
-                if(this.getX(midPoint) == inValue)
+                if (this.getX(midPoint) === inValue)                    {
                     return midPoint;
-                if(this.getX(midPoint) > inValue)
+                }
+                if (this.getX(midPoint) > inValue)                    {
                     upperLimit = midPoint;
-                else
+                }                else                    {
                     lowerLimit = midPoint;
+                }
             }
             currentArrayPoint = lowerLimit;
-            if(Math.abs(this.getX(lowerLimit)-inValue) > Math.abs(this.getX(upperLimit)-inValue))
+            if (Math.abs(this.getX(lowerLimit) - inValue) > Math.abs(this.getX(upperLimit) - inValue))                {
                 currentArrayPoint = upperLimit;
+            }
             return currentArrayPoint;
         } else {
             return 0;
@@ -460,7 +466,7 @@ class SD {
      * @returns {number}
      */
     getDeltaX() {
-        return (this.getLastX()-this.getFirstX()) / (this.getNbPoints()-1);
+        return (this.getLastX() - this.getFirstX()) / (this.getNbPoints() - 1);
     }
 
     /**
@@ -469,8 +475,8 @@ class SD {
      * @param min   Minimum desired value for Y
      * @param max   Maximum desired value for Y
      */
-    setMinMax(min,max) {
-        ArrayUtils.scale(this.getYData(),{min:min,max:max,inplace:true});
+    setMinMax(min, max) {
+        ArrayUtils.scale(this.getYData(), {min: min, max: max, inplace: true});
     }
 
     /**
@@ -479,7 +485,7 @@ class SD {
      * @param min   Minimum desired value for Y
      */
     setMin(min) {
-        ArrayUtils.scale(this.getYData(),{min:min,inplace:true});
+        ArrayUtils.scale(this.getYData(), {min: min, inplace: true});
     }
 
     /**
@@ -488,7 +494,7 @@ class SD {
      * @param max   Maximum desired value for Y
      */
     setMax(max) {
-        ArrayUtils.scale(this.getYData(),{max:max,inplace:true});
+        ArrayUtils.scale(this.getYData(), {max: max, inplace: true});
     }
 
     /**
@@ -498,8 +504,8 @@ class SD {
      */
     YShift(value) {
         var y = this.getSpectrumData().y;
-        var length = this.getNbPoints(),i = 0;
-        for(i = 0; i<length; i++) {
+        var length = this.getNbPoints(), i = 0;
+        for (i = 0; i < length; i++) {
             y[i] += value;
         }
         this.getSpectrum().firstY += value;
@@ -513,12 +519,12 @@ class SD {
      * @param globalShift
      */
     shift(globalShift) {
-        for(var i = 0; i < this.getNbSubSpectra(); i++) {
+        for (let i = 0; i < this.getNbSubSpectra(); i++) {
             this.setActiveElement(i);
             var x = this.getSpectrumData().x;
-            var length = this.getNbPoints(), i = 0;
-            for(i = 0; i < length; i++) {
-                x[i] += globalShift;
+            var length = this.getNbPoints(), j = 0;
+            for (j = 0; j < length; j++) {
+                x[j] += globalShift;
             }
 
             this.getSpectrum().firstX += globalShift;
@@ -536,34 +542,35 @@ class SD {
      */
     fillWith(from, to, value) {
         var tmp, start, end, x, y;
-        if(from > to) {
-            var tmp = from;
+        if (from > to) {
+            tmp = from;
             from = to;
             to = tmp;
         }
 
-        for(var i = 0; i < this.getNbSubSpectra(); i++) {
+        for (var i = 0; i < this.getNbSubSpectra(); i++) {
             this.setActiveElement(i);
             x = this.getXData();
             y = this.getYData();
             start = this.unitsToArrayPoint(from);
             end = this.unitsToArrayPoint(to);
-            if(start > end) {
+            if (start > end) {
                 tmp = start;
                 start = end;
                 end = tmp;
             }
-            if(start < 0)
+            if (start < 0)                {
                 start = 0;
-            if(end >= this.getNbPoints)
-                end = this.getNbPoints-1;
-
-            if(typeof value !== "number") {
-                y.splice(start,end-start);
-                x.splice(start,end-start);
             }
-            else{
-                for(i = start; i <= end; i++) {
+            if (end >= this.getNbPoints)                {
+                end = this.getNbPoints - 1;
+            }
+
+            if (typeof value !== 'number') {
+                y.splice(start, end - start);
+                x.splice(start, end - start);
+            }            else {
+                for (i = start; i <= end; i++) {
                     y[i] = value;
                 }
             }
@@ -596,9 +603,11 @@ class SD {
      * @option smooth: A function for smoothing the spectraData before the detection. If your are dealing with
      * experimental spectra, smoothing will make the algorithm less prune to false positives.
      */
+    /*
     simplePeakPicking(parameters) {
         //@TODO implements this filter
     }
+    */
 
     /**
      * @function getMaxPeak()
@@ -608,13 +617,13 @@ class SD {
     getMaxPeak() {
         var y = this.getSpectraDataY();
         var max = y[0], index = 0;
-        for(var i = 0; i < y.length; i++) {
-            if(max < y[i]) {
+        for (var i = 0; i < y.length; i++) {
+            if (max < y[i]) {
                 max = y[i];
                 index = i;
             }
         }
-        return [this.getX(index),max];
+        return [this.getX(index), max];
     }
 
     /**
@@ -633,8 +642,9 @@ class SD {
      */
     getParamDouble(name, defvalue) {
         var value = this.sd.info[name];
-        if(!value)
+        if (!value)            {
             value = defvalue;
+        }
         return value;
     }
 
@@ -647,9 +657,10 @@ class SD {
      */
     getParamString(name, defvalue) {
         var value = this.sd.info[name];
-        if(!value)
+        if (!value)            {
             value = defvalue;
-        return value+"";
+        }
+        return value + '';
     }
 
     /**
@@ -661,8 +672,9 @@ class SD {
      */
     getParamInt(name, defvalue) {
         var value = this.sd.info[name];
-        if(!value)
+        if (!value)            {
             value = defvalue;
+        }
         return value;
     }
 
@@ -675,8 +687,9 @@ class SD {
      */
     getParam(name, defvalue) {
         var value = this.sd.info[name];
-        if(!value)
+        if (!value)            {
             value = defvalue;
+        }
         return value;
     }
 
@@ -687,7 +700,7 @@ class SD {
      * @returns {boolean}
      */
     containsParam(name) {
-        if(this.sd.info[name]){
+        if (this.sd.info[name]) {
             return true;
         }
         return false;
@@ -740,29 +753,29 @@ class SD {
         var i0 = this.unitsToArrayPoint(from);
         var ie = this.unitsToArrayPoint(to);
         var area = 0;
-        if(i0 > ie) {
+        if (i0 > ie) {
             var tmp = i0;
             i0 = ie;
             ie = tmp;
         }
-        i0 = i0 < 0?0:i0;
-        ie = ie >= this.getNbPoints()?this.getNbPoints()-1:ie;
-        for(var i = i0; i < ie; i++) {
+        i0 = i0 < 0 ? 0 : i0;
+        ie = ie >= this.getNbPoints() ? this.getNbPoints() - 1 : ie;
+        for (var i = i0; i < ie; i++) {
             area += this.getY(i);
         }
         return area * Math.abs(this.getDeltaX());
     }
 
-    updateIntegrals(ranges, options){
+    updateIntegrals(ranges, options) {
         var sum = 0;
         var that = this;
-        ranges.forEach(function (range, index) {
+        ranges.forEach(function (range) {
             range.integral = that.getArea(range.from, range.to);
             sum += range.integral;
         });
-        if(options.nH){
+        if (options.nH) {
             var factor = options.nH / sum;
-            ranges.forEach(function (range, index) {
+            ranges.forEach(function (range) {
                 range.integral *= factor;
             });
         }
@@ -777,8 +790,73 @@ class SD {
      * @returns [x,y]
      */
     getVector(from, to, nPoints) {
-        return ArrayUtils.getEquallySpacedData(this.getSpectraDataX(), this.getSpectraDataY(),
-            {from: from, to:to, numberOfPoints:nPoints});
+        if (nPoints) {
+            return ArrayUtils.getEquallySpacedData(this.getSpectraDataX(), this.getSpectraDataY(),
+                {from: from, to: to, numberOfPoints: nPoints});
+        }        else {
+            return this.getPointsInWindow(from, to);
+        }
+    }
+
+    /**
+     * Returns all the point in a given window.
+     * Not tested, you have to know what you are doing
+     * @param from
+     * @param to
+     * @param nPoints
+     * @returns {*}
+     */
+    getPointsInWindow(from, to, nPoints) {
+        var x = this.getSpectraDataX();
+        var y = this.getSpectraDataY();
+        var start = 0, end = x.length - 1, direction = 1;
+
+        if (x[0] > x[1]) {
+            direction = -1;
+            start = x.length - 1;
+            end = 0;
+        }
+
+        if (from > to) {
+            var tmp = from;
+            from = to;
+            to = tmp;
+        }
+        //console.log(x[end]+" "+from+" "+x[start]+" "+to);
+        if (x[start] > to || x[end] < from) {
+            //console.log("ssss");
+            return [];
+        }
+
+        while (x[start] < from) {
+            start += direction;
+        }
+        while (x[end] > to) {
+            end -= direction;
+        }
+
+        var winPoints = Math.abs(end - start) + 1;
+        if (!nPoints) {
+            nPoints = winPoints;
+        }
+        var xwin = new Array(nPoints);
+        var ywin = new Array(nPoints);
+        var index = 0;
+
+        if (direction === -1)            {
+            index = nPoints - 1;
+        }
+
+        var di = winPoints / nPoints;
+        var i = start - direction;
+        for (var k = 0; k < nPoints; k++) {
+            i += Math.round(di * direction);
+            //console.log(i+" "+y[i]);
+            xwin[index] = x[i];
+            ywin[index] = y[i];
+            index += direction;
+        }
+        return [xwin, ywin];
     }
 
     /**
@@ -787,8 +865,9 @@ class SD {
      * @returns {boolean}
      */
     is2D() {
-        if(typeof this.sd.twoD == "undefined")
+        if (typeof this.sd.twoD === 'undefined')            {
             return false;
+        }
         return this.sd.twoD;
     }
 
@@ -806,7 +885,7 @@ class SD {
      * @example SD.toJcamp(spectraData,{encode:'DIFDUP',yfactor:0.01,type:"SIMPLE",keep:['#batchID','#url']});
      */
     toJcamp(options) {
-        var defaultOptions = {"encode":"DIFDUP","yFactor":1,"type":"SIMPLE","keep":[]};
+        var defaultOptions = {'encode': 'DIFDUP', 'yFactor': 1, 'type': 'SIMPLE', 'keep': []};
         options = extend({}, defaultOptions, options);
         return JcampCreator.convert(this, options.encode, options.yFactor, options.type, options.keep);
     }

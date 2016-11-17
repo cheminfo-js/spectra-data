@@ -21,7 +21,7 @@ spectra-data project
 
 Or to test just one of the testing file
 
-`npm test test/testNMR.js`
+`npm test test/NMR.js`
 
 http://unitjs.com/guide/should-js.html
 

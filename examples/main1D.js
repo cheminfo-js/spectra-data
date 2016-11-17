@@ -11,16 +11,16 @@ function createSpectraData(filename, label, data) {
         FS.readFileSync(__dirname + filename).toString()
     );
     return spectrum;
-};
+}
 
 //var spectrum=createSpectraData("/data/ethylbenzene/h1_0.jdx");
 //var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
 //var spectrum=createSpectraData("/data/h1_119.jdx");
-var spectrum=createSpectraData("/data/broadPeak.jdx");
+var spectrum = createSpectraData('/data/broadPeak.jdx');
 var xy = spectrum.getXYData();
-var x = [],y=[];
-for(var i=0;i< xy[0].length;i++){
-    if(xy[0][i]>3&&xy[0][i]<5){
+var x = [], y = [];
+for (var i = 0; i < xy[0].length; i++) {
+    if (xy[0][i] > 3 && xy[0][i] < 5) {
         x.push(xy[0][i]);
         y.push(xy[1][i]);
     }
@@ -32,11 +32,11 @@ for(var i=0;i< xy[0].length;i++){
 //var spectrum=createSpectraData("/data/h1_14.jdx");
 
 //console.log(JSON.stringify(spectrum.getXYData()));
-if(true){
+if (true) {
     var d = new Date();
     var n = d.getTime();
-    var peakPicking = spectrum.nmrPeakDetection({nH:10,realTop:true,thresholdFactor:1, clean:true, compile:true,
-        gsdOptions:{minMaxRatio:0.03, broadRatio:0.0025,smoothY:true, nL:4}
+    var peakPicking = spectrum.getRanges({nH: 10, realTop: true, thresholdFactor: 1, clean: true, compile: true,
+        gsdOptions: {minMaxRatio: 0.03, broadRatio: 0.0025, smoothY: true, nL: 4}
     });
     d = new Date();
 

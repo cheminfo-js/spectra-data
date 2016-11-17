@@ -4,7 +4,7 @@
 
 'use strict';
 
-var Data = require('..');
+var Data = require('../../..');
 var FS = require('fs');
 
 function createSpectraData(filename, label, data) {
@@ -12,31 +12,31 @@ function createSpectraData(filename, label, data) {
         FS.readFileSync(__dirname + filename).toString()
     );
     return spectrum;
-};
+}
 
-var spectrum=createSpectraData("/data/ethylvinylether/1h.jdx");
-var createdJcamp0 = spectrum.toJcamp({type:"SIMPLE"});
-var createdJcamp1 = spectrum.toJcamp({type:"NTUPLES"});
+var spectrum = createSpectraData('/../../../data-test/ethylvinylether/1h.jdx');
+var createdJcamp0 = spectrum.toJcamp({type: 'SIMPLE'});
+var createdJcamp1 = spectrum.toJcamp({type: 'NTUPLES'});
 
 
-describe('toJcamp spectra-data test', function () {
-    var spectrum0 = Data.NMR.fromJcamp(createdJcamp0, {fastParse:false});
+describe('toJcamp spectra-data examples', function () {
+    var spectrum0 = Data.NMR.fromJcamp(createdJcamp0, {fastParse: false});
    // console.log(createdJcamp0);
-    var spectrum1 = Data.NMR.fromJcamp(createdJcamp1, {fastParse:false});
+    var spectrum1 = Data.NMR.fromJcamp(createdJcamp1, {fastParse: false});
     //console.log(spectrum.sd.spectra[0].data[0].y);
 
     it('getVector', function () {
-        spectrum0.getVector(0.0,10,4*1024).length.should.equal(4*1024);
-        spectrum1.getVector(0.0,10,4*1024).length.should.equal(4*1024);
+        spectrum0.getVector(0.0, 10, 4 * 1024).length.should.equal(4 * 1024);
+        spectrum1.getVector(0.0, 10, 4 * 1024).length.should.equal(4 * 1024);
     });
 
     it('getNucleus', function () {
-        spectrum0.getNucleus().should.equal("1H");
-        spectrum1.getNucleus().should.equal("1H");
+        spectrum0.getNucleus().should.equal('1H');
+        spectrum1.getNucleus().should.equal('1H');
     });
     it('getSolventName', function () {
-        spectrum0.getSolventName().should.equal("DMSO");
-        spectrum1.getSolventName().should.equal("DMSO");
+        spectrum0.getSolventName().should.equal('DMSO');
+        spectrum1.getSolventName().should.equal('DMSO');
     });
     it('getFirstX', function () {
         spectrum0.getFirstX().should.equal(11.00659);
@@ -65,31 +65,31 @@ describe('toJcamp spectra-data test', function () {
     });
 
     it('Checking X array', function () {
-        var x=spectrum0.getXData();
+        var x = spectrum0.getXData();
         x.should.be.instanceof(Array).and.have.lengthOf(16384);
         x[0].should.equal(11.00659);
-        x=spectrum1.getXData();
+        x = spectrum1.getXData();
         x.should.be.instanceof(Array).and.have.lengthOf(16384);
         x[0].should.equal(11.00659);
     });
 
     it('Checking Y array', function () {
-        var y=spectrum0.getYData();
+        var y = spectrum0.getYData();
         y.should.be.instanceof(Array).and.have.lengthOf(16384);
         y[0].should.equal(-119886);
-        y=spectrum1.getYData();
+        y = spectrum1.getYData();
         y.should.be.instanceof(Array).and.have.lengthOf(16384);
         y[0].should.equal(-119886);
     });
 
     it('Checking XY array', function () {
-        var xy=spectrum0.getXYData();
+        var xy = spectrum0.getXYData();
         xy.should.be.instanceof(Array).and.have.lengthOf(2);
         xy[0].should.be.instanceof(Array).and.have.lengthOf(16384);
         xy[1].should.be.instanceof(Array).and.have.lengthOf(16384);
         xy[0][0].should.equal(11.00659);
         xy[1][0].should.equal(-119886);
-        xy=spectrum1.getXYData();
+        xy = spectrum1.getXYData();
         xy.should.be.instanceof(Array).and.have.lengthOf(2);
         xy[0].should.be.instanceof(Array).and.have.lengthOf(16384);
         xy[1].should.be.instanceof(Array).and.have.lengthOf(16384);
@@ -102,5 +102,4 @@ describe('toJcamp spectra-data test', function () {
         spectrum1.is2D().should.equal(false);
     });
 });
-
 

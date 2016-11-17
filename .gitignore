@@ -1,7 +1,8 @@
 .idea
 node_modules
 .DS_Store
-
+.eslintcache
 test/data/h1_31.jdx
+*.log
 
 src/gg.js

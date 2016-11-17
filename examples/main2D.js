@@ -11,9 +11,9 @@ function createSpectraData(filename, label, data) {
         FS.readFileSync(__dirname + filename).toString()
     );
     return spectrum;
-};
+}
 
-var spectrum=createSpectraData("/data/ethylbenzene/hsqc_0.jdx");
+var spectrum = createSpectraData('/data/ethylbenzene/hsqc_0.jdx');
 
 //console.log(spectrum.sd);
 //console.log(spectrum.observeFrequencyX());
