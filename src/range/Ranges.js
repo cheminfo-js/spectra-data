@@ -12,9 +12,17 @@ const peak2Vector = require('./peak2Vector');
 
 class Ranges extends Array{
 
-    constructor(ranges, options) {
-        this.options = options;
-        this.push(...ranges);
+    constructor(ranges) {
+        if (Array.isArray(ranges)) {
+            super(ranges.length);
+            for (let i = 0; i < ranges.length; i++) {
+                this[i] = ranges[i];
+            }
+        } else if (typeof ranges === 'number') {
+            super(ranges);
+        } else {
+            super();
+        }
     }
 
     static fromPrediction(predictions, opt) {
@@ -78,7 +86,7 @@ class Ranges extends Array{
             }
         }
 
-        return new Ranges(result, options);
+        return new Ranges(result);
     }
 
     //get length() {
@@ -99,7 +107,7 @@ class Ranges extends Array{
             frequencyCluster: 16,
         }, opt);
 
-        return (peakPicking(spectrum, this.options), this.options);
+        return new Ranges(peakPicking(spectrum, this.options));
     }
 
     update () {

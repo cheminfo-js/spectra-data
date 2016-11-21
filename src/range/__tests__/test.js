@@ -50,7 +50,7 @@ describe('Prediction to ranges', function () {
         {'atomIDs': ['17'], 'diaIDs': ['did@`@fTeYWaj@@@GzP`HeT'], 'integral': 1, 'delta': 0.992, 'j': [{'assignment': '11', 'coupling': 3.696, 'multiplicity': 2}, {'assignment': '12', 'coupling': 3.696, 'multiplicity': 2}]}];
 
 
-    it.only('10 spines should yield 4 ranges', function () {
+    it('10 spines should yield 4 ranges', function () {
         var ranges = Ranges.fromPrediction(prediction, {lineWidth: 1});
         ranges.length.should.eql(4);
     });
@@ -64,19 +64,19 @@ describe('Update ranges', function () {
         ranges.should.eql([{integral: 2}, {integral: 4}]);
     });
     it('add an integral', function () {
-        var ranges = [{integral: 1}, {integral: 2}];
+        var ranges = new Ranges([{integral: 1}, {integral: 2}]);
         ranges.push({integral: 3});
-        ranges = Data.updateIntegrals(ranges, {sum: sum});
+        ranges = ranges.updateIntegrals(ranges, {sum: sum});
         ranges.should.eql([{integral: 0.5}, {integral: 1}, {integral: 1.5}]);
     });
     it('delete an integral', function () {
-        var ranges = [{integral: 1}];
-        ranges = Data.updateIntegrals(ranges, {sum: sum});
+        var ranges = new Ranges([{integral: 1}]);
+        ranges = ranges.updateIntegrals(ranges, {sum: sum});
         ranges.should.eql([{integral: 3}]);
     });
     it('change an integral', function () {
-        var ranges = [{integral: 1}, {integral: 2}];
-        ranges = Data.updateIntegrals(ranges, {factor: 2});
+        var ranges = new Ranges([{integral: 1}, {integral: 2}]);
+        ranges = ranges.updateIntegrals(ranges, {factor: 2});
         ranges.should.eql([{integral: 2}, {integral: 4}]);
     });
 });
