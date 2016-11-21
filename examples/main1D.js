@@ -35,7 +35,7 @@ for (var i = 0; i < xy[0].length; i++) {
 if (true) {
     var d = new Date();
     var n = d.getTime();
-    var peakPicking = spectrum.getRanges({nH: 10, realTop: true, thresholdFactor: 1, clean: true, compile: true,
+    var peakPicking = spectrum.autoPeakPicking({nH: 10, realTop: true, thresholdFactor: 1, clean: true, compile: true,
         gsdOptions: {minMaxRatio: 0.03, broadRatio: 0.0025, smoothY: true, nL: 4}
     });
     d = new Date();

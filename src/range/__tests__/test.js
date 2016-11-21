@@ -61,22 +61,22 @@ describe('Update ranges', function () {
     it('change sum', function () {
         var ranges = new Ranges([{integral: 1}, {integral: 2}]);
         ranges = ranges.updateIntegrals({sum: sum * 2});
-        ranges.should.eql([{integral: 2}, {integral: 4}]);
+        ranges.should.eql(new Ranges([{integral: 2}, {integral: 4}]));
     });
     it('add an integral', function () {
         var ranges = new Ranges([{integral: 1}, {integral: 2}]);
         ranges.push({integral: 3});
-        ranges = ranges.updateIntegrals(ranges, {sum: sum});
-        ranges.should.eql([{integral: 0.5}, {integral: 1}, {integral: 1.5}]);
+        ranges = ranges.updateIntegrals({sum: sum});
+        ranges.should.eql(new Ranges([{integral: 0.5}, {integral: 1}, {integral: 1.5}]));
     });
     it('delete an integral', function () {
         var ranges = new Ranges([{integral: 1}]);
-        ranges = ranges.updateIntegrals(ranges, {sum: sum});
-        ranges.should.eql([{integral: 3}]);
+        ranges = ranges.updateIntegrals({sum: sum});
+        ranges.should.eql(new Ranges([{integral: 3}]));
     });
     it('change an integral', function () {
         var ranges = new Ranges([{integral: 1}, {integral: 2}]);
-        ranges = ranges.updateIntegrals(ranges, {factor: 2});
-        ranges.should.eql([{integral: 2}, {integral: 4}]);
+        ranges = ranges.updateIntegrals({factor: 2});
+        ranges.should.eql(new Ranges([{integral: 2}, {integral: 4}]));
     });
 });

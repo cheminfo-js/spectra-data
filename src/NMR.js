@@ -2,6 +2,7 @@
 
 var SD = require('./SD');
 var peakPicking = require('./peakPicking/PeakPicking');
+var Ranges = require('./range/Ranges');
 var JcampConverter = require('jcampconverter');
 var fft = require('ml-fft');
 var Filters = require('./filters/Filters.js');
@@ -343,7 +344,7 @@ class NMR extends SD {
 
 
     /**
-     * @function getRanges(parameters);
+     * @function autoPeakPicking(parameters);
      * This function process the given spectraData and tries to determine the NMR signals. Returns an NMRSignal1D array containing all the detected 1D-NMR Signals
      * @param parameters A JSONObject containing the optional parameters:
      * @option fromX:   Lower limit.
@@ -352,9 +353,12 @@ class NMR extends SD {
      * @option stdev: Number of standard deviation of the noise for the threshold calculation if a threshold is not specified.
      * @returns {*}
      */
-    getRanges(parameters) {
-        this.range = peakPicking(this, parameters);
-        return peakPicking(this, parameters);
+    autoPeakPicking(parameters) {
+        let autoRanges = new Ranges(peakPicking(this, parameters));
+        if(parameters && parameters.force){
+            this.ranges = autoRanges;
+        }
+        return autoRanges;
     }
 }
 

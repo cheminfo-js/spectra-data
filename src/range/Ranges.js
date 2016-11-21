@@ -9,6 +9,7 @@ const JAnalyzer = require('./../peakPicking/JAnalyzer');
 const peakPicking = require('./../peakPicking/PeakPicking');
 const acs = require('./acs/acs');
 const peak2Vector = require('./peak2Vector');
+const GUI = require('./visualizer/index');
 
 class Ranges extends Array{
 
@@ -161,7 +162,11 @@ class Ranges extends Array{
     };
 
     toACS (opt) {
-        return acs(opt);
+        return acs(this, opt);
+    }
+
+    toAnnotations(options){
+        return GUI.annotations1D(this, options);
     }
 }
 

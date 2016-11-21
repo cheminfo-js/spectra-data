@@ -16,8 +16,8 @@ module.exports = function (rangesIn, opt) {
     if (ranges[0].delta1) {//Old signals format
         return old.toACS(ranges, options);
     }
-
-    ranges = module.exports.update(ranges);
+    if(ranges.update)
+        ranges = ranges.update();
 
     acsString = '';
     parenthesis = '';
