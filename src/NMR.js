@@ -353,6 +353,7 @@ class NMR extends SD {
      * @returns {*}
      */
     getRanges(parameters) {
+        this.range = peakPicking(this, parameters);
         return peakPicking(this, parameters);
     }
 }

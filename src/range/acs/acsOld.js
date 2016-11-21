@@ -8,7 +8,7 @@ var acsString = '';
 var parenthesis = '';
 var rangeForMultiplet = false;
 
-module.exports.toACS = function (spectrum, options) {
+module.exports.toACS = function (signals1D, options) {
     acsString = '';
     parenthesis = '';
     var solvent = null;
@@ -20,22 +20,22 @@ module.exports.toACS = function (spectrum, options) {
     }
 
     if (options && options.ascending) {
-        spectrum.sort(function (a, b) {
+        signals1D.sort(function (a, b) {
             return b.delta1 - a.delta1;
         });
     }    else {
-        spectrum.sort(function (a, b) {
+        signals1D.sort(function (a, b) {
             return a.delta1 - b.delta1;
         });
     }
 
     //console.log("Range1: " +options.rangeForMultiplet);
 
-    spectrum.type = 'NMR SPEC';
-    if (spectrum[0].nucleus === '1H') {
-        formatAcsDefault(spectrum, false, 2, 1, solvent);
-    } else if (spectrum[0].nucleus === '13C') {
-        formatAcsDefault(spectrum, false, 1, 0, solvent);
+    signals1D.type = 'NMR SPEC';
+    if (signals1D[0].nucleus === '1H') {
+        formatAcsDefault(signals1D, false, 2, 1, solvent);
+    } else if (signals1D[0].nucleus === '13C') {
+        formatAcsDefault(signals1D, false, 1, 0, solvent);
     }
 
     if (acsString.length > 0) acsString += '.';
@@ -43,16 +43,16 @@ module.exports.toACS = function (spectrum, options) {
     return acsString;
 };
 
-function formatAcsDefault(spectra, ascending, decimalValue, decimalJ, solvent) {
+function formatAcsDefault(signals1D, ascending, decimalValue, decimalJ, solvent) {
     appendSeparator();
-    appendSpectroInformation(spectra, solvent);
-    var numberSmartPeakLabels = spectra.length;
+    appendSpectroInformation(signals1D, solvent);
+    var numberSmartPeakLabels = signals1D.length;
     var signal;
     for (var i = 0; i < numberSmartPeakLabels; i++) {
         if (ascending) {
-            signal = spectra[i];
+            signal = signals1D[i];
         } else {
-            signal = spectra[numberSmartPeakLabels - i - 1];
+            signal = signals1D[numberSmartPeakLabels - i - 1];
         }
         if (signal) {
             appendSeparator();
@@ -62,16 +62,16 @@ function formatAcsDefault(spectra, ascending, decimalValue, decimalJ, solvent) {
     }
 }
 
-function appendSpectroInformation(spectrum, solvent) {
-    if (spectrum.type === 'NMR SPEC') {
-        if (spectrum[0].nucleus) {
-            acsString += formatNucleus(spectrum[0].nucleus);
+function appendSpectroInformation(signal1D, solvent) {
+    if (signal1D.type === 'NMR SPEC') {
+        if (signal1D[0].nucleus) {
+            acsString += formatNucleus(signal1D[0].nucleus);
         }
         acsString += ' NMR';
-        if ((solvent) || (spectrum[0].observe)) {
+        if ((solvent) || (signal1D[0].observe)) {
             acsString += ' (';
-            if (spectrum[0].observe) {
-                acsString += (spectrum[0].observe * 1).toFixed(0) + ' MHz';
+            if (signal1D[0].observe) {
+                acsString += (signal1D[0].observe * 1).toFixed(0) + ' MHz';
                 if (solvent) acsString += ', ';
             }
             if (solvent) {
@@ -80,9 +80,9 @@ function appendSpectroInformation(spectrum, solvent) {
             acsString += ')';
         }
         acsString += ' δ ';
-    } else if (spectrum.type === 'IR') {
+    } else if (signal1D.type === 'IR') {
         acsString += ' IR ';
-    } else if (spectrum.type === 'MASS') {
+    } else if (signal1D.type === 'MASS') {
         acsString += ' MASS ';
     }
 }

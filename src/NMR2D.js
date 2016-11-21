@@ -182,8 +182,9 @@ class NMR2D extends SD {
             peakList = zones;
         }
 
+        this.zones = peakList;
 
-        return peakList;
+        return this.zones;
     }
 
     /**
