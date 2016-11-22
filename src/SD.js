@@ -886,8 +886,8 @@ class SD {
      * @returns {*}
      */
     get totalIntegral() {
-        if(this.totalIntegral) {
-            return this.totalIntegral;
+        if(this.totalIntegralValue) {
+            return this.totalIntegralValue;
         }
         else{
             if(this.molecule) {
