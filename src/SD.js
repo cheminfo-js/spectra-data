@@ -7,6 +7,7 @@ var ArrayUtils = require('ml-array-utils');
 var JcampConverter = require('jcampconverter');
 var JcampCreator = require('./jcampEncoder/JcampCreator');
 var extend = require('extend');
+var OCL = require('openchemlib-extended');
 
 class SD {
     /**
@@ -870,6 +871,46 @@ class SD {
         }
         return this.sd.twoD;
     }
+
+    /**
+     * Set the normalization value for this spectrum
+     * @param value
+     */
+    setTotalIntegral(value) {
+        this.totalIntegralValue = value;
+    }
+
+    /**
+     * Return the normalization value. It is not set check the molfile and guess it from the number of atoms
+     * @returns {*}
+     */
+    get totalIntegral() {
+        if(this.totalIntegral) {
+            return this.totalIntegral;
+        }
+        else{
+            if(this.molecule) {
+                if(this.getNucleus(0).indexOf("H")){
+                    return this.mf.replace(/.*H([0-9]+).*/,"$1")*1;
+                }
+                if(this.getNucleus(0).indexOf("C")){
+                    return this.mf.replace(/.*C([0-9]+).*/,"$1")*1;
+                }
+            }
+            else{
+                throw "Could not determine the totalIntegral";
+            }
+        }
+    }
+
+    setMolfile(molfile) {
+        this.molfile;
+        this.molecule = OCL.Molecule.fromMolfile(molfile);
+        this.molecule.addImplicitHydrogens();
+        this.mf = this.molecule.getMolecularFormula().getFormula()+"";
+    }
+
+
 
     /**
      * @function toJcamp(options)
