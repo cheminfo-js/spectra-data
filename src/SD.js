@@ -9,6 +9,7 @@ var JcampCreator = require('./jcampEncoder/JcampCreator');
 var extend = require('extend');
 var OCL = require('openchemlib-extended');
 
+
 class SD {
     /**
      * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
@@ -898,7 +899,8 @@ class SD {
                 }
             }
             else{
-                throw "Could not determine the totalIntegral";
+                //throw "Could not determine the totalIntegral";
+                return 100;
             }
         }
     }
@@ -908,6 +910,10 @@ class SD {
         this.molecule = OCL.Molecule.fromMolfile(molfile);
         this.molecule.addImplicitHydrogens();
         this.mf = this.molecule.getMolecularFormula().getFormula()+"";
+    }
+
+    autoAssignment(options) {
+
     }
 
 
