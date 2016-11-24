@@ -1,8 +1,5 @@
 'use strict';
-/**
- * This library formats a set of nmr1D signals to the ACS format.
- * Created by acastillo on 3/11/15. p
- */
+
 const acs = require('./acs/acs');
 
 module.exports.nmrJ = function (Js, options) {
@@ -19,13 +16,7 @@ module.exports.nmrJ = function (Js, options) {
     return Jstring;
 };
 
-/**
- * This function converts an array of peaks [{x, y, width}] in a vector equally x,y vector
- * TODO This function is very general and should be placed somewhere else
- * @param peaks
- * @param opt
- * @returns {{x: Array, y: Array}}
- */
+
 module.exports.peak2Vector = require('./peak2Vector');
 
 
