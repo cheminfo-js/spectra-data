@@ -3,7 +3,6 @@
 
 var diagonalError = 0.05;
 var	tolerance = 0.05;
-const	DEBUG = false;
 
 module.exports = {
 
@@ -29,10 +28,6 @@ module.exports = {
 
         var properties = initializeProperties(signals);
         var output = signals;
-
-        if (DEBUG)			{
-            console.log('Before optimization size: ' + output.size());
-        }
 
 		//First step of the optimization: Symmetry validation
         var i, hits, index;
@@ -73,9 +68,6 @@ module.exports = {
             }
         }
 
-        if (DEBUG)			{
-            console.log('After optimization size: ' + count);
-        }
         var  toReturn = new Array(count);
         count--;
         for (i = output.length - 1; i >= 0; i--) {

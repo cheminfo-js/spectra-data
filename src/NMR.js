@@ -274,7 +274,7 @@ class NMR extends SD {
         var minY = this.getMinY();
         if (power < 1 && minY < 0) {
             this.YShift(-1 * minY);
-            console.warn('SD.powerFilter: The spectrum had negative values and was automatically shifted before applying the function.');
+            //console.warn('SD.powerFilter: The spectrum had negative values and was automatically shifted before applying the function.');
         }
         //@TODO Implement powerFilter
     }
@@ -289,7 +289,7 @@ class NMR extends SD {
         var minY = this.getMinY();
         if (minY <= 0) {
             this.YShift((-1 * minY) + 1);
-            console.warn('SD.logarithmFilter: The spectrum had negative values and was automatically shifted before applying the function.');
+            //console.warn('SD.logarithmFilter: The spectrum had negative values and was automatically shifted before applying the function.');
         }
         //@TODO Implement logarithmFilter filter
     }

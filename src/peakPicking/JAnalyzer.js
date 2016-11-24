@@ -9,7 +9,6 @@ const patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
 var symRatio = 1.5;
 var maxErrorIter1 = 2.5;//Hz
 var maxErrorIter2 = 1;//Hz
-const DEBUG = false;
 
 module.exports = {
     /**
@@ -18,7 +17,7 @@ module.exports = {
      * @param signal
      */
     compilePattern: function (signal) {
-        if (DEBUG) console.log('Debugin...');
+        //if (DEBUG) console.log('Debugin...');
 
         signal.multiplicity = 'm';//By default the multiplicity is massive
         // 1.1 symmetrize
@@ -29,12 +28,12 @@ module.exports = {
        // console.log(signal.delta1+" "+signal.symRank);
         //Is the signal symmetric?
         if (signal.symRank >= 0.95 && signal.peaksComp.length < 32) {
-            if (DEBUG)console.log(signal.delta1 + ' nbPeaks ' + signal.peaksComp.length);
+            //if (DEBUG)console.log(signal.delta1 + ' nbPeaks ' + signal.peaksComp.length);
             signal.asymmetric = false;
             var i, j, n, k = 1, P1, Jc = [], n2, maxFlagged;
             //Loop over the possible number of coupling contributing to the multiplet
             for (n = 0; n < 9; n++) {
-                if (DEBUG)console.log('Trying ' + n + ' couplings');
+                //if (DEBUG)console.log('Trying ' + n + ' couplings');
                 //1.2 Normalize. It makes a deep copy of the peaks before to modify them.
                 var peaks = normalize(signal, n);
                 //signal.peaksCompX = peaks;
@@ -51,19 +50,19 @@ module.exports = {
                 var ranges = getRanges(peaks);
                 n2 = Math.pow(2, n);
 
-                if (DEBUG) {
+                /*if (DEBUG) {
                     console.log('ranges: ' + JSON.stringify(ranges));
                     console.log('Target sum: ' + n2);
-                }
+                }*/
 
                 // 1.4 Find a combination of integer heights Hi, one from each Si, that sums to 2^n.
                 var heights = null;
                 while (!validPattern && (heights = getNextCombination(ranges, n2)) !== null) {
 
-                    if (DEBUG) {
+                    /*if (DEBUG) {
                         console.log('Possible pattern found with ' + n + ' couplings!!!');
                         console.log(heights);
-                    }
+                    }*/
                     // 2.1 Number the components of the multiplet consecutively from 1 to 2n,
                     //starting at peak 1
                     var numbering = new Array(heights.length);
@@ -74,9 +73,9 @@ module.exports = {
                             numbering[i][j] = k++;
                         }
                     }
-                    if (DEBUG) {
-                        console.log('Numbering: ' + JSON.stringify(numbering));
-                    }
+
+                    //if (DEBUG) console.log('Numbering: ' + JSON.stringify(numbering));
+
                     Jc = []; //The array to store the detected j-coupling
                     // 2.2 Set j = 1; J1 = P2 - P1. Flag components 1 and 2 as accounted for.
                     j = 1;
@@ -88,10 +87,10 @@ module.exports = {
                     var nFlagged = 2;
                     maxFlagged = Math.pow(2, n) - 1;
                     while (Jc.length < n && nFlagged < maxFlagged && k < peaks.length) {
-                        if (DEBUG) {
+                        /*if (DEBUG) {
                             console.log('New Jc' + JSON.stringify(Jc));
                             console.log('Aval. numbering ' + JSON.stringify(numbering));
-                        }
+                        }*/
                         // 4.1. Increment j. Set k to the number of the first unflagged component.
                         j++;
                         while (k < peaks.length && numbering[k].length === 0) {
@@ -132,12 +131,12 @@ module.exports = {
                         }
                     }
                     //More verbosity of the process
-                    if (DEBUG) {
+                    /*if (DEBUG) {
                         console.log('Jc ' + JSON.stringify(Jc));
                         console.log('Heights ' + JSON.stringify(heights));
                         console.log('pattern ' + JSON.stringify(pattern));
                         console.log('Valid? ' + validPattern);
-                    }
+                    }*/
                 }
                 //If we found a valid pattern we should inform about the pattern.
                 if (validPattern) {
@@ -168,9 +167,9 @@ function updateSignal(signal, Jc) {
     signal.multiplicity = abstractPattern(signal, Jc);
     signal.pattern = signal.multiplicity;//Our library depends on this parameter, but it is old
     //console.log(signal);
-    if (DEBUG)        {
+    /*if (DEBUG)        {
         console.log('Final j-couplings: ' + JSON.stringify(Jc));
-    }
+    }*/
 }
 
 /**
@@ -275,10 +274,10 @@ function getNextCombination(ranges, value) {
         if (ranges.values.length % 2 !== 0) {
             sum -= ranges.values[half - 1][ranges.currentIndex[half - 1]];
         }
-        if (DEBUG) {
+        /*if (DEBUG) {
             console.log(ranges.currentIndex);
             console.log(sum + ' ' + value);
-        }
+        }*/
     }
     //If the sum is equal to the expected value, fill the array to return
     if (sum == value) {
@@ -420,7 +419,7 @@ function symmetrize(signal, maxError, iteration) {
                         right++;
                     }
                 }
-                if (DEBUG) {
+                /*if (DEBUG) {
                     console.log('MaxError: ' + maxError + ' ' + middle[0] + ' ' + middle[1]);
                     console.log(iteration + ' CS: ' + cs + ' Hz ' + cs / signal.observe + ' PPM');
                     console.log('Middle: ' + (middle[0] / middle[1]) + ' Hz ' + (middle[0] / middle[1]) / signal.observe + ' PPM');
@@ -428,7 +427,7 @@ function symmetrize(signal, maxError, iteration) {
                     console.log(Math.abs(diffL - diffR));
                     console.log(JSON.stringify(peaks));
                     console.log(JSON.stringify(mask));
-                }
+                }*/
             }
         }
         left++;
@@ -473,10 +472,10 @@ function symmetrize(signal, maxError, iteration) {
         newSumHeights += peaks[i].intensity;
     }
     symFactor -= (heightSum - newSumHeights) / heightSum * 0.12; //Removed peaks penalty
-    if (DEBUG) {
+    /*if (DEBUG) {
         console.log('Penalty ' + (heightSum - newSumHeights) / heightSum * 0.12);
         console.log('cs: ' + (cs / signal.observe) + ' symFactor: ' + symFactor);
-    }
+    }*/
     //Sometimes we need a second opinion after the first symmetrization.
     if (symFactor > 0.8 && symFactor < 0.97 && iteration < 2) {
         return symmetrize(signal, maxErrorIter2, 2);
@@ -528,9 +527,7 @@ function normalize(signal, n) {
             index--;
         }
         if (peaks[i].intensity < 0.75) {
-            if (DEBUG)                {
-                console.log('Peak ' + i + ' does not seem to belong to this multiplet ' + peaks[i].intensity);
-            }
+            //if (DEBUG) console.log('Peak ' + i + ' does not seem to belong to this multiplet ' + peaks[i].intensity);
             peaks.splice(i, 1);
             signal.mask2[index] = false;
         }        else {
@@ -543,7 +540,7 @@ function normalize(signal, n) {
         peaks[i].intensity *= norm2;
     }
     //console.log("Mask1 "+JSON.stringify(signal.mask2));
-    if (DEBUG) console.log(JSON.stringify(peaks));
+    //if (DEBUG) console.log(JSON.stringify(peaks));
     return peaks;
 }
 
