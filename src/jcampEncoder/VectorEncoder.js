@@ -26,26 +26,22 @@ const SQZ_P = 1, SQZ_N = 2, DIF_P = 3, DIF_N = 4, DUP = 5, MaxLinelength = 100;
  * @returns {String}
  */
 function encode(data, firstX, intervalX, encoding) {
-    if (encoding == ('FIX'))        {
-        return fixEncoding(data, firstX, intervalX);
+    switch(encoding) {
+        case 'FIX':
+            return fixEncoding(data, firstX, intervalX);
+        case 'SQZ':
+            return squeezedEncoding(data, firstX, intervalX);
+        case 'DIF':
+            return differenceEncoding(data, firstX, intervalX);
+        case 'DIFDUP':
+            return differenceDuplicateEncoding(data, firstX, intervalX);
+        case 'CSV':
+            return commaSeparatedValuesEncoding(data, firstX, intervalX);
+        case 'PAC':
+            return packedEncoding(data, firstX, intervalX);
+        default:
+            return differenceEncoding(data, firstX, intervalX);
     }
-    if (encoding == ('SQZ'))        {
-        return squeezedEncoding(data, firstX, intervalX);
-    }
-    if (encoding == ('DIF'))        {
-        return differenceEncoding(data, firstX, intervalX);
-    }
-    if (encoding == ('DIFDUP'))        {
-        return differenceDuplicateEncoding(data, firstX, intervalX);
-    }
-    if (encoding == ('CSV'))        {
-        return commaSeparatedValuesEncoding(data, firstX, intervalX);
-    }
-    if (encoding == ('PAC'))        {
-        return packedEncoding(data, firstX, intervalX);
-    }
-    //Default
-    return differenceEncoding(data, firstX, intervalX);
 };
 
 /**
