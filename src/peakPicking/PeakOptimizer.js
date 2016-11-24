@@ -37,7 +37,7 @@ module.exports = {
             if (signal.peaks.length > 1)				{
                 properties[i][1]++;
             }
-            if (properties[i][0] == 1) {
+            if (properties[i][0] === 1) {
                 index = exist(output, properties, signal, -1, true);
                 if (index >= 0) {
                     properties[i][1] += 2;
@@ -48,7 +48,7 @@ module.exports = {
 		//Second step of the optimization: Diagonal image existence
         for (i = output.length - 1; i >= 0; i--) {
             signal = output[i];
-            if (properties[i][0] == 0) {
+            if (properties[i][0] === 0) {
                 hits = checkCrossPeaks(output, properties, signal, true);
                 properties[i][1] += hits;
 				//checkCrossPeaks(output, properties, signal, false);
@@ -74,11 +74,7 @@ module.exports = {
             if (properties[i][0] !== 0 && properties[i][1] > 2
 					|| properties[i][0] === 0 && properties[i][1] > 1) {
                 toReturn[count--] = output[i];
-            }            else {
-                console.log('Removed ' + i + ' ' + output[i].peaks.length);
             }
-			//if(properties.get(i)[1]>=2)
-			//	toReturn[count--]=output.get(i);
         }
         return toReturn;
     },
@@ -203,18 +199,18 @@ function checkCrossPeaks(output, properties, signal, updateProperties) {
 
 function exist(output, properties, signal, type, symmetricSearch) {
     for (var i = output.length - 1; i >= 0; i--) {
-        if (properties[i][0] == type) {
+        if (properties[i][0] === type) {
             if (distanceTo(signal, output[i], symmetricSearch) < tolerance) {
                 if (!symmetricSearch) {
-                    var shiftX = (output[i].shiftX + signal.shiftX) / 2.0;
-                    var shiftY = (output[i].shiftY + signal.shiftY) / 2.0;
+                    let shiftX = (output[i].shiftX + signal.shiftX) / 2.0;
+                    let shiftY = (output[i].shiftY + signal.shiftY) / 2.0;
                     output[i].shiftX = shiftX;
                     output[i].shiftY = shiftY;
                     signal.shiftX = shiftX;
                     signal.shiftY = shiftY;
-                }                else {
-                    var shiftX = signal.shiftX;
-                    var shiftY = output[i].shiftX;
+                } else {
+                    let shiftX = signal.shiftX;
+                    let shiftY = output[i].shiftX;
                     output[i].shiftY = shiftX;
                     signal.shiftY = shiftY;
                 }
@@ -278,14 +274,14 @@ function alignSingleDimension(signals2D, references) {
         for (j = 0; j < references.length; j++) {
             center = (references[j].startX + references[j].stopX) / 2;
             width = Math.abs(references[j].startX - references[j].stopX) / 2;
-            if (signal2D.nucleusX == references[j].nucleus) {
+            if (signal2D.nucleusX === references[j].nucleus) {
 				//The 2D peak overlaps with the 1D signal
                 if (Math.abs(signal2D.shiftX - center) <= width) {
                     signal2D._highlight.push(references[j]._highlight[0]);
                 }
 
             }
-            if (signal2D.nucleusY == references[j].nucleus) {
+            if (signal2D.nucleusY === references[j].nucleus) {
                 if (Math.abs(signal2D.shiftY - center) <= width) {
                     signal2D._highlight.push(references[j]._highlight[0]);
                 }

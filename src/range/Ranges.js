@@ -1,17 +1,17 @@
-'use strict'
+'use strict';
 /**
  * Implementation of the peak pickig method described by Cobas in:
  * A new approach to improving automated analysis of proton NMR spectra
  * through Global Spectral Deconvolution (GSD)
  * http://www.spectroscopyeurope.com/images/stories/ColumnPDFs/TD_23_1.pdf
  */
-const JAnalyzer = require('./../peakPicking/JAnalyzer');
+//const JAnalyzer = require('./../peakPicking/JAnalyzer');
 const peakPicking = require('./../peakPicking/PeakPicking');
 const acs = require('./acs/acs');
 const peak2Vector = require('./peak2Vector');
 const GUI = require('./visualizer/index');
 
-class Ranges extends Array{
+class Ranges extends Array {
 
     constructor(ranges) {
         if (Array.isArray(ranges)) {
@@ -111,7 +111,7 @@ class Ranges extends Array{
         return new Ranges(peakPicking(spectrum, this.options));
     }
 
-    update () {
+    update() {
         for (let i = 0; i < this.length; i++) {
             var range = this[i];
             for (let j = 0; j < range.signal.length; j++) {
@@ -127,7 +127,7 @@ class Ranges extends Array{
         return this;
     }
 
-    updateIntegrals (options) {
+    updateIntegrals(options) {
         var  factor = options.factor || 1;
         var i;
         if (options.sum) {
@@ -145,11 +145,11 @@ class Ranges extends Array{
         return this;
     }
 
-    toVector (opt) {
+    toVector(opt) {
         return peak2Vector(this.toPeakList(), opt);
-    };
+    }
 
-    toPeakList () {
+    toPeakList() {
         var peaks = [];
         var i, j;
         for (i = 0; i < this.length; i++) {
@@ -159,13 +159,13 @@ class Ranges extends Array{
             }
         }
         return peaks;
-    };
+    }
 
-    toACS (opt) {
+    toACS(opt) {
         return acs(this, opt);
     }
 
-    toAnnotations(options){
+    toAnnotations(options) {
         return GUI.annotations1D(this, options);
     }
 }

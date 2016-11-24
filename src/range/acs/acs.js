@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 /**
  * Created by acastillo on 11/21/16.
  */
@@ -16,8 +16,9 @@ module.exports = function (rangesIn, opt) {
     if (ranges[0].delta1) {//Old signals format
         return old.toACS(ranges, options);
     }
-    if(ranges.update)
+    if (ranges.update)        {
         ranges = ranges.update();
+    }
 
     acsString = '';
     parenthesis = '';
@@ -50,7 +51,7 @@ module.exports = function (rangesIn, opt) {
     if (acsString.length > 0) acsString += '.';
 
     return acsString;
-}
+};
 
 function formatAcsDefault(ranges, ascending, decimalValue, decimalJ, solvent, options) {
     appendSeparator();

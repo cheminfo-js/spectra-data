@@ -1,12 +1,11 @@
 'use strict';
 
-var SD = require('./SD');
-var peakPicking = require('./peakPicking/PeakPicking');
-var Ranges = require('./range/Ranges');
-var JcampConverter = require('jcampconverter');
-var fft = require('ml-fft');
-var Filters = require('./filters/Filters.js');
-var Brukerconverter = require('brukerconverter');
+const SD = require('./SD');
+const peakPicking = require('./peakPicking/PeakPicking');
+const Ranges = require('./range/Ranges');
+const JcampConverter = require('jcampconverter');
+const Filters = require('./filters/Filters.js');
+const Brukerconverter = require('brukerconverter');
 
 
 class NMR extends SD {
@@ -52,7 +51,7 @@ class NMR extends SD {
      * @returns {*}
      */
     getNucleus(dim) {
-        if (!dim || dim == 0 || dim == 1)            {
+        if (!dim || dim === 0 || dim === 1)            {
             return this.sd.xType;
         }        else {
             return '';
@@ -84,10 +83,10 @@ class NMR extends SD {
      * @returns {number}
      */
     getNMRPeakThreshold(nucleus) {
-        if (nucleus == '1H')            {
+        if (nucleus === '1H')            {
             return 3.0;
         }
-        if (nucleus == '13C')            {
+        if (nucleus === '13C')            {
             return 5.0;
         }
         return 1.0;
@@ -101,9 +100,9 @@ class NMR extends SD {
      * @param SNR Signal to noise ratio
      * @returns this object
      */
-    addNoise(SNR) {
+    /*addNoise(SNR) {
         //@TODO Implement addNoise filter
-    }
+    }*/
 
 
     /**
@@ -123,10 +122,10 @@ class NMR extends SD {
      * @returns this object
      * @example spec1 = addSpectraDatas(spec1,spec2,1,-1, false) This subtract spec2 from spec1
      */
-    addSpectraDatas(spec2, factor1, factor2, autoscale) {
+    /*addSpectraDatas(spec2, factor1, factor2, autoscale) {
         //@TODO Implement addSpectraDatas filter
 
-    }
+    }*/
 
     /**
      * @function autoBaseline()
@@ -134,9 +133,9 @@ class NMR extends SD {
      * should have meaningful integrals.
      * @returns this object
      */
-    autoBaseline() {
+    /*autoBaseline() {
         //@TODO Implement autoBaseline filter
-    }
+    }*/
 
     /**
      * @function fourierTransform()
@@ -182,9 +181,9 @@ class NMR extends SD {
      * @param whittakerLambda To be described
      * @returns this object
      */
-    haarWhittakerBaselineCorrection(waveletScale, whittakerLambda) {
+    /*haarWhittakerBaselineCorrection(waveletScale, whittakerLambda) {
         //@TODO Implement haarWhittakerBaselineCorrection filter
-    }
+    }*/
 
     /**
      * @function whittakerBaselineCorrection(whittakerLambda,ranges)
@@ -195,9 +194,9 @@ class NMR extends SD {
      * @param ranges A string containing the ranges of no signal.
      * @returns this object
      */
-    whittakerBaselineCorrection(whittakerLambda, ranges) {
+    /*whittakerBaselineCorrection(whittakerLambda, ranges) {
         //@TODO Implement whittakerBaselineCorrection filter
-    }
+    }*/
 
     /**
      * @function brukerFilter()
@@ -285,14 +284,14 @@ class NMR extends SD {
      * @param   base    The base to use
      * @returns this object
      */
-    logarithmFilter(base) {
+    /*logarithmFilter(base) {
         var minY = this.getMinY();
         if (minY <= 0) {
             this.YShift((-1 * minY) + 1);
             //console.warn('SD.logarithmFilter: The spectrum had negative values and was automatically shifted before applying the function.');
         }
         //@TODO Implement logarithmFilter filter
-    }
+    }*/
 
 
     /**
@@ -309,9 +308,9 @@ class NMR extends SD {
      * @example var smoothedSP = SD.correlationFilter(spectraData,[1,1]) returns a smoothed version of the
      * given spectraData.
      */
-    correlationFilter(func) {
+    /*correlationFilter(func) {
         //@TODO Implement correlationFilter filter
-    }
+    }*/
 
     /**
      * @function  phaseCorrection(phi0, phi1)
@@ -330,9 +329,9 @@ class NMR extends SD {
      * function and applies it.
      * @returns this object
      */
-    automaticPhase() {
+    /*automaticPhase() {
         //@TODO Implement automaticPhase filter
-    }
+    }*/
 
 
     /**
@@ -346,18 +345,18 @@ class NMR extends SD {
      * @returns {*}
      */
     autoPeakPicking(parameters) {
-        var params = Object.assign({},{nH: this.totalIntegral},parameters);
+        var params = Object.assign({}, {nH: this.totalIntegral}, parameters);
 
         let autoRanges = new Ranges(peakPicking(this, params));
-        if(params.force){
+        if (params.force) {
             this.ranges = autoRanges;
         }
         return autoRanges;
     }
 
-    autoAssignment(options) {
+    /*autoAssignment(options) {
 
-    }
+    }*/
 }
 
 module.exports = NMR;

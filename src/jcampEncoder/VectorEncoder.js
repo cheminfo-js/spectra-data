@@ -1,4 +1,5 @@
 'use strict';
+
 /**
 * class encodes a integer vector as a String in order to store it in a text file.
 * The algorithms used to encode the data are describe in:
@@ -26,7 +27,7 @@ const SQZ_P = 1, SQZ_N = 2, DIF_P = 3, DIF_N = 4, DUP = 5, MaxLinelength = 100;
  * @returns {String}
  */
 function encode(data, firstX, intervalX, encoding) {
-    switch(encoding) {
+    switch (encoding) {
         case 'FIX':
             return fixEncoding(data, firstX, intervalX);
         case 'SQZ':
@@ -42,7 +43,7 @@ function encode(data, firstX, intervalX, encoding) {
         default:
             return differenceEncoding(data, firstX, intervalX);
     }
-};
+}
 
 /**
  * No data compression used. The data is separated by a comma(',').
@@ -51,7 +52,7 @@ function encode(data, firstX, intervalX, encoding) {
  */
 function commaSeparatedValuesEncoding(data, firstX, intervalX) {
     return fixEncoding(data, firstX, intervalX, ',');
-};
+}
 
 /**
  * No data compression used. The data is separated by the specified separator.
@@ -80,7 +81,7 @@ function fixEncoding(data, firstX, intervalX, separator) {
         }
     }
     return outputData;
-};
+}
 /**
  * No data compression used. The data is separated by the sign of the number.
  * @param data
@@ -113,7 +114,7 @@ function packedEncoding(data, firstX, intervalX) {
         }
     }
     return outputData;
-};
+}
 /**
  * Data compression is possible using the squeezed form (SQZ) in which the delimiter, the leading digit,
  * and sign are replaced by a pseudo-digit from Table 1. For example, the Y-values 30, 32 would be
@@ -142,7 +143,7 @@ function squeezedEncoding(data, firstX, intervalX) {
     }
 
     return outputData;
-};
+}
 
 /**
  * Duplicate suppression encoding
@@ -163,13 +164,13 @@ function differenceDuplicateEncoding(data, firstX, intervalX) {
     //We simulate a line carry
     var numDiff = diffData.length;
     while (index < numDiff) {
-        if (charCount == 0) {//Start line
+        if (charCount === 0) {//Start line
             encodNumber = Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString()) + differenceDigit(diffData[index].toString());
             encodData += encodNumber;
             charCount += encodNumber.length;
         } else {
             //Try to insert next difference
-            if (diffData[index - 1] == diffData[index]) {
+            if (diffData[index - 1] === diffData[index]) {
                 mult++;
             } else {
                 if (mult > 0) {//Now we know that it can be in line
@@ -204,7 +205,7 @@ function differenceDuplicateEncoding(data, firstX, intervalX) {
     encodData += newLine + Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString());
 
     return encodData;
-};
+}
 
 /**
  * Differential encoding
@@ -227,7 +228,7 @@ function differenceEncoding(data, firstX, intervalX) {
     index = 0;
     var numDiff = diffData.length;
     while (index < numDiff) {
-        if (charCount == 0) {//Iniciar linea
+        if (charCount === 0) {//Iniciar linea
             //We convert the first number.
             encodNumber = Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString()) + differenceDigit(diffData[index].toString());
             encodData += encodNumber;
@@ -251,7 +252,7 @@ function differenceEncoding(data, firstX, intervalX) {
     encodData += newLine + Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString());
 
     return encodData;
-};
+}
 
 /**
  * Convert number to the ZQZ format, using pseudo digits.
@@ -261,7 +262,7 @@ function differenceEncoding(data, firstX, intervalX) {
 function squeezedDigit(num) {
     //console.log(num+" "+num.length);
     var SQZdigit = '';
-    if (num.charAt(0) == '-') {
+    if (num.charAt(0) === '-') {
         SQZdigit += pseudoDigits[SQZ_N][num.charAt(1)];
         if (num.length > 2)            {
             SQZdigit += num.substring(2);
@@ -274,7 +275,7 @@ function squeezedDigit(num) {
     }
 
     return SQZdigit;
-};
+}
 /**
  * Convert number to the DIF format, using pseudo digits.
  * @param num
@@ -283,7 +284,7 @@ function squeezedDigit(num) {
 function differenceDigit(num) {
     var DIFFdigit = '';
 
-    if (num.charAt(0) == '-') {
+    if (num.charAt(0) === '-') {
         DIFFdigit += pseudoDigits[DIF_N][num.charAt(1)];
         if (num.length > 2)            {
             DIFFdigit += num.substring(2);
@@ -298,7 +299,7 @@ function differenceDigit(num) {
     }
 
     return DIFFdigit;
-};
+}
 /**
  * Convert number to the DUP format, using pseudo digits.
  * @param num
@@ -315,14 +316,11 @@ function duplicateDigit(num) {
 }
 
 module.exports = {
-    encode,
-    fixEncoding,
-    commaSeparatedValuesEncoding,
-    packedEncoding,
-    squeezedEncoding,
-    differenceDuplicateEncoding,
-    differenceEncoding
+    encode: encode,
+    fixEncoding: fixEncoding,
+    commaSeparatedValuesEncoding: commaSeparatedValuesEncoding,
+    packedEncoding: packedEncoding,
+    squeezedEncoding: squeezedEncoding,
+    differenceDuplicateEncoding: differenceDuplicateEncoding,
+    differenceEncoding: differenceEncoding
 };
-
-'mode strict';
-

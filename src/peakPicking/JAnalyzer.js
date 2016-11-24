@@ -245,16 +245,15 @@ function idealPattern(Jc) {
 function getNextCombination(ranges, value) {
     var half = Math.ceil(ranges.values.length / 2), lng = ranges.values.length;
     var sum = 0, i, ok;
-    while (sum != value) {
+    while (sum !== value) {
         //Update the indexes to point at the next possible combination
         ok = false;
-        var leftIndex = 0;
         while (!ok) {
             ok = true;
             ranges.currentIndex[ranges.active]++;
             if (ranges.currentIndex[ranges.active] >= ranges.values[ranges.active].length) {
                 //In this case, there is no more possible combinations
-                if (ranges.active + 1 == half) {
+                if (ranges.active + 1 === half) {
                     return null;
                 }                else {
                     //If this happens we need to try the next active peak
@@ -280,7 +279,7 @@ function getNextCombination(ranges, value) {
         }*/
     }
     //If the sum is equal to the expected value, fill the array to return
-    if (sum == value) {
+    if (sum === value) {
         var heights = new Array(lng);
         for (i = 0; i < half; i++) {
             heights[i] = ranges.values[i][ranges.currentIndex[i]];
@@ -383,7 +382,7 @@ function symmetrize(signal, maxError, iteration) {
     while (left <= right) {
         mask[left] = true;
         mask[right] = true;
-        if (left == right) {
+        if (left === right) {
             if (nbPeaks > 2 && Math.abs(peaks[left].x - cs) > maxError) {
                 mask[left] = false;
             }
@@ -392,7 +391,7 @@ function symmetrize(signal, maxError, iteration) {
             min = Math.min(peaks[left].intensity, peaks[right].intensity);
             ratio = max / min;
             if (ratio > symRatio) {
-                if (peaks[left].intensity == min) {
+                if (peaks[left].intensity === min) {
                     mask[left] = false;
                     right++;
                 }                else {
@@ -411,7 +410,7 @@ function symmetrize(signal, maxError, iteration) {
                     peaks[left].width = peaks[right].width = avgWidth;
                     middle = [middle[0] + ((peaks[right].x + peaks[left].x) / 2), middle[1] + 1];
                 }                else {
-                    if (Math.max(diffL, diffR) == diffR) {
+                    if (Math.max(diffL, diffR) === diffR) {
                         mask[right] = false;
                         left--;
                     }                    else {
@@ -433,7 +432,7 @@ function symmetrize(signal, maxError, iteration) {
         left++;
         right--;
         //Only alter cs if it is the first iteration of the sym process.
-        if (iteration == 1) {
+        if (iteration === 1) {
             cs = chemicalShift(peaks, mask);
             //There is not more available peaks
             if (isNaN(cs)) {
@@ -454,7 +453,7 @@ function symmetrize(signal, maxError, iteration) {
     }
     signal.delta1 = cs / signal.observe;
     //Now, the peak should be symmetric in heights, but we need to know if it is symmetric in x
-    var symFactor = 0, weight = 0;
+    let symFactor = 0, weight = 0;
     if (peaks.length > 1) {
         for (i = Math.ceil(peaks.length / 2) - 1; i >= 0; i--) {
             symFactor += (3 + Math.min(Math.abs(peaks[i].x - cs), Math.abs(peaks[peaks.length - 1 - i].x - cs)))
@@ -463,7 +462,7 @@ function symmetrize(signal, maxError, iteration) {
         }
         symFactor /= weight;
     }    else {
-        if (peaks.length == 1)            {
+        if (peaks.length === 1)            {
             symFactor = 1;
         }
     }
@@ -479,10 +478,10 @@ function symmetrize(signal, maxError, iteration) {
     //Sometimes we need a second opinion after the first symmetrization.
     if (symFactor > 0.8 && symFactor < 0.97 && iteration < 2) {
         return symmetrize(signal, maxErrorIter2, 2);
-    } {
+    } else {
         //Center the given pattern at cs and symmetrize x
         if (peaks.length > 1) {
-            var weight = 0, dxi;
+            let dxi;
             for (i = Math.ceil(peaks.length / 2) - 1; i >= 0; i--) {
                 dxi = (peaks[i].x - peaks[peaks.length - 1 - i].x) / 2.0;
                 peaks[i].x = cs + dxi;

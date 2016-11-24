@@ -1,10 +1,11 @@
 'use strict';
 
-var SD = require('./SD');
-var peakPicking2D = require('./peakPicking/PeakPicking2D');
-var PeakOptimizer = require('./peakPicking/PeakOptimizer');
-var JcampConverter = require('jcampconverter');
-var Brukerconverter = require('brukerconverter');
+const SD = require('./SD');
+const peakPicking2D = require('./peakPicking/PeakPicking2D');
+const PeakOptimizer = require('./peakPicking/PeakOptimizer');
+const JcampConverter = require('jcampconverter');
+const Brukerconverter = require('brukerconverter');
+const Filters = require('./filters/Filters.js');
 
 
 class NMR2D extends SD {
@@ -48,7 +49,7 @@ class NMR2D extends SD {
      * @returns {boolean}
      */
     isHomoNuclear() {
-        return this.sd.xType == this.sd.yType;
+        return this.sd.xType === this.sd.yType;
     }
 
     /**
@@ -185,10 +186,10 @@ class NMR2D extends SD {
      * @returns {number}
      */
     getNMRPeakThreshold(nucleus) {
-        if (nucleus == '1H')            {
+        if (nucleus === '1H')            {
             return 3.0;
         }
-        if (nucleus == '13C')            {
+        if (nucleus === '13C')            {
             return 5.0;
         }
         return 1.0;
@@ -201,10 +202,10 @@ class NMR2D extends SD {
      * @returns {string}
      */
     getNucleus(dim) {
-        if (dim == 1)            {
+        if (dim === 1)            {
             return this.sd.xType;
         }
-        if (dim == 2)            {
+        if (dim === 2)            {
             return this.sd.yType;
         }
         return this.sd.xType;

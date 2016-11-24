@@ -6,7 +6,7 @@
 var Data = require('../../index.js');
 var FS = require('fs');
 
-function createSpectraData(filename, label, data) {
+function createSpectraData(filename) {
     var spectrum = Data.NMR.fromJcamp(
         FS.readFileSync(__dirname + filename).toString()
     );
@@ -17,7 +17,7 @@ function createSpectraData(filename, label, data) {
 describe('spectra-data examples peak picking ', function () {
     var nH = 8;
     var spectrum = createSpectraData('/../../../data-test/ethylvinylether/1h.jdx');
-    var peakPicking = spectrum.autoPeakPicking({'nH': nH, realTop: true, thresholdFactor: 1, clean: true, compile: true, idPrefix: '1H', format: "new"});
+    var peakPicking = spectrum.autoPeakPicking({'nH': nH, realTop: true, thresholdFactor: 1, clean: true, compile: true, idPrefix: '1H', format: 'new'});
     it('patterns for ethylvinylether (OLD)', function () {
 
         for (var i = 0; i < peakPicking.length; i++) {

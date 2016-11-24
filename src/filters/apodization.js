@@ -4,6 +4,11 @@
  */
 
 function apodization(spectraData, parameters) {
+    let params = Object.assign({}, parameters);
+    if (!params) {
+        return spectraData;
+    }
+    return spectraData;
     //org.cheminfo.hook.nemo.filters.ApodizationFilter
 
     /*public String toString() {

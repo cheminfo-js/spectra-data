@@ -23,10 +23,6 @@ function fourierTransform(spectraData) {
     for (var iSubSpectra = 0; iSubSpectra < nSubSpectra; iSubSpectra++)    {
         var re = spectraData.getYData(2 * iSubSpectra);
         var im = spectraData.getYData(2 * iSubSpectra + 1);
-        if (false) {
-            console.log('firstPoint: (' + re[0] + ',' + im[0] + ')');
-            console.log('fcor: ' + fcor);
-        }
         re[0] *= fcor;
         im[0] *= fcor;
 
@@ -45,20 +41,17 @@ function fourierTransform(spectraData) {
     //TODO For Alejandro
     //Now we can try to apply the FFt on the second dimension
     if (spectraData.is2D()) {
-        var mode = spectraData.getParam('.ACQUISITION SCHEME');
-        switch (mode) {
+        //var mode = spectraData.getParam('.ACQUISITION SCHEME');
+        /*switch (mode) {
             case 1://"State-TPP"
                 break;
             case 2://State
                 break;
             case 3://Echo-Antiecho
                 break;
-                defaut:
                 //QF
                 //Does not transform in the indirect dimension
-            break;
-
-        }
+        }*/
     }
     spectraData.setActiveElement(0);
     return spectraData;

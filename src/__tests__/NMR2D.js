@@ -1,9 +1,9 @@
 'use strict';
 
-var Data = require('..');
-var FS = require('fs');
+const Data = require('..');
+const FS = require('fs');
 
-function createSpectraData(filename, label, data) {
+function createSpectraData(filename) {
     var spectrum = Data.NMR2D.fromJcamp(
         FS.readFileSync(__dirname + filename).toString()
     );

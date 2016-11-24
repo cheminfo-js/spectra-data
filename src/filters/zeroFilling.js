@@ -3,11 +3,11 @@
  * Created by abol on 4/20/16.
  */
 
-function zeroFilling(spectraData, zeroFillingX, zeroFillingY) {
+function zeroFilling(spectraData, zeroFillingX) {
     var nbSubSpectra = spectraData.getNbSubSpectra();
     //var zeroPadding = spectraData.getParamDouble("$$ZEROPADDING", 0);
     var nbXPoints, lastX, deltaX, k, x, y;
-    if (zeroFillingX != 0) {
+    if (zeroFillingX !== 0) {
         for (var iSubSpectra = 0; iSubSpectra < nbSubSpectra; iSubSpectra++) {
             spectraData.setActiveElement(iSubSpectra);
             nbXPoints = spectraData.getNbPoints();
@@ -27,6 +27,7 @@ function zeroFilling(spectraData, zeroFillingX, zeroFillingY) {
             spectraData.setLastX(x[x.length - 1]);
         }
     }
+
     spectraData.setActiveElement(0);
     return spectraData;
     // @TODO implement zeroFillingY

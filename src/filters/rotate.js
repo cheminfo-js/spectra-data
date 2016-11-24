@@ -8,6 +8,7 @@
  * @example rotate([1,2,3,4],1) -> [4,1,2,3]
  * @example rotate([1,2,3,4],-1) -> [2,3,4,1]
  * @param array
+ * @param shift
  */
 function rotate(array, shift) {
     var nbPoints = array.length;
@@ -19,7 +20,7 @@ function rotate(array, shift) {
         shift = shift > 0 ? shift - nbPoints : shift + nbPoints;
     }
 
-    if (shift != 0) {
+    if (shift !== 0) {
         var currentIndex = 0, nextIndex = shift;
         var toMove = nbPoints;
         var current = array[currentIndex], next;
@@ -34,7 +35,7 @@ function rotate(array, shift) {
             current = next;
             toMove--;
 
-            if (nextIndex == lastFirstIndex) {
+            if (nextIndex === lastFirstIndex) {
                 nextIndex = putInRange(nextIndex + direction, nbPoints);
                 lastFirstIndex = nextIndex;
                 currentIndex = putInRange(nextIndex - shift, nbPoints);
@@ -55,8 +56,3 @@ function putInRange(value, nbPoints) {
 }
 
 module.exports = rotate;
-
-
-/*var foo = [1,2,3,4,5,6];
-rotate(foo,-4);
-console.log(foo);*/

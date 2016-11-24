@@ -2,6 +2,13 @@
 /**
  * Created by acastillo on 4/26/16.
  */
+
+/**
+ * Phase correction filter
+ * @param spectraData
+ * @param phi0
+ * @param phi1
+ */
 function phaseCorrection(spectraData, phi0, phi1) {
     //System.out.println(spectraData.toString());
     var nbPoints = spectraData.getNbPoints();
@@ -14,9 +21,6 @@ function phaseCorrection(spectraData, phi0, phi1) {
 
         //double phi0 = phi.getX();
         //double phi1 = phi.getY();
-
-    if (false) System.out.println(' ph0 = ' + phi0);
-    if (false) System.out.println(' ph1 = ' + phi1);
 
     var delta = phi1 / nbPoints;
     var alpha = 2 * Math.pow(Math.sin(delta / 2), 2);

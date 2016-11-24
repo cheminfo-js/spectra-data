@@ -1,14 +1,13 @@
 'use strict';
 
 const impuritiesList = require('./impurities.json');
-
-var look4 = 'solvent_residual_peak' + 'H2O' + 'TMS';
+const look4 = 'solvent_residual_peak' + 'H2O' + 'TMS';
 //var pascalTriangle = [[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1],[1,5,10,10,5,1],[1,6,15,20,15,6,1]];
 //var patterns = ["s","d","t","q","quint","h","sept","o","n"];
 
-function removeSignal(peak, noiseSignal) {
+/*function removeSignal(peak, noiseSignal) {
 
-}
+}*/
 
 function checkImpurity(peakList, impurity) {
     var error = 0.025, i;
@@ -54,7 +53,6 @@ function removeImpurities(peakList, solvent, nH) {
         }
     }
     impurities.push({'shifts': [{'proton': 'X', 'coupling': 0, 'multiplicity': '', 'shift': 0.0}], 'name': 'TMS'});
-    var nCols = peakList.length;
     var nRows = impurities.length;
     var scores = new Array(nRows);
     for (i = 0; i < nRows; i++) {
@@ -67,7 +65,7 @@ function removeImpurities(peakList, solvent, nH) {
     for (i = 0; i < peakList.length; i++) {
         sumObserved += peakList[i].integralData.value;
     }
-    if (sumObserved != nH) {
+    if (sumObserved !== nH) {
         sumObserved = nH / sumObserved;
         for (i = 0; i < peakList.length; i++) {
             peakList[i].integralData.value *= sumObserved;

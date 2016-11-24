@@ -17,7 +17,7 @@ const CRLF = '\r\n';
 const version = 'Cheminfo tools, March 2016';
 const defaultParameters = {'encode': 'DIFDUP', 'yFactor': 1, 'type': 'SIMPLE', 'keep': []};
 
-class JcampCreator{
+class JcampCreator {
     /**
      * This function creates a String that represents the given spectraData, in the format JCAM-DX 5.0
      * The X,Y data can be compressed using one of the methods described in:
@@ -35,7 +35,7 @@ class JcampCreator{
         let type = opt.type;
         const userDefinedParams = opt.keep;
 
-        if (type === null || type.length == 0)            {
+        if (type === null || type.length === 0)            {
             type = 'SIMPLE';
         }
 
@@ -57,11 +57,11 @@ class JcampCreator{
         outString += '##OWNER= ' + spectraData.getParamString('##OWNER=', '') + CRLF;
         outString += '##DATA TYPE= ' + spectraData.getDataType() + CRLF;
 
-        if (type == 'NTUPLES') {
+        if (type === 'NTUPLES') {
             outString += ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams);
         }
 
-        if (type == 'SIMPLE') {
+        if (type === 'SIMPLE') {
             outString += simpleHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams);
         }
         return outString;
@@ -109,10 +109,9 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
         outString += '##$DECIM= ' + spectraData.getParamDouble('$DECIM', 0) + CRLF;
         outString += '##$DSPFVS= ' + spectraData.getParamDouble('$DSPFVS', 0) + CRLF;
         outString += '##$FCOR= ' + (Math.floor(spectraData.getParamDouble('$FCOR', 0))) + CRLF;
-        if (spectraData.containsParam('$SW_h'))                {
+        if (spectraData.containsParam('$SW_h')) {
             outString += '##$SW_h= ' + spectraData.getParamDouble('$SW_h', 0) + CRLF;
-        }            else
-        if (spectraData.containsParam('$SW_p'))                {
+        } else if (spectraData.containsParam('$SW_p'))                {
             outString += '##$SW_p= ' + spectraData.getParamDouble('$SW_p', 0) + CRLF;
         }
         outString += '##$SW= ' + spectraData.getParamDouble('$SW', 0) + CRLF;
@@ -123,13 +122,13 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
         outString += '##.PULSE SEQUENCE= ' + spectraData.getParamString('.PULSE SEQUENCE', '') + CRLF;
         outString += '##.SOLVENT NAME= ' + spectraData.getSolventName() + CRLF;
         outString += '##$NUC1= <' + spectraData.getNucleus() + '>' + CRLF;
-        if (spectraData.containsParam('2D_X_FREQUENCY'))                {
+        if (spectraData.containsParam('2D_X_FREQUENCY')) {
             outString += '##$SFO1= ' + spectraData.getParamDouble('2D_X_FREQUENCY', 0) + CRLF;
-        }            else                {
+        } else {
             outString += '##$SFO1= ' + spectraData.getParamDouble('$SFO1', 0) + CRLF;
         }
 
-        if (spectraData.containsParam('2D_X_OFFSET'))                {
+        if (spectraData.containsParam('2D_X_OFFSET')) {
             outString += '##$OFFSET= ' + spectraData.getParamDouble('2D_X_OFFSET', 0) + CRLF;
         }
 
@@ -141,7 +140,7 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
                 outString += '##$SFO2= ' + spectraData.getParamDouble('2D_Y_FREQUENCY', 0) + CRLF;
                 outString += '##$BF2= ' + spectraData.getParamDouble('2D_Y_FREQUENCY', 0) + CRLF;
             }
-            if (spectraData.containsParam('2D_Y_OFFSET'))                    {
+            if (spectraData.containsParam('2D_Y_OFFSET')) {
                 outString += '##$OFFSET= ' + spectraData.getParamDouble('2D_Y_OFFSET', 0) + CRLF;
             }
 
@@ -157,41 +156,41 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
         outString += '##VAR_NAME=\t' + spectraData.getXUnits() + ',\t' + nTuplesName.substring(4) + '/REAL,\t' + nTuplesName.substring(4) + '/IMAG' + CRLF;
         outString += '##SYMBOL=\tX,\tR,\tI' + CRLF;
         outString += '##VAR_TYPE=\tINDEPENDENT,\tDEPENDENT,\tDEPENDENT' + CRLF;
-        if (encodeFormat != 'CSV' || encodeFormat != 'PAC')                {
+        if (encodeFormat !== 'CSV' || encodeFormat !== 'PAC') {
             outString += '##VAR_FORM=\tAFFN,\tASDF,\tASDF' + CRLF;
-        }            else                {
+        } else {
             outString += '##VAR_FORM=\tAFFN,\tAFFN,\tAFFN' + CRLF;
         }
         outString += '##VAR_DIM=\t' + spectraData.getNbPoints() + ',\t' + spectraData.getNbPoints() + ',\t' + spectraData.getNbPoints() + CRLF;
         outString += '##UNITS=\tHZ' + ',\t' + spectraData.getYUnits() + ',\t' + variableZ.units + CRLF;
         outString += '##FACTOR=\t' + 1.0 / scaleX + ',\t' + 1.0 / scale + ',\t' + 1.0 / scale + CRLF;
 
-        if (spectraData.getXUnits() == 'PPM')                {
+        if (spectraData.getXUnits() === 'PPM') {
             freq1 = spectraData.observeFrequencyX();
         }
 
         outString += '##FIRST=\t' + spectraData.getFirstX() * freq1 + ',\t' + spectraData.getY(0) + ',\t0' + CRLF;
         outString += '##LAST=\t' + spectraData.getLastX() * freq1 + ',\t' + spectraData.getLastY() + ',\t0' + CRLF;
-    }        else {
+    } else {
         freq1 = 1;
         if (spectraData.is2D()) {
             outString += '##VAR_NAME=\tFREQUENCY1,\tFREQUENCY2,\tSPECTRUM' + CRLF;
             outString += '##SYMBOL=\tF1,\tF2,\tY' + CRLF;
             outString += '##.NUCLEUS=\t' + spectraData.getNucleus(2) + ',\t' + spectraData.getNucleus(1) + CRLF;
             outString += '##VAR_TYPE=\tINDEPENDENT,\tINDEPENDENT,\tDEPENDENT' + CRLF;
-            if (encodeFormat != 'CSV' || encodeFormat != 'PAC')                    {
+            if (encodeFormat !== 'CSV' || encodeFormat !== 'PAC') {
                 outString += '##VAR_FORM=\tAFFN,\tAFFN,\tASDF' + CRLF;
-            }                else                    {
+            } else {
                 outString += '##VAR_FORM=\tAFFN,\tAFFN,\tASDF' + CRLF;
             }
             outString += '##VAR_DIM=\t' + spectraData.getNbSubSpectra() + ',\t' + spectraData.getNbPoints() + ',\t' + spectraData.getNbPoints() + CRLF;
             //We had to change this, for Mestre compatibility
             //outString+=("##UNITS=\tHZ,\t"+ spectraData.getXUnits() + ",\t" + spectraData.getYUnits()+CRLF);
             outString += '##UNITS=\tHZ,\tHZ,\t' + spectraData.getYUnits() + CRLF;
-            if (spectraData.getXUnits() == 'PPM')                    {
+            if (spectraData.getXUnits() === 'PPM')                    {
                 freq1 = spectraData.getParamDouble('2D_Y_FREQUENCY', 1);
             }
-            if (spectraData.getYUnits() == 'PPM') {
+            if (spectraData.getYUnits() === 'PPM') {
                 freq2 = spectraData.getParamDouble('2D_X_FREQUENCY', 1);
             }
             outString += '##FACTOR=\t1,\t' + freq2 / scaleX + ',\t' + 1.0 / scale + CRLF;
@@ -202,14 +201,14 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
             outString += '##VAR_NAME=\t' + variableX.varname + ',\t' + variableY.varname + ',\t' + variableX.varname + CRLF;
             outString += '##SYMBOL=\t' + variableX.symbol + ',\t' + variableY.symbol + ',\t' + variableZ.symbol + CRLF;
             outString += '##VAR_TYPE=\t' + variableX.vartype + ',\t' + variableY.vartype + ',\t' + variableZ.vartype + CRLF;
-            if (encodeFormat != 'CSV' || encodeFormat != 'PAC')                    {
+            if (encodeFormat !== 'CSV' || encodeFormat !== 'PAC')                    {
                 outString += '##VAR_FORM=\tAFFN,\tASDF,\tASDF' + CRLF;
             }                else                    {
                 outString += '##VAR_FORM=\tAFFN,\tAFFN,\tAFFN' + CRLF;
             }
             outString += '##VAR_DIM=\t' + variableX.vardim + ',\t' + variableY.vardim + ',\t' + variableZ.vardim + CRLF;
             outString += '##UNITS=\tHZ' + ',\t' + spectraData.getYUnits() + ',\t' + variableZ.units + CRLF;
-            if (spectraData.getXUnits() == 'PPM')                    {
+            if (spectraData.getXUnits() === 'PPM')                    {
                 freq1 = spectraData.observeFrequencyX();
             }
             outString += '##FACTOR=\t' + 1.0 / scaleX + ',\t' + 1.0 / scale + CRLF;
@@ -220,7 +219,7 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
     }
 
     //Set the user defined parameters
-    if (userDefinedParams != null) {
+    if (userDefinedParams !== null) {
         for (var i = userDefinedParams.length - 1; i >= 0; i--) {
             if (spectraData.containsParam(userDefinedParams[i])) {
                 outString += '##' + userDefinedParams[i] + '= '
@@ -250,7 +249,7 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
         outString += '##DATA TABLE= ';
         if (spectraData.isDataClassPeak()) {
             outString += '(XY..XY), PEAKS' + CRLF;
-            for (var point = 0; point < spectraData.getNbPoints(); point++)                    {
+            for (let point = 0; point < spectraData.getNbPoints(); point++)                    {
                 outString += spectraData.getX(point) + ', ' + spectraData.getY(point) + CRLF;
             }
 
@@ -259,7 +258,7 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
                 if (spectraData.is2D()) {
                     outString += '(F2++(Y..Y)), PROFILE' + CRLF;
                 }                    else {
-                    if (sub % 2 == 0)                            {
+                    if (sub % 2 === 0)                            {
                         outString += '(X++(R..R)), XYDATA' + CRLF;
                     }                        else                            {
                         outString += '(X++(I..I)), XYDATA' + CRLF;
@@ -271,7 +270,7 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
 
             var tempString = '';
             var data = new Array(spectraData.getNbPoints());
-            for (var point = data.length - 1; point >= 0; point--) {
+            for (let point = data.length - 1; point >= 0; point--) {
                 data[point] = Math.round((spectraData.getY(point) * scale));
             }
 
@@ -287,11 +286,11 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
     spectraData.setActiveElement(0);
 
     return outString;
-};
+}
 
 function simpleHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams) {
-    var variableX = spectraData.getSpectraVariable(0);
-    var variableY = spectraData.getSpectraVariable(1);
+    //var variableX = spectraData.getSpectraVariable(0);
+    //var variableY = spectraData.getSpectraVariable(1);
     var outString = '';
     if (spectraData.isDataClassPeak())            {
         outString += '##DATA CLASS= PEAK TABLE' + CRLF;
@@ -336,7 +335,7 @@ function simpleHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams)
     outString += '##MINY= ' + spectraData.getMinY() + CRLF;
 
     //Set the user defined parameters
-    if (userDefinedParams != null) {
+    if (userDefinedParams !== null) {
         for (var i = userDefinedParams.length - 1; i >= 0; i--) {
             if (spectraData.containsParam(userDefinedParams[i])) {
                 outString += '##' + userDefinedParams[i] + '= '
@@ -358,7 +357,7 @@ function simpleHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams)
         outString += '##XYDATA=(X++(Y..Y))' + CRLF;
         var tempString = '';
         var data = new Array(spectraData.getNbPoints());
-        for (var point = data.length - 1; point >= 0; point--) {
+        for (let point = data.length - 1; point >= 0; point--) {
             data[point] = Math.round(spectraData.getY(point) * scale);
         }
 

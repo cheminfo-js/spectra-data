@@ -2,13 +2,14 @@
 // small note on the best way to define array
 // http://jsperf.com/lp-array-and-loops/2
 
-var StatArray = require('ml-stat').array;
-var ArrayUtils = require('ml-array-utils');
-var JcampConverter = require('jcampconverter');
-var JcampCreator = require('./jcampEncoder/JcampCreator');
-var extend = require('extend');
-var OCL = require('openchemlib-extended');
+const StatArray = require('ml-stat').array;
+const ArrayUtils = require('ml-array-utils');
+const JcampConverter = require('jcampconverter');
+const JcampCreator = require('./jcampEncoder/JcampCreator');
+const OCL = require('openchemlib-extended');
 
+const DATACLASS_XY = 1;
+const DATACLASS_PEAK = 2;
 
 class SD {
     /**
@@ -17,9 +18,6 @@ class SD {
      * @constructor
      */
     constructor(sd) {
-        this.DATACLASS_XY = 1;
-        this.DATACLASS_PEAK = 2;
-
         this.sd = sd;
         this.activeElement = 0;
     }
@@ -198,11 +196,11 @@ class SD {
      * @param dataClass
      */
     setDataClass(dataClass) {
-        if (dataClass === this.DATACLASS_PEAK) {
+        if (dataClass === DATACLASS_PEAK) {
             this.getSpectrum().isPeaktable = true;
             this.getSpectrum().isXYdata = false;
         }
-        if (dataClass === this.DATACLASS_XY) {
+        if (dataClass === DATACLASS_XY) {
             this.getSpectrum().isXYdata = true;
             this.getSpectrum().isPeaktable = false;
         }
@@ -588,7 +586,7 @@ class SD {
      */
     suppressZone(from, to) {
         this.fillWith(from, to);
-        this.setDataClass(this.DATACLASS_PEAK);
+        this.setDataClass(DATACLASS_PEAK);
     }
 
 
@@ -886,34 +884,33 @@ class SD {
      * @returns {*}
      */
     get totalIntegral() {
-        if(this.totalIntegralValue) {
+        if (this.totalIntegralValue) {
             return this.totalIntegralValue;
-        }
-        else {
-            if(this.molecule) {
-                if(this.getNucleus(0).indexOf("H")) {
-                    return this.mf.replace(/.*H([0-9]+).*/,"$1")*1;
-                }
-                if(this.getNucleus(0).indexOf("C")){
-                    return this.mf.replace(/.*C([0-9]+).*/,"$1")*1;
-                }
-            } else {
-                //throw "Could not determine the totalIntegral";
-                return 100;
+        }        else if (this.molecule) {
+            if (this.getNucleus(0).indexOf('H')) {
+                return this.mf.replace(/.*H([0-9]+).*/, '$1') * 1;
             }
+            if (this.getNucleus(0).indexOf('C')) {
+                return this.mf.replace(/.*C([0-9]+).*/, '$1') * 1;
+            }
+        } else {
+                //throw "Could not determine the totalIntegral";
+            return 100;
         }
+
+        return 1;
     }
 
     setMolfile(molfile) {
-        this.molfile;
+        this.molfile = molfile;
         this.molecule = OCL.Molecule.fromMolfile(molfile);
         this.molecule.addImplicitHydrogens();
-        this.mf = this.molecule.getMolecularFormula().getFormula()+"";
+        this.mf = this.molecule.getMolecularFormula().getFormula() + '';
     }
 
-    autoAssignment(options) {
+    /*autoAssignment(options) {
 
-    }
+    }*/
 
     /**
      * @function toJcamp(options)

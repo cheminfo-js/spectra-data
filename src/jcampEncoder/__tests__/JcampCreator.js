@@ -7,7 +7,7 @@
 var Data = require('../../..');
 var FS = require('fs');
 
-function createSpectraData(filename, label, data) {
+function createSpectraData(filename) {
     var spectrum = Data.NMR.fromJcamp(
         FS.readFileSync(__dirname + filename).toString()
     );

@@ -3,12 +3,11 @@
  */
 'use strict';
 
-var Ranges = require('../Ranges');
-var utils = require('../utils');
-var FS = require('fs');
-var Data = require('../../');
+const utils = require('../utils');
+const FS = require('fs');
+const Data = require('../../');
 
-function createSpectraData(filename, label, data) {
+function createSpectraData(filename) {
     var spectrum = Data.NMR.fromJcamp(
         FS.readFileSync(__dirname + filename).toString()
     );

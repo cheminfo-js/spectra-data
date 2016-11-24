@@ -18,7 +18,7 @@ function digitalFilter(spectraData, options) {
     }
 
     var nbSubSpectra = spectraData.getNbSubSpectra();
-    if (nbPoints != 0) {
+    if (nbPoints !== 0) {
         for (var iSubSpectra = 0; iSubSpectra < nbSubSpectra; iSubSpectra++) {
             spectraData.setActiveElement(iSubSpectra);
             rotate(spectraData.getYData(), nbPoints);

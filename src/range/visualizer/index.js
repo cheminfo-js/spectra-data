@@ -21,7 +21,7 @@ function annotations1D(ranges, optionsG) {
         if (!annotation._highlight || annotation._highlight.length === 0) {
             annotation._highlight = [prediction.signalID];
             prediction.signal.forEach(function (signal) {
-                for(let j = 0; j < signal.diaID.length; j++) {
+                for (let j = 0; j < signal.diaID.length; j++) {
                     annotation._highlight.push(signal.diaID[j]);
                 }
             });

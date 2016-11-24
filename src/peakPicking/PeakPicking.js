@@ -24,7 +24,7 @@ const defaultOptions = {
 };
 
 
-module.exports = function (spectrum, optionsEx) {
+function extractPeaks(spectrum, optionsEx) {
     var options = Object.assign({}, defaultOptions, optionsEx);
     var i, j, nHi, sum;
 
@@ -68,7 +68,6 @@ module.exports = function (spectrum, optionsEx) {
         }
     }
 
-    //console.log(signals);
     if (options.compile || false) {
         for (i = 0; i < signals.length; i++) {
             //console.log("Sum "+signals[i].integralData.value);
@@ -174,7 +173,7 @@ module.exports = function (spectrum, optionsEx) {
      return [peakList,imp];
      */
     //return createSignals(peakList,nH);
-};
+}
 
 function clearList(peakList, threshold) {
     for (var i = peakList.length - 1; i >= 0; i--) {
@@ -183,128 +182,6 @@ function clearList(peakList, threshold) {
         }
     }
     return peakList;
-}
-
-
-/**
- * This method implements a non linear sampling of the spectrum. The point close to
- * the critic points are more sampled than the other ones.
- * @param spectrum
- * @param peaks
- * @param rowWise
- */
-/*function sampling(spectrum, peaks, rowWise) {
-    var i0, ie, ic, i, j, nbPoints;
-    var xy = [];
-    if (i0 > ie) {
-        var tmp = i0;
-        i0 = ie;
-        ie = tmp;
-    }
-    //Non linear sampling for each peak.
-    for (i = 0; i < peaks.length; i++) {
-        var more = true;
-        var nL = 4;
-        while (more) {
-            i0 = spectrum.unitsToArrayPoint(peaks[i][0] - peaks[i][2] * nL);
-            ie = spectrum.unitsToArrayPoint(peaks[i][0] + peaks[i][2] * nL);
-            ic = spectrum.unitsToArrayPoint(peaks[i][0]);
-            if (i0 > ie) {
-                tmp = i0;
-                i0 = ie;
-                ie = tmp;
-            }
-            i0 = i0 < 0 ? 0 : i0;
-            ie = ie >= spectrum.getNbPoints() ? spectrum.getNbPoints() - 1 : ie;
-
-            if (ie - i0 < 10) {
-                for (j = i0; j <= ie; j++) {
-                    xy.push([spectrum.getX(j), spectrum.getY(j)]);
-                }
-                more = false;
-            }            else {
-                xy.push([spectrum.getX(i0), spectrum.getY(i0)]);
-                xy.push([spectrum.getX(ie), spectrum.getY(ie)]);
-                if (nL > 0.5) {
-                    nL -= 0.5;
-                }                else {
-                    nL /= 2;
-                }
-            }
-        }
-    }
-    //console.log(xy);
-    xy.sort(function (a, b) {
-        return a[0] - b[0];
-    });
-    //console.log("XX "+xy.length);
-    var x = [], y = [];
-    var index = 0;
-    if (rowWise) {
-        x = [xy[0][0]], y = [xy[0][1]];
-        for (i = 1; i < xy.length; i++) {
-            if (x[index] !== xy[i][0]) {
-                x.push(xy[i][0]);
-                y.push(xy[i][1]);
-                index++;
-            }
-        }
-    }    else {
-        x = [[xy[0][0]]], y = [[xy[0][1]]];
-        for (i = 1; i < xy.length; i++) {
-            if (x[index][0] !== xy[i][0]) {
-                x.push([xy[i][0]]);
-                y.push([xy[i][1]]);
-                index++;
-            }
-        }
-    }
-    return [x, y];
-
-}
-*/
-
-function getVector(spectrum, from, to, rowWise) {
-    var i0 = spectrum.unitsToArrayPoint(from);
-    var ie = spectrum.unitsToArrayPoint(to);
-    var x = [];
-    var y = [];
-    if (i0 > ie) {
-        var tmp = i0;
-        i0 = ie;
-        ie = tmp;
-    }
-    i0 = i0 < 0 ? 0 : i0;
-    ie = ie >= spectrum.getNbPoints() ? spectrum.getNbPoints() - 1 : ie;
-    for (var i = i0; i < ie; i += 10) {
-        if (rowWise) {
-            y.push(spectrum.getY(i));
-            x.push(spectrum.getX(i));
-        }        else {
-            y.push([spectrum.getY(i)]);
-            x.push([spectrum.getX(i)]);
-        }
-    }
-    return [x, y];
-}
-
-
-function updateLimits(signal) {
-    if (signal.multiplicity !== 'm' && signal.multiplicity !== '') {
-        //Remove the integral of the removed peaks
-        var peaksO = signal.peaks;
-        var nbPeaks0 = peaksO.length, index = 0, factor = 0, toRemove = 0;
-
-        for (var i = 0; i < nbPeaks0; i++) {
-            if (signal.maskPattern[i] === false)                {
-                toRemove += area(peaksO[i]);
-            }
-            factor += area(peaksO[i]);
-        }
-        factor = signal.integralData.value / factor;
-        signal.integralData.value -= toRemove * factor;
-    }
-    return signal.integralData.value;
 }
 
 function updateIntegrals(signals, nH) {
@@ -321,19 +198,17 @@ function updateIntegrals(signals, nH) {
     }
 }
 
-/*
- {
- "nbPeaks":1,"multiplicity":"","units":"PPM","startX":3.43505,"assignment":"",
- "pattern":"s","stopX":3.42282,"observe":400.08,"asymmetric":false,
- "delta1":3.42752,
- "integralData":{"to":3.43505,"value":590586504,"from":3.42282},
- "nucleus":"1H",
- "peaks":[{"intensity":60066147,"x":3.42752}]
- }
+/**
+ * Extract the signals from the peakList and the given spectrum
+ * @param peakList
+ * @param spectrum
+ * @param nH
+ * @param integralType
+ * @param frequencyCluster
+ * @returns {Array}
  */
 function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
-
-    var frequency = spectrum.observeFrequencyX();
+    const frequency = spectrum.observeFrequencyX();
     var signals = [];
     var signal1D = {};
     var prevPeak = {x: 100000, y: 0, width: 0};
@@ -341,7 +216,6 @@ function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
     var rangeX = frequencyCluster / frequency; //Peaks withing this range are considered to belongs to the same signal1D
     var spectrumIntegral = 0;
     var cs, sum, i, j;
-    var dx = (spectrum.getX(1) - spectrum.getX(0)) > 0 ? 1 : -1;
     for (i = 0; i < peakList.length; i++) {
         if (Math.abs(peakList[i].x - prevPeak.x) > rangeX) {
             signal1D = {nbPeaks: 1, units: 'PPM',
@@ -357,7 +231,7 @@ function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
             signal1D.peaks.push({x: peakList[i].x, 'intensity': peakList[i].y, width: peakList[i].width});
             signals.push(signal1D);
             //spectrumIntegral+=area(peakList[i]);
-        }        else {
+        } else {
             var tmp = peakList[i].x + peakList[i].width;
             signal1D.stopX = Math.max(signal1D.stopX, tmp);
             tmp = peakList[i].x - peakList[i].width;
@@ -371,46 +245,49 @@ function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
         }
         prevPeak = peakList[i];
     }
-    //console.log(signals);
     //Normalize the integral to the normalization parameter and calculate cs
     for (i = 0; i < signals.length; i++) {
         peaks = signals[i].peaks;
-        var integral = signals[i].integralData;
+        let integral = signals[i].integralData;
         cs = 0;
         sum = 0;
 
-        for (var j = 0; j < peaks.length; j++) {
+        for (j = 0; j < peaks.length; j++) {
             cs += peaks[j].x * area(peaks[j]);//.intensity;
             sum += area(peaks[j]);
         }
         signals[i].delta1 = cs / sum;
 
-        if (integralType === 0)            {
+        if (integralType === 0) {
             integral.value = sum;
-        }        else {
+        } else {
             integral.value = spectrum.getArea(integral.from, integral.to);//*nH/spectrumIntegral;
         }
         spectrumIntegral += integral.value;
 
     }
     if (nH !== 0) {
-        for (var i = 0; i < signals.length; i++) {
+        for (i = 0; i < signals.length; i++) {
             //console.log(integral.value);
-            var integral = signals[i].integralData;
+            let integral = signals[i].integralData;
             integral.value *= nH / spectrumIntegral;
         }
     }
-
 
     return signals;
 }
 
 /**
- Updates the score that a given impurity is present in the current spectrum. In this part I would expect
- to have into account the multiplicity of the signal. Also the relative intensity of the signals.
- THIS IS the KEY part of the algorithm!!!!!!!!!
+ * Updates the score that a given impurity is present in the current spectrum. In this part I would expect
+ * to have into account the multiplicity of the signal. Also the relative intensity of the signals.
+ * THIS IS the KEY part of the algorithm!!!!!!!!!
+ * @param candidates
+ * @param peakList
+ * @param maxIntensity
+ * @param frequency
+ * @returns {number}
  */
-function updateScore(candidates, peakList, maxIntensity, frequency) {
+/*function updateScore(candidates, peakList, maxIntensity, frequency) {
     //You may do it to avoid this part.
     //Check the multiplicity
     var mul, index, k;
@@ -421,9 +298,7 @@ function updateScore(candidates, peakList, maxIntensity, frequency) {
     for (var i = candidates.length - 1; i >= 0; i--) {
         mul = candidates[i][1];
         j = candidates[i][2];
-        //console.log(candidates[i][4]);
         index = candidates[i][4][0];
-        //console.log(peakList[index][0]+" "+mul+" "+j+" "+index);
         //I guess we should try to identify the pattern in the nearby.
         if (mul.indexOf('sep') >= 0) {
             if (peakList[index][1] > maxIntensity * 0.33) {
@@ -455,9 +330,9 @@ function updateScore(candidates, peakList, maxIntensity, frequency) {
         }
         if (mul.indexOf('d') >= 0) {
             if (index > 0 && index < peakList.length - 1) {
-                var thisJ1 = Math.abs(Math.abs(peakList[index - 1][0] - peakList[index][0]) * frequency - j);
-                var thisJ2 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index][0]) * frequency - j);
-                var thisJ3 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index - 1][0]) * frequency - j);
+                let thisJ1 = Math.abs(Math.abs(peakList[index - 1][0] - peakList[index][0]) * frequency - j);
+                let thisJ2 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index][0]) * frequency - j);
+                let thisJ3 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index - 1][0]) * frequency - j);
                 if (thisJ1 < 2 || thisJ2 < 2 || thisJ3 < 2) {
                     if (thisJ1 < thisJ2) {
                         if (thisJ1 < thisJ3) {
@@ -481,9 +356,9 @@ function updateScore(candidates, peakList, maxIntensity, frequency) {
         }
         if (mul.indexOf('t') >= 0) {
             if (index > 0 && index < peakList.length - 1) {
-                var thisJ1 = Math.abs(Math.abs(peakList[index - 1][0] - peakList[index][0]) * frequency - j);
-                var thisJ2 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index][0]) * frequency - j);
-                var thisJ4 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index + 2][0]) * frequency - j);
+                let thisJ1 = Math.abs(Math.abs(peakList[index - 1][0] - peakList[index][0]) * frequency - j);
+                let thisJ2 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index][0]) * frequency - j);
+                let thisJ3 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index + 2][0]) * frequency - j);
                 //console.log("XX "+thisJ1+" "+thisJ2);
                 if (thisJ1 < 2) {
                     candidates[i][4] = [index - 1, index];
@@ -536,7 +411,10 @@ function updateScore(candidates, peakList, maxIntensity, frequency) {
     //Check the relative intensity
     return 1;
 }
+*/
 
 function area(peak) {
     return Math.abs(peak.intensity * peak.width * 1.57);//1.772453851);
 }
+
+module.exports = extractPeaks;
