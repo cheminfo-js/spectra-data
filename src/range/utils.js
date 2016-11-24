@@ -8,7 +8,7 @@ module.exports.nmrJ = function (Js, options) {
     let j, i;
     for (i = 0; i < Js.length; i++) {
         j = Js[i];
-        if (j.length > 11)            {
+        if (j.length > 11) {
             j += opt.separator;
         }
         Jstring += j.multiplicity + ' ' + j.coupling.toFixed(opt.nbDecimal);

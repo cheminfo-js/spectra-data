@@ -5,6 +5,7 @@
 var rotate = require('./rotate');
 
 function digitalFilter(spectraData, options) {
+    let activeElement = spectraData.activeElement;
     var nbPoints = 0;
     if (options.nbPoints) {
         nbPoints = options.nbPoints;
@@ -28,7 +29,7 @@ function digitalFilter(spectraData, options) {
             }
         }
     }
-    spectraData.setActiveElement(0);
+    spectraData.setActiveElement(activeElement);
     return spectraData;
 }
 

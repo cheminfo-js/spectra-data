@@ -889,16 +889,15 @@ class SD {
         if(this.totalIntegralValue) {
             return this.totalIntegralValue;
         }
-        else{
+        else {
             if(this.molecule) {
-                if(this.getNucleus(0).indexOf("H")){
+                if(this.getNucleus(0).indexOf("H")) {
                     return this.mf.replace(/.*H([0-9]+).*/,"$1")*1;
                 }
                 if(this.getNucleus(0).indexOf("C")){
                     return this.mf.replace(/.*C([0-9]+).*/,"$1")*1;
                 }
-            }
-            else{
+            } else {
                 //throw "Could not determine the totalIntegral";
                 return 100;
             }
@@ -915,8 +914,6 @@ class SD {
     autoAssignment(options) {
 
     }
-
-
 
     /**
      * @function toJcamp(options)
