@@ -266,12 +266,12 @@ var SQZDigit = function (num) {
     //console.log(num+" "+num.length);
     var SQZdigit = '';
     if (num.charAt(0) == '-') {
-        SQZdigit += pseudoDigits[SQZ_N][Number(num.charAt(1))];
+        SQZdigit += pseudoDigits[SQZ_N][num.charAt(1)];
         if (num.length > 2)            {
             SQZdigit += num.substring(2);
         }
     }    else {
-        SQZdigit += pseudoDigits[SQZ_P][Number(num.charAt(0))];
+        SQZdigit += pseudoDigits[SQZ_P][num.charAt(0)];
         if (num.length > 1)            {
             SQZdigit += num.substring(1);
         }
@@ -288,13 +288,13 @@ var DIFDigit = function (num) {
     var DIFFdigit = '';
 
     if (num.charAt(0) == '-') {
-        DIFFdigit += pseudoDigits[DIF_N][Number(num.charAt(1))];
+        DIFFdigit += pseudoDigits[DIF_N][num.charAt(1)];
         if (num.length > 2)            {
             DIFFdigit += num.substring(2);
         }
 
     }    else {
-        DIFFdigit += pseudoDigits[DIF_P][Number(num.charAt(0))];
+        DIFFdigit += pseudoDigits[DIF_P][num.charAt(0)];
         if (num.length > 1)            {
             DIFFdigit += num.substring(1);
         }
@@ -310,7 +310,7 @@ var DIFDigit = function (num) {
  */
 function DUPDigit(num) {
     var DUPdigit = '';
-    DUPdigit += pseudoDigits[DUP][Number(num.charAt(0))];
+    DUPdigit += pseudoDigits[DUP][num.charAt(0)];
     if (num.length > 1)        {
         DUPdigit += num.substring(1);
     }
