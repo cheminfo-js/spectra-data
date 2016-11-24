@@ -930,8 +930,9 @@ class SD {
      */
     toJcamp(options) {
         var defaultOptions = {'encode': 'DIFDUP', 'yFactor': 1, 'type': 'SIMPLE', 'keep': []};
+        var creator = new JcampCreator();
         options = extend({}, defaultOptions, options);
-        return JcampCreator.convert(this, options.encode, options.yFactor, options.type, options.keep);
+        return creator.convert(this, options.encode, options.yFactor, options.type, options.keep);
     }
 }
 
