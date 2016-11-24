@@ -5,16 +5,16 @@
 *            http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
 * Created by acastillo on 3/2/16.
 */
-var newLine = '\r\n';
+const newLine = '\r\n';
 
-var pseudoDigits = [['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+const pseudoDigits = [['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
               ['@', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'],
               ['@', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'],
               ['%', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'],
               ['%', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r'],
               [' ', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 's']];
 
-var SQZ_P = 1, SQZ_N = 2, DIF_P = 3, DIF_N = 4, DUP = 5, MaxLinelength = 100;
+const SQZ_P = 1, SQZ_N = 2, DIF_P = 3, DIF_N = 4, DUP = 5, MaxLinelength = 100;
 
 /**
  * This function encodes the given vector. The encoding format is specified by the
@@ -25,7 +25,7 @@ var SQZ_P = 1, SQZ_N = 2, DIF_P = 3, DIF_N = 4, DUP = 5, MaxLinelength = 100;
  * @param encoding: ('FIX','SQZ','DIF','DIFDUP','CVS','PAC') Default 'DIFDUP'
  * @returns {String}
  */
-var encode = function (data, firstX, intervalX, encoding) {
+function encode(data, firstX, intervalX, encoding) {
     if (encoding == ('FIX'))        {
         return fixEncoding(data, firstX, intervalX);
     }
@@ -53,7 +53,7 @@ var encode = function (data, firstX, intervalX, encoding) {
  * @param data
  * @return
  */
-var commaSeparatedValuesEncoding =  function (data, firstX, intervalX) {
+function commaSeparatedValuesEncoding(data, firstX, intervalX) {
     return fixEncoding(data, firstX, intervalX, ',');
 };
 
@@ -63,7 +63,7 @@ var commaSeparatedValuesEncoding =  function (data, firstX, intervalX) {
  * @param separator, The separator character
  * @return
  */
-var fixEncoding =  function (data, firstX, intervalX, separator) {
+function fixEncoding(data, firstX, intervalX, separator) {
     if (!separator)        {
         separator = ' ';
     }
@@ -71,7 +71,7 @@ var fixEncoding =  function (data, firstX, intervalX, separator) {
     var j = 0, TD = data.length, i;
     while (j < TD - 7) {
         outputData += Math.ceil(firstX + j * intervalX);
-        for (i = 0; i < 8; i++)            {
+        for (i = 0; i < 8; i++) {
             outputData += separator + data[j++];
         }
         outputData += newLine;
@@ -79,7 +79,7 @@ var fixEncoding =  function (data, firstX, intervalX, separator) {
     if (j < TD) {
         //We add last numbers
         outputData += Math.ceil(firstX + j * intervalX);
-        for (i = j; i < TD; i++)            {
+        for (i = j; i < TD; i++) {
             outputData += separator + data[i];
         }
     }
@@ -90,16 +90,16 @@ var fixEncoding =  function (data, firstX, intervalX, separator) {
  * @param data
  * @return
  */
-var packedEncoding = function (data, firstX, intervalX) {
+function packedEncoding(data, firstX, intervalX) {
     var outputData = '';
     var j = 0, TD = data.length, i;
 
     while (j < TD - 7) {
         outputData += Math.ceil(firstX + j * intervalX);
         for (i = 0; i < 8; i++) {
-            if (data[j] < 0)                {
+            if (data[j] < 0) {
                 outputData += '-' + data[j++];
-            }            else                {
+            } else {
                 outputData += '+' + data[j++];
             }
         }
@@ -109,9 +109,9 @@ var packedEncoding = function (data, firstX, intervalX) {
         //We add last numbers
         outputData += Math.ceil(firstX + j * intervalX);
         for (i = j; i < TD; i++) {
-            if (data[i] < 0)                {
+            if (data[i] < 0) {
                 outputData += '-' + data[i];
-            }            else                {
+            } else {
                 outputData += '+' + data[i];
             }
         }
@@ -125,14 +125,14 @@ var packedEncoding = function (data, firstX, intervalX) {
  * @param data
  * @return String
  */
-var squeezedEncoding = function (data, firstX, intervalX) {
+function squeezedEncoding(data, firstX, intervalX) {
     var outputData = '';
     //String outputData = new String();
     var j = 0, TD = data.length, i;
 
     while (j < TD - 10) {
         outputData += Math.ceil(firstX + j * intervalX);
-        for (i = 0; i < 10; i++)            {
+        for (i = 0; i < 10; i++) {
             outputData += squeezedDigit(data[j++].toString());
         }
         outputData += newLine;
@@ -140,7 +140,7 @@ var squeezedEncoding = function (data, firstX, intervalX) {
     if (j < TD) {
         //We add last numbers
         outputData += Math.ceil(firstX + j * intervalX);
-        for (i = j; i < TD; i++)            {
+        for (i = j; i < TD; i++) {
             outputData += squeezedDigit(data[i].toString());
         }
     }
@@ -153,7 +153,7 @@ var squeezedEncoding = function (data, firstX, intervalX) {
  * @param data
  * @return
  */
-var differenceDuplicateEncoding = function (data, firstX, intervalX) {
+function differenceDuplicateEncoding(data, firstX, intervalX) {
     var mult = 0, index = 0, charCount = 0, i;
     //We built a string where we store the encoded data.
     var encodData = '', encodNumber = '', temp = '';
@@ -171,11 +171,11 @@ var differenceDuplicateEncoding = function (data, firstX, intervalX) {
             encodNumber = Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString()) + differenceDigit(diffData[index].toString());
             encodData += encodNumber;
             charCount += encodNumber.length;
-        }        else {
+        } else {
             //Try to insert next difference
             if (diffData[index - 1] == diffData[index]) {
                 mult++;
-            }            else {
+            } else {
                 if (mult > 0) {//Now we know that it can be in line
                     mult++;
                     encodNumber = duplicateDigit(mult.toString());
@@ -183,13 +183,13 @@ var differenceDuplicateEncoding = function (data, firstX, intervalX) {
                     charCount += encodNumber.length;
                     mult = 0;
                     index--;
-                }                else {
+                } else {
                     //Mirar si cabe, en caso contrario iniciar una nueva linea
                     encodNumber = differenceDigit(diffData[index].toString());
                     if (encodNumber.length + charCount < MaxLinelength) {
                         encodData += encodNumber;
                         charCount += encodNumber.length;
-                    }                    else {//Iniciar nueva linea
+                    }  else {//Iniciar nueva linea
                         encodData += newLine;
                         temp = Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString()) + encodNumber;
                         encodData += temp;//Each line start with first index number.
@@ -200,7 +200,7 @@ var differenceDuplicateEncoding = function (data, firstX, intervalX) {
         }
         index++;
     }
-    if (mult > 0)        {
+    if (mult > 0) {
         encodData += duplicateDigit((mult + 1).toString());
     }
     //We insert the last data from fid. It is done to control of data
@@ -215,7 +215,7 @@ var differenceDuplicateEncoding = function (data, firstX, intervalX) {
  * @param data
  * @return
  */
-var differenceEncoding = function (data, firstX, intervalX) {
+function differenceEncoding(data, firstX, intervalX) {
     var index = 0, charCount = 0, i;
 
     var encodData = '';
@@ -236,13 +236,13 @@ var differenceEncoding = function (data, firstX, intervalX) {
             encodNumber = Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString()) + differenceDigit(diffData[index].toString());
             encodData += encodNumber;
             charCount += encodNumber.length;
-        }        else {
+        } else {
             //Mirar si cabe, en caso contrario iniciar una nueva linea
             encodNumber = differenceDigit(diffData[index].toString());
             if (encodNumber.length + charCount < MaxLinelength) {
                 encodData += encodNumber;
                 charCount += encodNumber.length;
-            }            else {//Iniciar nueva linea
+            } else {//Iniciar nueva linea
                 encodData += newLine;
                 temp = Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString()) + encodNumber;
                 encodData += temp;//Each line start with first index number.
@@ -262,7 +262,7 @@ var differenceEncoding = function (data, firstX, intervalX) {
  * @param num
  * @return
  */
-var squeezedDigit = function (num) {
+function squeezedDigit(num) {
     //console.log(num+" "+num.length);
     var SQZdigit = '';
     if (num.charAt(0) == '-') {
@@ -284,7 +284,7 @@ var squeezedDigit = function (num) {
  * @param num
  * @return
  */
-var differenceDigit = function (num) {
+function differenceDigit(num) {
     var DIFFdigit = '';
 
     if (num.charAt(0) == '-') {
@@ -293,7 +293,7 @@ var differenceDigit = function (num) {
             DIFFdigit += num.substring(2);
         }
 
-    }    else {
+    } else {
         DIFFdigit += pseudoDigits[DIF_P][num.charAt(0)];
         if (num.length > 1)            {
             DIFFdigit += num.substring(1);
