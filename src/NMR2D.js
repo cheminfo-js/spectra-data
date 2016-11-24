@@ -8,15 +8,6 @@ var Brukerconverter = require('brukerconverter');
 
 
 class NMR2D extends SD {
-    /**
-     * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
-     * @param sd
-     * @constructor
-     */
-    constructor(sd) {
-        super(sd);
-    }
-
 
     /**
      * @function fromJcamp(jcamp,options)
