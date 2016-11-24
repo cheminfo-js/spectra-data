@@ -15,6 +15,7 @@ const Encoder = require('./VectorEncoder');
 const Integer = {MAX_VALUE: 2e31 - 1, MIN_VALUE: -2e31};
 const CRLF = '\r\n';
 const version = 'Cheminfo tools, March 2016';
+const defaultParameters = {'encode': 'DIFDUP', 'yFactor': 1, 'type': 'SIMPLE', 'keep': []};
 
 class JcampCreator{
     /**
@@ -26,8 +27,13 @@ class JcampCreator{
      * @param encodeFormat: ('FIX','SQZ','DIF','DIFDUP','CVS','PAC')
      * @return
      */
-    convert(spectraData, encodeFormat, factorY, type, userDefinedParams) {
-        encodeFormat = encodeFormat.toUpperCase().trim();
+    convert(spectraData, options) {
+
+        let opt = Object.assign({}, defaultParameters, options);
+        const encodeFormat = opt.encode.toUpperCase().trim();
+        const factorY = opt.yFactor;
+        let type = opt.type;
+        const userDefinedParams = opt.keep;
 
         if (type === null || type.length == 0)            {
             type = 'SIMPLE';

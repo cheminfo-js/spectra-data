@@ -929,10 +929,8 @@ class SD {
      * @example SD.toJcamp(spectraData,{encode:'DIFDUP',yfactor:0.01,type:"SIMPLE",keep:['#batchID','#url']});
      */
     toJcamp(options) {
-        var defaultOptions = {'encode': 'DIFDUP', 'yFactor': 1, 'type': 'SIMPLE', 'keep': []};
         var creator = new JcampCreator();
-        options = extend({}, defaultOptions, options);
-        return creator.convert(this, options.encode, options.yFactor, options.type, options.keep);
+        return creator.convert(this, options);
     }
 }
 
