@@ -21,7 +21,7 @@
   "scripts": {
     "eslint": "eslint src test --cache",
     "eslint-fix": "npm run eslint -- --fix",
-    "test": "npm run test-mocha",
+    "test": "npm run test-mocha && npm run eslint",
     "test-mocha": "mocha --compilers js:babel-register --require should --reporter mocha-better-spec-reporter --recursive src/**/__tests__/**/*.js",
     "test-cov": "istanbul cover _mocha -- --compilers js:babel-register --require should --reporter dot --recursive src/**/__tests__/**/*.js",
     "test-travis": "istanbul cover _mocha --report lcovonly -- --compilers js:babel-register --require should --reporter mocha-better-spec-reporter --recursive src/**/__tests__/**/*.js && npm run eslint",
