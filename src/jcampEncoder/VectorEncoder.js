@@ -316,11 +316,11 @@ function duplicateDigit(num) {
 }
 
 module.exports = {
-    encode: encode,
-    fixEncoding: fixEncoding,
-    commaSeparatedValuesEncoding: commaSeparatedValuesEncoding,
-    packedEncoding: packedEncoding,
-    squeezedEncoding: squeezedEncoding,
-    differenceDuplicateEncoding: differenceDuplicateEncoding,
-    differenceEncoding: differenceEncoding
+    encode,
+    fixEncoding,
+    commaSeparatedValuesEncoding,
+    packedEncoding,
+    squeezedEncoding,
+    differenceDuplicateEncoding,
+    differenceEncoding
 };

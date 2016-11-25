@@ -9,7 +9,7 @@
  * @param opt
  * @returns {{x: Array, y: Array}}
  */
-module.exports = function (peaks, opt) {
+function peak2Vector(peaks, opt) {
     var options = opt || {};
     var from = options.from;
     var to = options.to;
@@ -74,4 +74,6 @@ module.exports = function (peaks, opt) {
     }
 
     return {x: x, y: y};
-};
+}
+
+module.exports = peak2Vector;

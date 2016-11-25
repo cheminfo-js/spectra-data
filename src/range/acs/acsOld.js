@@ -8,7 +8,7 @@ var acsString = '';
 var parenthesis = '';
 var rangeForMultiplet = false;
 
-module.exports.toACS = function (signals1D, options) {
+function toAcs(signals1D, options) {
     acsString = '';
     parenthesis = '';
     var solvent = null;
@@ -41,7 +41,7 @@ module.exports.toACS = function (signals1D, options) {
     if (acsString.length > 0) acsString += '.';
 
     return acsString;
-};
+}
 
 function formatAcsDefault(signals1D, ascending, decimalValue, decimalJ, solvent) {
     appendSeparator();
@@ -221,3 +221,5 @@ function appendSeparator() {
 function appendParenthesisSeparator() {
     if ((parenthesis.length > 0) && (!parenthesis.match(', $'))) parenthesis += ', ';
 }
+
+module.exports.toACS = toAcs;

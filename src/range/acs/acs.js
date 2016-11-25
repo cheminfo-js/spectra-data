@@ -8,7 +8,8 @@ var acsString = '';
 var parenthesis = '';
 var rangeForMultiplet = false;
 
-module.exports = function (rangesIn, opt) {
+
+function toAcs(rangesIn, opt) {
     let options = Object.assign({}, {nucleus: '1H'}, opt);
 
     var ranges = JSON.parse(JSON.stringify(rangesIn));
@@ -51,7 +52,7 @@ module.exports = function (rangesIn, opt) {
     if (acsString.length > 0) acsString += '.';
 
     return acsString;
-};
+}
 
 function formatAcsDefault(ranges, ascending, decimalValue, decimalJ, solvent, options) {
     appendSeparator();
@@ -231,3 +232,5 @@ function appendSeparator() {
 function appendParenthesisSeparator() {
     if ((parenthesis.length > 0) && (!parenthesis.match(', $'))) parenthesis += ', ';
 }
+
+module.exports = toAcs;

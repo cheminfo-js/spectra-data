@@ -2,7 +2,7 @@
 
 const acs = require('./acs/acs');
 
-module.exports.nmrJ = function (Js, options) {
+function nmrJ(Js, options) {
     var Jstring = '';
     var opt = Object.assign({}, {separator: ', ', nbDecimal: 2}, options);
     let j, i;
@@ -14,12 +14,12 @@ module.exports.nmrJ = function (Js, options) {
         Jstring += j.multiplicity + ' ' + j.coupling.toFixed(opt.nbDecimal);
     }
     return Jstring;
-};
+}
 
+function toACS(ranges, opt) {
+    return acs(ranges, opt);
+}
 
 module.exports.peak2Vector = require('./peak2Vector');
 
-
-module.exports.toACS = function (ranges, opt) {
-    return acs(ranges, opt);
-};
+module.exports = {toACS, nmrJ};

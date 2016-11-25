@@ -16,7 +16,7 @@ const smallFilter = [
     [0, 1, 3, 7, 7, 7, 3, 1, 0],
     [0, 0, 1, 2, 2, 2, 1, 0, 0]];
 
-module.exports  = function (spectraData, thresholdFactor) {
+function getZones(spectraData, thresholdFactor) {
     if (thresholdFactor ===  0)        {
         thresholdFactor = 1;
     }
@@ -58,7 +58,7 @@ module.exports  = function (spectraData, thresholdFactor) {
         return createSignals2D(PeakOptimizer.clean(peaksMC1, 0.05), spectraData, 24);
     }
 
-};
+}
 
 
 //How noisy is the spectrum depending on the kind of experiment.
@@ -158,3 +158,5 @@ function createSignals2D(peaks, spectraData, tolerance) {
     }
     return signals;
 }
+
+module.exports  = getZones;
