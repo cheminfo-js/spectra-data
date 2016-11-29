@@ -9,21 +9,8 @@ const Filters = require('./filters/Filters.js');
 
 
 class NMR2D extends SD {
-
-    /**
-     * @function fromJcamp(jcamp,options)
-     * Construct the object from the given jcamp.
-     * @param jcamp
-     * @param options
-     * @option xy
-     * @option keepSpectra
-     * @option keepRecordsRegExp
-     * @returns {NMR2D}
-     */
-    static fromJcamp(jcamp, options) {
-        options = Object.assign({}, {xy: true, keepSpectra: true, keepRecordsRegExp: /^.+$/}, options);
-        var spectrum = JcampConverter.convert(jcamp, options);
-        return new NMR2D(spectrum);
+    constructor(sd) {
+        super(sd);
     }
 
     static fromBruker(brukerFile, options) {
