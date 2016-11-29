@@ -47,7 +47,7 @@ if (true) {
     /*for(var i=0;i<peakPicking.length;i++){
          console.log(JSON.stringify(peakPicking[i].peaks));
     }*/
-    //console.log(Data.ACS.formater.toACS(peakPicking,{solvent:spectrum.getSolventName(),ascending:false}));
+    //console.log(Data.ACS.formater.getACS(peakPicking,{solvent:spectrum.getSolventName(),ascending:false}));
 }
 
 //console.log(peakPicking);

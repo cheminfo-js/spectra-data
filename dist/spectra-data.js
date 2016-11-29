@@ -15656,10 +15656,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var ranges = JSON.parse(JSON.stringify(rangesIn));
 
 	    if (ranges[0].delta1) {//Old signals format
-	        return old.toACS(ranges, options);
+	        return old.getACS(ranges, options);
 	    }
-	    if(ranges.update)
-	        ranges = ranges.update();
+	    if(ranges.updateMultiplicity)
+	        ranges = ranges.updateMultiplicity();
 
 	    acsString = '';
 	    parenthesis = '';

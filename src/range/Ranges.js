@@ -111,7 +111,7 @@ class Ranges extends Array {
         return new Ranges(peakPicking(spectrum, this.options));
     }
 
-    update() {
+    updateMultiplicity() {
         for (let i = 0; i < this.length; i++) {
             var range = this[i];
             for (let j = 0; j < range.signal.length; j++) {
@@ -145,11 +145,11 @@ class Ranges extends Array {
         return this;
     }
 
-    toVector(opt) {
-        return peak2Vector(this.toPeakList(), opt);
+    getVector(opt) {
+        return peak2Vector(this.getPeakList(), opt);
     }
 
-    toPeakList() {
+    getPeakList() {
         var peaks = [];
         var i, j;
         for (i = 0; i < this.length; i++) {
@@ -161,11 +161,11 @@ class Ranges extends Array {
         return peaks;
     }
 
-    toACS(opt) {
+    getACS(opt) {
         return acs(this, opt);
     }
 
-    toAnnotations(options) {
+    getAnnotations(options) {
         return GUI.annotations1D(this, options);
     }
 }

@@ -335,7 +335,6 @@ class NMR extends SD {
      */
     autoPeakPicking(parameters) {
         var params = Object.assign({}, {nH: this.totalIntegral}, parameters);
-
         let autoRanges = new Ranges(peakPicking(this, params));
         if (params.force) {
             this.ranges = autoRanges;

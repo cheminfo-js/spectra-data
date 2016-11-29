@@ -21,7 +21,7 @@ singleRange[0].signal = [{nbAtoms: 0,
 describe('Range tests: formating and parsing', function () {
 
     it('ranges to vector', function () {
-        var fn = ranges.toVector(); //Data.range2Vector(peakPicking2);
+        var fn = ranges.getVector(); //Data.range2Vector(peakPicking2);
         fn.x.length.should.equal(16 * 1024);
         fn.y.length.should.equal(16 * 1024);
         fn.x[0].should.approximately(1.1657135299531254, 0.005);
@@ -30,7 +30,7 @@ describe('Range tests: formating and parsing', function () {
     });
 
     it('ranges to peaks', function () {
-        var fn = ranges.toPeakList();//Data.range2Peaks(peakPicking2);
+        var fn = ranges.getPeakList();//Data.range2Peaks(peakPicking2);
         fn[0].x.should.greaterThan(0);
         fn[0].intensity.should.greaterThan(0);
         fn[0].width.should.greaterThan(0);

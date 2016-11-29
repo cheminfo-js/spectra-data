@@ -17,8 +17,8 @@ function toAcs(rangesIn, opt) {
     if (ranges[0].delta1) {//Old signals format
         return old.toACS(ranges, options);
     }
-    if (ranges.update)        {
-        ranges = ranges.update();
+    if (ranges.updateMultiplicity)        {
+        ranges = ranges.updateMultiplicity();
     }
 
     acsString = '';

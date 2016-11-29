@@ -9,7 +9,7 @@ const ranges = new Ranges([{'from': 7.259458288810639, 'to': 7.3166664267781405,
 
 describe('Annotations 1D from ranges', function () {
     it('Default options', function () {
-        var annotations = ranges.toAnnotations();
+        var annotations = ranges.getAnnotations();
         annotations.length.should.eql(ranges.length);
         annotations.forEach(annotation => {
             annotation._highlight.length.should.eql(1);
