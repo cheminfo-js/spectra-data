@@ -324,7 +324,7 @@ class NMR extends SD {
 
 
     /**
-     * @function autoPeakPicking(parameters);
+     * @function getRanges(parameters);
      * This function process the given spectraData and tries to determine the NMR signals. Returns an NMRSignal1D array containing all the detected 1D-NMR Signals
      * @param parameters A JSONObject containing the optional parameters:
      * @option fromX:   Lower limit.
@@ -333,13 +333,14 @@ class NMR extends SD {
      * @option stdev: Number of standard deviation of the noise for the threshold calculation if a threshold is not specified.
      * @returns {*}
      */
-    autoPeakPicking(parameters) {
+    getRanges(parameters) {
         var params = Object.assign({}, {nH: this.totalIntegral}, parameters);
-        let autoRanges = new Ranges(peakPicking(this, params));
-        if (params.force) {
-            this.ranges = autoRanges;
-        }
-        return autoRanges;
+        return new Ranges(peakPicking(this, params));
+    }
+
+    createRanges(parameters) {
+        this.ranges = this.getRanges(parameters);
+        return this.ranges;
     }
 
     /*autoAssignment(options) {

@@ -4790,7 +4790,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 	    /**
-	     * @function autoPeakPicking(parameters);
+	     * @function getRanges(parameters);
 	     * This function process the given spectraData and tries to determine the NMR signals. Returns an NMRSignal1D array containing all the detected 1D-NMR Signals
 	     * @param parameters A JSONObject containing the optional parameters:
 	     * @option fromX:   Lower limit.

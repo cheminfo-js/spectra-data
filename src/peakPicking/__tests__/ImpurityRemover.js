@@ -9,11 +9,11 @@ function createSpectraData(filename) {
     return spectrum;
 }
 
-describe('spectra-data examples autoPeakPicking', function () {
+describe('spectra-data examples getRanges', function () {
     it.skip('number of peaks', function () {
         var spectrum = createSpectraData('/../../../data-test/indometacin/1h.dx');
-        //console.log(spectrum.autoPeakPicking);
-        var peakPicking = spectrum.autoPeakPicking({
+        //console.log(spectrum.getRanges);
+        var peakPicking = spectrum.getRanges({
             'nH': 16,
             realTop: true,
             thresholdFactor: 1,
