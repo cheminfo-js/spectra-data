@@ -35,7 +35,7 @@ class SD {
     static fromJcamp(jcamp, options) {
         options = Object.assign({}, {xy: true, keepSpectra: true, keepRecordsRegExp: /^.+$/}, options);
         var spectrum = JcampConverter.convert(jcamp, options);
-        return new SD(spectrum);
+        return new this(spectrum);
     }
 
     /**

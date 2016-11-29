@@ -10,21 +10,11 @@ const Brukerconverter = require('brukerconverter');
 
 class NMR extends SD {
 
-    /**
-     * @function fromJcamp(jcamp,options)
-     * Construct the object from the given jcamp.
-     * @param jcamp
-     * @param options
-     * @option xy
-     * @option keepSpectra
-     * @option keepRecordsRegExp
-     * @returns {NMR}
-     */
-    static fromJcamp(jcamp, options) {
-        options = Object.assign({}, {xy: true, keepSpectra: true, keepRecordsRegExp: /^.+$/}, options);
-        var spectrum = JcampConverter.convert(jcamp, options);
-        return new NMR(spectrum);
+    constructor(sd) {
+        super(sd);
+        // TODO: add stuff specific to NMR
     }
+
 
     static fromBruker(brukerFile, options) {
         options = Object.assign({}, {xy: true, keepSpectra: true, keepRecordsRegExp: /^.+$/}, options);
