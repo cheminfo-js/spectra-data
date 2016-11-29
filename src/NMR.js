@@ -3,7 +3,6 @@
 const SD = require('./SD');
 const peakPicking = require('./peakPicking/PeakPicking');
 const Ranges = require('./range/Ranges');
-const JcampConverter = require('jcampconverter');
 const Filters = require('./filters/Filters.js');
 const Brukerconverter = require('brukerconverter');
 
