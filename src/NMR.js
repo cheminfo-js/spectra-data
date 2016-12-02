@@ -1,10 +1,9 @@
 'use strict';
 
 const SD = require('./SD');
-const peakPicking = require('./peakPicking/PeakPicking');
-const Ranges = require('./range/Ranges');
 const Filters = require('./filters/Filters.js');
 const Brukerconverter = require('brukerconverter');
+const peaks2Ranges = require('./peakPicking/peaks2Ranges');
 
 
 class NMR extends SD {
@@ -334,11 +333,18 @@ class NMR extends SD {
      * @returns {*}
      */
     getRanges(parameters) {
-        var params = Object.assign({}, {nH: this.totalIntegral}, parameters);
-        return new Ranges(peakPicking(this, params));
+        if (this.ranges) {
+            return this.ranges;
+        } else {
+            var peaks = this.getPeaks(parameters);
+            var params = Object.assign({}, {nH: this.totalIntegral}, parameters);
+            return peaks2Ranges(this, peaks, params);
+        }
     }
 
     createRanges(parameters) {
+        this.ranges = null;
+        this.peaks = null;
         this.ranges = this.getRanges(parameters);
         return this.ranges;
     }

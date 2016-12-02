@@ -1,8 +1,8 @@
 'use strict';
 
 const SD = require('./SD');
-const peakPicking2D = require('./peakPicking/PeakPicking2D');
-const PeakOptimizer = require('./peakPicking/PeakOptimizer');
+const peakPicking2D = require('./peakPicking/peakPicking2D');
+const PeakOptimizer = require('./peakPicking/peakOptimizer');
 const Brukerconverter = require('brukerconverter');
 const Filters = require('./filters/Filters.js');
 

@@ -6,7 +6,7 @@
  * http://www.spectroscopyeurope.com/images/stories/ColumnPDFs/TD_23_1.pdf
  */
 //const JAnalyzer = require('./../peakPicking/JAnalyzer');
-const peakPicking = require('./../peakPicking/PeakPicking');
+const peakPicking = require('./../peakPicking/peakPicking');
 const acs = require('./acs/acs');
 const peak2Vector = require('./peak2Vector');
 const GUI = require('./visualizer/index');
@@ -89,10 +89,6 @@ class Ranges extends Array {
 
         return new Ranges(result);
     }
-
-    //get length() {
-    //    return this.ranges.length;
-    //}
 
     static fromSpectrum(spectrum, opt) {
         this.options = Object.assign({}, {

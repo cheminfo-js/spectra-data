@@ -1,6 +1,6 @@
 'use strict';
 
-var PeakOptimizer = require('./PeakOptimizer');
+var PeakOptimizer = require('./peakOptimizer');
 var simpleClustering =  require('ml-simple-clustering');
 var matrixPeakFinders =  require('ml-matrix-peaks-finder');
 var FFTUtils = require('ml-fft').FFTUtils;
