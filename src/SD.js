@@ -499,11 +499,11 @@ class SD {
     }
 
     /**
-     * @function YShift(value)
+     * @function yShift(value)
      * This function shifts the values of Y
      * @param value Distance of the shift
      */
-    YShift(value) {
+    yShift(value) {
         var y = this.getSpectrumData().y;
         var length = this.getNbPoints(), i = 0;
         for (i = 0; i < length; i++) {

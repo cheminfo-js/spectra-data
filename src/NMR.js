@@ -4,7 +4,8 @@ const SD = require('./SD');
 const Filters = require('./filters/Filters.js');
 const Brukerconverter = require('brukerconverter');
 const peaks2Ranges = require('./peakPicking/peaks2Ranges');
-
+const NmrPredictor = require('nmr-predictor');
+const simulator = requiere('nmr-simulation');
 
 class NMR extends SD {
 
@@ -13,6 +14,19 @@ class NMR extends SD {
         // TODO: add stuff specific to NMR
     }
 
+    static fromPrediction(molfile, options){
+        let opt = Object.assign({}, {output: 'xy'}, options);
+        const predictor = new NmrPredictor('spinus');
+        return predictor.predict(molfile, {group: true}).then( prediction => {
+            const spinSystem = simulator.SpinSystem.fromPrediction(prediction);
+            var simulation = simulator.simulate1D(spinSystem, opt);
+            return SD.fromXY(simulation, options);
+        });
+    }
+
+    static fromXY(xy, options) {
+        return new SD({spectra: [{data: {x: xy[0], y: xy[1]}}]});
+    }
 
     static fromBruker(brukerFile, options) {
         options = Object.assign({}, {xy: true, keepSpectra: true, keepRecordsRegExp: /^.+$/}, options);
@@ -225,7 +239,7 @@ class NMR extends SD {
      * @param lineBroadening The parameter LB should either be a line broadening factor in Hz
      * or alternatively an angle given by degrees for sine bell functions and the like.
      * @returns this object
-     * @example SD.apodization("exp", lineBroadening)
+     * @example SD.apodization('exp', lineBroadening)
      */
     apodization(functionName, lineBroadening) {
         return Filters.apodization(this, {'functionName': functionName,
@@ -275,7 +289,7 @@ class NMR extends SD {
     /*logarithmFilter(base) {
         var minY = this.getMinY();
         if (minY <= 0) {
-            this.YShift((-1 * minY) + 1);
+            this.yShift((-1 * minY) + 1);
             //console.warn('SD.logarithmFilter: The spectrum had negative values and was automatically shifted before applying the function.');
         }
         //@TODO Implement logarithmFilter filter

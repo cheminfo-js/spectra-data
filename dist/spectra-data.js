@@ -566,7 +566,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    /**
-	     * @function YShift(value)
+	     * @function yShift(value)
 	     * This function shifts the values of Y
 	     * @param value Distance of the shift
 	     */
@@ -12987,7 +12987,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    /*logarithmFilter(base) {
 	        var minY = this.getMinY();
 	        if (minY <= 0) {
-	            this.YShift((-1 * minY) + 1);
+	            this.yShift((-1 * minY) + 1);
 	            //console.warn('SD.logarithmFilter: The spectrum had negative values and was automatically shifted before applying the function.');
 	        }
 	        //@TODO Implement logarithmFilter filter
