@@ -14,17 +14,17 @@ class NMR extends SD {
         // TODO: add stuff specific to NMR
     }
 
-    static fromPrediction(molfile, options){
+    static fromPrediction(molfile, options) {
         let opt = Object.assign({}, {output: 'xy'}, options);
         const predictor = new NmrPredictor('spinus');
-        return predictor.predict(molfile, {group: true}).then( prediction => {
+        return predictor.predict(molfile, {group: true}).then(prediction => {
             const spinSystem = simulator.SpinSystem.fromPrediction(prediction);
             var simulation = simulator.simulate1D(spinSystem, opt);
             return SD.fromXY(simulation, options);
         });
     }
 
-    static fromXY(xy, options) {
+    static fromXY(xy) {
         return new SD({spectra: [{data: {x: xy[0], y: xy[1]}}]});
     }
 
