@@ -30,7 +30,6 @@ class NMR2D extends SD {
         return null;
     }
     /**
-     * @function isHomoNuclear()
      * Returns true if the it is an homo-nuclear experiment
      * @returns {boolean}
      */
@@ -39,7 +38,6 @@ class NMR2D extends SD {
     }
 
     /**
-     * @function observeFrequencyX()
      * Returns the observe frequency in the direct dimension
      * @returns {*}
      */
@@ -47,7 +45,6 @@ class NMR2D extends SD {
         return this.sd.spectra[0].observeFrequency;
     }
     /**
-     * @function observeFrequencyY()
      * Returns the observe frequency in the indirect dimension
      * @returns {*}
      */
@@ -56,7 +53,6 @@ class NMR2D extends SD {
     }
 
     /**
-     * @function getSolventName()
      * Returns the solvent name.
      * @returns {string|XML}
      */
@@ -65,7 +61,6 @@ class NMR2D extends SD {
     }
 
     /**
-     * @function getXUnits()
      * This function returns the units of the direct dimension. It overrides the SD getXUnits function
      * @returns {ntuples.units|*|b.units}
      */
@@ -73,7 +68,6 @@ class NMR2D extends SD {
         return this.sd.ntuples[1].units;
     }
     /**
-     * @function getYUnits()
      * This function returns the units of the indirect dimension. It overrides the SD getYUnits function
      * @returns {ntuples.units|*|b.units}
      */
@@ -81,7 +75,6 @@ class NMR2D extends SD {
         return this.sd.ntuples[0].units;
     }
     /**
-     * @function getZUnits()
      * Returns the units of the dependent variable
      * @returns {ntuples.units|*|b.units}
      */
@@ -89,7 +82,6 @@ class NMR2D extends SD {
         return this.sd.ntuples[2].units;
     }
     /**
-     * @function getLastY()
      * Returns the min value in the indirect dimension.
      * @returns {sd.minMax.maxY}
      */
@@ -97,7 +89,6 @@ class NMR2D extends SD {
         return this.sd.minMax.maxY;
     }
     /**
-     * @function getFirstY()
      * Returns the min value in the indirect dimension.
      * @returns {sd.minMax.minY}
      */
@@ -105,7 +96,6 @@ class NMR2D extends SD {
         return this.sd.minMax.minY;
     }
     /**
-     * @function getDeltaY()
      * Returns the separation between 2 consecutive points in the indirect domain
      * @returns {number}
      */
@@ -114,7 +104,6 @@ class NMR2D extends SD {
     }
 
     /**
-     * @function getZones(options)
      * This function process the given spectraData and tries to determine the NMR signals.
      + Returns an NMRSignal2D array containing all the detected 2D-NMR Signals
      * @param	options:+Object			Object containing the options
@@ -166,7 +155,6 @@ class NMR2D extends SD {
     }
 
     /**
-     * @function getNMRPeakThreshold(nucleus)
      * Returns the noise factor depending on the nucleus.
      * @param nucleus
      * @returns {number}
@@ -182,7 +170,6 @@ class NMR2D extends SD {
     }
 
     /**
-     * @function getNucleus(dim)
      * Returns the observed nucleus in the specified dimension
      * @param dim
      * @returns {string}
@@ -199,7 +186,6 @@ class NMR2D extends SD {
 
 
     /**
-     * @function zeroFilling(nPointsX [,nPointsY])
      * This function increase the size of the spectrum, filling the new positions with zero values. Doing it one
      * could increase artificially the spectral resolution.
      * @param nPointsX Number of new zero points in the direct dimension
@@ -211,7 +197,6 @@ class NMR2D extends SD {
     }
 
     /**
-     * @function brukerFilter()
      * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
      * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
      * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
@@ -222,7 +207,6 @@ class NMR2D extends SD {
     }
 
     /**
-     * @function digitalFilter(options)
      * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
      * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
      * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
@@ -237,7 +221,6 @@ class NMR2D extends SD {
 
 
     /**
-     * @function fourierTransform()
      * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be of type NMR_FID or 2DNMR_FID
      * @returns this object
      */
@@ -246,7 +229,6 @@ class NMR2D extends SD {
     }
 
     /**
-     * @function postFourierTransform(ph1corr)
      * This filter makes an phase 1 correction that corrects the problem of the spectra that has been obtained
      * on spectrometers using the Bruker digital filters. This method is used in cases when the BrukerSpectra
      * filter could not find the correct number of points to perform a circular shift.

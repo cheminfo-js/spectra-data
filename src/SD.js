@@ -25,7 +25,6 @@ class SD {
     }
 
     /**
-     * @function fromJcamp(jcamp,options)
      * Construct the object from the given jcamp.
      * @param jcamp
      * @param options
@@ -41,7 +40,6 @@ class SD {
     }
 
     /**
-     * @function setActiveElement(nactiveSpectrum);
      * This function sets the nactiveSpectrum sub-spectrum as active
      * @param index of the sub-spectrum to set as active
      */
@@ -50,7 +48,6 @@ class SD {
     }
 
     /**
-     * @function getActiveElement();
      * This function returns the index of the active sub-spectrum.
      * @returns {number|*}
      */
@@ -59,7 +56,6 @@ class SD {
     }
 
     /**
-     * @function getXUnits()
      * This function returns the units of the independent dimension.
      * @returns {xUnit|*|M.xUnit}
      */
@@ -68,7 +64,6 @@ class SD {
     }
 
     /**
-     * @function setXUnits()
      * This function returns the units of the independent dimension.
      * @returns {xUnit|*|M.xUnit}
      */
@@ -76,7 +71,6 @@ class SD {
         this.getSpectrum().xUnit = units;
     }
     /**
-     * @function getYUnits()
      * * This function returns the units of the dependent variable.
      * @returns {yUnit|*|M.yUnit}
      */
@@ -85,7 +79,6 @@ class SD {
     }
 
     /**
-     * @function getSpectraVariable()
      * This function returns the information about the dimensions
      * @returns {*}
      */
@@ -94,7 +87,6 @@ class SD {
     }
 
     /**
-     * @function getNbPoints()
      * Return the number of points in the current spectrum
      * @param i sub-spectrum
      * @returns {*}
@@ -104,7 +96,6 @@ class SD {
     }
 
     /**
-     * @function getFirstX()
      * Return the first value of the direct dimension
      * @param i sub-spectrum
      * @returns {number}
@@ -115,7 +106,6 @@ class SD {
     }
 
     /**
-     * @function setFirstX()
      * Set the firstX for this spectrum. You have to force and update of the xAxis after!!!
      * @param x
      * @param i sub-spectrum
@@ -126,7 +116,6 @@ class SD {
     }
 
     /**
-     * @function getLastX()
      * Return the last value of the direct dimension
      * @param i sub-spectrum
      * @returns {number}
@@ -138,7 +127,6 @@ class SD {
 
 
     /**
-     * @function setLastX()
      * Set the last value of the direct dimension. You have to force and update of the xAxis after!!!
      * @param x
      * @param i sub-spectrum
@@ -161,7 +149,6 @@ class SD {
     }
 
     /**
-     * @function setFirstY()
      * Set the first value of the indirect dimension. Only valid for 2D spectra.
      * @param y
      * @param i sub-spectrum
@@ -172,7 +159,6 @@ class SD {
     }
 
     /**
-     * @function getLastY
      * Return the first value of the indirect dimension. Only valid for 2D spectra.
      * @returns {number}
      */
@@ -182,7 +168,6 @@ class SD {
     }
 
     /**
-     * @function setLastY()
      * Return the first value of the indirect dimension
      * @param y
      * @param i sub-spectrum
@@ -193,7 +178,6 @@ class SD {
     }
 
     /**
-     * @function setDataClass()
      * Set the spectrum data_class. It could be DATACLASS_PEAK=1 or DATACLASS_XY=2
      * @param dataClass
      */
@@ -209,7 +193,6 @@ class SD {
     }
 
     /**
-     * @function isDataClassPeak();
      * Is this a PEAKTABLE spectrum?
      * @returns {*}
      */
@@ -221,7 +204,6 @@ class SD {
     }
 
     /**
-     * @function isDataClassXY();
      * Is this a XY spectrum?
      * @returns {*}
      */
@@ -233,7 +215,6 @@ class SD {
     }
 
     /**
-     * @function setDataType()
      * Set the data type for this spectrum. It could be one of the following:
      ["INFRARED"||"IR","IV","NDNMRSPEC","NDNMRFID","NMRSPEC","NMRFID","HPLC","MASS"
      * "UV", "RAMAN" "GC"|| "GASCHROMATOGRAPH","CD"|| "DICHRO","XY","DEC"]
@@ -244,7 +225,6 @@ class SD {
     }
 
     /**
-     * @function getDataType()
      * Return the dataType(see: setDataType )
      * @returns {string|string|*|string}
      */
@@ -253,7 +233,6 @@ class SD {
     }
 
     /**
-     * @function getSpectrumData()
      * Return the i-th sub-spectrum data in the current spectrum
      * @param i
      * @returns {this.sd.spectra[i].data[0]}
@@ -264,7 +243,6 @@ class SD {
     }
 
     /**
-     * @function getSpectrum()
      * Return the i-th sub-spectra in the current spectrum
      * @param i
      * @returns {this.sd.spectra[i]}
@@ -275,7 +253,6 @@ class SD {
     }
 
     /**
-     * @function getNbSubSpectra()
      * Return the amount of sub-spectra in this object
      * @returns {*}
      */
@@ -284,7 +261,6 @@ class SD {
     }
 
     /**
-     * @function getXData()
      *  Returns an array containing the x values of the spectrum
      * @param i sub-spectrum Default:activeSpectrum
      * @returns {Array}
@@ -294,7 +270,6 @@ class SD {
     }
 
     /**
-     * @function getYData()
      * This function returns a double array containing the values with the intensities for the current sub-spectrum.
      * @param i sub-spectrum Default:activeSpectrum
      * @returns {Array}
@@ -304,7 +279,6 @@ class SD {
     }
 
     /**
-     * @function getX()
      * Returns the x value at the specified index for the active sub-spectrum.
      * @param i array index between 0 and spectrum.getNbPoints()-1
      * @returns {number}
@@ -314,7 +288,6 @@ class SD {
     }
 
     /**
-     * @function getY()
      * Returns the y value at the specified index for the active sub-spectrum.
      * @param i array index between 0 and spectrum.getNbPoints()-1
      * @returns {number}
@@ -324,7 +297,6 @@ class SD {
     }
 
     /**
-     * @function getXYData();
      * Returns a double[2][nbPoints] where the first row contains the x values and the second row the y values.
      * @param i sub-spectrum Default:activeSpectrum
      * @returns {*[]}
@@ -334,7 +306,6 @@ class SD {
     }
 
     /**
-     * @function getTitle
      * Return the title of the current spectrum.
      * @param i sub-spectrum Default:activeSpectrum
      * @returns {*}
@@ -344,7 +315,6 @@ class SD {
     }
 
     /**
-     * @function setTitle(newTitle);
      * Set the title of this spectrum.
      * @param newTitle The new title
      * @param i sub-spectrum Default:activeSpectrum
@@ -354,7 +324,6 @@ class SD {
     }
 
     /**
-     * @function getMinY(i)
      * This function returns the minimal value of Y
      * @param i sub-spectrum Default:activeSpectrum
      * @returns {number}
@@ -364,7 +333,6 @@ class SD {
     }
 
     /**
-     * @function getMaxY(i)
      * This function returns the maximal value of Y
      * @param i sub-spectrum Default:activeSpectrum
      * @returns {number}
@@ -374,7 +342,6 @@ class SD {
     }
 
     /**
-     * @function getMinMax(i)
      * Return the min and max value of Y
      * @param i sub-spectrum Default:activeSpectrum
      * @returns {{min, max}|*}
@@ -385,7 +352,6 @@ class SD {
 
 
     /**
-     * @function getNoiseLevel()
      * Get the noise threshold level of the current spectrum. It uses median instead of the mean
      * @returns {number}
      */
@@ -395,7 +361,6 @@ class SD {
     }
 
     /**
-     * @function arrayPointToUnits(doublePoint)
      * Return the xValue for the given index.
      * @param doublePoint
      * @returns {number}
@@ -405,7 +370,6 @@ class SD {
     }
 
     /**
-     * @function unitsToArrayPoint(inValue)
      * Returns the index-value for the data array corresponding to a X-value in
      * units for the element of spectraData to which it is linked (spectraNb).
      * This method makes use of spectraData.getFirstX(), spectraData.getLastX()
@@ -463,7 +427,6 @@ class SD {
     }
 
     /**
-     * @function getDeltaX()
      * Returns the separation between 2 consecutive points in the spectrum domain
      * @returns {number}
      */
@@ -472,7 +435,6 @@ class SD {
     }
 
     /**
-     * @function setMinMax(min,max)
      * This function scales the values of Y between the min and max parameters
      * @param min   Minimum desired value for Y
      * @param max   Maximum desired value for Y
@@ -482,7 +444,6 @@ class SD {
     }
 
     /**
-     * @function setMin(min)
      * This function scales the values of Y to fit the min parameter
      * @param min   Minimum desired value for Y
      */
@@ -491,7 +452,6 @@ class SD {
     }
 
     /**
-     * @function setMax(max)
      * This function scales the values of Y to fit the max parameter
      * @param max   Maximum desired value for Y
      */
@@ -500,7 +460,6 @@ class SD {
     }
 
     /**
-     * @function yShift(value)
      * This function shifts the values of Y
      * @param value Distance of the shift
      */
@@ -515,7 +474,6 @@ class SD {
     }
 
     /**
-     * @function shift(globalShift)
      * This function shift the given spectraData. After this function is applied, all the peaks in the
      * spectraData will be found at xi+globalShift
      * @param globalShift
@@ -535,7 +493,6 @@ class SD {
     }
 
     /**
-     * @function fillWith(from, to, value)
      * This function fills a zone of the spectrum with the given value.
      * If value is undefined it will suppress the elements
      * @param from
@@ -580,7 +537,6 @@ class SD {
     }
 
     /**
-     * @function suppressZone(from, to)
      * This function suppress a zone from the given spectraData within the given x range.
      * Returns a spectraData of type PEAKDATA without peaks in the given region
      * @param from
@@ -593,7 +549,6 @@ class SD {
 
 
     /**
-     * @function peakPicking(parameters)
      * This function performs a simple peak detection in a spectraData. The parameters that can be specified are:
      * Returns a two dimensional array of double specifying [x,y] of the detected peaks.
      * @option from:    Lower limit.
@@ -612,7 +567,6 @@ class SD {
     */
 
     /**
-     * @function getMaxPeak()
      * Get the maximum peak
      * @returns {[x, y]}
      */
@@ -629,7 +583,6 @@ class SD {
     }
 
     /**
-     * @function getParamDouble(name, defvalue);
      * Get the value of the parameter
      * @param  name The parameter name
      * @param  defvalue The default value
@@ -651,7 +604,6 @@ class SD {
     }
 
     /**
-     * @function getParamString(name, defvalue);
      * Get the value of the parameter
      * @param  name The parameter name
      * @param  defvalue The default value
@@ -666,7 +618,6 @@ class SD {
     }
 
     /**
-     * @function getParamInt(name, defvalue);
      * Get the value of the parameter
      * @param  name The parameter name
      * @param  defvalue The default value
@@ -681,7 +632,6 @@ class SD {
     }
 
     /**
-     * @function getParam(name, defvalue);
      * Get the value of the parameter
      * @param  name The parameter name
      * @param  defvalue The default value
@@ -696,7 +646,6 @@ class SD {
     }
 
     /**
-     * @function containsParam(name)
      *True if the spectrum.info contains the given parameter
      * @param name
      * @returns {boolean}
@@ -709,7 +658,6 @@ class SD {
     }
 
     /**
-     * @function getSpectraDataY()
      * Return the y elements of the current spectrum. Same as getYData. Kept for backward compatibility.
      * @returns {Array}
      */
@@ -718,7 +666,6 @@ class SD {
     }
 
     /**
-     * @function getSpectraDataX()
      * Return the x elements of the current spectrum. Same as getXData. Kept for backward compatibility.
      * @returns {Array}
      */
@@ -727,7 +674,6 @@ class SD {
     }
 
     /**
-     * @function resetMinMax()
      * Update min max values of X and Yaxis.
      */
     resetMinMax() {
@@ -735,7 +681,6 @@ class SD {
     }
 
     /**
-     * @function putParam(name, value)
      * Set a new parameter to this spectrum
      * @param name
      * @param value
@@ -745,7 +690,6 @@ class SD {
     }
 
     /**
-     * @function getArea(from, to)
      * This function returns the area under the spectrum in the given window
      * @param from in spectrum units
      * @param to in spectrum units
@@ -784,7 +728,6 @@ class SD {
     }
 
     /**
-     * @function getVector(from, to, nPoints)
      * Returns a equally spaced vector within the given window.
      * @param from in spectrum units
      * @param to in spectrum units
@@ -862,7 +805,6 @@ class SD {
     }
 
     /**
-     * @function is2D()
      * Is it a 2D spectrum?
      * @returns {boolean}
      */
@@ -929,7 +871,6 @@ class SD {
     }*/
 
     /**
-     * @function toJcamp(options)
      * This function creates a String that represents the given spectraData in the format JCAM-DX 5.0
      * The X,Y data can be compressed using one of the methods described in:
      * "JCAMP-DX. A STANDARD FORMAT FOR THE EXCHANGE OF ION MOBILITY SPECTROMETRY DATA",

@@ -51,9 +51,8 @@ class NMR extends SD {
     }
 
     /**
-     * @function getNucleus(dim)
      * Returns the observed nucleus. A dimension parameter is accepted for compatibility with 2DNMR
-     * @param dim
+     * @param {number} dim
      * @returns {*}
      */
     getNucleus(dim) {
@@ -65,7 +64,6 @@ class NMR extends SD {
     }
 
     /**
-     * @function getSolventName()
      * Returns the solvent name.
      * @returns {string|XML}
      */
@@ -74,7 +72,6 @@ class NMR extends SD {
     }
 
     /**
-     * @function observeFrequencyX()
      * Returns the observe frequency in the direct dimension
      * @returns {number}
      */
@@ -83,7 +80,6 @@ class NMR extends SD {
     }
 
     /**
-     * @function getNMRPeakThreshold(nucleus)
      * Returns the noise factor depending on the nucleus.
      * @param nucleus
      * @returns {number}
@@ -100,7 +96,6 @@ class NMR extends SD {
 
 
     /**
-     * @function addNoise(SNR)
      * This function adds white noise to the the given spectraData. The intensity of the noise is
      * calculated from the given signal to noise ratio.
      * @param SNR Signal to noise ratio
@@ -112,7 +107,6 @@ class NMR extends SD {
 
 
     /**
-     * @function addSpectraDatas(spec2,factor1,factor2,autoscale )
      *  This filter performs a linear combination of two spectraDatas.
      * A=spec1
      * B=spec2
@@ -134,7 +128,6 @@ class NMR extends SD {
     }*/
 
     /**
-     * @function autoBaseline()
      * Automatically corrects the base line of a given spectraData. After this process the spectraData
      * should have meaningful integrals.
      * @returns this object
@@ -144,7 +137,6 @@ class NMR extends SD {
     }*/
 
     /**
-     * @function fourierTransform()
      * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be of type NMR_FID or 2DNMR_FID
      * @returns this object
      */
@@ -153,7 +145,6 @@ class NMR extends SD {
     }
 
     /**
-     * @function postFourierTransform(ph1corr)
      * This filter makes an phase 1 correction that corrects the problem of the spectra that has been obtained
      * on spectrometers using the Bruker digital filters. This method is used in cases when the BrukerSpectra
      * filter could not find the correct number of points to perform a circular shift.
@@ -168,7 +159,6 @@ class NMR extends SD {
     }
 
     /**
-     * @function zeroFilling(nPointsX [,nPointsY])
      * This function increase the size of the spectrum, filling the new positions with zero values. Doing it one
      * could increase artificially the spectral resolution.
      * @param nPointsX Number of new zero points in the direct dimension
@@ -180,7 +170,6 @@ class NMR extends SD {
     }
 
     /**
-     * @function  haarWhittakerBaselineCorrection(waveletScale,whittakerLambda)
      * Applies a baseline correction as described in J Magn Resonance 183 (2006) 145-151 10.1016/j.jmr.2006.07.013
      * The needed parameters are the wavelet scale and the lambda used in the whittaker smoother.
      * @param waveletScale To be described
@@ -192,7 +181,6 @@ class NMR extends SD {
     }*/
 
     /**
-     * @function whittakerBaselineCorrection(whittakerLambda,ranges)
      * Applies a baseline correction as described in J Magn Resonance 183 (2006) 145-151 10.1016/j.jmr.2006.07.013
      * The needed parameters are the Wavelet scale and the lambda used in the Whittaker smoother.
      * @param waveletScale To be described
@@ -205,7 +193,6 @@ class NMR extends SD {
     }*/
 
     /**
-     * @function brukerFilter()
      * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
      * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
      * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
@@ -216,7 +203,6 @@ class NMR extends SD {
     }
 
     /**
-     * @function digitalFilter(options)
      * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
      * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
      * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
@@ -230,7 +216,6 @@ class NMR extends SD {
     }
 
     /**
-     * @function apodization(functionName, lineBroadening)
      * Apodization of a spectraData object.
      * @param spectraData An spectraData of type NMR_FID
      * @param functionName Valid values for functionsName are
@@ -252,7 +237,6 @@ class NMR extends SD {
     }
 
     /**
-     * @function echoAntiechoFilter();
      * That decodes an Echo-Antiecho 2D spectrum.
      * @returns this object
      */
@@ -261,7 +245,6 @@ class NMR extends SD {
     }
 
     /**
-     * @function SNVFilter()
      * This function apply a Standard Normal Variate Transformation over the given spectraData. Mainly used for IR spectra.
      * @returns this object
      */
@@ -270,7 +253,6 @@ class NMR extends SD {
     }
 
     /**
-     * @function powerFilter(power)
      * This function applies a power to all the Y values.<br>If the power is less than 1 and the spectrum has negative values, it will be shifted so that the lowest value is zero
      * @param   power   The power to apply
      * @returns this object
@@ -285,7 +267,6 @@ class NMR extends SD {
     }
 
     /**
-     * @function logarithmFilter(base)
      * This function applies a log to all the Y values.<br>If the spectrum has negative or zero values, it will be shifted so that the lowest value is 1
      * @param   base    The base to use
      * @returns this object
@@ -301,7 +282,6 @@ class NMR extends SD {
 
 
     /**
-     * @function correlationFilter(func)
      * This function correlates the given spectraData with the given vector func. The correlation
      * operation (*) is defined as:
      *
@@ -319,7 +299,6 @@ class NMR extends SD {
     }*/
 
     /**
-     * @function  phaseCorrection(phi0, phi1)
      * Applies the phase correction (phi0,phi1) to a Fourier transformed spectraData. The angles must be given in radians.
      * @param phi0 Zero order phase correction
      * @param phi1 One order phase correction
@@ -330,7 +309,6 @@ class NMR extends SD {
     }
 
     /**
-     * @function automaticPhase()
      * This function determines automatically the correct parameters phi0 and phi1 for a phaseCorrection
      * function and applies it.
      * @returns this object
@@ -341,7 +319,6 @@ class NMR extends SD {
 
 
     /**
-     * @function getRanges(parameters);
      * This function process the given spectraData and tries to determine the NMR signals. Returns an NMRSignal1D array containing all the detected 1D-NMR Signals
      * @param parameters A JSONObject containing the optional parameters:
      * @option fromX:   Lower limit.
