@@ -11,19 +11,19 @@ const Ranges = require('../range/Ranges');
 //var removeImpurities = require('./ImpurityRemover');
 
 const defaultOptions = {
-    nH: 99,
-    clean: true,
-    compile: true,
-    integralFn: 0,
-    optimize: true,
-    idPrefix: '',
-    format: 'old',
-    frequencyCluster: 16
+    nH: 99,                // Number of hydrogens
+    clean: true,           // If true remove all the signals with integral < 0.5
+    compile: true,         // TODO: needs documentation
+    integralFn: 0,         // TODO: needs documentation
+    optimize: true,        // TODO: should this be removed? Can't find a ref to this option
+    idPrefix: '',          // TODO: needs documentation
+    format: 'old',         // TODO: remove support for old format
+    frequencyCluster: 16   // TODO: needs documentation
 };
 
 
-function createRanges(spectrum, peakList, optionsEx) {
-    var options = Object.assign({}, defaultOptions, optionsEx);
+function createRanges(spectrum, peakList, options) {
+    options = Object.assign({}, defaultOptions, options);
     var i, j, nHi, sum;
 
     var signals = detectSignals(peakList, spectrum, options.nH, options.integralFn, options.frequencyCluster);
@@ -83,7 +83,7 @@ function createRanges(spectrum, peakList, optionsEx) {
     signals.sort(function (a, b) {
         return b.delta1 - a.delta1;
     });
-    //Remove all the signals with small integral
+
     if (options.clean || false) {
         for (i = signals.length - 1; i >= 0; i--) {
             //console.log(signals[i]);
