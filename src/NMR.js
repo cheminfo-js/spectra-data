@@ -5,7 +5,7 @@ const Filters = require('./filters/Filters.js');
 const Brukerconverter = require('brukerconverter');
 const peaks2Ranges = require('./peakPicking/peaks2Ranges');
 const NmrPredictor = require('nmr-predictor');
-const simulator = requiere('nmr-simulation');
+const simulator = require('nmr-simulation');
 
 class NMR extends SD {
 
