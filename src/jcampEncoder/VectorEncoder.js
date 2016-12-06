@@ -24,7 +24,7 @@ const SQZ_P = 1, SQZ_N = 2, DIF_P = 3, DIF_N = 4, DUP = 5, MaxLinelength = 100;
  * @param firstX
  * @param intervalX
  * @param encoding: ('FIX','SQZ','DIF','DIFDUP','CVS','PAC') Default 'DIFDUP'
- * @returns {String}
+ * @return {String}
  */
 function encode(data, firstX, intervalX, encoding) {
     switch (encoding) {
