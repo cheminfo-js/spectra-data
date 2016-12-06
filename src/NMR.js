@@ -7,6 +7,10 @@ const peaks2Ranges = require('./peakPicking/peaks2Ranges');
 const NmrPredictor = require('nmr-predictor');
 const simulator = require('nmr-simulation');
 
+/**
+ * @class NMR
+ * @extends SD
+ */
 class NMR extends SD {
 
     constructor(sd) {

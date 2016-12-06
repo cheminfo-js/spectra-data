@@ -1,8 +1,7 @@
 'use strict';
-/**
+/*
  * This library implements the J analyser described by Cobas et al in the paper:
  * A two-stage approach to automatic determination of 1H NMR coupling constants
- * Created by acastillo on 4/5/15.
  */
 
 const patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
@@ -15,6 +14,7 @@ module.exports = {
      * The compilation process implements at the first stage a normalization procedure described by Golotvin et al.
      * embedding in peak-component-counting method described by Hoyes et al.
      * @param signal
+     * @private
      */
     compilePattern: function (signal) {
         //if (DEBUG) console.log('Debugin...');
@@ -208,6 +208,7 @@ function  abstractPattern(signal, Jc) {
 
 /**
  * This function creates an ideal pattern from the given J-couplings
+ * @private
  * @param Jc
  * @returns {*[]}
  */

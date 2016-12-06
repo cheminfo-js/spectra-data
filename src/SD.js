@@ -12,12 +12,13 @@ const peakPicking = require('./peakPicking/peakPicking');
 const DATACLASS_XY = 1;
 const DATACLASS_PEAK = 2;
 
+/**
+ * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
+ * @class SD
+ * @param sd
+ * @constructor
+ */
 class SD {
-    /**
-     * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
-     * @param sd
-     * @constructor
-     */
     constructor(sd) {
         this.sd = sd;
         this.activeElement = 0;
