@@ -25,13 +25,12 @@ class SD {
     }
 
     /**
-     * Construct the object from the given jcamp.
-     * @param jcamp
-     * @param options
-     * @option xy
-     * @option keepSpectra
-     * @option keepRecordsRegExp
-     * @returns {SD}
+     * Creates a SD instance from the given jcamp.
+     * @param {string} jcamp - The jcamp string to parse from
+     * @param {object} options - Jcamp parsing options
+     * @param {boolean} [options.keepSpectra=true] - If set to false the spectra data points will not be stored in the instance
+     * @param {RegExp} [options.keepRecordsRegExp=/^.+$/] A regular expression for metadata fields to extract from the jcamp
+     * @returns {SD} Return the constructed SD instance
      */
     static fromJcamp(jcamp, options) {
         options = Object.assign({}, {xy: true, keepSpectra: true, keepRecordsRegExp: /^.+$/}, options);

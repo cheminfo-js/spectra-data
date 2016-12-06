@@ -150,7 +150,6 @@ class NMR extends SD {
      * filter could not find the correct number of points to perform a circular shift.
      * The actual problem is that not all of the spectra has the necessary parameters for use only one method for
      * correcting the problem of the Bruker digital filters.
-     * @param spectraData A fourier transformed spectraData.
      * @param ph1corr Phase 1 correction value in radians.
      * @returns this object
      */
@@ -161,8 +160,8 @@ class NMR extends SD {
     /**
      * This function increase the size of the spectrum, filling the new positions with zero values. Doing it one
      * could increase artificially the spectral resolution.
-     * @param nPointsX Number of new zero points in the direct dimension
-     * @param nPointsY Number of new zero points in the indirect dimension
+     * @param {number} nPointsX Number of new zero points in the direct dimension
+     * @param {number} nPointsY Number of new zero points in the indirect dimension
      * @returns this object
      */
     zeroFilling(nPointsX, nPointsY) {
