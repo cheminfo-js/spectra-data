@@ -12,6 +12,16 @@ class NMR2D extends SD {
         super(sd);
     }
 
+    /**
+     * This function return a NMR instance from Array of folders or zip file with folders
+     * @param {Array || zipFile} brukerFile - spectra data in two possible input
+     * @param {object} options - the options dependent on brukerFile input, but some parameter are permanents like:
+     * @option {boolean} xy - The spectraData should not be a oneD array but an object with x and y
+     * @option {boolean} keepSpectra - keep the spectra in 2D NMR instance
+     * @option {boolean} noContours - option to generate not generate countour plot for 2Dnmr spectra
+     * @option {string} keepRecordsRegExp - regular expressions to parse data
+     * @return {*}
+     */
     static fromBruker(brukerFile, options) {
         options = Object.assign({}, {xy: true, keepSpectra: true, keepRecordsRegExp: /^.+$/}, options);
         var brukerSpectra = null;
@@ -39,14 +49,14 @@ class NMR2D extends SD {
 
     /**
      * Returns the observe frequency in the direct dimension
-     * @return {*}
+     * @return {number}
      */
     observeFrequencyX() {
         return this.sd.spectra[0].observeFrequency;
     }
     /**
      * Returns the observe frequency in the indirect dimension
-     * @return {*}
+     * @return {number}
      */
     observeFrequencyY() {
         return this.sd.indirectFrequency;
@@ -106,8 +116,8 @@ class NMR2D extends SD {
     /**
      * This function process the given spectraData and tries to determine the NMR signals.
      + Returns an NMRSignal2D array containing all the detected 2D-NMR Signals
-     * @param	options:+Object			Object containing the options
-     * @option	thresholdFactor:number	A factor to scale the automatically determined noise threshold.
+     * @param	{object} options:+Object			Object containing the options
+     * @option	{number} thresholdFactor:number	A factor to scale the automatically determined noise threshold.
      * @return [*]	set of NMRSignal2D
      */
     getZones(options) {
@@ -156,7 +166,7 @@ class NMR2D extends SD {
 
     /**
      * Returns the noise factor depending on the nucleus.
-     * @param nucleus
+     * @param {string} nucleus
      * @return {number}
      */
     getNMRPeakThreshold(nucleus) {
@@ -171,7 +181,7 @@ class NMR2D extends SD {
 
     /**
      * Returns the observed nucleus in the specified dimension
-     * @param dim
+     * @param {number} dim
      * @return {string}
      */
     getNucleus(dim) {
@@ -188,9 +198,9 @@ class NMR2D extends SD {
     /**
      * This function increase the size of the spectrum, filling the new positions with zero values. Doing it one
      * could increase artificially the spectral resolution.
-     * @param nPointsX Number of new zero points in the direct dimension
-     * @param nPointsY Number of new zero points in the indirect dimension
-     * @return this object
+     * @param {number} nPointsX Number of new zero points in the direct dimension
+     * @param {number} nPointsY Number of new zero points in the indirect dimension
+     * @return {NMR2D} this object
      */
     zeroFilling(nPointsX, nPointsY) {
         return Filters.zeroFilling(this, nPointsX, nPointsY);
@@ -200,7 +210,7 @@ class NMR2D extends SD {
      * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
      * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
      * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
-     * @return this object
+     * @return {NMR2D} this object
      */
     brukerFilter() {
         return Filters.digitalFilter(this, {'brukerFilter': true});
@@ -213,7 +223,7 @@ class NMR2D extends SD {
      * @option nbPoints: The number of points to shift. Positive values will shift the values to the rigth
      * and negative values will do to the left.
      * @option brukerSpectra
-     * @return this object
+     * @return {NMR2D} this object
      */
     digitalFilter(options) {
         return Filters.digitalFilter(this, options);
@@ -222,7 +232,7 @@ class NMR2D extends SD {
 
     /**
      * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be of type NMR_FID or 2DNMR_FID
-     * @return this object
+     * @return {NMR2D} this object
      */
     fourierTransform() {
         return Filters.fourierTransform(this);
@@ -236,7 +246,7 @@ class NMR2D extends SD {
      * correcting the problem of the Bruker digital filters.
      * @param spectraData A fourier transformed spectraData.
      * @param ph1corr Phase 1 correction value in radians.
-     * @return this object
+     * @return {NMR2D} this object
      */
     postFourierTransform(ph1corr) {
         return Filters.phaseCorrection(0, ph1corr);

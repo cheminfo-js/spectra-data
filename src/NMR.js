@@ -22,7 +22,7 @@ class NMR extends SD {
      * This function return a SD instante computed with nmr chemical shift predictor "spinus" from molfile.
      * @param {string} molfile - molfile to generate the spin system and compute the spectrum
      * @param {object} options - parameters for simulation of spectrum
-     * @returns {SD} SD instante.
+     * @return {NMR} SD instante.
      */
 
     static fromMolfile(molfile, options) {
@@ -38,9 +38,9 @@ class NMR extends SD {
 
     /**
      *  this function create a SD instance from xy data
-     * @param {array} x - X data.
-     * @param {array} y - Y data.
-     * @returns {SD} SD instante from x and y data
+     * @param {Array} x - X data.
+     * @param {Array} y - Y data.
+     * @return {NMR} SD instance from x and y data
      */
     static fromXY(x, y, options) {
         var result = {};
@@ -71,11 +71,11 @@ class NMR extends SD {
      * This function return a NMR instance from Array of folders or zip file with folders
      * @param {Array || zipFile} brukerFile - spectra data in two possible input
      * @param {object} options - the options dependent on brukerFile input, but some parameter are permanents like:
-     * @options {boolean} xy - The spectraData should not be a oneD array but an object with x and y
-     * @options {boolean} keepSpectra - keep the spectra in 2D NMR instance
-     * @options {boolean} noContours - option to generate not generate countour plot for 2Dnmr spectra
-     * @options {string} keepRecordsRegExp - regular expressions to parse data
-     * @returns {*}
+     * @option {boolean} xy - The spectraData should not be a oneD array but an object with x and y
+     * @option {boolean} keepSpectra - keep the spectra in 2D NMR instance
+     * @option {boolean} noContours - option to generate not generate countour plot for 2Dnmr spectra
+     * @option {string} keepRecordsRegExp - regular expressions to parse data
+     * @return {*}
      */
     static fromBruker(brukerFile, options) {
         options = Object.assign({}, {xy: true, keepSpectra: true, keepRecordsRegExp: /^.+$/}, options);
@@ -96,10 +96,9 @@ class NMR extends SD {
     }
 
     /**
-     * @function getNucleus(dim)
      * Returns the observed nucleus. A dimension parameter is accepted for compatibility with 2DNMR
-     * @param dim
-     * @returns {*}
+     * @param {number} dim
+     * @return {string}
      */
     getNucleus(dim) {
         if (!dim || dim === 0 || dim === 1)            {
@@ -110,25 +109,22 @@ class NMR extends SD {
     }
 
     /**
-     * @function getSolventName()
      * Returns the solvent name.
-     * @returns {string|XML}
+     * @return {string|XML}
      */
     getSolventName() {
         return (this.sd.info['.SOLVENTNAME'] || this.sd.info.$SOLVENT || '').replace('<', '').replace('>', '');
     }
 
     /**
-     * @function observeFrequencyX()
      * Returns the observe frequency in the direct dimension
-     * @returns {number}
+     * @return {number}
      */
     observeFrequencyX() {
         return this.sd.spectra[0].observeFrequency;
     }
 
     /**
-     * @function getNMRPeakThreshold(nucleus)
      * Returns the noise factor depending on the nucleus.
      * @param {string} nucleus
      * @return {number}
@@ -145,11 +141,10 @@ class NMR extends SD {
 
 
     /**
-     * @function addNoise(SNR)
      * This function adds white noise to the the given spectraData. The intensity of the noise is
      * calculated from the given signal to noise ratio.
      * @param SNR Signal to noise ratio
-     * @returns this object
+     * @return {NMR} this object
      */
     /*addNoise(SNR) {
         //@TODO Implement addNoise filter
@@ -157,7 +152,6 @@ class NMR extends SD {
 
 
     /**
-     * @function addSpectraDatas(spec2,factor1,factor2,autoscale )
      *  This filter performs a linear combination of two spectraDatas.
      * A=spec1
      * B=spec2
@@ -170,7 +164,7 @@ class NMR extends SD {
      * @param factor1 linear factor for spec1
      * @param factor2 linear factor for spec2
      * @param autoscale Auto-adjust scales before combine the spectraDatas
-     * @returns this object
+     * @return {NMR} this object
      * @example spec1 = addSpectraDatas(spec1,spec2,1,-1, false) This subtract spec2 from spec1
      */
     /*addSpectraDatas(spec2, factor1, factor2, autoscale) {
@@ -179,10 +173,9 @@ class NMR extends SD {
     }*/
 
     /**
-     * @function autoBaseline()
      * Automatically corrects the base line of a given spectraData. After this process the spectraData
      * should have meaningful integrals.
-     * @returns this object
+     * @return {NMR} this object
      */
     /*autoBaseline() {
         //@TODO Implement autoBaseline filter
@@ -191,83 +184,77 @@ class NMR extends SD {
     /**
      * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be
      * of type NMR_FID or 2DNMR_FID
-     * @return {object} this object
+     * @return {NMR} this object
      */
     fourierTransform() {
         return Filters.fourierTransform(this);
     }
 
     /**
-     * @function postFourierTransform(ph1corr)
      * This filter makes an phase 1 correction that corrects the problem of the spectra that has been obtained
      * on spectrometers using the Bruker digital filters. This method is used in cases when the BrukerSpectra
      * filter could not find the correct number of points to perform a circular shift.
      * The actual problem is that not all of the spectra has the necessary parameters for use only one method for
      * correcting the problem of the Bruker digital filters.
-     * @param {number } ph1corr - Phase 1 correction value in radians.
-     * @return {object} this object
+     * @param {number} ph1corr - Phase 1 correction value in radians.
+     * @return {NMR} this object
      */
     postFourierTransform(ph1corr) {
         return Filters.phaseCorrection(0, ph1corr);
     }
 
     /**
-     * @function zeroFilling(nPointsX [,nPointsY])
      * This function increase the size of the spectrum, filling the new positions with zero values. Doing it one
      * could increase artificially the spectral resolution.
      * @param {number} nPointsX - Number of new zero points in the direct dimension
      * @param {number} nPointsY - Number of new zero points in the indirect dimension
-     * @return {object} this object
+     * @return {NMR} this object
      */
     zeroFilling(nPointsX, nPointsY) {
         return Filters.zeroFilling(this, nPointsX, nPointsY);
     }
 
     /**
-     * @function  haarWhittakerBaselineCorrection(waveletScale,whittakerLambda)
      * Applies a baseline correction as described in J Magn Resonance 183 (2006) 145-151 10.1016/j.jmr.2006.07.013
      * The needed parameters are the wavelet scale and the lambda used in the whittaker smoother.
      * @param waveletScale To be described
      * @param whittakerLambda To be described
-     * @returns this object
+     * @return {NMR} this object
      */
     /*haarWhittakerBaselineCorrection(waveletScale, whittakerLambda) {
         //@TODO Implement haarWhittakerBaselineCorrection filter
     }*/
 
     /**
-     * @function whittakerBaselineCorrection(whittakerLambda,ranges)
      * Applies a baseline correction as described in J Magn Resonance 183 (2006) 145-151 10.1016/j.jmr.2006.07.013
      * The needed parameters are the Wavelet scale and the lambda used in the Whittaker smoother.
      * @param waveletScale To be described
      * @param whittakerLambda To be described
      * @param ranges A string containing the ranges of no signal.
-     * @returns this object
+     * @return {NMR} this object
      */
     /*whittakerBaselineCorrection(whittakerLambda, ranges) {
         //@TODO Implement whittakerBaselineCorrection filter
     }*/
 
     /**
-     * @function brukerFilter()
      * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
      * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
      * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
-     * @return {object} this object
+     * @return {NMR} this object
      */
     brukerFilter() {
         return Filters.digitalFilter(this, {'brukerFilter': true});
     }
 
     /**
-     * @function digitalFilter(options)
      * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
      * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
      * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
      * @param {object} options ->
      * nbPoints: The number of points to shift. Positive values will shift the values to the rigth
      * and negative values will do to the left.
-     * @return {object} this object
+     * @return {NMR} this object
      */
     digitalFilter(options) {
         return Filters.digitalFilter(this, options);
@@ -285,7 +272,7 @@ class NMR extends SD {
      * @param {number} lineBroadening - The parameter LB should either be a line broadening factor in Hz
      * or alternatively an angle given by degrees for sine bell functions and the like.
      * @example SD.apodization('exp', lineBroadening)
-     * @return this object
+     * @return {NMR} this object
      */
     apodization(functionName, lineBroadening) {
         return Filters.apodization(this, {'functionName': functionName,
@@ -294,18 +281,16 @@ class NMR extends SD {
     }
 
     /**
-     * @function echoAntiechoFilter();
      * That decodes an Echo-Antiecho 2D spectrum.
-     * @returns this object
+     * @return {NMR} this object
      */
     echoAntiechoFilter() {
         //@TODO Implement echoAntiechoFilter filter
     }
 
     /**
-     * @function SNVFilter()
      * This function apply a Standard Normal Variate Transformation over the given spectraData. Mainly used for IR spectra.
-     * @returns this object
+     * @return {NMR} this object
      */
     SNVFilter() {
         //@TODO Implement SNVFilter
@@ -315,7 +300,7 @@ class NMR extends SD {
      * This function applies a power to all the Y values. If the power is less than 1 and the spectrum has negative values,
      * it will be shifted so that the lowest value is zero
      * @param {number} power - The power value to apply
-     * @return {object} this object
+     * @return {NMR} this object
      */
     powerFilter(power) {
         var minY = this.getMinY();
@@ -327,10 +312,9 @@ class NMR extends SD {
     }
 
     /**
-     * @function logarithmFilter(base)
      * This function applies a log to all the Y values.<br>If the spectrum has negative or zero values, it will be shifted so that the lowest value is 1
      * @param   base    The base to use
-     * @returns this object
+     * @return this object
      */
     /*logarithmFilter(base) {
         var minY = this.getMinY();
@@ -343,7 +327,6 @@ class NMR extends SD {
 
 
     /**
-     * @function correlationFilter(func)
      * This function correlates the given spectraData with the given vector func. The correlation
      * operation (*) is defined as:
      *
@@ -352,7 +335,7 @@ class NMR extends SD {
      *                   ./
      *                    -- i=-inf
      * @param func A double array containing the function to correlates the spectraData
-     * @returns this object
+     * @return this object
      * @example var smoothedSP = SD.correlationFilter(spectraData,[1,1]) returns a smoothed version of the
      * given spectraData.
      */
@@ -364,17 +347,16 @@ class NMR extends SD {
      * Applies the phase correction (phi0,phi1) to a Fourier transformed spectraData. The angles must be given in radians.
      * @param {number} phi0 - the value of Zero order phase correction
      * @param {number} phi1 - the value of first order phase correction
-     * @return this object
+     * @return {NMR}
      */
     phaseCorrection(phi0, phi1) {
         return Filters.phaseCorrection(this, phi0, phi1);
     }
 
     /**
-     * @function automaticPhase()
      * This function determines automatically the correct parameters phi0 and phi1 for a phaseCorrection
      * function and applies it.
-     * @returns this object
+     * @return {NMR}
      */
     /*automaticPhase() {
         //@TODO Implement automaticPhase filter
@@ -389,7 +371,7 @@ class NMR extends SD {
      * @option toX:     Upper limit.
      * @option threshold: The minimum intensity to consider a peak as a signal, expressed as a percentage of the highest peak.
      * @option stdev: Number of standard deviation of the noise for the threshold calculation if a threshold is not specified.
-     * @returns {*}
+     * @return {*}
      */
     getRanges(parameters) {
         if (this.ranges) {
@@ -409,7 +391,7 @@ class NMR extends SD {
      * @option toX:     Upper limit.
      * @option threshold: The minimum intensity to consider a peak as a signal, expressed as a percentage of the highest peak.
      * @option stdev: Number of standard deviation of the noise for the threshold calculation if a threshold is not specified.
-     * @returns {null|*}
+     * @return {null|*}
      */
     createRanges(parameters) {
         this.ranges = null;

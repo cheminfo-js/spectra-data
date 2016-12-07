@@ -15,7 +15,7 @@ const DATACLASS_PEAK = 2;
 /**
  * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
  * @class SD
- * @param sd
+ * @param {SD} sd
  * @constructor
  */
 class SD {
@@ -40,7 +40,7 @@ class SD {
 
     /**
      * This function sets the nactiveSpectrum sub-spectrum as active
-     * @param {number} index of the sub-spectrum to set as active
+     * @param {number} nactiveSpectrum index of the sub-spectrum to set as active
      */
     setActiveElement(nactiveSpectrum) {
         this.activeElement = nactiveSpectrum;
@@ -82,13 +82,13 @@ class SD {
      * @param {number} index of the tuple
      * @return {number|*}
      */
-    getSpectraVariable(dim) {
-        return this.sd.ntuples[dim];
+    getSpectraVariable(index) {
+        return this.sd.ntuples[index];
     }
 
     /**
      * Return the number of points in the current spectrum
-     * @param {number} index of sub-spectrum
+     * @param {number} i of sub-spectrum
      * @return {number | *}
      */
     getNbPoints(i) {
@@ -97,7 +97,7 @@ class SD {
 
     /**
      * Return the first value of the independent dimension
-     * @param {i} index of sub-spectrum
+     * @param {i} i of sub-spectrum
      * @return {number | *}
      */
     getFirstX(i) {
@@ -151,7 +151,7 @@ class SD {
     /**
      * Set the first value of the indirect dimension. Only valid for 2D spectra.
      * @param {number} y - the value of firstY
-     * @param {number} i - sub-spectrum Default:activeSpectrum
+     * @param {number} i - sub-spectrum Default: activeSpectrum
      */
     setFirstY(y, i) {
         i = i || this.activeElement;
@@ -160,6 +160,7 @@ class SD {
 
     /**
      * Return the first value of the indirect dimension. Only valid for 2D spectra.
+     * @param {number} i - sub-spectrum Default: activeSpectrum
      * @return {number}
      */
     getLastY(i) {
@@ -218,7 +219,7 @@ class SD {
      * Set the data type for this spectrum. It could be one of the following:
      ["INFRARED"||"IR","IV","NDNMRSPEC","NDNMRFID","NMRSPEC","NMRFID","HPLC","MASS"
      * "UV", "RAMAN" "GC"|| "GASCHROMATOGRAPH","CD"|| "DICHRO","XY","DEC"]
-     * @param dataType
+     * @param {string} dataType
      */
     setDataType(dataType) {
         this.getSpectrum().dataType = dataType;
@@ -235,7 +236,7 @@ class SD {
     /**
      * Return the i-th sub-spectrum data in the current spectrum
      * @param {number} i - sub-spectrum Default:activeSpectrum
-     * @return {this.sd.spectra[i].data[0]}
+     * @return {object}
      */
     getSpectrumData(i) {
         i = i || this.activeElement;
@@ -245,7 +246,7 @@ class SD {
     /**
      * Return the i-th sub-spectra in the current spectrum
      * @param {number} i - sub-spectrum Default:activeSpectrum
-     * @return {this.sd.spectra[i]}
+     * @return {object}
      */
     getSpectrum(i) {
         i = i || this.activeElement;
@@ -316,7 +317,7 @@ class SD {
 
     /**
      * Set the title of this spectrum.
-     * @param newTitle The new title
+     * @param {string} newTitle The new title
      * @param {number} i sub-spectrum Default:activeSpectrum
      */
     setTitle(newTitle, i) {
@@ -362,7 +363,7 @@ class SD {
 
     /**
      * Return the xValue for the given index.
-     * @param doublePoint
+     * @param {number} doublePoint
      * @return {number}
      */
     arrayPointToUnits(doublePoint) {
@@ -496,7 +497,7 @@ class SD {
      * If value is undefined it will suppress the elements
      * @param {number} from - one limit the spectrum to fill
      * @param {number} to - one limit the spectrum to fill
-     * @param {number} fillWith - value with which to fill
+     * @param {number} value - value with which to fill
      */
     fillWith(from, to, value) {
         var tmp, start, end, x, y;
@@ -725,7 +726,7 @@ class SD {
      * @param {number} from - one limit in spectrum units
      * @param {number} to - one limit in spectrum units
      * @param {number} nPoints - number of points to return(!!!sometimes it is not possible to return exactly the required nbPoints)
-     * @return [array]
+     * @return {Array}
      */
     getVector(from, to, nPoints) {
         if (nPoints) {
@@ -742,7 +743,7 @@ class SD {
      * @param {number} from - index of a limit of the desired window.
      * @param {number} to - index of a limit of the desired window
      * @param {number} nPoints - number of points in the desired window.
-     * @return {array} XYarray data of the desired window.
+     * @return {Array} XYarray data of the desired window.
      */
     getPointsInWindow(from, to, nPoints) {
         var x = this.getSpectraDataX();
@@ -850,7 +851,7 @@ class SD {
     /**
      * this function create a new peakPicking
      * @param {object} parameters - parameters to calculation of peakPicking
-     * @returns {*}
+     * @return {*}
      */
     createPeaks(parameters) {
         this.peaks = null;
@@ -861,7 +862,7 @@ class SD {
     /**
      * this function return the peak table or extract the peak of the spectrum.
      * @param {object} parameters - parameters to calculation of peakPicking
-     * @returns {*}
+     * @return {*}
      */
     getPeaks(parameters) {
         if (this.peaks) {
