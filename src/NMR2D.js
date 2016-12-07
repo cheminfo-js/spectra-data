@@ -14,7 +14,7 @@ class NMR2D extends SD {
 
     /**
      * This function return a NMR instance from Array of folders or zip file with folders
-     * @param {Array || zipFile} brukerFile - spectra data in two possible input
+     * @param {Array} brukerFile - spectra data in two possible input
      * @param {object} options - the options dependent on brukerFile input, but some parameter are permanents like:
      * @option {boolean} xy - The spectraData should not be a oneD array but an object with x and y
      * @option {boolean} keepSpectra - keep the spectra in 2D NMR instance
@@ -115,14 +115,14 @@ class NMR2D extends SD {
 
     /**
      * This function process the given spectraData and tries to determine the NMR signals.
-     + Returns an NMRSignal2D array containing all the detected 2D-NMR Signals
-     * @param	{object} options:+Object			Object containing the options
-     * @option	{number} thresholdFactor:number	A factor to scale the automatically determined noise threshold.
-     * @return [*]	set of NMRSignal2D
+     * Returns an NMRSignal2D array containing all the detected 2D-NMR Signals
+     * @param	{object} options - Object containing the options.
+     * @option	{number} thresholdFactor - A factor to scale the automatically determined noise threshold.
+     * @return  {*}	set of NMRSignal2D.
      */
     getZones(options) {
         options = options || {};
-        if (!options.thresholdFactor)            {
+        if (!options.thresholdFactor) {
             options.thresholdFactor = 1;
         }
         var id = Math.round(Math.random() * 255);
@@ -220,6 +220,7 @@ class NMR2D extends SD {
      * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
      * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
      * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
+     * @param {object} options - some options are availables:
      * @option nbPoints: The number of points to shift. Positive values will shift the values to the rigth
      * and negative values will do to the left.
      * @option brukerSpectra
@@ -244,8 +245,7 @@ class NMR2D extends SD {
      * filter could not find the correct number of points to perform a circular shift.
      * The actual problem is that not all of the spectra has the necessary parameters for use only one method for
      * correcting the problem of the Bruker digital filters.
-     * @param spectraData A fourier transformed spectraData.
-     * @param ph1corr Phase 1 correction value in radians.
+     * @param {number} ph1corr - Phase 1 correction value in radians.
      * @return {NMR2D} this object
      */
     postFourierTransform(ph1corr) {
