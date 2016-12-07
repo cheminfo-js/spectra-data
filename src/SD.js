@@ -881,12 +881,13 @@ class SD {
      * The X,Y data can be compressed using one of the methods described in:
      * "JCAMP-DX. A STANDARD FORMAT FOR THE EXCHANGE OF ION MOBILITY SPECTROMETRY DATA",
      *  http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
-     * @option encode: ['FIX','SQZ','DIF','DIFDUP','CVS','PAC'] (Default: 'DIFDUP')
-     * @option yfactor: The YFACTOR. It allows to compress the data by removing digits from the ordinate. (Default: 1)
-     * @option type: ["NTUPLES", "SIMPLE"] (Default: "SIMPLE")
-     * @option keep: A set of user defined parameters of the given SpectraData to be stored in the jcamp.
-     * @return a string containing the jcamp-DX file
+     * @param {object} options - some options are availables:
+     * @option {string} encode  - ['FIX','SQZ','DIF','DIFDUP','CVS','PAC'] (Default: 'DIFDUP')
+     * @option {number} yfactor - The YFACTOR. It allows to compress the data by removing digits from the ordinate. (Default: 1)
+     * @option {string} type - ["NTUPLES", "SIMPLE"] (Default: "SIMPLE")
+     * @option {object} keep - A set of user defined parameters of the given SpectraData to be stored in the jcamp.
      * @example SD.toJcamp(spectraData,{encode:'DIFDUP',yfactor:0.01,type:"SIMPLE",keep:['#batchID','#url']});
+     * @return {*} a string containing the jcamp-DX file
      */
     toJcamp(options) {
         var creator = new JcampCreator();

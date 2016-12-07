@@ -170,10 +170,10 @@ class NMR2D extends SD {
      * @return {number}
      */
     getNMRPeakThreshold(nucleus) {
-        if (nucleus === '1H')            {
+        if (nucleus === '1H') {
             return 3.0;
         }
-        if (nucleus === '13C')            {
+        if (nucleus === '13C') {
             return 5.0;
         }
         return 1.0;
@@ -185,7 +185,7 @@ class NMR2D extends SD {
      * @return {string}
      */
     getNucleus(dim) {
-        if (dim === 1)            {
+        if (dim === 1) {
             return this.sd.xType;
         }
         if (dim === 2)            {
