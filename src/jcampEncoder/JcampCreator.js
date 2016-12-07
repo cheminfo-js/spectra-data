@@ -241,15 +241,16 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
         outString += '##PAGE= ' + spectraData.page + CRLF;
         yUnits += dy;
 
-        if (spectraData.is2D() && isNMR)                {
+        if (spectraData.is2D() && isNMR) {
             outString += '##FIRST=\t' + spectraData.getParamDouble('firstY', 0) * freq1 + ',\t'
-            + spectraData.getFirstX() * freq2 + ',\t' + spectraData.getY(0) + CRLF;}
+            + spectraData.getFirstX() * freq2 + ',\t' + spectraData.getY(0) + CRLF;
+        }
 
 
         outString += '##DATA TABLE= ';
         if (spectraData.isDataClassPeak()) {
             outString += '(XY..XY), PEAKS' + CRLF;
-            for (let point = 0; point < spectraData.getNbPoints(); point++)                    {
+            for (let point = 0; point < spectraData.getNbPoints(); point++) {
                 outString += spectraData.getX(point) + ', ' + spectraData.getY(point) + CRLF;
             }
 
@@ -257,14 +258,14 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
             if (isNMR) {
                 if (spectraData.is2D()) {
                     outString += '(F2++(Y..Y)), PROFILE' + CRLF;
-                }                    else {
-                    if (sub % 2 === 0)                            {
+                } else {
+                    if (sub % 2 === 0) {
                         outString += '(X++(R..R)), XYDATA' + CRLF;
-                    }                        else                            {
+                    } else {
                         outString += '(X++(I..I)), XYDATA' + CRLF;
                     }
                 }
-            }                else                    {
+            } else {
                 outString += '(X++(Y..Y)), XYDATA' + CRLF;
             }
 
