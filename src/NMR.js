@@ -18,6 +18,12 @@ class NMR extends SD {
         // TODO: add stuff specific to NMR
     }
 
+    /**
+     * This function return a SD instante computed with nmr chemical shift predictor "spinus" from molfile.
+     * @param {string} molfile - molfile to generate the spin system and compute the spectrum
+     * @param {object} options - parameters for simulation of spectrum
+     * @returns {SD} SD instante.
+     */
     static fromPrediction(molfile, options) {
         let opt = Object.assign({}, {output: 'xy'}, options);
         const predictor = new NmrPredictor('spinus');
@@ -28,10 +34,25 @@ class NMR extends SD {
         });
     }
 
+    /**
+     *  this function create a SD instance from xy data
+     * @param {2Darray} xy - data then first row(xy[0]) are X data and last row (xy[1]) are Y data.
+     * @returns {SD} SD instante from xy data
+     */
     static fromXY(xy) {
         return new SD({spectra: [{data: {x: xy[0], y: xy[1]}}]});
     }
 
+    /**
+     * This function return a NMR instance from Array of folders or zip file with folders
+     * @param {Array || zipFile} brukerFile - spectra data in two possible input
+     * @param {object} options - the options dependent on brukerFile input, but some parameter are permanents like:
+     * @options {boolean} xy - The spectraData should not be a oneD array but an object with x and y
+     * @options {boolean} keepSpectra - keep the spectra in 2D NMR instance
+     * @options {boolean} noContours - option to generate not generate countour plot for 2Dnmr spectra
+     * @options {string} keepRecordsRegExp - regular expressions to parse data
+     * @returns {*}
+     */
     static fromBruker(brukerFile, options) {
         options = Object.assign({}, {xy: true, keepSpectra: true, keepRecordsRegExp: /^.+$/}, options);
         var brukerSpectra = null;
@@ -81,14 +102,14 @@ class NMR extends SD {
 
     /**
      * Returns the noise factor depending on the nucleus.
-     * @param nucleus
+     * @param {string} nucleus
      * @return {number}
      */
     getNMRPeakThreshold(nucleus) {
-        if (nucleus === '1H')            {
+        if (nucleus === '1H') {
             return 3.0;
         }
-        if (nucleus === '13C')            {
+        if (nucleus === '13C') {
             return 5.0;
         }
         return 1.0;
@@ -137,8 +158,9 @@ class NMR extends SD {
     }*/
 
     /**
-     * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be of type NMR_FID or 2DNMR_FID
-     * @return this object
+     * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be
+     * of type NMR_FID or 2DNMR_FID
+     * @return {object} this object
      */
     fourierTransform() {
         return Filters.fourierTransform(this);
@@ -150,8 +172,8 @@ class NMR extends SD {
      * filter could not find the correct number of points to perform a circular shift.
      * The actual problem is that not all of the spectra has the necessary parameters for use only one method for
      * correcting the problem of the Bruker digital filters.
-     * @param ph1corr Phase 1 correction value in radians.
-     * @return this object
+     * @param {number } ph1corr - Phase 1 correction value in radians.
+     * @return {object} this object
      */
     postFourierTransform(ph1corr) {
         return Filters.phaseCorrection(0, ph1corr);
@@ -160,9 +182,9 @@ class NMR extends SD {
     /**
      * This function increase the size of the spectrum, filling the new positions with zero values. Doing it one
      * could increase artificially the spectral resolution.
-     * @param {number} nPointsX Number of new zero points in the direct dimension
-     * @param {number} nPointsY Number of new zero points in the indirect dimension
-     * @return this object
+     * @param {number} nPointsX - Number of new zero points in the direct dimension
+     * @param {number} nPointsY - Number of new zero points in the indirect dimension
+     * @return {object} this object
      */
     zeroFilling(nPointsX, nPointsY) {
         return Filters.zeroFilling(this, nPointsX, nPointsY);
@@ -195,7 +217,7 @@ class NMR extends SD {
      * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
      * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
      * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
-     * @return this object
+     * @return {onject} this object
      */
     brukerFilter() {
         return Filters.digitalFilter(this, {'brukerFilter': true});
@@ -205,29 +227,28 @@ class NMR extends SD {
      * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
      * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
      * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
-     * @option nbPoints: The number of points to shift. Positive values will shift the values to the rigth
+     * @param {object} options ->
+     * nbPoints: The number of points to shift. Positive values will shift the values to the rigth
      * and negative values will do to the left.
-     * @option brukerSpectra
-     * @return this object
+     * @return {object} this object
      */
     digitalFilter(options) {
         return Filters.digitalFilter(this, options);
     }
 
     /**
-     * Apodization of a spectraData object.
-     * @param spectraData An spectraData of type NMR_FID
-     * @param functionName Valid values for functionsName are
+     * Apodization of a spectraData object that should be of type NMR_FID.
+     * @param {string} functionName - Valid values for functionsName are
      *  Exponential, exp
      *  Hamming, hamming
      *  Gaussian, gauss
      *  TRAF, traf
      *  Sine Bell, sb
      *  Sine Bell Squared, sb2
-     * @param lineBroadening The parameter LB should either be a line broadening factor in Hz
+     * @param {number} lineBroadening - The parameter LB should either be a line broadening factor in Hz
      * or alternatively an angle given by degrees for sine bell functions and the like.
-     * @return this object
      * @example SD.apodization('exp', lineBroadening)
+     * @return this object
      */
     apodization(functionName, lineBroadening) {
         return Filters.apodization(this, {'functionName': functionName,
@@ -252,9 +273,10 @@ class NMR extends SD {
     }
 
     /**
-     * This function applies a power to all the Y values.<br>If the power is less than 1 and the spectrum has negative values, it will be shifted so that the lowest value is zero
-     * @param   power   The power to apply
-     * @return this object
+     * This function applies a power to all the Y values. If the power is less than 1 and the spectrum has negative values,
+     * it will be shifted so that the lowest value is zero
+     * @param {number} power - The power value to apply
+     * @return {object} this object
      */
     powerFilter(power) {
         var minY = this.getMinY();
@@ -299,8 +321,8 @@ class NMR extends SD {
 
     /**
      * Applies the phase correction (phi0,phi1) to a Fourier transformed spectraData. The angles must be given in radians.
-     * @param phi0 Zero order phase correction
-     * @param phi1 One order phase correction
+     * @param {number} phi0 - the value of Zero order phase correction
+     * @param {number} phi1 - the value of first order phase correction
      * @return this object
      */
     phaseCorrection(phi0, phi1) {
@@ -318,8 +340,9 @@ class NMR extends SD {
 
 
     /**
-     * This function process the given spectraData and tries to determine the NMR signals. Returns an NMRSignal1D array containing all the detected 1D-NMR Signals
-     * @param parameters A JSONObject containing the optional parameters:
+     * This function process the given spectraData and tries to determine the NMR signals. Returns an NMRSignal1D array
+     * containing all the detected 1D-NMR Signals
+     * @param {object} parameters - A JSONObject containing the optional parameters:
      * @option fromX:   Lower limit.
      * @option toX:     Upper limit.
      * @option threshold: The minimum intensity to consider a peak as a signal, expressed as a percentage of the highest peak.
@@ -336,6 +359,16 @@ class NMR extends SD {
         }
     }
 
+    /**
+     * This function compute again the process of the given spectraData and tries to determine the NMR signals.
+     * Returns an NMRSignal1D array containing all the detected 1D-NMR Signals
+     * @param {object} parameters - A JSONObject containing the optional parameters:
+     * @option fromX:   Lower limit.
+     * @option toX:     Upper limit.
+     * @option threshold: The minimum intensity to consider a peak as a signal, expressed as a percentage of the highest peak.
+     * @option stdev: Number of standard deviation of the noise for the threshold calculation if a threshold is not specified.
+     * @returns {null|*}
+     */
     createRanges(parameters) {
         this.ranges = null;
         this.peaks = null;
