@@ -63,8 +63,8 @@ class SD {
     }
 
     /**
-     * This function returns the units of the independent dimension.
-     * @return {xUnit|*|M.xUnit}
+     * This function set the units of the independent dimension.
+     * @param {string} units of the independent dimension.
      */
     setXUnits(units) {
         this.getSpectrum().xUnit = units;
@@ -79,7 +79,8 @@ class SD {
 
     /**
      * This function returns the information about the dimensions
-     * @return {*}
+     * @param {number} index of the tuple
+     * @return {number|*}
      */
     getSpectraVariable(dim) {
         return this.sd.ntuples[dim];
@@ -87,17 +88,17 @@ class SD {
 
     /**
      * Return the number of points in the current spectrum
-     * @param i sub-spectrum
-     * @return {*}
+     * @param index of sub-spectrum
+     * @return {number | *}
      */
     getNbPoints(i) {
         return this.getSpectrumData(i).y.length;
     }
 
     /**
-     * Return the first value of the direct dimension
-     * @param i sub-spectrum
-     * @return {number}
+     * Return the first value of the independent dimension
+     * @param {i} index of sub-spectrum
+     * @return {number | *}
      */
     getFirstX(i) {
         i = i || this.activeElement;
@@ -106,8 +107,8 @@ class SD {
 
     /**
      * Set the firstX for this spectrum. You have to force and update of the xAxis after!!!
-     * @param x
-     * @param i sub-spectrum
+     * @param {number} x - The value for firstX
+     * @param i sub-spectrum Default:activeSpectrum
      */
     setFirstX(x, i) {
         i = i || this.activeElement;
@@ -116,7 +117,7 @@ class SD {
 
     /**
      * Return the last value of the direct dimension
-     * @param i sub-spectrum
+     * @param {number} i - sub-spectrum Default:activeSpectrum
      * @return {number}
      */
     getLastX(i) {
@@ -127,8 +128,8 @@ class SD {
 
     /**
      * Set the last value of the direct dimension. You have to force and update of the xAxis after!!!
-     * @param x
-     * @param i sub-spectrum
+     * @param {number} x - The value for lastX
+     * @param {number} i - sub-spectrum Default:activeSpectrum
      */
     setLastX(x, i) {
         i = i || this.activeElement;
@@ -139,7 +140,7 @@ class SD {
      */
     /**
      * Return the first value of the direct dimension
-     * @param i sub-spectrum
+     * @param {number} i - sub-spectrum Default:activeSpectrum
      * @return {number}
      */
     getFirstY(i) {
@@ -149,8 +150,8 @@ class SD {
 
     /**
      * Set the first value of the indirect dimension. Only valid for 2D spectra.
-     * @param y
-     * @param i sub-spectrum
+     * @param {number} y - the value of firstY
+     * @param {number} i - sub-spectrum Default:activeSpectrum
      */
     setFirstY(y, i) {
         i = i || this.activeElement;
@@ -168,8 +169,8 @@ class SD {
 
     /**
      * Return the first value of the indirect dimension
-     * @param y
-     * @param i sub-spectrum
+     * @param {number} y - the value of firstY
+     * @param {number} i - sub-spectrum Default:activeSpectrum
      */
     setLastY(y, i) {
         i = i || this.activeElement;
@@ -178,7 +179,7 @@ class SD {
 
     /**
      * Set the spectrum data_class. It could be DATACLASS_PEAK=1 or DATACLASS_XY=2
-     * @param dataClass
+     * @param {string} dataClass - data_class of the current spectra data
      */
     setDataClass(dataClass) {
         if (dataClass === DATACLASS_PEAK) {
@@ -193,7 +194,7 @@ class SD {
 
     /**
      * Is this a PEAKTABLE spectrum?
-     * @return {*}
+     * @return {boolean}
      */
     isDataClassPeak() {
         if (this.getSpectrum().isPeaktable)            {
@@ -233,7 +234,7 @@ class SD {
 
     /**
      * Return the i-th sub-spectrum data in the current spectrum
-     * @param i
+     * @param {number} i - sub-spectrum Default:activeSpectrum
      * @return {this.sd.spectra[i].data[0]}
      */
     getSpectrumData(i) {
@@ -243,7 +244,7 @@ class SD {
 
     /**
      * Return the i-th sub-spectra in the current spectrum
-     * @param i
+     * @param {number} i - sub-spectrum Default:activeSpectrum
      * @return {this.sd.spectra[i]}
      */
     getSpectrum(i) {
@@ -374,8 +375,7 @@ class SD {
      * This method makes use of spectraData.getFirstX(), spectraData.getLastX()
      * and spectraData.getNbPoints() to derive the return value if it of data class XY
      * It performs a binary search if the spectrum is a peak table
-     * @param inValue
-     *            (value in Units to be converted)
+     * @param {number} inValue - value in Units to be converted
      * @return {number} An integer representing the index value of the inValue
      */
     unitsToArrayPoint(inValue) {
@@ -426,7 +426,7 @@ class SD {
     }
 
     /**
-     * Returns the separation between 2 consecutive points in the spectrum domain
+     * Returns the separation between 2 consecutive points in the frequency domain
      * @return {number}
      */
     getDeltaX() {
@@ -435,8 +435,8 @@ class SD {
 
     /**
      * This function scales the values of Y between the min and max parameters
-     * @param min   Minimum desired value for Y
-     * @param max   Maximum desired value for Y
+     * @param {number} min - Minimum desired value for Y
+     * @param {number} max - Maximum desired value for Y
      */
     setMinMax(min, max) {
         ArrayUtils.scale(this.getYData(), {min: min, max: max, inplace: true});
@@ -444,7 +444,7 @@ class SD {
 
     /**
      * This function scales the values of Y to fit the min parameter
-     * @param min   Minimum desired value for Y
+     * @param {number} min - Minimum desired value for Y
      */
     setMin(min) {
         ArrayUtils.scale(this.getYData(), {min: min, inplace: true});
@@ -452,7 +452,7 @@ class SD {
 
     /**
      * This function scales the values of Y to fit the max parameter
-     * @param max   Maximum desired value for Y
+     * @param {number} max - Maximum desired value for Y
      */
     setMax(max) {
         ArrayUtils.scale(this.getYData(), {max: max, inplace: true});
@@ -460,7 +460,7 @@ class SD {
 
     /**
      * This function shifts the values of Y
-     * @param value Distance of the shift
+     * @param {number} value - Distance of the shift
      */
     yShift(value) {
         var y = this.getSpectrumData().y;
@@ -475,7 +475,7 @@ class SD {
     /**
      * This function shift the given spectraData. After this function is applied, all the peaks in the
      * spectraData will be found at xi+globalShift
-     * @param globalShift
+     * @param {number} globalShift - Distance of the shift for direct dimension.
      */
     shift(globalShift) {
         for (let i = 0; i < this.getNbSubSpectra(); i++) {
@@ -494,9 +494,9 @@ class SD {
     /**
      * This function fills a zone of the spectrum with the given value.
      * If value is undefined it will suppress the elements
-     * @param from
-     * @param to
-     * @param fillWith
+     * @param {number} from - one limit the spectrum to fill
+     * @param {number} to - one limit the spectrum to fill
+     * @param {number} fillWith - value with which to fill
      */
     fillWith(from, to, value) {
         var tmp, start, end, x, y;
@@ -538,8 +538,8 @@ class SD {
     /**
      * This function suppress a zone from the given spectraData within the given x range.
      * Returns a spectraData of type PEAKDATA without peaks in the given region
-     * @param from
-     * @param to
+     * @param {number} from - one limit the spectrum to suppress
+     * @param {number} to - one limit the spectrum to suppress
      */
     suppressZone(from, to) {
         this.fillWith(from, to);
@@ -566,7 +566,7 @@ class SD {
     */
 
     /**
-     * Get the maximum peak
+     * Get the maximum peak the spectrum
      * @return {[x, y]}
      */
     getMaxPeak() {
@@ -581,19 +581,13 @@ class SD {
         return [this.getX(index), max];
     }
 
-    /**
-     * Get the value of the parameter
-     * @param  name The parameter name
-     * @param  defvalue The default value
+    /** TODO: should be modifed, this is same that getParamInt and getParam
+     * Get the value of the parameter. If it is null, will set up a default value
+     * @param {string} name - The parameter name
+     * @param {*} defvalue - The default value
      * @return {number}
      */
 
-    /**
-     *
-     * @param name
-     * @param defvalue
-     * @return {*}
-     */
     getParamDouble(name, defvalue) {
         var value = this.sd.info[name];
         if (!value)            {
@@ -603,9 +597,9 @@ class SD {
     }
 
     /**
-     * Get the value of the parameter
-     * @param  name The parameter name
-     * @param  defvalue The default value
+     * Get the string of the value of the parameter. If it is null, will set up a default value
+     * @param {string} name - The parameter name
+     * @param {*} defvalue - The default value
      * @return {string}
      */
     getParamString(name, defvalue) {
@@ -618,8 +612,8 @@ class SD {
 
     /**
      * Get the value of the parameter
-     * @param  name The parameter name
-     * @param  defvalue The default value
+     * @param {string} name - The parameter name
+     * @param {*} defvalue - The default value
      * @return {number}
      */
     getParamInt(name, defvalue) {
@@ -632,8 +626,8 @@ class SD {
 
     /**
      * Get the value of the parameter
-     * @param  name The parameter name
-     * @param  defvalue The default value
+     * @param {string} name - The parameter name
+     * @param {*} defvalue - The default value
      * @return {*}
      */
     getParam(name, defvalue) {
@@ -645,8 +639,8 @@ class SD {
     }
 
     /**
-     *True if the spectrum.info contains the given parameter
-     * @param name
+     * True if the spectrum.info contains the given parameter
+     * @param {string} name - The parameter name
      * @return {boolean}
      */
     containsParam(name) {
@@ -673,25 +667,25 @@ class SD {
     }
 
     /**
-     * Update min max values of X and Yaxis.
+     * Update min max values of X and Y axis.
      */
     resetMinMax() {
-        //TODO Impelement this function
+        //TODO: Implement this function
     }
 
     /**
      * Set a new parameter to this spectrum
-     * @param name
-     * @param value
+     * @param {string} name - the parameter name
+     * @param {number | *} value - the parameter value
      */
     putParam(name, value) {
         this.sd.info[name] = value;
     }
 
     /**
-     * This function returns the area under the spectrum in the given window
-     * @param from in spectrum units
-     * @param to in spectrum units
+     * This function returns the area under the spectrum in the given window (spectrum units)
+     * @param {number} from - one limit in spectrum units
+     * @param {number} to - one limit in spectrum units
      * @return {number}
      */
     getArea(from, to) {
@@ -728,16 +722,16 @@ class SD {
 
     /**
      * Returns a equally spaced vector within the given window.
-     * @param from in spectrum units
-     * @param to in spectrum units
-     * @param nPoints number of points to return(!!!sometimes it is not possible to return exactly the required nbPoints)
-     * @return [x,y]
+     * @param {number} from - one limit in spectrum units
+     * @param {number} to - one limit in spectrum units
+     * @param {number} nPoints - number of points to return(!!!sometimes it is not possible to return exactly the required nbPoints)
+     * @return [array]
      */
     getVector(from, to, nPoints) {
         if (nPoints) {
             return ArrayUtils.getEquallySpacedData(this.getSpectraDataX(), this.getSpectraDataY(),
                 {from: from, to: to, numberOfPoints: nPoints});
-        }        else {
+        } else {
             return this.getPointsInWindow(from, to);
         }
     }
@@ -745,10 +739,10 @@ class SD {
     /**
      * Returns all the point in a given window.
      * Not tested, you have to know what you are doing
-     * @param from
-     * @param to
-     * @param nPoints
-     * @return {*}
+     * @param {number} from - index of a limit of the desired window.
+     * @param {number} to - index of a limit of the desired window
+     * @param {number} nPoints - number of points in the desired window.
+     * @return {array} XYarray data of the desired window.
      */
     getPointsInWindow(from, to, nPoints) {
         var x = this.getSpectraDataX();
@@ -768,7 +762,6 @@ class SD {
         }
         //console.log(x[end]+" "+from+" "+x[start]+" "+to);
         if (x[start] > to || x[end] < from) {
-            //console.log("ssss");
             return [];
         }
 
@@ -795,7 +788,6 @@ class SD {
         var i = start - direction;
         for (var k = 0; k < nPoints; k++) {
             i += Math.round(di * direction);
-            //console.log(i+" "+y[i]);
             xwin[index] = x[i];
             ywin[index] = y[i];
             index += direction;
@@ -816,20 +808,20 @@ class SD {
 
     /**
      * Set the normalization value for this spectrum
-     * @param value
+     * @param {number} value - integral value to set up
      */
     setTotalIntegral(value) {
         this.totalIntegralValue = value;
     }
 
     /**
-     * Return the normalization value. It is not set check the molfile and guess it from the number of atoms
-     * @return {*}
+     * Return the normalization value. It is not set check the molfile and guess it from the number of atoms.
+     * @return {number}
      */
     get totalIntegral() {
         if (this.totalIntegralValue) {
             return this.totalIntegralValue;
-        }        else if (this.molecule) {
+        } else if (this.molecule) {
             if (this.getNucleus(0).indexOf('H')) {
                 return this.mf.replace(/.*H([0-9]+).*/, '$1') * 1;
             }
@@ -844,6 +836,10 @@ class SD {
         return 1;
     }
 
+    /**
+     * this function set a molfile, molecule and molecular formula.
+     * @param {string} molfile - The molfile that correspond to current spectra data
+     */
     setMolfile(molfile) {
         this.molfile = molfile;
         this.molecule = OCL.Molecule.fromMolfile(molfile);
@@ -851,12 +847,22 @@ class SD {
         this.mf = this.molecule.getMolecularFormula().getFormula() + '';
     }
 
+    /**
+     * this function create a new peakPicking
+     * @param {object} parameters - parameters to calculation of peakPicking
+     * @returns {*}
+     */
     createPeaks(parameters) {
         this.peaks = null;
         this.peaks = this.getPeaks(parameters);
         return this.peaks;
     }
 
+    /**
+     * this function return the peak table or extract the peak of the spectrum.
+     * @param {object} parameters - parameters to calculation of peakPicking
+     * @returns {*}
+     */
     getPeaks(parameters) {
         if (this.peaks) {
             return this.peaks;
@@ -870,7 +876,7 @@ class SD {
     }*/
 
     /**
-     * This function creates a String that represents the given spectraData in the format JCAM-DX 5.0
+     * This function creates a String that represents the given spectraData in the format JCAMP-DX 5.0
      * The X,Y data can be compressed using one of the methods described in:
      * "JCAMP-DX. A STANDARD FORMAT FOR THE EXCHANGE OF ION MOBILITY SPECTROMETRY DATA",
      *  http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
