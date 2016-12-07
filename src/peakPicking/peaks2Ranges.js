@@ -151,12 +151,12 @@ function updateIntegrals(signals, nH) {
 
 /**
  * Extract the signals from the peakList and the given spectrum
- * @param peakList
- * @param spectrum
- * @param nH
- * @param integralType
- * @param frequencyCluster
- * @return {Array}
+ * @param {object} peakList - nmr signals
+ * @param {object} spectrum - spectra data
+ * @param {number} nH - number to normalize the integral data
+ * @param {number} integralType - option to chose between approx area with gaussian function or sum of the points of given range
+ * @param {number} frequencyCluster - distance limit to clustering the peaks.
+ * @return {Array} nmr signals
  */
 function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
     const frequency = spectrum.observeFrequencyX();
@@ -176,7 +176,7 @@ function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
                 'observe': frequency, 'nucleus': '1H',
                 'integralData': {'from': peakList[i].x - peakList[i].width * 3,
                     'to': peakList[i].x + peakList[i].width * 3
-                    //"value":area(peakList[i])
+                     //"value":area(peakList[i])
                 },
                 'peaks': []};
             signal1D.peaks.push({x: peakList[i].x, 'intensity': peakList[i].y, width: peakList[i].width});
