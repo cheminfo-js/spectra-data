@@ -18,18 +18,39 @@ class NMR extends SD {
         // TODO: add stuff specific to NMR
     }
 
-    static fromPrediction(molfile, options) {
-        let opt = Object.assign({}, {output: 'xy'}, options);
+    static fromMolfile(molfile, options) {
+        let opt = Object.assign({}, {output: 'xy', title: "Simulated spectrum"}, options);
         const predictor = new NmrPredictor('spinus');
         return predictor.predict(molfile, {group: true}).then(prediction => {
             const spinSystem = simulator.SpinSystem.fromPrediction(prediction);
             var simulation = simulator.simulate1D(spinSystem, opt);
-            return SD.fromXY(simulation, options);
+            return SD.fromXY(simulation.x, simulation.y, options);
         });
     }
 
-    static fromXY(xy) {
-        return new SD({spectra: [{data: {x: xy[0], y: xy[1]}}]});
+    static fromXY(x, y, options) {
+        var result = {};
+        result.profiling = [];
+        result.logs = [];
+        var spectra = [];
+        result.spectra = spectra;
+        result.info = {};
+        var spectrum = {};
+        spectrum.nbPoints = x.length;
+        spectrum.firstX = x[0];
+        spectrum.lastX = x[spectrum.nbPoints-1];
+        spectrum.xFactor = 1;
+        spectrum.yFactor = 1;
+        spectrum.xUnit = options.xUnit || 'PPM';
+        spectrum.yUnit = options.yUnit || 'Intensity';
+        spectrum.deltaX = (spectrum.lastX - spectrum.firstX) / (spectrum.nbPoints - 1);
+        spectrum.title = options.title || 'spectra-data from xy';
+        spectrum.dataType = options.dataType || 'XY';
+        spectrum.observeFrequency =  options.frequency || 400;
+        spectrum.data = [{x: x, y: y}];
+        result.twoD = false;
+        spectra.push(spectrum);
+        return new SD({spectra: [{}]});
     }
 
     static fromBruker(brukerFile, options) {
