@@ -176,7 +176,7 @@ function updateSignal(signal, Jc) {
  * Returns the multiplet in the compact format
  * @param signal
  * @param Jc
- * @returns {string}
+ * @return {string}
  */
 function  abstractPattern(signal, Jc) {
     var tol = 0.05, i, pattern = '', cont = 1;
@@ -210,7 +210,7 @@ function  abstractPattern(signal, Jc) {
  * This function creates an ideal pattern from the given J-couplings
  * @private
  * @param Jc
- * @returns {*[]}
+ * @return {*[]}
  */
 function idealPattern(Jc) {
     var hsum = Math.pow(2, Jc.length), i, j;
@@ -241,7 +241,7 @@ function idealPattern(Jc) {
  * Find a combination of integer heights Hi, one from each Si, that sums to 2n.
  * @param ranges
  * @param value
- * @returns {*}
+ * @return {*}
  */
 function getNextCombination(ranges, value) {
     var half = Math.ceil(ranges.values.length / 2), lng = ranges.values.length;
@@ -295,7 +295,7 @@ function getNextCombination(ranges, value) {
  * This function generates the possible values that each peak can contribute
  * to the multiplet.
  * @param peaks
- * @returns {{values: Array, currentIndex: Array, active: number}}
+ * @return {{values: Array, currentIndex: Array, active: number}}
  */
 function getRanges(peaks) {
     var ranges = new Array(peaks.length);
@@ -322,7 +322,7 @@ function getRanges(peaks) {
  * @param signal
  * @param maxError
  * @param iteration
- * @returns {*}
+ * @return {*}
  */
 function symmetrizeChoiseBest(signal, maxError, iteration) {
     var symRank1 = symmetrize(signal, maxError, iteration);
@@ -508,7 +508,7 @@ function error(value) {
  * Creates a new mask with the peaks that could contribute to the multiplete
  * @param signal
  * @param n
- * @returns {*}
+ * @return {*}
  */
 function normalize(signal, n) {
     //Perhaps this is slow
@@ -548,7 +548,7 @@ function normalize(signal, n) {
  * Calculates the chemical shift as the weighted sum of the peaks
  * @param peaks
  * @param mask
- * @returns {number}
+ * @return {number}
  */
 function chemicalShift(peaks, mask) {
     var sum = 0, cs = 0, i, area;

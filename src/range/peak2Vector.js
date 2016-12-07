@@ -7,7 +7,7 @@
  * TODO This function is very general and should be placed somewhere else
  * @param peaks
  * @param opt
- * @returns {{x: Array, y: Array}}
+ * @return {{x: Array, y: Array}}
  */
 function peak2Vector(peaks, opt) {
     var options = opt || {};

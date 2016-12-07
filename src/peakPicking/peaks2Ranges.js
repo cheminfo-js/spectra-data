@@ -156,7 +156,7 @@ function updateIntegrals(signals, nH) {
  * @param nH
  * @param integralType
  * @param frequencyCluster
- * @returns {Array}
+ * @return {Array}
  */
 function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
     const frequency = spectrum.observeFrequencyX();
@@ -236,7 +236,7 @@ function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
  * @param peakList
  * @param maxIntensity
  * @param frequency
- * @returns {number}
+ * @return {number}
  */
 /*function updateScore(candidates, peakList, maxIntensity, frequency) {
  //You may do it to avoid this part.

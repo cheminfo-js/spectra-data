@@ -30,96 +30,85 @@ class NMR2D extends SD {
         return null;
     }
     /**
-     * @function isHomoNuclear()
      * Returns true if the it is an homo-nuclear experiment
-     * @returns {boolean}
+     * @return {boolean}
      */
     isHomoNuclear() {
         return this.sd.xType === this.sd.yType;
     }
 
     /**
-     * @function observeFrequencyX()
      * Returns the observe frequency in the direct dimension
-     * @returns {*}
+     * @return {*}
      */
     observeFrequencyX() {
         return this.sd.spectra[0].observeFrequency;
     }
     /**
-     * @function observeFrequencyY()
      * Returns the observe frequency in the indirect dimension
-     * @returns {*}
+     * @return {*}
      */
     observeFrequencyY() {
         return this.sd.indirectFrequency;
     }
 
     /**
-     * @function getSolventName()
      * Returns the solvent name.
-     * @returns {string|XML}
+     * @return {string|XML}
      */
     getSolventName() {
         return (this.sd.info['.SOLVENTNAME'] || this.sd.info.$SOLVENT).replace('<', '').replace('>', '');
     }
 
     /**
-     * @function getXUnits()
      * This function returns the units of the direct dimension. It overrides the SD getXUnits function
-     * @returns {ntuples.units|*|b.units}
+     * @return {ntuples.units|*|b.units}
      */
     getXUnits() {
         return this.sd.ntuples[1].units;
     }
     /**
-     * @function getYUnits()
      * This function returns the units of the indirect dimension. It overrides the SD getYUnits function
-     * @returns {ntuples.units|*|b.units}
+     * @return {ntuples.units|*|b.units}
      */
     getYUnits() {
         return this.sd.ntuples[0].units;
     }
     /**
-     * @function getZUnits()
      * Returns the units of the dependent variable
-     * @returns {ntuples.units|*|b.units}
+     * @return {ntuples.units|*|b.units}
      */
     getZUnits() {
         return this.sd.ntuples[2].units;
     }
     /**
-     * @function getLastY()
      * Returns the min value in the indirect dimension.
-     * @returns {sd.minMax.maxY}
+     * @return {sd.minMax.maxY}
      */
     getLastY() {
         return this.sd.minMax.maxY;
     }
     /**
-     * @function getFirstY()
      * Returns the min value in the indirect dimension.
-     * @returns {sd.minMax.minY}
+     * @return {sd.minMax.minY}
      */
     getFirstY() {
         return this.sd.minMax.minY;
     }
     /**
-     * @function getDeltaY()
      * Returns the separation between 2 consecutive points in the indirect domain
-     * @returns {number}
+     * @return {number}
      */
     getDeltaY() {
         return (this.getLastY() - this.getFirstY()) / (this.getNbSubSpectra() - 1);
     }
 
     /**
-     * @function getZones(options)
      * This function process the given spectraData and tries to determine the NMR signals.
      + Returns an NMRSignal2D array containing all the detected 2D-NMR Signals
      * @param	options:+Object			Object containing the options
      * @option	thresholdFactor:number	A factor to scale the automatically determined noise threshold.
-     * @returns [*]	set of NMRSignal2D
+     * @return [*]	set of NMRSignal2D
      */
     getZones(options) {
         options = options || {};
@@ -166,10 +155,9 @@ class NMR2D extends SD {
     }
 
     /**
-     * @function getNMRPeakThreshold(nucleus)
      * Returns the noise factor depending on the nucleus.
      * @param nucleus
-     * @returns {number}
+     * @return {number}
      */
     getNMRPeakThreshold(nucleus) {
         if (nucleus === '1H')            {
@@ -182,10 +170,9 @@ class NMR2D extends SD {
     }
 
     /**
-     * @function getNucleus(dim)
      * Returns the observed nucleus in the specified dimension
      * @param dim
-     * @returns {string}
+     * @return {string}
      */
     getNucleus(dim) {
         if (dim === 1)            {
@@ -199,37 +186,34 @@ class NMR2D extends SD {
 
 
     /**
-     * @function zeroFilling(nPointsX [,nPointsY])
      * This function increase the size of the spectrum, filling the new positions with zero values. Doing it one
      * could increase artificially the spectral resolution.
      * @param nPointsX Number of new zero points in the direct dimension
      * @param nPointsY Number of new zero points in the indirect dimension
-     * @returns this object
+     * @return this object
      */
     zeroFilling(nPointsX, nPointsY) {
         return Filters.zeroFilling(this, nPointsX, nPointsY);
     }
 
     /**
-     * @function brukerFilter()
      * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
      * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
      * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
-     * @returns this object
+     * @return this object
      */
     brukerFilter() {
         return Filters.digitalFilter(this, {'brukerFilter': true});
     }
 
     /**
-     * @function digitalFilter(options)
      * This filter applies a circular shift(phase 1 correction in the time domain) to an NMR FID spectrum that
      * have been obtained on spectrometers using the Bruker digital filters. The amount of shift depends on the
      * parameters DECIM and DSPFVS. This spectraData have to be of type NMR_FID
      * @option nbPoints: The number of points to shift. Positive values will shift the values to the rigth
      * and negative values will do to the left.
      * @option brukerSpectra
-     * @returns this object
+     * @return this object
      */
     digitalFilter(options) {
         return Filters.digitalFilter(this, options);
@@ -237,16 +221,14 @@ class NMR2D extends SD {
 
 
     /**
-     * @function fourierTransform()
      * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be of type NMR_FID or 2DNMR_FID
-     * @returns this object
+     * @return this object
      */
     fourierTransform() {
         return Filters.fourierTransform(this);
     }
 
     /**
-     * @function postFourierTransform(ph1corr)
      * This filter makes an phase 1 correction that corrects the problem of the spectra that has been obtained
      * on spectrometers using the Bruker digital filters. This method is used in cases when the BrukerSpectra
      * filter could not find the correct number of points to perform a circular shift.
@@ -254,7 +236,7 @@ class NMR2D extends SD {
      * correcting the problem of the Bruker digital filters.
      * @param spectraData A fourier transformed spectraData.
      * @param ph1corr Phase 1 correction value in radians.
-     * @returns this object
+     * @return this object
      */
     postFourierTransform(ph1corr) {
         return Filters.phaseCorrection(0, ph1corr);
