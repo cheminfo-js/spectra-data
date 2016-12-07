@@ -40,7 +40,7 @@ class SD {
 
     /**
      * This function sets the nactiveSpectrum sub-spectrum as active
-     * @param index of the sub-spectrum to set as active
+     * @param {number} index of the sub-spectrum to set as active
      */
     setActiveElement(nactiveSpectrum) {
         this.activeElement = nactiveSpectrum;
@@ -88,7 +88,7 @@ class SD {
 
     /**
      * Return the number of points in the current spectrum
-     * @param index of sub-spectrum
+     * @param {number} index of sub-spectrum
      * @return {number | *}
      */
     getNbPoints(i) {
@@ -108,7 +108,7 @@ class SD {
     /**
      * Set the firstX for this spectrum. You have to force and update of the xAxis after!!!
      * @param {number} x - The value for firstX
-     * @param i sub-spectrum Default:activeSpectrum
+     * @param {number} i sub-spectrum Default:activeSpectrum
      */
     setFirstX(x, i) {
         i = i || this.activeElement;
@@ -262,7 +262,7 @@ class SD {
 
     /**
      *  Returns an array containing the x values of the spectrum
-     * @param i sub-spectrum Default:activeSpectrum
+     * @param {number} i sub-spectrum Default:activeSpectrum
      * @return {Array}
      */
     getXData(i) {
@@ -271,7 +271,7 @@ class SD {
 
     /**
      * This function returns a double array containing the values with the intensities for the current sub-spectrum.
-     * @param i sub-spectrum Default:activeSpectrum
+     * @param {number} i sub-spectrum Default:activeSpectrum
      * @return {Array}
      */
     getYData(i) {
@@ -280,7 +280,7 @@ class SD {
 
     /**
      * Returns the x value at the specified index for the active sub-spectrum.
-     * @param i array index between 0 and spectrum.getNbPoints()-1
+     * @param {number} i array index between 0 and spectrum.getNbPoints()-1
      * @return {number}
      */
     getX(i) {
@@ -289,7 +289,7 @@ class SD {
 
     /**
      * Returns the y value at the specified index for the active sub-spectrum.
-     * @param i array index between 0 and spectrum.getNbPoints()-1
+     * @param {number} i array index between 0 and spectrum.getNbPoints()-1
      * @return {number}
      */
     getY(i) {
@@ -298,7 +298,7 @@ class SD {
 
     /**
      * Returns a double[2][nbPoints] where the first row contains the x values and the second row the y values.
-     * @param i sub-spectrum Default:activeSpectrum
+     * @param {number} i sub-spectrum Default:activeSpectrum
      * @return {*[]}
      */
     getXYData(i) {
@@ -307,7 +307,7 @@ class SD {
 
     /**
      * Return the title of the current spectrum.
-     * @param i sub-spectrum Default:activeSpectrum
+     * @param {number} i sub-spectrum Default:activeSpectrum
      * @return {*}
      */
     getTitle(i) {
@@ -317,7 +317,7 @@ class SD {
     /**
      * Set the title of this spectrum.
      * @param newTitle The new title
-     * @param i sub-spectrum Default:activeSpectrum
+     * @param {number} i sub-spectrum Default:activeSpectrum
      */
     setTitle(newTitle, i) {
         this.getSpectrum(i).title = newTitle;
@@ -325,7 +325,7 @@ class SD {
 
     /**
      * This function returns the minimal value of Y
-     * @param i sub-spectrum Default:activeSpectrum
+     * @param {number} i sub-spectrum Default:activeSpectrum
      * @return {number}
      */
     getMinY(i) {
@@ -334,7 +334,7 @@ class SD {
 
     /**
      * This function returns the maximal value of Y
-     * @param i sub-spectrum Default:activeSpectrum
+     * @param {number} i sub-spectrum Default:activeSpectrum
      * @return {number}
      */
     getMaxY(i) {
@@ -343,7 +343,7 @@ class SD {
 
     /**
      * Return the min and max value of Y
-     * @param i sub-spectrum Default:activeSpectrum
+     * @param {number} i sub-spectrum Default:activeSpectrum
      * @return {{min, max}|*}
      */
     getMinMaxY(i) {

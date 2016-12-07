@@ -19,7 +19,7 @@ class NMR extends SD {
     }
 
     static fromMolfile(molfile, options) {
-        let opt = Object.assign({}, {output: 'xy', title: "Simulated spectrum"}, options);
+        let opt = Object.assign({}, {output: 'xy', title: 'Simulated spectrum'}, options);
         const predictor = new NmrPredictor('spinus');
         return predictor.predict(molfile, {group: true}).then(prediction => {
             const spinSystem = simulator.SpinSystem.fromPrediction(prediction);
@@ -38,7 +38,7 @@ class NMR extends SD {
         var spectrum = {};
         spectrum.nbPoints = x.length;
         spectrum.firstX = x[0];
-        spectrum.lastX = x[spectrum.nbPoints-1];
+        spectrum.lastX = x[spectrum.nbPoints - 1];
         spectrum.xFactor = 1;
         spectrum.yFactor = 1;
         spectrum.xUnit = options.xUnit || 'PPM';
