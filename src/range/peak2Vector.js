@@ -3,10 +3,15 @@
  * Created by acastillo on 11/21/16.
  */
 /**
- * This function converts an array of peaks [{x, y, width}] in a vector equally x,y vector
- * TODO This function is very general and should be placed somewhere else
- * @param peaks
- * @param opt
+ * This function converts an array of peaks [{x, y, width}] in a vector equally x,y vector from a given window
+ * TODO: This function is very general and should be placed somewhere else
+ * @param {Array} peaks
+ * @param {object} opt - it has some options to
+ * @option {number} from - one limit of given window
+ * @option {number} to - one limit of given window
+ * @option {string} fnName - function name to generate the signals form
+ * @option {number} nWidth - width factor of signal form
+ * @option {number} nbPoints - number of points
  * @return {{x: Array, y: Array}}
  */
 function peak2Vector(peaks, opt) {
