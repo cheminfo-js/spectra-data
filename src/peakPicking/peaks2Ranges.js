@@ -66,12 +66,12 @@ function createRanges(spectrum, peakList, options) {
                     nHi = nHi * signals[i].integralData.value / sum;
                     signals[i].integralData.value -= nHi;
                     var peaks1 = [];
-                    for (j = peaksO.length - 1; j >= 0; j--)                        {
+                    for (j = peaksO.length - 1; j >= 0; j--) {
                         peaks1.push(peaksO[j]);
                     }
                     let ranges = detectSignals(peaks1, spectrum, nHi, options.integralFn, options.frequencyCluster);
 
-                    for (j = 0; j < ranges.length; j++)                        {
+                    for (j = 0; j < ranges.length; j++) {
                         signals.push(ranges[j]);
                     }
                 }
@@ -94,9 +94,9 @@ function createRanges(spectrum, peakList, options) {
     }
 
     for (i = 0; i < signals.length; i++) {
-        if (options.idPrefix && options.idPrefix.length > 0)            {
+        if (options.idPrefix && options.idPrefix.length > 0) {
             signals[i].signalID = options.idPrefix + '_' + (i + 1);
-        }        else            {
+        } else {
             signals[i].signalID = (i + 1) + '';
         }
         signals[i]._highlight = [signals[i].signalID];

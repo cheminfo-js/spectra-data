@@ -12,10 +12,10 @@ function toAcs(signals1D, options) {
     acsString = '';
     parenthesis = '';
     var solvent = null;
-    if (options && options.solvent)        {
+    if (options && options.solvent) {
         solvent = options.solvent;
     }
-    if (options && options.rangeForMultiplet !== undefined)        {
+    if (options && options.rangeForMultiplet !== undefined) {
         rangeForMultiplet = options.rangeForMultiplet;
     }
 
@@ -23,7 +23,7 @@ function toAcs(signals1D, options) {
         signals1D.sort(function (a, b) {
             return b.delta1 - a.delta1;
         });
-    }    else {
+    } else {
         signals1D.sort(function (a, b) {
             return a.delta1 - b.delta1;
         });
@@ -93,21 +93,21 @@ function appendDelta(line, nbDecimal) {
     if (line.integralData.from) {
         if ((typeof line.integralData.from) === 'string') {
             startX = parseFloat(line.integralData.from);
-        }        else            {
+        } else {
             startX = line.integralData.from;
         }
     }
     if (line.integralData.to) {
         if ((typeof line.integralData.to) === 'string') {
             stopX = parseFloat(line.integralData.to);
-        }        else            {
+        } else {
             stopX = line.integralData.to;
         }
     }
     if (line.delta1) {
         if ((typeof line.delta1) === 'string') {
             delta1 = parseFloat(line.delta1);
-        } else            {
+        } else {
             delta1 = line.delta1;
         }
 
@@ -119,12 +119,12 @@ function appendDelta(line, nbDecimal) {
             } else {
                 acsString += stopX.toFixed(nbDecimal) + '-' + startX.toFixed(nbDecimal);
             }
-        } else if (line.delta1)                {
+        } else if (line.delta1) {
             acsString += delta1.toFixed(nbDecimal);
         }
-    }    else if (line.delta1)            {
+    } else if (line.delta1) {
         acsString += delta1.toFixed(nbDecimal);
-    }    else if (line.integralData.from && line.integralData.to) {
+    } else if (line.integralData.from && line.integralData.to) {
         acsString += ((startX + stopX) / 2).toFixed(nbDecimal);
     }
 }
@@ -164,7 +164,7 @@ function appendAssignment(line) {
     if (line.pubAssignment) {
         appendParenthesisSeparator();
         parenthesis += formatAssignment(line.pubAssignment);
-    }    else {
+    } else {
         if (line.assignment) {
             appendParenthesisSeparator();
             parenthesis += formatAssignment(line.assignment);

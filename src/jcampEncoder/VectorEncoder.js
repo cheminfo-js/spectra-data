@@ -61,7 +61,7 @@ function commaSeparatedValuesEncoding(data, firstX, intervalX) {
  * @return
  */
 function fixEncoding(data, firstX, intervalX, separator) {
-    if (!separator)        {
+    if (!separator) {
         separator = ' ';
     }
     var outputData = '';
@@ -186,7 +186,7 @@ function differenceDuplicateEncoding(data, firstX, intervalX) {
                     if (encodNumber.length + charCount < MaxLinelength) {
                         encodData += encodNumber;
                         charCount += encodNumber.length;
-                    }  else {//Iniciar nueva linea
+                    } else {//Iniciar nueva linea
                         encodData += newLine;
                         temp = Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString()) + encodNumber;
                         encodData += temp;//Each line start with first index number.
@@ -264,12 +264,12 @@ function squeezedDigit(num) {
     var SQZdigit = '';
     if (num.charAt(0) === '-') {
         SQZdigit += pseudoDigits[SQZ_N][num.charAt(1)];
-        if (num.length > 2)            {
+        if (num.length > 2) {
             SQZdigit += num.substring(2);
         }
-    }    else {
+    } else {
         SQZdigit += pseudoDigits[SQZ_P][num.charAt(0)];
-        if (num.length > 1)            {
+        if (num.length > 1) {
             SQZdigit += num.substring(1);
         }
     }
@@ -286,13 +286,13 @@ function differenceDigit(num) {
 
     if (num.charAt(0) === '-') {
         DIFFdigit += pseudoDigits[DIF_N][num.charAt(1)];
-        if (num.length > 2)            {
+        if (num.length > 2) {
             DIFFdigit += num.substring(2);
         }
 
     } else {
         DIFFdigit += pseudoDigits[DIF_P][num.charAt(0)];
-        if (num.length > 1)            {
+        if (num.length > 1) {
             DIFFdigit += num.substring(1);
         }
 
@@ -308,7 +308,7 @@ function differenceDigit(num) {
 function duplicateDigit(num) {
     var DUPdigit = '';
     DUPdigit += pseudoDigits[DUP][num.charAt(0)];
-    if (num.length > 1)        {
+    if (num.length > 1) {
         DUPdigit += num.substring(1);
     }
 

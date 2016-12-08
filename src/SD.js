@@ -198,8 +198,8 @@ class SD {
      * @return {boolean}
      */
     isDataClassPeak() {
-        if (this.getSpectrum().isPeaktable)            {
-            return  this.getSpectrum().isPeaktable;
+        if (this.getSpectrum().isPeaktable) {
+            return this.getSpectrum().isPeaktable;
         }
         return false;
     }
@@ -209,8 +209,8 @@ class SD {
      * @return {*}
      */
     isDataClassXY() {
-        if (this.getSpectrum().isXYdata)            {
-            return  this.getSpectrum().isXYdata;
+        if (this.getSpectrum().isXYdata) {
+            return this.getSpectrum().isXYdata;
         }
         return false;
     }
@@ -330,7 +330,7 @@ class SD {
      * @return {number}
      */
     getMinY(i) {
-        return  StatArray.min(this.getYData(i));
+        return StatArray.min(this.getYData(i));
     }
 
     /**
@@ -339,7 +339,7 @@ class SD {
      * @return {number}
      */
     getMaxY(i) {
-        return  StatArray.max(this.getYData(i));
+        return StatArray.max(this.getYData(i));
     }
 
     /**
@@ -348,7 +348,7 @@ class SD {
      * @return {{min, max}|*}
      */
     getMinMaxY(i) {
-        return  StatArray.minMax(this.getYData(i));
+        return StatArray.minMax(this.getYData(i));
     }
 
 
@@ -382,42 +382,42 @@ class SD {
     unitsToArrayPoint(inValue) {
         if (this.isDataClassXY()) {
             return Math.round((this.getFirstX() - inValue) * (-1.0 / this.getDeltaX()));
-        } else if (this.isDataClassPeak())        {
+        } else if (this.isDataClassPeak()) {
             var currentArrayPoint = 0, upperLimit = this.getNbPoints() - 1, lowerLimit = 0, midPoint;
             //If inverted scale
             if (this.getFirstX() > this.getLastX()) {
                 upperLimit = 0;
                 lowerLimit = this.getNbPoints() - 1;
 
-                if (inValue > this.getFirstX())                    {
+                if (inValue > this.getFirstX()) {
                     return this.getNbPoints();
                 }
-                if (inValue < this.getLastX())                    {
+                if (inValue < this.getLastX()) {
                     return -1;
                 }
-            }            else {
-                if (inValue < this.getFirstX())                    {
+            } else {
+                if (inValue < this.getFirstX()) {
                     return -1;
                 }
-                if (inValue > this.getLastX())                    {
+                if (inValue > this.getLastX()) {
                     return this.getNbPoints();
                 }
             }
 
-            while (Math.abs(upperLimit - lowerLimit) > 1)            {
+            while (Math.abs(upperLimit - lowerLimit) > 1) {
                 midPoint = Math.round(Math.floor((upperLimit + lowerLimit) / 2));
                 //x=this.getX(midPoint);
-                if (this.getX(midPoint) === inValue)                    {
+                if (this.getX(midPoint) === inValue) {
                     return midPoint;
                 }
-                if (this.getX(midPoint) > inValue)                    {
+                if (this.getX(midPoint) > inValue) {
                     upperLimit = midPoint;
-                }                else                    {
+                } else {
                     lowerLimit = midPoint;
                 }
             }
             currentArrayPoint = lowerLimit;
-            if (Math.abs(this.getX(lowerLimit) - inValue) > Math.abs(this.getX(upperLimit) - inValue))                {
+            if (Math.abs(this.getX(lowerLimit) - inValue) > Math.abs(this.getX(upperLimit) - inValue)) {
                 currentArrayPoint = upperLimit;
             }
             return currentArrayPoint;
@@ -518,17 +518,17 @@ class SD {
                 start = end;
                 end = tmp;
             }
-            if (start < 0)                {
+            if (start < 0) {
                 start = 0;
             }
-            if (end >= this.getNbPoints)                {
+            if (end >= this.getNbPoints) {
                 end = this.getNbPoints - 1;
             }
 
             if (typeof value !== 'number') {
                 y.splice(start, end - start);
                 x.splice(start, end - start);
-            }            else {
+            } else {
                 for (i = start; i <= end; i++) {
                     y[i] = value;
                 }
@@ -591,7 +591,7 @@ class SD {
 
     getParamDouble(name, defvalue) {
         var value = this.sd.info[name];
-        if (!value)            {
+        if (!value) {
             value = defvalue;
         }
         return value;
@@ -605,7 +605,7 @@ class SD {
      */
     getParamString(name, defvalue) {
         var value = this.sd.info[name];
-        if (!value)            {
+        if (!value) {
             value = defvalue;
         }
         return value + '';
@@ -619,7 +619,7 @@ class SD {
      */
     getParamInt(name, defvalue) {
         var value = this.sd.info[name];
-        if (!value)            {
+        if (!value) {
             value = defvalue;
         }
         return value;
@@ -633,7 +633,7 @@ class SD {
      */
     getParam(name, defvalue) {
         var value = this.sd.info[name];
-        if (!value)            {
+        if (!value) {
             value = defvalue;
         }
         return value;
@@ -781,7 +781,7 @@ class SD {
         var ywin = new Array(nPoints);
         var index = 0;
 
-        if (direction === -1)            {
+        if (direction === -1) {
             index = nPoints - 1;
         }
 
@@ -801,7 +801,7 @@ class SD {
      * @return {boolean}
      */
     is2D() {
-        if (typeof this.sd.twoD === 'undefined')            {
+        if (typeof this.sd.twoD === 'undefined') {
             return false;
         }
         return this.sd.twoD;

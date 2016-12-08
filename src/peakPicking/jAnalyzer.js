@@ -41,7 +41,7 @@ module.exports = {
                 //Lets check if the signal could be a singulet.
                 if (peaks.length === 1 && n === 0) {
                     validPattern = true;
-                }                else {
+                } else {
                     if (peaks.length <= 1) {
                         continue;
                     }
@@ -126,7 +126,7 @@ module.exports = {
                     // All the intensities have to match to accept the multiplet
                     validPattern = true;
                     for (i = 0; i < pattern.length; i++) {
-                        if (pattern[i].intensity !== heights[i])                            {
+                        if (pattern[i].intensity !== heights[i]) {
                             validPattern = false;
                         }
                     }
@@ -178,7 +178,7 @@ function updateSignal(signal, Jc) {
  * @param Jc
  * @return {string}
  */
-function  abstractPattern(signal, Jc) {
+function abstractPattern(signal, Jc) {
     var tol = 0.05, i, pattern = '', cont = 1;
     var newNmrJs = [];
     if (Jc && Jc.length > 0) {
@@ -188,7 +188,7 @@ function  abstractPattern(signal, Jc) {
         for (i = 0; i < Jc.length - 1; i++) {
             if (Math.abs(Jc[i] - Jc[i + 1]) < tol) {
                 cont++;
-            }            else {
+            } else {
                 newNmrJs.push({'coupling': Math.abs(Jc[i]), 'multiplicity': patterns[cont]});
                 pattern += patterns[cont];
                 cont = 1;
@@ -196,8 +196,8 @@ function  abstractPattern(signal, Jc) {
         }
         newNmrJs.push({'coupling': Math.abs(Jc[i]), 'multiplicity': patterns[cont]});
         pattern += patterns[cont];
-        signal.nmrJs =  newNmrJs;
-    }    else {
+        signal.nmrJs = newNmrJs;
+    } else {
         pattern = 's';
         if (Math.abs(signal.startX - signal.stopX) * signal.observe > 16) {
             pattern = 'br s';
@@ -256,13 +256,13 @@ function getNextCombination(ranges, value) {
                 //In this case, there is no more possible combinations
                 if (ranges.active + 1 === half) {
                     return null;
-                }                else {
+                } else {
                     //If this happens we need to try the next active peak
                     ranges.currentIndex[ranges.active] = 0;
                     ok = false;
                     ranges.active++;
                 }
-            }            else {
+            } else {
                 ranges.active = 0;
             }
         }
@@ -331,9 +331,9 @@ function symmetrizeChoiseBest(signal, maxError, iteration) {
     var cs = signal.delta1;
     signal.delta1 = (signal.peaks[0].x + signal.peaks[signal.peaks.length - 1].x) / 2;
     var symRank2 = symmetrize(signal, maxError, iteration);
-    if (signal.peaksComp.length > tmpPeaks.length)        {
+    if (signal.peaksComp.length > tmpPeaks.length) {
         return symRank2;
-    }    else {
+    } else {
         signal.delta1 = cs;
         signal.peaksComp = tmpPeaks;
         signal.mask = tmpMask;
@@ -387,7 +387,7 @@ function symmetrize(signal, maxError, iteration) {
             if (nbPeaks > 2 && Math.abs(peaks[left].x - cs) > maxError) {
                 mask[left] = false;
             }
-        }        else {
+        } else {
             max = Math.max(peaks[left].intensity, peaks[right].intensity);
             min = Math.min(peaks[left].intensity, peaks[right].intensity);
             ratio = max / min;
@@ -395,11 +395,11 @@ function symmetrize(signal, maxError, iteration) {
                 if (peaks[left].intensity === min) {
                     mask[left] = false;
                     right++;
-                }                else {
+                } else {
                     mask[right] = false;
                     left--;
                 }
-            }            else {
+            } else {
                 var diffL = Math.abs(peaks[left].x - cs);
                 var diffR = Math.abs(peaks[right].x - cs);
 
@@ -410,11 +410,11 @@ function symmetrize(signal, maxError, iteration) {
                     peaks[left].intensity = peaks[right].intensity = avg;
                     peaks[left].width = peaks[right].width = avgWidth;
                     middle = [middle[0] + ((peaks[right].x + peaks[left].x) / 2), middle[1] + 1];
-                }                else {
+                } else {
                     if (Math.max(diffL, diffR) === diffR) {
                         mask[right] = false;
                         left--;
-                    }                    else {
+                    } else {
                         mask[left] = false;
                         right++;
                     }
@@ -462,8 +462,8 @@ function symmetrize(signal, maxError, iteration) {
             weight += peaks[i].intensity;
         }
         symFactor /= weight;
-    }    else {
-        if (peaks.length === 1)            {
+    } else {
+        if (peaks.length === 1) {
             symFactor = 1;
         }
     }
@@ -495,10 +495,10 @@ function symmetrize(signal, maxError, iteration) {
 
 function error(value) {
     var maxError = value * 2.5;
-    if (maxError < 0.75)        {
+    if (maxError < 0.75) {
         maxError = 0.75;
     }
-    if (maxError > 3)        {
+    if (maxError > 3) {
         maxError = 3;
     }
     return maxError;
@@ -523,14 +523,14 @@ function normalize(signal, n) {
     var index = signal.mask2.length - 1;
     for (i = peaks.length - 1; i >= 0; i--) {
         peaks[i].intensity *= norm;
-        while (index >= 0 && signal.mask2[index] === false)            {
+        while (index >= 0 && signal.mask2[index] === false) {
             index--;
         }
         if (peaks[i].intensity < 0.75) {
             //if (DEBUG) console.log('Peak ' + i + ' does not seem to belong to this multiplet ' + peaks[i].intensity);
             peaks.splice(i, 1);
             signal.mask2[index] = false;
-        }        else {
+        } else {
             norm2 += peaks[i].intensity;
         }
         index--;
@@ -561,7 +561,7 @@ function chemicalShift(peaks, mask) {
                 cs += area * peaks[i].x;
             }
         }
-    }    else {
+    } else {
         for (i = 0; i < peaks.length; i++) {
             area = getArea(peaks[i]);
             sum += area;

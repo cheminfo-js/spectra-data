@@ -27,7 +27,7 @@ class Ranges extends Array {
     }
 
     static fromPrediction(predictions, opt) {
-        let options = Object.assign({},  {lineWidth: 1, frequency: 400, nucleus: '1H'}, opt);
+        let options = Object.assign({}, {lineWidth: 1, frequency: 400, nucleus: '1H'}, opt);
         //1. Collapse all the equivalent predictions
         const nPredictions = predictions.length;
         const ids = new Array(nPredictions);
@@ -35,7 +35,7 @@ class Ranges extends Array {
         for (i = 0; i < nPredictions; i++) {
             if (!ids[predictions[i].diaIDs[0]]) {
                 ids[predictions[i].diaIDs[0]] = [i];
-            }        else {
+            } else {
                 ids[predictions[i].diaIDs[0]].push(i);
             }
         }
@@ -67,11 +67,11 @@ class Ranges extends Array {
             }
         }
         //2. Merge the overlaping ranges
-        for (i  =  0; i < result.length; i++) {
+        for (i = 0; i < result.length; i++) {
             result[i]._highlight = result[i].signal[0].diaIDs;
             center = (result[i].from + result[i].to) / 2;
             width = Math.abs(result[i].from - result[i].to);
-            for (j  = result.length - 1; j > i; j--) {
+            for (j = result.length - 1; j > i; j--) {
                 //Does it overlap?
                 if (Math.abs(center - (result[j].from + result[j].to) / 2)
                     <= Math.abs(width + Math.abs(result[j].from - result[j].to)) / 2) {
@@ -124,7 +124,7 @@ class Ranges extends Array {
     }
 
     updateIntegrals(options) {
-        var  factor = options.factor || 1;
+        var factor = options.factor || 1;
         var i;
         if (options.sum) {
             var nH = options.sum || 1;

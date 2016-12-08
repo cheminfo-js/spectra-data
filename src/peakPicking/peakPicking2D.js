@@ -1,8 +1,8 @@
 'use strict';
 
 var PeakOptimizer = require('./peakOptimizer');
-var simpleClustering =  require('ml-simple-clustering');
-var matrixPeakFinders =  require('ml-matrix-peaks-finder');
+var simpleClustering = require('ml-simple-clustering');
+var matrixPeakFinders = require('ml-matrix-peaks-finder');
 var FFTUtils = require('ml-fft').FFTUtils;
 
 const smallFilter = [
@@ -17,10 +17,10 @@ const smallFilter = [
     [0, 0, 1, 2, 2, 2, 1, 0, 0]];
 
 function getZones(spectraData, thresholdFactor) {
-    if (thresholdFactor ===  0)        {
+    if (thresholdFactor === 0) {
         thresholdFactor = 1;
     }
-    if (thresholdFactor < 0)        {
+    if (thresholdFactor < 0) {
         thresholdFactor = -thresholdFactor;
     }
     var nbPoints = spectraData.getNbPoints();
@@ -34,7 +34,7 @@ function getZones(spectraData, thresholdFactor) {
         for (var iCol = 0; iCol < nbPoints; iCol++) {
             if (isHomonuclear) {
                 data[iSubSpectra * nbPoints + iCol] = (spectrum[iCol] > 0 ? spectrum[iCol] : 0);
-            }            else {
+            } else {
                 data[iSubSpectra * nbPoints + iCol] = Math.abs(spectrum[iCol]);
             }
         }
@@ -45,12 +45,12 @@ function getZones(spectraData, thresholdFactor) {
         let convolutedSpectrum = FFTUtils.convolute(data, smallFilter, nbSubSpectra, nbPoints);
         let peaksMC1 = matrixPeakFinders.findPeaks2DRegion(data, {filteredData: convolutedSpectrum, rows: nbSubSpectra, cols: nbPoints, nStdDev: nStdDev * thresholdFactor});//)1.5);
         var peaksMax1 = matrixPeakFinders.findPeaks2DMax(data, {filteredData: convolutedSpectrum, rows: nbSubSpectra, cols: nbPoints, nStdDev: (nStdDev + 0.5) * thresholdFactor});//2.0);
-        for (var i = 0; i < peaksMC1.length; i++)            {
+        for (var i = 0; i < peaksMC1.length; i++) {
             peaksMax1.push(peaksMC1[i]);
         }
         return PeakOptimizer.enhanceSymmetry(createSignals2D(peaksMax1, spectraData, 24));
 
-    }    else {
+    } else {
         let convolutedSpectrum = FFTUtils.convolute(data, smallFilter, nbSubSpectra, nbPoints);
         let peaksMC1 = matrixPeakFinders.findPeaks2DRegion(data, {filteredData: convolutedSpectrum, rows: nbSubSpectra, cols: nbPoints, nStdDev: nStdDev * thresholdFactor});
         //Peak2D[] peaksMC1 = matrixPeakFinders.findPeaks2DMax(data, nbSubSpectra, nbPoints, (nStdDev+0.5)*thresholdFactor);
@@ -63,9 +63,9 @@ function getZones(spectraData, thresholdFactor) {
 
 //How noisy is the spectrum depending on the kind of experiment.
 function getLoGnStdDevNMR(spectraData) {
-    if (spectraData.isHomoNuclear())        {
+    if (spectraData.isHomoNuclear()) {
         return 1.5;
-    }    else        {
+    } else {
         return 3;
     }
 }
@@ -102,7 +102,7 @@ function createSignals2D(peaks, spectraData, tolerance) {
             tmp = Math.pow((peaks[i].x - peaks[j].x) * bf1, 2) + Math.pow((peaks[i].y - peaks[j].y) * bf2, 2);
             if (tmp < tolerance) {//30*30Hz We cannot distinguish peaks with less than 20 Hz of separation
                 connectivity.push(1);
-            }            else {
+            } else {
                 connectivity.push(0);
             }
         }
@@ -123,7 +123,7 @@ function createSignals2D(peaks, spectraData, tolerance) {
             var minMax2 = [Number.MAX_VALUE, 0];
             var sumZ = 0;
             for (var jPeak = clusters[iCluster].length - 1; jPeak >= 0; jPeak--) {
-                if (clusters[iCluster][jPeak] ===  1) {
+                if (clusters[iCluster][jPeak] === 1) {
                     peaks2D.push({
                         x: peaks[jPeak].x,
                         y: peaks[jPeak].y,
@@ -159,4 +159,4 @@ function createSignals2D(peaks, spectraData, tolerance) {
     return signals;
 }
 
-module.exports  = getZones;
+module.exports = getZones;

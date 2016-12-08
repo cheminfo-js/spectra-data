@@ -11,13 +11,13 @@ module.exports = {
         var i;
         //double min = Double.MAX_VALUE;
         for (i = peaks.length - 1; i >= 0; i--) {
-            if (Math.abs(peaks[i].z) > max)                {
+            if (Math.abs(peaks[i].z) > max) {
                 max = Math.abs(peaks[i].z);
             }
         }
         max *= threshold;
         for (i = peaks.length - 1; i >= 0; i--) {
-            if (Math.abs(peaks[i].z) < max)                {
+            if (Math.abs(peaks[i].z) < max) {
                 peaks.splice(i, 1);
             }
         }
@@ -68,7 +68,7 @@ module.exports = {
             }
         }
 
-        var  toReturn = new Array(count);
+        var toReturn = new Array(count);
         count--;
         for (i = output.length - 1; i >= 0; i--) {
             if (properties[i][0] !== 0 && properties[i][1] > 2
@@ -168,7 +168,7 @@ function checkCrossPeaks(output, properties, signal, updateProperties) {
                 }
                 crossPeaksX.push(i);
                 shift += cross.shiftX;
-            }            else {
+            } else {
                 if (Math.abs(cross.shiftY - signal.shiftY) < diagonalError) {
                     hits++;
                     if (updateProperties)						{
@@ -240,10 +240,10 @@ function initializeProperties(signals) {
             var shift = (signals[i].shiftX * 2 + signals[i].shiftY) / 3.0;
             signals[i].shiftX = shift;
             signals[i].shiftY = shift;
-        }        else {
+        } else {
             if (signals[i].shiftX - signals[i].shiftY > 0)				{
                 signalsProperties[i][0] = 1;
-            }            else				{
+            } else				{
                 signalsProperties[i][0] = -1;
             }
         }
@@ -259,7 +259,7 @@ function distanceTo(a, b, toImage) {
     if (!toImage) {
         return Math.sqrt(Math.pow(a.shiftX - b.shiftX, 2)
 			+ Math.pow(a.shiftY - b.shiftY, 2));
-    }    else {
+    } else {
         return Math.sqrt(Math.pow(a.shiftX - b.shiftY, 2)
 			+ Math.pow(a.shiftY - b.shiftX, 2));
     }

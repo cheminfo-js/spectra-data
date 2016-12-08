@@ -17,17 +17,17 @@ function toAcs(rangesIn, opt) {
     if (ranges[0].delta1) {//Old signals format
         return old.toACS(ranges, options);
     }
-    if (ranges.updateMultiplicity)        {
+    if (ranges.updateMultiplicity) {
         ranges = ranges.updateMultiplicity();
     }
 
     acsString = '';
     parenthesis = '';
     var solvent = null;
-    if (options && options.solvent)        {
+    if (options && options.solvent) {
         solvent = options.solvent;
     }
-    if (options && options.rangeForMultiplet !== undefined)        {
+    if (options && options.rangeForMultiplet !== undefined) {
         rangeForMultiplet = options.rangeForMultiplet;
     }
 
@@ -35,7 +35,7 @@ function toAcs(rangesIn, opt) {
         ranges.sort(function (a, b) {
             return b.from - a.from;
         });
-    }    else {
+    } else {
         ranges.sort(function (a, b) {
             return a.from - b.from;
         });
@@ -103,24 +103,24 @@ function appendDelta(line, nbDecimal) {
     if (line.from) {
         if ((typeof line.from) === 'string') {
             startX = parseFloat(line.from);
-        } else            {
+        } else {
             startX = line.from;
         }
     }
     if (line.to) {
         if ((typeof line.to) === 'string') {
             stopX = parseFloat(line.to);
-        } else            {
+        } else {
             stopX = line.to;
         }
     }
     if (line.signal[0].delta) {
         if ((typeof line.signal[0].delta) === 'string') {
             delta1 = parseFloat(line.signal[0].delta);
-        } else            {
+        } else {
             delta1 = line.signal[0].delta;
         }
-    }    else {
+    } else {
         asymmetric = true;
     }
 
@@ -131,12 +131,12 @@ function appendDelta(line, nbDecimal) {
             } else {
                 acsString += stopX.toFixed(nbDecimal) + '-' + startX.toFixed(nbDecimal);
             }
-        } else if (line.signal[0].delta)                {
+        } else if (line.signal[0].delta) {
             acsString += '?';
         }
-    }    else if (line.signal[0].delta)            {
+    } else if (line.signal[0].delta) {
         acsString += delta1.toFixed(nbDecimal);
-    }    else if (line.from && line.to) {
+    } else if (line.from && line.to) {
         acsString += ((startX + stopX) / 2).toFixed(nbDecimal);
     }
 }
@@ -174,7 +174,7 @@ function appendAssignment(line) {
     if (line.signal[0].pubAssignment) {
         appendParenthesisSeparator();
         parenthesis += formatAssignment(line.signal[0].pubAssignment);
-    }    else if (line.signal[0].assignment) {
+    } else if (line.signal[0].assignment) {
         appendParenthesisSeparator();
         parenthesis += formatAssignment(line.signal[0].assignment);
     }
@@ -197,7 +197,7 @@ function appendCoupling(line, nbDecimal) {
         var j = '<i>J</i> = ';
         for (var i = 0; i < Js.length; i++) {
             var coupling = Js[i].coupling || 0;
-            if (j.length > 11)                {
+            if (j.length > 11) {
                 j += ', ';
             }
             j += coupling.toFixed(nbDecimal);

@@ -25,7 +25,7 @@ function checkImpurity(peakList, impurity) {
                 break;
             }
         }
-        if (!found)            {
+        if (!found) {
             break;
         }
     }
@@ -35,7 +35,7 @@ function checkImpurity(peakList, impurity) {
         for (i = 0; i < impurity.length; i++) {
             toRemove.push(indexes[i]);
         }
-    }    else        {
+    } else {
         return 0;
     }
     for (i = 0; i < toRemove.length; i++) {

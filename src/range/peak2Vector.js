@@ -59,7 +59,7 @@ function peak2Vector(peaks, opt) {
         if (peak.x > from && peak.x < to) {
             var index = Math.round((peak.x - from) / dx);
             var w = Math.round(peak.width * nWidth / dx);
-            if (fnName ===  'gaussian') {
+            if (fnName === 'gaussian') {
                 for (var j = index - w; j < index + w; j++) {
                     if (j >= 0 && j < nbPoints) {
                         y[j] += peak[intensity] * Math.exp(-0.5 * Math.pow((peak.x - x[j]) / (peak.width / 2), 2));

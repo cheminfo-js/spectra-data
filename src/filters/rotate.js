@@ -46,10 +46,10 @@ function rotate(array, shift) {
 }
 
 function putInRange(value, nbPoints) {
-    if (value < 0)        {
+    if (value < 0) {
         value += nbPoints;
     }
-    if (value >= nbPoints)        {
+    if (value >= nbPoints) {
         value -= nbPoints;
     }
     return value;

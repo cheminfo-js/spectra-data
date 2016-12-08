@@ -2149,8 +2149,8 @@ escope@^3.6.0:
     estraverse "^4.1.1"
 
 eslint-config-cheminfo@^1.5.2:
-  version "1.5.3"
-  resolved "https://registry.yarnpkg.com/eslint-config-cheminfo/-/eslint-config-cheminfo-1.5.3.tgz#932f1cac38ddd84aff9ddff02d78aade35979d8e"
+  version "1.5.4"
+  resolved "https://registry.yarnpkg.com/eslint-config-cheminfo/-/eslint-config-cheminfo-1.5.4.tgz#7ebf81e1f7d6bcc5632894f0a7bba6158eb82477"
 
 eslint-plugin-no-only-tests@^1.1.0:
   version "1.1.0"

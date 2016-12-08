@@ -32,10 +32,10 @@ function extractPeaks(spectrum, optionsEx) {
     }
 
     var peakList = GSD.gsd(data[0], data[1], options);
-    if (options.broadWidth)        {
+    if (options.broadWidth) {
         peakList = GSD.post.joinBroadPeaks(peakList, {width: options.broadWidth});
     }
-    if (options.optimize)        {
+    if (options.optimize) {
         peakList = GSD.post.optimizePeaks(peakList, data[0], data[1], options.nL, options.functionType);
     }
 

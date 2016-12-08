@@ -60,7 +60,7 @@ class NMR extends SD {
         spectrum.deltaX = (spectrum.lastX - spectrum.firstX) / (spectrum.nbPoints - 1);
         spectrum.title = options.title || 'spectra-data from xy';
         spectrum.dataType = options.dataType || 'XY';
-        spectrum.observeFrequency =  options.frequency || 400;
+        spectrum.observeFrequency = options.frequency || 400;
         spectrum.data = [{x: x, y: y}];
         result.twoD = false;
         spectra.push(spectrum);
@@ -101,9 +101,9 @@ class NMR extends SD {
      * @return {string}
      */
     getNucleus(dim) {
-        if (!dim || dim === 0 || dim === 1)            {
+        if (!dim || dim === 0 || dim === 1) {
             return this.sd.xType;
-        }        else {
+        } else {
             return '';
         }
     }

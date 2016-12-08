@@ -136,7 +136,7 @@ class NMR2D extends SD {
             peakList[i]._highlight = [id + '_' + i];
             peakList[i].signalID = id + '_' + i;
         }
-        if (options.references)            {
+        if (options.references) {
             PeakOptimizer.alignDimensions(peakList, options.references);
         }
 
@@ -188,7 +188,7 @@ class NMR2D extends SD {
         if (dim === 1) {
             return this.sd.xType;
         }
-        if (dim === 2)            {
+        if (dim === 2) {
             return this.sd.yType;
         }
         return this.sd.xType;

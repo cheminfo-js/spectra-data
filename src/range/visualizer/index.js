@@ -80,9 +80,9 @@ function annotations2D(zones, optionsG) {
                 'x': signal.signal[0].delta[0],
                 'y': signal.signal[0].delta[1] - 0.025}
         };
-        if (signal.integral === 1)            {
+        if (signal.integral === 1) {
             annotation.strokeColor = options.strokeColor;
-        }        else            {
+        } else {
             annotation.strokeColor = 'rgb(0,128,0)';
         }
 
