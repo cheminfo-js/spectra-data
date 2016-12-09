@@ -7,8 +7,8 @@
  * Positive values of shifts will shift to the right and negative values will do to the left
  * @example rotate([1,2,3,4],1) -> [4,1,2,3]
  * @example rotate([1,2,3,4],-1) -> [2,3,4,1]
- * @param array
- * @param shift
+ * @param {Array} array
+ * @param {number} shift
  */
 function rotate(array, shift) {
     var nbPoints = array.length;

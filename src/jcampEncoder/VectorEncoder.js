@@ -20,11 +20,11 @@ const SQZ_P = 1, SQZ_N = 2, DIF_P = 3, DIF_N = 4, DUP = 5, MaxLinelength = 100;
 /**
  * This function encodes the given vector. The encoding format is specified by the
  * encoding option
- * @param data
- * @param firstX
- * @param intervalX
- * @param encoding: ('FIX','SQZ','DIF','DIFDUP','CVS','PAC') Default 'DIFDUP'
- * @return {String}
+ * @param {Array} data
+ * @param {number} firstX
+ * @param {number} intervalX
+ * @param {string} encoding: ('FIX','SQZ','DIF','DIFDUP','CVS','PAC') Default 'DIFDUP'
+ * @return {string}
  */
 function encode(data, firstX, intervalX, encoding) {
     switch (encoding) {
@@ -47,8 +47,10 @@ function encode(data, firstX, intervalX, encoding) {
 
 /**
  * No data compression used. The data is separated by a comma(',').
- * @param data
- * @return
+ * @param {Array} data
+ * @param {number} firstX
+ * @param {number} intervalX
+ * @return {string}
  */
 function commaSeparatedValuesEncoding(data, firstX, intervalX) {
     return fixEncoding(data, firstX, intervalX, ',');
@@ -56,9 +58,11 @@ function commaSeparatedValuesEncoding(data, firstX, intervalX) {
 
 /**
  * No data compression used. The data is separated by the specified separator.
- * @param data
- * @param separator, The separator character
- * @return
+ * @param {Array} data
+ * @param {number} firstX
+ * @param {number} intervalX
+ * @param {string} separator, The separator character
+ * @return {string}
  */
 function fixEncoding(data, firstX, intervalX, separator) {
     if (!separator) {
@@ -84,8 +88,10 @@ function fixEncoding(data, firstX, intervalX, separator) {
 }
 /**
  * No data compression used. The data is separated by the sign of the number.
- * @param data
- * @return
+ * @param {Array} data
+ * @param {number} firstX
+ * @param {number} intervalX
+ * @return {string}
  */
 function packedEncoding(data, firstX, intervalX) {
     var outputData = '';
@@ -119,8 +125,10 @@ function packedEncoding(data, firstX, intervalX) {
  * Data compression is possible using the squeezed form (SQZ) in which the delimiter, the leading digit,
  * and sign are replaced by a pseudo-digit from Table 1. For example, the Y-values 30, 32 would be
  * represented as C0C2.
- * @param data
- * @return String
+ * @param {Array} data
+ * @param {number} firstX
+ * @param {number} intervalX
+ * @return {string}
  */
 function squeezedEncoding(data, firstX, intervalX) {
     var outputData = '';
@@ -147,8 +155,10 @@ function squeezedEncoding(data, firstX, intervalX) {
 
 /**
  * Duplicate suppression encoding
- * @param data
- * @return
+ * @param {Array} data
+ * @param {number} firstX
+ * @param {number} intervalX
+ * @return {string}
  */
 function differenceDuplicateEncoding(data, firstX, intervalX) {
     var mult = 0, index = 0, charCount = 0, i;
@@ -209,8 +219,10 @@ function differenceDuplicateEncoding(data, firstX, intervalX) {
 
 /**
  * Differential encoding
- * @param data
- * @return
+ * @param {Array} data
+ * @param {number} firstX
+ * @param {number} intervalX
+ * @return {string}
  */
 function differenceEncoding(data, firstX, intervalX) {
     var index = 0, charCount = 0, i;
@@ -256,8 +268,8 @@ function differenceEncoding(data, firstX, intervalX) {
 
 /**
  * Convert number to the ZQZ format, using pseudo digits.
- * @param num
- * @return
+ * @param {number} num
+ * @return {string}
  */
 function squeezedDigit(num) {
     //console.log(num+" "+num.length);
@@ -278,8 +290,8 @@ function squeezedDigit(num) {
 }
 /**
  * Convert number to the DIF format, using pseudo digits.
- * @param num
- * @return
+ * @param {number} num
+ * @return {string}
  */
 function differenceDigit(num) {
     var DIFFdigit = '';
@@ -302,8 +314,8 @@ function differenceDigit(num) {
 }
 /**
  * Convert number to the DUP format, using pseudo digits.
- * @param num
- * @return
+ * @param {number} num
+ * @return {string}
  */
 function duplicateDigit(num) {
     var DUPdigit = '';

@@ -18,17 +18,18 @@ const version = 'Cheminfo tools, March 2016';
 const defaultParameters = {'encode': 'DIFDUP', 'yFactor': 1, 'type': 'SIMPLE', 'keep': []};
 
 class JcampCreator {
+
     /**
      * This function creates a String that represents the given spectraData, in the format JCAM-DX 5.0
      * The X,Y data can be compressed using one of the methods described in:
      * "JCAMP-DX. A STANDARD FORMAT FOR THE EXCHANGE OF ION MOBILITY SPECTROMETRY DATA",
      *  http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
-     * @param spectraData
-     * @param encodeFormat: ('FIX','SQZ','DIF','DIFDUP','CVS','PAC')
-     * @return
+     * @param {SD} spectraData
+     * @param {object} options - Optional paramteres
+     * @return {string}
      */
     convert(spectraData, options) {
-
+        // encodeFormat: ('FIX','SQZ','DIF','DIFDUP','CVS','PAC')
         let opt = Object.assign({}, defaultParameters, options);
         const encodeFormat = opt.encode.toUpperCase().trim();
         const factorY = opt.yFactor;

@@ -5,9 +5,10 @@
 
 /**
  * Phase correction filter
- * @param spectraData
- * @param phi0
- * @param phi1
+ * @param {SD} spectraData
+ * @param {number} phi0
+ * @param {number} phi1
+ * @return {SD} returns the modified spectraData
  */
 function phaseCorrection(spectraData, phi0, phi1) {
     //System.out.println(spectraData.toString());
@@ -52,6 +53,8 @@ function phaseCorrection(spectraData, phi0, phi1) {
     //spectraData.updateY();
     spectraData.putParam('PHC0', phi0);
     spectraData.putParam('PHC1', phi1);
+
+    return spectraData;
 }
 
 module.exports = phaseCorrection;

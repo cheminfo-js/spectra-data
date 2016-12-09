@@ -1,8 +1,8 @@
-'use strict';
 /*
  * This library implements the J analyser described by Cobas et al in the paper:
  * A two-stage approach to automatic determination of 1H NMR coupling constants
  */
+'use strict';
 
 const patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
 var symRatio = 1.5;
@@ -13,7 +13,7 @@ module.exports = {
     /**
      * The compilation process implements at the first stage a normalization procedure described by Golotvin et al.
      * embedding in peak-component-counting method described by Hoyes et al.
-     * @param signal
+     * @param {object} signal
      * @private
      */
     compilePattern: function (signal) {
@@ -174,9 +174,10 @@ function updateSignal(signal, Jc) {
 
 /**
  * Returns the multiplet in the compact format
- * @param signal
- * @param Jc
+ * @param {object} signal
+ * @param {object} Jc
  * @return {string}
+ * @private
  */
 function abstractPattern(signal, Jc) {
     var tol = 0.05, i, pattern = '', cont = 1;
@@ -209,8 +210,9 @@ function abstractPattern(signal, Jc) {
 /**
  * This function creates an ideal pattern from the given J-couplings
  * @private
- * @param Jc
+ * @param {Array} Jc
  * @return {*[]}
+ * @private
  */
 function idealPattern(Jc) {
     var hsum = Math.pow(2, Jc.length), i, j;
@@ -239,9 +241,10 @@ function idealPattern(Jc) {
 
 /**
  * Find a combination of integer heights Hi, one from each Si, that sums to 2n.
- * @param ranges
- * @param value
+ * @param {object} ranges
+ * @param {number} value
  * @return {*}
+ * @private
  */
 function getNextCombination(ranges, value) {
     var half = Math.ceil(ranges.values.length / 2), lng = ranges.values.length;
@@ -294,7 +297,7 @@ function getNextCombination(ranges, value) {
 /**
  * This function generates the possible values that each peak can contribute
  * to the multiplet.
- * @param peaks
+ * @param {object} peaks
  * @return {{values: Array, currentIndex: Array, active: number}}
  */
 function getRanges(peaks) {
@@ -319,10 +322,11 @@ function getRanges(peaks) {
 /**
  * Performs a symmetrization of the signal by using different aproximations to the center.
  * It will return the result of the symmetrization that removes less peaks from the signal
- * @param signal
- * @param maxError
- * @param iteration
+ * @param {object} signal
+ * @param {number} maxError
+ * @param {number} iteration
  * @return {*}
+ * @private
  */
 function symmetrizeChoiseBest(signal, maxError, iteration) {
     var symRank1 = symmetrize(signal, maxError, iteration);
@@ -341,9 +345,15 @@ function symmetrizeChoiseBest(signal, maxError, iteration) {
     }
 
 }
+
 /**
  * This function will return a set of symmetric peaks that will
  * be the enter point for the patter compilation process.
+ * @param {object} signal
+ * @param {number} maxError
+ * @param {number} iteration
+ * @return {number}
+ * @private
  */
 function symmetrize(signal, maxError, iteration) {
     //Before to symmetrize we need to keep only the peaks that possibly conforms the multiplete
@@ -492,7 +502,12 @@ function symmetrize(signal, maxError, iteration) {
     }
     return symFactor;
 }
-
+/**
+ * Error validator
+ * @param {number} value
+ * @return {number}
+ * @private
+ */
 function error(value) {
     var maxError = value * 2.5;
     if (maxError < 0.75) {
@@ -506,8 +521,8 @@ function error(value) {
 /**
  * 2 stages normalizarion of the peaks heights to Math.pow(2,n).
  * Creates a new mask with the peaks that could contribute to the multiplete
- * @param signal
- * @param n
+ * @param {object} signal
+ * @param {number} n
  * @return {*}
  */
 function normalize(signal, n) {
@@ -546,8 +561,8 @@ function normalize(signal, n) {
 
 /**
  * Calculates the chemical shift as the weighted sum of the peaks
- * @param peaks
- * @param mask
+ * @param {Array} peaks
+ * @param {Array} mask
  * @return {number}
  */
 function chemicalShift(peaks, mask) {
@@ -571,6 +586,12 @@ function chemicalShift(peaks, mask) {
     return cs / sum;
 }
 
+/**
+ * Return the area of a Lorentzian function
+ * @param {object} peak
+ * @return {number}
+ * @private
+ */
 function getArea(peak) {
     return Math.abs(peak.intensity * peak.width * 1.57);//1.772453851);
 }

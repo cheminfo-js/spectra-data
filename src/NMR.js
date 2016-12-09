@@ -37,9 +37,10 @@ class NMR extends SD {
 
 
     /**
-     *  this function create a SD instance from xy data
+     * This function create a SD instance from xy data
      * @param {Array} x - X data.
      * @param {Array} y - Y data.
+     * @param {object} options - Optional parameters
      * @return {NMR} SD instance from x and y data
      */
     static fromXY(x, y, options) {
@@ -68,8 +69,8 @@ class NMR extends SD {
     }
 
     /**
-     * This function return a NMR instance from Array of folders or zip file with folders
-     * @param {Array || zipFile} brukerFile - spectra data in two possible input
+     * This function returns a NMR instance from Array of folders or zip file with folders
+     * @param {Array | zipFile} brukerFile - spectra data in two possible input
      * @param {object} options - the options dependent on brukerFile input, but some parameter are permanents like:
      * @option {boolean} xy - The spectraData should not be a oneD array but an object with x and y
      * @option {boolean} keepSpectra - keep the spectra in 2D NMR instance
@@ -286,6 +287,7 @@ class NMR extends SD {
      */
     echoAntiechoFilter() {
         //@TODO Implement echoAntiechoFilter filter
+        return this;
     }
 
     /**
@@ -294,6 +296,7 @@ class NMR extends SD {
      */
     SNVFilter() {
         //@TODO Implement SNVFilter
+        return this;
     }
 
     /**
@@ -309,6 +312,7 @@ class NMR extends SD {
             //console.warn('SD.powerFilter: The spectrum had negative values and was automatically shifted before applying the function.');
         }
         //@TODO Implement powerFilter
+        return this;
     }
 
     /**

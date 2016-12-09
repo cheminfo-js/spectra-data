@@ -79,9 +79,11 @@ module.exports = {
         return toReturn;
     },
 
-	/**
-	 * This function maps the corresponding 2D signals to the given set of 1D signals
-	 */
+    /**
+     * This function maps the corresponding 2D signals to the given set of 1D signals
+     * @param {Array} signals2D
+     * @param {Array} references
+     */
     alignDimensions: function (signals2D, references) {
 		//For each reference dimension
         for (var i = 0; i < references.length; i++) {
@@ -224,8 +226,8 @@ function exist(output, properties, signal, type, symmetricSearch) {
  * We try to determine the position of each signal within the spectrum matrix.
  * Peaks could be of 3 types: upper diagonal, diagonal or under diagonal 1,0,-1
  * respectively.
- * @param Signals
- * @return A matrix containing the properties of each signal
+ * @param {Array} signals
+ * @return {*} A matrix containing the properties of each signal
  */
 function initializeProperties(signals) {
     var signalsProperties = new Array(signals.length);
@@ -254,6 +256,10 @@ function initializeProperties(signals) {
 /**
  * This function calculates the distance between 2 nmr signals . If toImage is true,
  * it will interchange x by y in the distance calculation for the second signal.
+ * @param {object} a
+ * @param {object} b
+ * @param {boolean} toImage
+ * @return {number}
  */
 function distanceTo(a, b, toImage) {
     if (!toImage) {
