@@ -56,6 +56,8 @@ function profile(pdata, signals, threshold) {
     return Data;
 }
 
+module.exports = profile;
+
 // function singleFitting(data, p_init, opts) {
 //     var y = Boolean(data.y === undefined) ? data.data.y : data.data[0].y;
 //     var x = Boolean(data.x === undefined) ? data.data.x : data.data[0].x;
