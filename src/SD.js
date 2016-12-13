@@ -713,7 +713,7 @@ class SD {
             range.integral = that.getArea(range.from, range.to);
             sum += range.integral;
         });
-        if (options.nH) {
+        if (options.nH !== 0) {
             var factor = options.nH / sum;
             ranges.forEach(function (range) {
                 range.integral *= factor;
