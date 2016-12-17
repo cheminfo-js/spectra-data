@@ -26,15 +26,15 @@ class NMR extends SD {
      */
 
     static fromMolfile(molfile, options) {
-        let opt = Object.assign({}, {output: 'xy', title: 'Simulated spectrum'}, options);
+        let opt = Object.assign({}, {title: 'Simulated spectrum', nucleus: '1H'}, options);
         const predictor = new NmrPredictor('spinus');
-        return predictor.predict(molfile, {group: true}).then(prediction => {
+        return predictor.predict(molfile, {group: false, atomLabel: opt.nucleus.replace(/[0-9]*/g,'')}).then(prediction => {
             const spinSystem = simulator.SpinSystem.fromPrediction(prediction);
+            opt.output = 'xy';
             var simulation = simulator.simulate1D(spinSystem, opt);
-            return SD.fromXY(simulation.x, simulation.y, opt);
+            return NMR.fromXY(simulation.x, simulation.y, opt);
         });
     }
-
 
     /**
      * This function create a SD instance from xy data
@@ -51,21 +51,30 @@ class NMR extends SD {
         result.spectra = spectra;
         result.info = {};
         var spectrum = {};
+        spectrum.isXYdata = true;
         spectrum.nbPoints = x.length;
         spectrum.firstX = x[0];
+        spectrum.firstY = y[0];
         spectrum.lastX = x[spectrum.nbPoints - 1];
+        spectrum.lastY = y[spectrum.nbPoints - 1];
         spectrum.xFactor = 1;
         spectrum.yFactor = 1;
         spectrum.xUnit = options.xUnit || 'PPM';
         spectrum.yUnit = options.yUnit || 'Intensity';
         spectrum.deltaX = (spectrum.lastX - spectrum.firstX) / (spectrum.nbPoints - 1);
         spectrum.title = options.title || 'spectra-data from xy';
-        spectrum.dataType = options.dataType || 'XY';
+        spectrum.dataType = options.dataType || 'NMR';
         spectrum.observeFrequency = options.frequency || 400;
+        result.info.observefrequency = spectrum.observeFrequency;
+        result.info['.SOLVENTNAME'] = options.solvent || 'none';
+        result.info['$SW_h'] = Math.abs(spectrum.lastX - spectrum.firstX) * spectrum.observeFrequency;
+        result.info['$SW'] = Math.abs(spectrum.lastX - spectrum.firstX);
+        result.info['$TD'] = spectrum.nbPoints;
+        result.xType = options.nucleus || '1H';
         spectrum.data = [{x: x, y: y}];
         result.twoD = false;
         spectra.push(spectrum);
-        return new SD({spectra: [{}]});
+        return new NMR(result);
     }
 
     /**
