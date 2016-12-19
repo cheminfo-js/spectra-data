@@ -706,7 +706,12 @@ class SD {
         return area * Math.abs(this.getDeltaX());
     }
 
-    updateIntegrals(ranges, options) {
+    /**
+     * This function modify the integral values for certains ranges at specific SD instance
+     * @param {array} ranges - array of objects ranges
+     * @param {object} options - option such as nH for normalization
+     */
+    getIntegrals(ranges, options) {
         var sum = 0;
         var that = this;
         ranges.forEach(function (range) {
