@@ -77,9 +77,19 @@ function createRanges(spectrum, peakList, options) {
                 }
             }
         }
-        //console.log(signals);
-        updateIntegrals(signals, options.nH);
+        // it was a updateIntegrals function.
+        var sumIntegral = 0, sumObserved = 0;
+        for (i = 0; i < signals.length; i++) {
+            sumObserved += Math.round(signals[i].integralData.value);
+        }
+        if (sumObserved !== options.nH) {
+            sumIntegral = options.nH / sumObserved;
+            for (i = 0; i < signals.length; i++) {
+                signals[i].integralData.value *= sumIntegral;
+            }
+        }
     }
+    
     signals.sort(function (a, b) {
         return b.delta1 - a.delta1;
     });
@@ -135,19 +145,6 @@ function createRanges(spectrum, peakList, options) {
     return signals;
 }
 
-function updateIntegrals(signals, nH) {
-    var sumIntegral = 0, i, sumObserved = 0;
-    for (i = 0; i < signals.length; i++) {
-        sumObserved += Math.round(signals[i].integralData.value);
-    }
-    if (sumObserved !== nH) {
-
-        sumIntegral = nH / sumObserved;
-        for (i = 0; i < signals.length; i++) {
-            signals[i].integralData.value *= sumIntegral;
-        }
-    }
-}
 
 /**
  * Extract the signals from the peakList and the given spectrum

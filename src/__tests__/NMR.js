@@ -83,12 +83,12 @@ describe('spectra-data examples ethylvinylether/1h.jdx', function () {
         spectrum.getVector(0.0, 10, 4 * 1024).length.should.equal(4 * 1024);
     });
 
-    it('updateIntegrals', function () {
+    it('getIntegrals', function () {
         var nH = 8;
         var ranges = spectrum.getRanges({'nH': nH, realTop: true, thresholdFactor: 1, clean: true, compile: true, idPrefix: '1H', format: 'new'});
         ranges[0].to = 6.47;
         var integral0 = ranges[0].integral;
-        spectrum.updateIntegrals(ranges, {nH: nH});
+        spectrum.getIntegrals(ranges, {nH: nH});
         ranges[0].integral.should.approximately(integral0 / 2, integral0 / nH);
     });
 

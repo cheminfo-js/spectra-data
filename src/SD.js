@@ -707,9 +707,10 @@ class SD {
     }
 
     /**
-     * This function modify the integral values for certains ranges at specific SD instance
+     * This function return the integral values for certains ranges at specific SD instance.
      * @param {array} ranges - array of objects ranges
-     * @param {object} options - option such as nH for normalization
+     * @param {object} options - option such as nH for normalization, if it is nH is zero the integral value returned 
+     * is absolute value
      */
     getIntegrals(ranges, options) {
         var sum = 0;

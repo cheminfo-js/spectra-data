@@ -137,7 +137,6 @@ class Ranges extends Array {
         for (i = 0; i < this.length; i++) {
             this[i].integral *= factor;
         }
-
         return this;
     }
 
