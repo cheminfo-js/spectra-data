@@ -8,14 +8,16 @@ const LM = ML.LM;
 const math = ML.algebra;
 
 /**
- *  This function extract the grandient concentration for a spatial (z) profile acquired with a spatially selective NMR experiment.
- * @param {array} pdata
- * @param {array} signals
- * @param {number} threshold
+ * This function extract the grandient of concentration from a spatial (z) profile acquired with successives
+ * experiments of spatially selective NMR . more information with descriptive pictures are found here: 10.1002/mrc.4561
+ *
+ * @param {array} pdata - array of SD instances with peakPicking done.
+ * @param {array} signals - list of chemical shift of signals.
+ * @param {number} maxShiftDiference - maximal difference between two signals from subsequent slices.
  * @returns {Array}
  */
 
-function profile(pdata, signals, threshold) {
+function profile(pdata, signals, maxShiftDiference) {
 
     var peaks = pdata[0].peakPicking;
 
@@ -26,7 +28,7 @@ function profile(pdata, signals, threshold) {
     for (var i = 0; i < signals.length; i++) {
         var ini = true;
         for (var k = 0; k < peaks.length; k++) {
-            if (Math.abs(peaks[k].signal[0].delta - signals[i]) <= threshold) {
+            if (Math.abs(peaks[k].signal[0].delta - signals[i]) <= maxShiftDiference) {
                 dataShift = {x: [peaks[k].signal[0].delta], y: [Number(pdata[0].filename)]};
                 dataProfile = {x: [Number(pdata[0].filename)], y: [peaks[k].integral]};
                 Data[i] = {title: signals[i].toString(), shift: {data: dataShift}, profile: {data: dataProfile}};
@@ -45,7 +47,7 @@ function profile(pdata, signals, threshold) {
         peaks = pdata[i].peakPicking;
         for (var j = 0; j < signals.length; j++) {
             for (k = 0; k < peaks.length; k++) {
-                if (Math.abs(peaks[k].signal[0].delta - signals[j]) <= threshold) {
+                if (Math.abs(peaks[k].signal[0].delta - signals[j]) <= maxShiftDiference) {
                     var temp = Data[j];
                     temp.profile.data.y.push(peaks[k].integral);
                     temp.profile.data.x.push(Number(pdata[i].filename));
