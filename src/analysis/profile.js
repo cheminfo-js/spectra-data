@@ -30,10 +30,10 @@ function profile(pdata, signals, maxShiftDiference) {
         var ini = true;
         for (var k = 0; k < peaks.length; k++) {
             if (Math.abs(peaks[k].signal[0].delta - signals[i]) <= maxShiftDiference) {
-                profileData.push(Number(pdata[0].filename));
+                profileData.push(Number(pdata[0].value.info.$SPOFFS));
                 profileData.push(peaks[k].integral);
                 shiftData.push(peaks[k].signal[0].delta);
-                shiftData.push(Number(pdata[0].filename));
+                shiftData.push(Number(pdata[0].value.info.$SPOFFS));
                 Data[i] = [profileData, shiftData];
                 k = peaks.length;
                 ini = false;
@@ -50,10 +50,10 @@ function profile(pdata, signals, maxShiftDiference) {
                     var temp = Data[j];
                     profileData = temp[0];
                     shiftData = temp[1];
-                    profileData.push(Number(pdata[i].filename));
+                    profileData.push(Number(pdata[i].value.info.$SPOFFS));
                     profileData.push(peaks[k].integral);
                     shiftData.push(peaks[k].signal[0].delta);
-                    shiftData.push(Number(pdata[i].filename));
+                    shiftData.push(Number(pdata[i].value.info.$SPOFFS));
                     signals[j] = peaks[k].signal[0].delta;
                     k = peaks.length;
                 }
