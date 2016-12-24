@@ -5,7 +5,7 @@
 
 const ML = require('ml-curve-fitting');
 const LM = ML.LM;
-const math = ML.algebra;
+const algebra = ML.algebra;
 
 function singleFitting(data, pInit, opts) {
 
@@ -19,14 +19,14 @@ function singleFitting(data, pInit, opts) {
     }
 
     // prepare of the data for fitting
-    var xDat = math.matrix(y.length, 1);
-    var yDat = math.matrix(y.length, 1);
+    var xDat = algebra.matrix(y.length, 1);
+    var yDat = algebra.matrix(y.length, 1);
 
     for (i = 0; i < xDat.length; i++) {
         xDat[i][0] = x[i];
         yDat[i][0] = y[i]/max;
     }
-    //calcule z position
+    //calcule z position from spoffs data
     xDat = zGenerator(xDat, 6.811384250474384, 4258);
 
     x = [], y = [];
@@ -36,10 +36,10 @@ function singleFitting(data, pInit, opts) {
         y.push(yDat[i][0]);
     }
 
-    var weight = [xDat.length / math.sqrt(math.multiply(math.transpose(yDat), yDat))];
+    var weight = [xDat.length / algebra.sqrt(algebra.multiply(algebra.transpose(yDat), yDat))];
 
-    var pMin = math.multiply(math.abs(pInit), -10);
-    var pMax = math.multiply(math.abs(pInit), 10);
+    var pMin = algebra.multiply(algebra.abs(pInit), -10);
+    var pMax = algebra.multiply(algebra.abs(pInit), 10);
 
     var consts = [];// optional vector of constants
 
@@ -48,9 +48,9 @@ function singleFitting(data, pInit, opts) {
     pFit = pFit.p;
 
     var rango = [xDat[0][0], xDat[xDat.length - 1][0]];
-    var t = math.matrix(100, 1);
-    var ini = math.min(rango[0], rango[1]);
-    var jump = math.abs(rango[0] - rango[1]) / 100;
+    var t = algebra.matrix(100, 1);
+    var ini = algebra.min(rango[0], rango[1]);
+    var jump = algebra.abs(rango[0] - rango[1]) / 100;
 
     for (i = 0; i < 100; i++) t[i][0] = ini + jump * i;
 
@@ -67,9 +67,9 @@ function singleFitting(data, pInit, opts) {
 
 function errFunc(z, p) {
     var a = p[0][0], b = p[1][0], c = p[2][0], d = p[3][0];
-    var x = math.multiply(c, math.add(z, -d));
+    var x = algebra.multiply(c, algebra.add(z, -d));
     const erfA = 0.147;
-    var signOfX = math.matrix(x.length, 1);
+    var signOfX = algebra.matrix(x.length, 1);
     for (var i = 0; i < x.length; i++) {
         if (x[i][0] === 0) {
             signOfX[i][0] = 0;
@@ -79,19 +79,19 @@ function errFunc(z, p) {
             signOfX[i][0] = -1;
         }
     }
-    var potencia = math.dotMultiply(x, x);
-    var onePlusA = math.add(1, math.multiply(erfA, potencia));
-    var fourO = math.add(math.multiply(4, Math.pow(Math.PI, -1)), math.multiply(potencia, erfA));
-    var ratio = math.dotDivide(fourO, onePlusA);
-    ratio = math.dotMultiply(ratio, math.multiply(-1, potencia));
-    var expofun = math.multiply(-1, math.exp(ratio));
-    var radical = math.sqrt(math.add(expofun, 1));
-    z = math.dotMultiply(signOfX, radical);
-    z = math.add(a, math.multiply(b, z));
+    var potencia = algebra.dotMultiply(x, x);
+    var onePlusA = algebra.add(1, algebra.multiply(erfA, potencia));
+    var fourO = algebra.add(algebra.multiply(4, Math.pow(Math.PI, -1)), algebra.multiply(potencia, erfA));
+    var ratio = algebra.dotDivide(fourO, onePlusA);
+    ratio = algebra.dotMultiply(ratio, algebra.multiply(-1, potencia));
+    var expofun = algebra.multiply(-1, algebra.exp(ratio));
+    var radical = algebra.sqrt(algebra.add(expofun, 1));
+    z = algebra.dotMultiply(signOfX, radical);
+    z = algebra.add(a, algebra.multiply(b, z));
     return z;
 }
 
 function zGenerator(x, g, gamma) {
-    var z = math.multiply(x, math.inv(g*gamma));
+    var z = algebra.multiply(x, algebra.inv(g*gamma));
     return z;
 }
