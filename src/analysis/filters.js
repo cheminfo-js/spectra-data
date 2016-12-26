@@ -34,3 +34,15 @@ function getSignals(data, maxShiftDiference) {
     }
     return signals;
 }
+
+function mddnmrPlot(data, pInit, opts) {
+    var pInit = pInit ? pInit : algebra.matrix([[0.1], [0.2], [8], [0.1] ]);
+    var opts = opts ? opts : [3, 100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2, 11, 9,  1];
+    var parAjusted = new Array(pdata.length);
+
+    for (var i = 0; i < data.length; i++) {
+        var profile = data[i].profile;
+        var fitting = singleFitting(profile, pInit, opts);
+        parAjusted[i] = [data[i].delta, fitting.pFit[1][0]]
+    }
+}
