@@ -3,10 +3,6 @@
  * Created by abol on 12/9/16.
  */
 
-const ML = require('ml-curve-fitting');
-const LM = ML.LM;
-const algebra = ML.algebra;
-
 /**
  * This function extract the grandient of concentration from a spatial (z) profile acquired with successives
  * experiments of spatially selective NMR. More information with descriptive pictures are found here: 10.1002/mrc.4561
@@ -39,10 +35,10 @@ function profile(pdata, signals, maxShiftDiference) {
                 newPeak = false;
             }
         }
-        if (newPeak) data[i] = [profileData,shiftData];
+        if (newPeak) data[i] = [profileData, shiftData];
     }
 
-    for (var i = 1; i < pdata.length; i++) {
+    for (i = 1; i < pdata.length; i++) {
         peaks = pdata[i].peakPicking;
         for (var j = 0; j < signals.length; j++) {
             for (k = 0; k < peaks.length; k++) {
@@ -61,9 +57,8 @@ function profile(pdata, signals, maxShiftDiference) {
         }
     }
     var dataExport = new Array(pdata.length);
-    
-    for (var i = 0; i < signals.length; i++) {
-        dataExport[i] = {"delta": signals[i], "profile": data[i][0], "shift": data[i][1]};
+    for (i = 0; i < signals.length; i++) {
+        dataExport[i] = {'delta': signals[i], 'profile': data[i][0], 'shift': data[i][1]};
     }
     return dataExport;
 }
@@ -112,6 +107,4 @@ function profile(pdata, signals, maxShiftDiference) {
 //     }
 //     return Data;
 // }
-
-
 module.exports = profile;
