@@ -1,9 +1,24 @@
 'use strict';
 /**
- * Implementation of the peak pickig method described by Cobas in:
+ * Implementation of the peak picking method described by Cobas in:
  * A new approach to improving automated analysis of proton NMR spectra
  * through Global Spectral Deconvolution (GSD)
  * http://www.spectroscopyeurope.com/images/stories/ColumnPDFs/TD_23_1.pdf
+ * @param {Object} spectrum - SD instance
+ * @param {Object} peakList - nmr signals
+ * @param {Object} options - options object with some parameter for GSD, detectSignal functions.
+ * @param {number} [options.nH] - Number of hydrogens or some number to normalize the integral data.
+ * @param {number} [options.integralFn] - option to chose between approx area with gaussian function or sum of the points of given range
+ * @param {number} [options.frequencyCluster] - distance limit to clustering the peaks.
+ * @param {boolean} [options.clean] - If true remove all the signals with integral < 0.5
+ * @param {boolean} [options.minMaxRatio] - Threshold to determine if a given peak should be considered as a noise, bases on its relative height compared to the highest peak.
+ * @param {boolean} [options.broadRatio] - If broadRatio is higher than 0, then all the peaks which second derivative smaller than broadRatio * maxAbsSecondDerivative will be marked with the soft mask equal to true.
+ * @param {boolean} [options.smoothY] - Select the peak intensities from a smoothed version of the independent variables?
+ * @param {boolean} [options.nL] - factor to determine the width at the moment to group the peaks in signals in 'GSD.optimizePeaks' function.
+ * @param {boolean} [options.optimize] - if it's true adjust an train of gaussian or lorentzian shapes to spectrum.
+ * @param {boolean} [options.functionType] - This option allows us choose between gaussian or lorentzian function when options.optimize is true.
+ * @param {boolean} [options.broadWidth] - Threshold to determine if some peak is candidate to clustering into range. /@TODO it's review
+ * @returns {Array}
  */
 const GSD = require('ml-gsd');
 //var extend = require("extend");

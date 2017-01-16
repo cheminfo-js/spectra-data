@@ -1,9 +1,14 @@
 'use strict';
 /**
- * Implementation of the peak pickig method described by Cobas in:
- * A new approach to improving automated analysis of proton NMR spectra
- * through Global Spectral Deconvolution (GSD)
- * http://www.spectroscopyeurope.com/images/stories/ColumnPDFs/TD_23_1.pdf
+ * This function clustering peaks and calculate the integral value for each range from the peak list returned from extractPeaks function
+ * @param {Object} spectrum - SD instance
+ * @param {Object} peakList - nmr signals
+ * @param {Object} options - options object with some parameter for GSD, detectSignal functions.
+ * @param {number} [options.nH] - Number of hydrogens or some number to normalize the integral data.
+ * @param {number} [options.integralFn] - option to chose between approx area with gaussian function or sum of the points of given range
+ * @param {number} [options.frequencyCluster] - distance limit to clustering the peaks.
+ * @param {boolean} [options.clean] - If true remove all the signals with integral < 0.5
+ * @returns {Array}
  */
 const JAnalyzer = require('./jAnalyzer');
 const Ranges = require('../range/Ranges');
@@ -11,16 +16,14 @@ const Ranges = require('../range/Ranges');
 //var removeImpurities = require('./ImpurityRemover');
 
 const defaultOptions = {
-    nH: 99,                // Number of hydrogens
-    clean: true,           // If true remove all the signals with integral < 0.5
+    nH: 99,               
+    clean: true,           
     compile: true,         // TODO: needs documentation
-    integralFn: 0,         // TODO: needs documentation
-    optimize: true,        // TODO: should this be removed? Can't find a ref to this option
+    integralFn: 0,         
     idPrefix: '',          // TODO: needs documentation
     format: 'old',         // TODO: remove support for old format
-    frequencyCluster: 16   // TODO: needs documentation
+    frequencyCluster: 16   
 };
-
 
 function createRanges(spectrum, peakList, options) {
     options = Object.assign({}, defaultOptions, options);
@@ -147,10 +150,10 @@ function createRanges(spectrum, peakList, options) {
 
 
 /**
- * Extract the signals from the peakList and the given spectrum
+ * Extract the signals from the peakList and the given spectrum.
  * @param {object} peakList - nmr signals
  * @param {object} spectrum - spectra data
- * @param {number} nH - number to normalize the integral data
+ * @param {number} nH - Number of hydrogens or some number to normalize the integral data
  * @param {number} integralType - option to chose between approx area with gaussian function or sum of the points of given range
  * @param {number} frequencyCluster - distance limit to clustering the peaks.
  * @return {Array} nmr signals
@@ -209,7 +212,7 @@ function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
         if (integralType === 0) {
             integral.value = sum;
         } else {
-            integral.value = spectrum.getArea(integral.from, integral.to);//*nH/spectrumIntegral;
+            integral.value = spectrum.getArea(integral.from, integral.to);
         }
         spectrumIntegral += integral.value;
 

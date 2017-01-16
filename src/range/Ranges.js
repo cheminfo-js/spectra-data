@@ -1,10 +1,5 @@
 'use strict';
-/**
- * Implementation of the peak pickig method described by Cobas in:
- * A new approach to improving automated analysis of proton NMR spectra
- * through Global Spectral Deconvolution (GSD)
- * http://www.spectroscopyeurope.com/images/stories/ColumnPDFs/TD_23_1.pdf
- */
+
 //const JAnalyzer = require('./../peakPicking/JAnalyzer');
 const peakPicking = require('./../peakPicking/peakPicking');
 const acs = require('./acs/acs');
