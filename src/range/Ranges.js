@@ -84,7 +84,8 @@ class Ranges extends Array {
 
         return new Ranges(result);
     }
-
+    
+    
     static fromSpectrum(spectrum, opt) {
         this.options = Object.assign({}, {
             nH: 99,

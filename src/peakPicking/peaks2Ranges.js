@@ -1,4 +1,19 @@
 'use strict';
+
+const JAnalyzer = require('./jAnalyzer');
+const Ranges = require('../range/Ranges');
+//var extend = require("extend");
+//var removeImpurities = require('./ImpurityRemover');
+
+const defaultOptions = {
+    nH: 99,
+    clean: true,
+    compile: true,
+    integralFn: 0,
+    idPrefix: '',
+    format: 'old',         // TODO: remove support for old format
+    frequencyCluster: 16
+};
 /**
  * This function clustering peaks and calculate the integral value for each range from the peak list returned from extractPeaks function
  * @param {Object} spectrum - SD instance
@@ -8,22 +23,10 @@
  * @param {number} [options.integralFn] - option to chose between approx area with gaussian function or sum of the points of given range
  * @param {number} [options.frequencyCluster] - distance limit to clustering the peaks.
  * @param {boolean} [options.clean] - If true remove all the signals with integral < 0.5
+ * @param {boolean} [options.compile] - If true, the Janalyzer function is run over signals to compile the patterns.
+ * @param {string} [options.idPrefix] - prefix for signal ID
  * @returns {Array}
  */
-const JAnalyzer = require('./jAnalyzer');
-const Ranges = require('../range/Ranges');
-//var extend = require("extend");
-//var removeImpurities = require('./ImpurityRemover');
-
-const defaultOptions = {
-    nH: 99,               
-    clean: true,           
-    compile: true,         // TODO: needs documentation
-    integralFn: 0,         
-    idPrefix: '',          // TODO: needs documentation
-    format: 'old',         // TODO: remove support for old format
-    frequencyCluster: 16   
-};
 
 function createRanges(spectrum, peakList, options) {
     options = Object.assign({}, defaultOptions, options);
@@ -150,12 +153,14 @@ function createRanges(spectrum, peakList, options) {
 
 
 /**
+ * @private
  * Extract the signals from the peakList and the given spectrum.
  * @param {object} peakList - nmr signals
  * @param {object} spectrum - spectra data
  * @param {number} nH - Number of hydrogens or some number to normalize the integral data
  * @param {number} integralType - option to chose between approx area with gaussian function or sum of the points of given range
  * @param {number} frequencyCluster - distance limit to clustering the peaks.
+ * range = frequencyCluster / observeFrequency -> Peaks withing this range are considered to belongs to the same signal1D
  * @return {Array} nmr signals
  */
 function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
@@ -164,7 +169,7 @@ function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
     var signal1D = {};
     var prevPeak = {x: 100000, y: 0, width: 0};
     var peaks = null;
-    var rangeX = frequencyCluster / frequency; //Peaks withing this range are considered to belongs to the same signal1D
+    var rangeX = frequencyCluster / frequency;
     var spectrumIntegral = 0;
     var cs, sum, i, j;
     for (i = 0; i < peakList.length; i++) {
