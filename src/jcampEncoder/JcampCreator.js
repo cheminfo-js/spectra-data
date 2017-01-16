@@ -2,6 +2,11 @@
 /**
  * Created by acastillo on 3/2/16.
  */
+const Encoder = require('./VectorEncoder');
+const Integer = {MAX_VALUE: 2e31 - 1, MIN_VALUE: -2e31};
+const CRLF = '\r\n';
+const version = 'Cheminfo tools, March 2016';
+const defaultParameters = {'encode': 'DIFDUP', 'yFactor': 1, 'type': 'SIMPLE', 'keep': []};
 /**
  * This class converts a SpectraData object into a String that can be stored as a jcamp file.
  * The string reflects the current state of the object and not the raw data from where this
@@ -9,14 +14,6 @@
  * @author acastillo
  *
  */
-
-const Encoder = require('./VectorEncoder');
-
-const Integer = {MAX_VALUE: 2e31 - 1, MIN_VALUE: -2e31};
-const CRLF = '\r\n';
-const version = 'Cheminfo tools, March 2016';
-const defaultParameters = {'encode': 'DIFDUP', 'yFactor': 1, 'type': 'SIMPLE', 'keep': []};
-
 class JcampCreator {
 
     /**

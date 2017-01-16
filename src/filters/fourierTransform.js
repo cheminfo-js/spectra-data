@@ -1,12 +1,11 @@
 'use strict';
 /**
  * Created by abol on 4/20/16.
+ * 
  */
-var fft = require('ml-fft');
 
 function fourierTransform(spectraData) {
-    //console.log(spectraData);
-
+    const fft = require('ml-fft');
     var nbPoints = spectraData.getNbPoints();
     var nSubSpectra = spectraData.getNbSubSpectra() / 2;
     var spectraType = 'NMR SPECTRUM';//spectraData.TYPE_NMR_SPECTRUM;
@@ -16,7 +15,6 @@ function fourierTransform(spectraData) {
     }//spectraData.TYPE_2DNMR_SPECTRUM;
 
     FFT.init(nbPoints);
-
 
     var fcor = spectraData.getParamDouble('$FCOR', 0.0);
     //var tempArray = new Array(nbPoints / 2);

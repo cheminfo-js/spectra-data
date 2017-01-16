@@ -5,9 +5,9 @@
 
 /**
  * Phase correction filter
- * @param {SD} spectraData
- * @param {number} phi0
- * @param {number} phi1
+ * @param {SD} spectraData instance
+ * @param {number} phi0 value
+ * @param {number} phi1 value
  * @return {SD} returns the modified spectraData
  */
 function phaseCorrection(spectraData, phi0, phi1) {

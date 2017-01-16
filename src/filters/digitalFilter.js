@@ -1,6 +1,7 @@
 'use strict';
 /**
  * Created by acastillo on 4/26/16.
+ * @private
  */
 var rotate = require('./rotate');
 

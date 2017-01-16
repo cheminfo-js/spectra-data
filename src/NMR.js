@@ -19,7 +19,7 @@ class NMR extends SD {
     }
 
     /**
-     * This function return a SD instante computed with nmr chemical shift predictor "spinus" from molfile.
+     * This function return a SD instance computed with nmr chemical shift predictor "spinus" from molfile.
      * @param {string} molfile - molfile to generate the spin system and compute the spectrum
      * @param {object} options - parameters for simulation of spectrum
      * @return {NMR} SD instante.
@@ -106,6 +106,7 @@ class NMR extends SD {
     }
 
     /**
+     * @private
      * Returns the observed nucleus. A dimension parameter is accepted for compatibility with 2DNMR
      * @param {number} dim
      * @return {string}
@@ -119,6 +120,7 @@ class NMR extends SD {
     }
 
     /**
+     * @private
      * Returns the solvent name.
      * @return {string|XML}
      */
@@ -127,6 +129,7 @@ class NMR extends SD {
     }
 
     /**
+     * @private
      * Returns the observe frequency in the direct dimension
      * @return {number}
      */
@@ -135,6 +138,7 @@ class NMR extends SD {
     }
 
     /**
+     * @private
      * Returns the noise factor depending on the nucleus.
      * @param {string} nucleus
      * @return {number}
