@@ -5,7 +5,7 @@
 
 const ML = require('ml-curve-fitting');
 const algebra = ML.algebra;
-const singleFitting = require('./singleFitting')
+const singleFitting = require('./fittingProfile')
 
 
 function getSignals(pdata, maxShiftDifference) {
