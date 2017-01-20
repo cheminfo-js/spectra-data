@@ -223,12 +223,12 @@ function exist(output, properties, signal, type, symmetricSearch) {
     return -1;
 }
 /**
- * @private
  * We try to determine the position of each signal within the spectrum matrix.
  * Peaks could be of 3 types: upper diagonal, diagonal or under diagonal 1,0,-1
  * respectively.
  * @param {Array} signals
  * @return {*} A matrix containing the properties of each signal
+ * @private
  */
 function initializeProperties(signals) {
     var signalsProperties = new Array(signals.length);
@@ -255,13 +255,13 @@ function initializeProperties(signals) {
 }
 
 /**
- * @private
  * This function calculates the distance between 2 nmr signals . If toImage is true,
  * it will interchange x by y in the distance calculation for the second signal.
  * @param {object} a
  * @param {object} b
  * @param {boolean} toImage
  * @return {number}
+ * @private
  */
 function distanceTo(a, b, toImage) {
     if (!toImage) {

@@ -153,7 +153,6 @@ function createRanges(spectrum, peakList, options) {
 
 
 /**
- * @private
  * Extract the signals from the peakList and the given spectrum.
  * @param {object} peakList - nmr signals
  * @param {object} spectrum - spectra data
@@ -162,6 +161,7 @@ function createRanges(spectrum, peakList, options) {
  * @param {number} frequencyCluster - distance limit to clustering the peaks.
  * range = frequencyCluster / observeFrequency -> Peaks withing this range are considered to belongs to the same signal1D
  * @return {Array} nmr signals
+ * @private
  */
 function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
     const frequency = spectrum.observeFrequencyX();
@@ -368,7 +368,12 @@ function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
  return 1;
  }
  */
-
+/**
+ * Return the area of a Lorentzian function
+ * @param {object} peak - object with peak information
+ * @return {number}
+ * @private
+ */
 function area(peak) {
     return Math.abs(peak.intensity * peak.width * 1.57);//1.772453851);
 }

@@ -25,6 +25,7 @@ const GSD = require('ml-gsd');
 //var removeImpurities = require('./ImpurityRemover');
 
 const defaultOptions = {
+
     clean: true,
     thresholdFactor: 1,
     optimize: true,
@@ -58,6 +59,13 @@ function extractPeaks(spectrum, optionsEx) {
 
 }
 
+/**
+ * this function remove the peaks with an intensity lower to threshold
+ * @param {object} peakList - peaks
+ * @param {number} threshold
+ * @returns {object} the clean peakList
+ * @private
+ */
 function clearList(peakList, threshold) {
     for (var i = peakList.length - 1; i >= 0; i--) {
         if (Math.abs(peakList[i].y) < threshold) {

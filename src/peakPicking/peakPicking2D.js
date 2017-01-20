@@ -71,13 +71,13 @@ function getLoGnStdDevNMR(spectraData) {
 }
 
 /**
- * @private
  * This function converts a set of 2D-peaks in 2D-signals. Each signal could be composed
  * of many 2D-peaks, and it has some additional information related to the NMR spectrum.
  * @param {Array} peaks 
  * @param {NMR} spectraData
  * @param {number} tolerance
  * @return {Array} 
+ * @private
  */
 function createSignals2D(peaks, spectraData, tolerance) {
 
