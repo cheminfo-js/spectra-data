@@ -180,13 +180,19 @@ function updateSignal(signal, Jc) {
  * @private
  */
 function abstractPattern(signal, Jc) {
-    var tol = 0.05, i, pattern = '', cont = 1;
-    var newNmrJs = [];
+    var tol = 0.05,
+        i,
+        pattern = '',
+        cont = 1,
+        newNmrJs = [];
+
     if (Jc && Jc.length > 0) {
         Jc.sort(function (a, b) {
             return a - b;
         });
+
         for (i = 0; i < Jc.length - 1; i++) {
+
             if (Math.abs(Jc[i] - Jc[i + 1]) < tol) {
                 cont++;
             } else {

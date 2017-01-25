@@ -21,12 +21,26 @@ class Ranges extends Array {
         }
     }
 
+    /**
+     * This function return a Range instance from predictions
+     * @param {Object} predictions - predictions of a spin system
+     * @param {Object} opt - options object
+     * @param {number} [opt.lineWidth] - spectral line width
+     * @param {number} [opt.frequency] - frequency to determine the [from, to] of a range
+     * @returns {Ranges}
+     */
     static fromPrediction(predictions, opt) {
         let options = Object.assign({}, {lineWidth: 1, frequency: 400, nucleus: '1H'}, opt);
         //1. Collapse all the equivalent predictions
         const nPredictions = predictions.length;
         const ids = new Array(nPredictions);
-        var i, j, diaIDs, prediction, width, center, jc;
+        var i,
+            j,
+            diaIDs,
+            prediction,
+            width,
+            center,
+            jc;
         for (i = 0; i < nPredictions; i++) {
             if (!ids[predictions[i].diaIDs[0]]) {
                 ids[predictions[i].diaIDs[0]] = [i];
@@ -84,8 +98,13 @@ class Ranges extends Array {
 
         return new Ranges(result);
     }
-    
-    
+
+    /**
+     * This function return Ranges instance from a SD instance
+     * @param {SD} spectrum - SD instance
+     * @param {object} opt - options object to extractPeaks function
+     * @returns {Ranges}
+     */
     static fromSpectrum(spectrum, opt) {
         this.options = Object.assign({}, {
             nH: 99,
@@ -103,6 +122,10 @@ class Ranges extends Array {
         return new Ranges(peakPicking(spectrum, this.options));
     }
 
+    /**
+     * This function put signal.multiplicity with respect to
+     * @returns {Ranges}
+     */
     updateMultiplicity() {
         for (let i = 0; i < this.length; i++) {
             var range = this[i];
@@ -119,6 +142,13 @@ class Ranges extends Array {
         return this;
     }
 
+    /**
+     * This function normalize or scale the integral data
+     * @param {Object} options - object with the options
+     * @param {Boolean} [options.sum] - anything factor to normalize the integrals, Similar to the number of proton in the molecule for a nmr spectrum
+     * @param {number} [options.factor] - Factor that multiply the intensities, if [options.sum] is defined it is override
+     * @returns {Ranges}
+     */
     updateIntegrals(options) {
         var factor = options.factor || 1;
         var i;
@@ -136,13 +166,23 @@ class Ranges extends Array {
         return this;
     }
 
+    /**
+     * This function return the peak list as a object with x and y arrays
+     * @param {Object} opt - see the options parameter in peak2vector function documentation
+     * @returns {Object} - {x: Array, y: Array}
+     */
     getVector(opt) {
         return peak2Vector(this.getPeakList(), opt);
     }
 
+    /**
+     * This function return the peaks of a Ranges instance into an array
+     * @returns {Array}
+     */
     getPeakList() {
         var peaks = [];
-        var i, j;
+        var i,
+            j;
         for (i = 0; i < this.length; i++) {
             var range = this[i];
             for (j = 0; j < range.signal.length; j++) {
@@ -152,6 +192,11 @@ class Ranges extends Array {
         return peaks;
     }
 
+    /**
+     * This function return format for each range
+     * @param {Object} opt - options object for toAcs function
+     * @returns {*}
+     */
     getACS(opt) {
         return acs(this, opt);
     }
