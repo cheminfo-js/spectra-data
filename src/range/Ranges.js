@@ -168,7 +168,7 @@ class Ranges extends Array {
 
     /**
      * This function return the peak list as a object with x and y arrays
-     * @param {Object} options - See the options parameter in peak2vector function documentation
+     * @param {Object} options - See the options parameter in {@link #peak2vector} function documentation
      * @returns {Object} - {x: Array, y: Array}
      */
     getVector(options) {

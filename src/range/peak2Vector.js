@@ -4,11 +4,11 @@
  * TODO: This function is very general and should be placed somewhere else
  * @param {Array} peaks - List of the peaks
  * @param {object} options - it has some options to
- * @option {number} [options.from] - one limit of given window
- * @option {number} [options.to] - one limit of given window
- * @option {string} [options.fnName] - function name to generate the signals form
- * @option {number} [options.nWidth] - width factor of signal form
- * @option {number} [options.nbPoints] - number of points that the vector will have
+ * @param {number} [options.from] - one limit of given window
+ * @param {number} [options.to] - one limit of given window
+ * @param {string} [options.fnName] - function name to generate the signals form
+ * @param {number} [options.nWidth] - width factor of signal form
+ * @param {number} [options.nbPoints] - number of points that the vector will have
  * @return {{x: Array, y: Array}}
  */
 function peak2Vector(peaks, options) {

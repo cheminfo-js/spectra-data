@@ -15,7 +15,7 @@ const defaultOptions = {
     frequencyCluster: 16
 };
 /**
- * This function clustering peaks and calculate the integral value for each range from the peak list returned from extractPeaks function
+ * This function clustering peaks and calculate the integral value for each range from the peak list returned from extractPeaks function.
  * @param {SD} spectrum - SD instance
  * @param {Object} peakList - nmr signals
  * @param {Object} options - options object with some parameter for GSD, detectSignal functions.

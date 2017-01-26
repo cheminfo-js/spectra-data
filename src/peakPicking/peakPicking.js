@@ -4,19 +4,17 @@
  * A new approach to improving automated analysis of proton NMR spectra
  * through Global Spectral Deconvolution (GSD)
  * http://www.spectroscopyeurope.com/images/stories/ColumnPDFs/TD_23_1.pdf
- * @param {Object} spectrum - SD instance
+ * @param {SD} spectrum - SD instance
  * @param {Object} peakList - nmr signals
- * @param {Object} options - options object with some parameter for GSD, detectSignal functions.
- * @param {number} [options.nH] - Number of hydrogens or some number to normalize the integral data.
- * @param {number} [options.frequencyCluster] - distance limit to clustering the peaks.
- * @param {boolean} [options.clean] - If true remove all the signals with integral < 0.5
- * @param {number} [options.minMaxRatio] - Threshold to determine if a given peak should be considered as a noise, bases on its relative height compared to the highest peak.
- * @param {number} [options.broadRatio] - If broadRatio is higher than 0, then all the peaks which second derivative smaller than broadRatio * maxAbsSecondDerivative will be marked with the soft mask equal to true.
- * @param {boolean} [options.smoothY] - Select the peak intensities from a smoothed version of the independent variables?
- * @param {number} [options.nL] - factor to determine the width at the moment to group the peaks in signals in 'GSD.optimizePeaks' function.
- * @param {boolean} [options.optimize] - if it's true adjust an train of gaussian or lorentzian shapes to spectrum.
- * @param {string} [options.functionType] - This option allows us choose between gaussian or lorentzian function when options.optimize is true.
- * @param {number} [options.broadWidth] - Threshold to determine if some peak is candidate to clustering into range. /@TODO it's review
+ * @param {Object} options - options object with some parameter for GSD
+ * @param {boolean} [options.clean = true] - If true remove all the signals with integral < 0.5
+ * @param {number} [options.minMaxRatio = 0.01] - Threshold to determine if a given peak should be considered as a noise, bases on its relative height compared to the highest peak.
+ * @param {number} [options.broadRatio = 0.00025] - If broadRatio is higher than 0, then all the peaks which second derivative smaller than broadRatio * maxAbsSecondDerivative will be marked with the soft mask equal to true.
+ * @param {boolean} [options.smoothY = true] - Select the peak intensities from a smoothed version of the independent variables?
+ * @param {number} [options.nL = 4] - factor to determine the width at the moment to group the peaks in signals in 'GSD.optimizePeaks' function.
+ * @param {boolean} [options.optimize = true] - if it's true adjust an train of gaussian or lorentzian shapes to spectrum.
+ * @param {string} [options.functionType = 'gaussian'] - This option allows us choose between 'gaussian' or 'lorentzian' function when options.optimize is true.
+ * @param {number} [options.broadWidth = 0.25] - Threshold to determine if some peak is candidate to clustering into range.
  * @returns {Array}
  */
 const GSD = require('ml-gsd');
@@ -25,7 +23,6 @@ const GSD = require('ml-gsd');
 
 const defaultOptions = {
 
-    clean: true,
     thresholdFactor: 1,
     optimize: true,
     minMaxRatio: 0.01,

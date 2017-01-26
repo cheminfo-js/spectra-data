@@ -2,6 +2,12 @@
 
 const fft = require('ml-fft');
 
+/**
+ * This function make a fourier transformation to each FID withing a SD instance
+ * @param {SD} spectraData - SD instance
+ * @returns {SD} return SD with spectrum and FID
+ */
+
 function fourierTransform(spectraData) {
 
     var nbPoints = spectraData.getNbPoints();
