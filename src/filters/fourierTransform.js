@@ -1,8 +1,5 @@
 'use strict';
-/**
- * Created by abol on 4/20/16.
- * 
- */
+
 
 function fourierTransform(spectraData) {
     const fft = require('ml-fft');

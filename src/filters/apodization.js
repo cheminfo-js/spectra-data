@@ -1,8 +1,4 @@
 'use strict';
-/**
- * Created by acastillo on 4/26/16.
- * @private
- */
 
 function apodization(spectraData, parameters) {
     let params = Object.assign({}, parameters);

@@ -1,7 +1,4 @@
 'use strict'
-/**
- * Created by Abol on 12/23/2016.
- */
 
 
 function getSignals(data, maxShiftDiference) {

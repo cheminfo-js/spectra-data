@@ -1,7 +1,5 @@
 'use strict';
-/**
- * Created by acastillo on 3/2/16.
- */
+
 const Encoder = require('./VectorEncoder');
 const Integer = {MAX_VALUE: 2e31 - 1, MIN_VALUE: -2e31};
 const CRLF = '\r\n';

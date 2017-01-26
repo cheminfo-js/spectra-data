@@ -1,7 +1,5 @@
 'use strict';
-/**
- * Created by acastillo on 4/26/16.
- */
+
 /**
  * This function performs a circular shift of the input object without realocating memory.
  * Positive values of shifts will shift to the right and negative values will do to the left

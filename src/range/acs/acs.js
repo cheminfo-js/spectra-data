@@ -1,7 +1,5 @@
 'use strict';
-/**
- * Created by acastillo on 11/21/16.
- */
+
 const old = require('./acsOld');
 
 var acsString = '';

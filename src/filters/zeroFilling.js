@@ -1,6 +1,5 @@
 'use strict';
 /**
- * Created by abol on 4/20/16.
  * This function make a zero filling to each Active element in a SD instance.
  * @param {SD} spectra-data instance.
  * @param {number} zeroFillingX - number of points that FID will have, if is it lower

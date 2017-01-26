@@ -1,8 +1,5 @@
 'use strict';
 /**
- * Created by acastillo on 11/21/16.
- */
-/**
  * This function converts an array of peaks [{x, y, width}] in a vector equally x,y vector from a given window
  * TODO: This function is very general and should be placed somewhere else
  * @param {Array} peaks - List of the peaks
@@ -82,3 +79,4 @@ function peak2Vector(peaks, options) {
 }
 
 module.exports = peak2Vector;
+
