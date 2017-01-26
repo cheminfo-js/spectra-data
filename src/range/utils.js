@@ -16,8 +16,8 @@ function nmrJ(Js, options) {
     return Jstring;
 }
 
-function toACS(ranges, opt) {
-    return acs(ranges, opt);
+function toACS(ranges, options) {
+    return acs(ranges, options);
 }
 
 module.exports.peak2Vector = require('./peak2Vector');

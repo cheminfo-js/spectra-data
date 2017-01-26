@@ -1,8 +1,9 @@
 'use strict';
 
+const fft = require('ml-fft');
 
 function fourierTransform(spectraData) {
-    const fft = require('ml-fft');
+
     var nbPoints = spectraData.getNbPoints();
     var nSubSpectra = spectraData.getNbSubSpectra() / 2;
     var spectraType = 'NMR SPECTRUM';//spectraData.TYPE_NMR_SPECTRUM;
@@ -18,6 +19,7 @@ function fourierTransform(spectraData) {
     for (var iSubSpectra = 0; iSubSpectra < nSubSpectra; iSubSpectra++) {
         var re = spectraData.getYData(2 * iSubSpectra);
         var im = spectraData.getYData(2 * iSubSpectra + 1);
+
         re[0] *= fcor;
         im[0] *= fcor;
 
@@ -67,6 +69,7 @@ function updateSpectra(spectraData, spectraType) {
     var x = spectraData.getXData();
     var tmp = xMiddle + dx;
     dx = -2 * dx / (x.length - 1);
+
     for (var i = 0; i < x.length; i++) {
         x[i] = tmp;
         tmp += dx;

@@ -1,9 +1,9 @@
 'use strict';
 
 const Encoder = require('./VectorEncoder');
-const Integer = {MAX_VALUE: 2e31 - 1, MIN_VALUE: -2e31};
+const Integer = {MAX_VALUE: Number.MAX_SAFE_INTEGER, MIN_VALUE: Number.MIN_SAFE_INTEGER};
 const CRLF = '\r\n';
-const version = 'Cheminfo tools, March 2016';
+const version = 'Cheminfo tools ' + require('../../package.json').version;
 const defaultParameters = {'encode': 'DIFDUP', 'yFactor': 1, 'type': 'SIMPLE', 'keep': []};
 /**
  * This class converts a SpectraData object into a String that can be stored as a jcamp file.

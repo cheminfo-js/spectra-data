@@ -24,13 +24,13 @@ class Ranges extends Array {
     /**
      * This function return a Range instance from predictions
      * @param {Object} predictions - predictions of a spin system
-     * @param {Object} opt - options object
-     * @param {number} [opt.lineWidth] - spectral line width
-     * @param {number} [opt.frequency] - frequency to determine the [from, to] of a range
+     * @param {Object} options - options object
+     * @param {number} [options.lineWidth] - spectral line width
+     * @param {number} [options.frequency] - frequency to determine the [from, to] of a range
      * @returns {Ranges}
      */
-    static fromPrediction(predictions, opt) {
-        let options = Object.assign({}, {lineWidth: 1, frequency: 400, nucleus: '1H'}, opt);
+    static fromPrediction(predictions, options) {
+        let options = Object.assign({}, {lineWidth: 1, frequency: 400, nucleus: '1H'}, options);
         //1. Collapse all the equivalent predictions
         const nPredictions = predictions.length;
         const ids = new Array(nPredictions);
@@ -168,11 +168,11 @@ class Ranges extends Array {
 
     /**
      * This function return the peak list as a object with x and y arrays
-     * @param {Object} opt - see the options parameter in peak2vector function documentation
+     * @param {Object} options - See the options parameter in peak2vector function documentation
      * @returns {Object} - {x: Array, y: Array}
      */
-    getVector(opt) {
-        return peak2Vector(this.getPeakList(), opt);
+    getVector(options) {
+        return peak2Vector(this.getPeakList(), options);
     }
 
     /**
@@ -194,11 +194,11 @@ class Ranges extends Array {
 
     /**
      * This function return format for each range
-     * @param {Object} opt - options object for toAcs function
+     * @param {Object} options - options object for toAcs function
      * @returns {*}
      */
-    getACS(opt) {
-        return acs(this, opt);
+    getACS(options) {
+        return acs(this, options);
     }
 
     getAnnotations(options) {
