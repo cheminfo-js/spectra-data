@@ -13,7 +13,7 @@
  * @returns {Array}
  */
 
-function profile(pdata, signals, maxShiftDiference) {
+function getProfile(pdata, signals, maxShiftDiference) {
 
     var peaks = pdata[0].peakPicking;
 
@@ -107,4 +107,4 @@ function profile(pdata, signals, maxShiftDiference) {
 //     }
 //     return Data;
 // }
-module.exports = profile;
+module.exports = getProfile;
