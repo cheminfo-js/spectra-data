@@ -226,9 +226,9 @@ function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
         signals[i].delta1 = cs / sum;
 
         if (integralType === 'sum') {
-            integral.value = sum;
-        } else {
             integral.value = spectrum.getArea(integral.from, integral.to);
+        } else {
+            integral.value = sum;
         }
         spectrumIntegral += integral.value;
 
