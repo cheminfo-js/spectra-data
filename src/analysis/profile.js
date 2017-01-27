@@ -21,21 +21,23 @@ function getProfile(pdata, signals, maxShiftDiference) {
 
     // @TODO Is needed to modified something to obtain spoffs information by default.
     for (var i = 0; i < signals.length; i++) {
-        var profileData = [];
-        var shiftData = [];
+        var profileDataX = [];
+        var profileDataY = [];
+        var shiftDataX = [];
+        var shiftDataY = [];
         var newPeak = true;
         for (var k = 0; k < peaks.length; k++) {
             if (Math.abs(peaks[k].signal[0].delta - signals[i]) <= maxShiftDiference) {
-                profileData.push(Number(pdata[0].value.info.$SPOFFS));
-                profileData.push(peaks[k].integral);
-                shiftData.push(peaks[k].signal[0].delta);
-                shiftData.push(Number(pdata[0].value.info.$SPOFFS));
-                data[i] = [profileData, shiftData];
+                profileDataX.push(pdata[0].value.info.$SPOFFS);
+                profileDataY.push(peaks[k].integral);
+                shiftDataX.push(peaks[k].signal[0].delta);
+                shiftDataY.push(pdata[0].value.info.$SPOFFS);
+                data[i] = [profileDataX, profileDataY, shiftDataX, shiftDataY];
                 k = peaks.length;
                 newPeak = false;
             }
         }
-        if (newPeak) data[i] = [profileData, shiftData];
+        if (newPeak) data[i] = [profileDataX, profileDataY, shiftDataX, shiftDataY];
     }
 
     for (i = 1; i < pdata.length; i++) {
@@ -44,12 +46,14 @@ function getProfile(pdata, signals, maxShiftDiference) {
             for (k = 0; k < peaks.length; k++) {
                 if (Math.abs(peaks[k].signal[0].delta - signals[j]) <= maxShiftDiference) {
                     var temp = data[j];
-                    profileData = temp[0];
-                    shiftData = temp[1];
-                    profileData.push(Number(pdata[i].value.info.$SPOFFS));
-                    profileData.push(peaks[k].integral);
-                    shiftData.push(peaks[k].signal[0].delta);
-                    shiftData.push(Number(pdata[i].value.info.$SPOFFS));
+                    profileDataX = temp[0];
+                    profileDataY = temp[1];
+                    shiftDataX = temp[2];
+                    shiftDataY = temp[3];
+                    profileDataX.push(Number(pdata[i].value.info.$SPOFFS));
+                    profileDataY.push(peaks[k].integral);
+                    shiftDataX.push(peaks[k].signal[0].delta);
+                    shiftDataY.push(Number(pdata[i].value.info.$SPOFFS));
                     signals[j] = peaks[k].signal[0].delta;
                     k = peaks.length;
                 }
@@ -58,11 +62,11 @@ function getProfile(pdata, signals, maxShiftDiference) {
     }
     var dataExport = new Array(pdata.length);
     for (i = 0; i < signals.length; i++) {
-        dataExport[i] = {'delta': signals[i], 'profile': data[i][0], 'shift': data[i][1]};
+        dataExport[i] = {'delta': signals[i], 'profile': {x: data[i][0], y: data[i][1]}, 'shift': {x: data[i][2], y: data[i][3]}};
     }
     return dataExport;
 }
-//// Old version of profile, this funtion use objecto to store the information and the use of object is always slow
+//// Old version of profile, this funtion use object to store the information and the use of object is always slow
 // function profile(pdata, signals, maxShiftDiference) {
 //
 //     var peaks = pdata[0].peakPicking;

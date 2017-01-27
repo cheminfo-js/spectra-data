@@ -14,14 +14,17 @@ const algebra = ML.Matrix.algebra;
  * options.spoffs and options.optSpoffsToCentimeters
  * @param {Matrix} yDat - integral values vector.
  * @param {Object} options - some parameter for optimize and spoffsToCentimeters functions
- * @param {Boolean} {options.spoffs} - if true the xDat will be convert to centimeter units
  * @param {Matrix} [options.pInit] - guest to least
- * @param {Array} [options.consts] - optional vector of constants default: []
- * @param {Matrix} [options.weight] - weights vector at the moment of the fitting
- * @param {object} [options.optSpoffsToCentimeters] - two parameter need to convert
- * @param {number} [options.gamma] - giromagnetic ratio of observe nuclei in MHz * T^(-1) units
+ * @param {Array} [options.consts = []] - optional vector of constants default: []
+ * @param {Matrix} [options.weight] - weights vector at the moment of the fitting, default is
+ * [xDat.length / algebra.sqrt(algebra.multiply(algebra.transpose(yDat), yDat))]
+ * @param {Array} [options.parameters] - parameter to LM.optimize function. Default is 
+ * [3, 100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2, 11, 9,  1]
+ * @param {object} [options.spoffsToCentimeters] - if it is defined, the Day will be converted to centimeter units, 
+ * it should has two properties needed to convert
+ * @param {number} [options.spoffsToCentimeters.gamma = 42.57747892] - Giromagnetic ratio of observe nuclei in MHz * T^(-1) units
  * Default: proton value  -> 42.57747892 MHz * T^(-1)
- * @param {number} [options.gradientvalue] - strength of gradient in Gauss unit
+ * @param {number} [options.spoffsToCentimeters.gradientValue] - strength of gradient in Gauss unit
  * @returns {object}
  */
 function fittingProfile(xDat, yDat, options) {
@@ -31,8 +34,8 @@ function fittingProfile(xDat, yDat, options) {
     xDat = ML.Matrix.checkMatrix(xDat);
     yDat = ML.Matrix.checkMatrix(yDat);
 
-    if (options.spoffs || false) {
-       var optionsSpoffsToCentimeters = options.optSpoffsToCentimeters ? options.optSpoffsToCentimeters : {};
+    if (options.spoffsToCentimeters || false) {
+       var optionsSpoffsToCentimeters = options.spoffsToCentimeters ? options.spoffsToCentimeters : {};
        xDat = spoffsToCentimeters(xDat, optionsSpoffsToCentimeters);
     }
 
@@ -41,10 +44,10 @@ function fittingProfile(xDat, yDat, options) {
     var pMin = options.pMin ? options.pMin : algebra.multiply(algebra.abs(options.pInit), -10);
     var pMax = options.pMax ? options.pMax : algebra.multiply(algebra.abs(options.pInit), 10);
 
-    var opts = options.opts ? options.opts : [3, 100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2, 11, 9,  1];
+    var parameters = options.parameters ? options.parameters : [3, 100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2, 11, 9,  1];
     var consts = options.consts ? options.consts : [];
 
-    var pFit = LM.optimize(errFunc, pInit, xDat, yDat, weight, -0.01, pMin, pMax, consts, opts);
+    var pFit = LM.optimize(errFunc, options.pInit, xDat, yDat, weight, -0.01, pMin, pMax, consts, parameters);
 
     return pFit;
 }
@@ -158,7 +161,7 @@ function errFunc(z, p) {
  * @param {Matrix} x - vector of spoffs values
  * @param {object} options - two parameter need to convert
  * @param {number} [options.gamma] - giromagnetic ratio of observe nuclei in MHz * T^(-1) units
- * @param {number} [options.gradientvalue] - strength of gradient in Gauss unit
+ * @param {number} [options.gradientValue] - strength of gradient in Gauss unit
  * @returns {Matrix} z - vector converted to centimeters units
  */
 

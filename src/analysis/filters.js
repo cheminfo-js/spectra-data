@@ -5,7 +5,7 @@
 
 const ML = require('ml-curve-fitting');
 const algebra = ML.algebra;
-const singleFitting = require('./fittingProfile')
+const fittingProfile = require('./fittingProfile')
 
 
 function getSignals(pdata, maxShiftDifference) {
@@ -49,16 +49,28 @@ function updateSignals(pdata, maxShiftDifference) {
     return signals;
 }
 
-function mddnmrPlot(pdata, pInit, opts) {
-    pInit = pInit ? pInit : algebra.matrix([[0.1], [0.2], [8], [0.1]]);
-    opts = opts ? opts : [3, 100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2, 11, 9,  1];
-    var parAjusted = new Array(pdata.length);
+/**
+ * This function make a fitting for each signal profile and return a array with
+ * the duples [Chemical Shift, parameter ajusted] for each signal.
+ * @param {Array} data - Array withing object with profile data
+ * @param {Object} data[*].profile - object with profile data
+ * @param {Array} data[*].profile.x - spatial variable in spoffs or metric units
+ * @param {Array} data[*].profile.y - Intensities or integral values
+ * @param {Object} options - see {@link #fittingProfile}
+ * @returns {Array}
+ */
+function mddNmrPlot(data, options) {
 
-    for (var i = 0; i < pdata.length; i++) {
-        var profile = pdata[i].profile;
-        var fitting = singleFitting(profile, pInit, opts);
-        parAjusted[i] = [pdata[i].delta, fitting.pFit[1][0]]
+    var parAjusted = new Array(data.length);
+
+    for (var i = 0; i < data.length; i++) {
+        var xDat = data[i].profile.x;
+        var yDat = data[i].profile.y;
+        var fitting = fittingProfile(xDat, yDat, options);
+        parAjusted[i] = [data[i].delta, fitting.pFit[1][0]]
     }
+
+    return parAjusted;
 }
 
 function peakPickingSomeRegions(pdata, filename, regions) {
