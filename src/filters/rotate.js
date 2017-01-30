@@ -1,13 +1,11 @@
 'use strict';
-/**
- * Created by acastillo on 4/26/16.
- */
+
 /**
  * This function performs a circular shift of the input object without realocating memory.
  * Positive values of shifts will shift to the right and negative values will do to the left
  * @example rotate([1,2,3,4],1) -> [4,1,2,3]
  * @example rotate([1,2,3,4],-1) -> [2,3,4,1]
- * @param {Array} array
+ * @param {Array} array - the array that will be rotated
  * @param {number} shift
  */
 function rotate(array, shift) {
@@ -44,7 +42,9 @@ function rotate(array, shift) {
         }
     }
 }
-
+/**
+ * @private
+ */
 function putInRange(value, nbPoints) {
     if (value < 0) {
         value += nbPoints;

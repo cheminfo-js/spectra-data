@@ -46,6 +46,7 @@ function encode(data, firstX, intervalX, encoding) {
 }
 
 /**
+ * @private
  * No data compression used. The data is separated by a comma(',').
  * @param {Array} data
  * @param {number} firstX
@@ -57,6 +58,7 @@ function commaSeparatedValuesEncoding(data, firstX, intervalX) {
 }
 
 /**
+ * @private
  * No data compression used. The data is separated by the specified separator.
  * @param {Array} data
  * @param {number} firstX
@@ -87,6 +89,7 @@ function fixEncoding(data, firstX, intervalX, separator) {
     return outputData;
 }
 /**
+ * @private
  * No data compression used. The data is separated by the sign of the number.
  * @param {Array} data
  * @param {number} firstX
@@ -122,6 +125,7 @@ function packedEncoding(data, firstX, intervalX) {
     return outputData;
 }
 /**
+ * @private
  * Data compression is possible using the squeezed form (SQZ) in which the delimiter, the leading digit,
  * and sign are replaced by a pseudo-digit from Table 1. For example, the Y-values 30, 32 would be
  * represented as C0C2.
@@ -154,6 +158,7 @@ function squeezedEncoding(data, firstX, intervalX) {
 }
 
 /**
+ * @private
  * Duplicate suppression encoding
  * @param {Array} data
  * @param {number} firstX
@@ -218,6 +223,7 @@ function differenceDuplicateEncoding(data, firstX, intervalX) {
 }
 
 /**
+ * @private
  * Differential encoding
  * @param {Array} data
  * @param {number} firstX
@@ -267,6 +273,7 @@ function differenceEncoding(data, firstX, intervalX) {
 }
 
 /**
+ * @private
  * Convert number to the ZQZ format, using pseudo digits.
  * @param {number} num
  * @return {string}
@@ -289,6 +296,7 @@ function squeezedDigit(num) {
     return SQZdigit;
 }
 /**
+ * @private
  * Convert number to the DIF format, using pseudo digits.
  * @param {number} num
  * @return {string}
@@ -313,11 +321,12 @@ function differenceDigit(num) {
     return DIFFdigit;
 }
 /**
+ * @private
  * Convert number to the DUP format, using pseudo digits.
  * @param {number} num
  * @return {string}
  */
-function duplicateDigit(num) {
+    function duplicateDigit(num) {
     var DUPdigit = '';
     DUPdigit += pseudoDigits[DUP][num.charAt(0)];
     if (num.length > 1) {

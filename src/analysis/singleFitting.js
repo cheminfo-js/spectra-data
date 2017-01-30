@@ -1,7 +1,4 @@
 'use strict';
-/**
- * Created by Abol on 12/21/2016.
- */
 
 const ML = require('ml-curve-fitting');
 const LM = ML.LM;

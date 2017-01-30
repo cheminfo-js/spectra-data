@@ -180,13 +180,19 @@ function updateSignal(signal, Jc) {
  * @private
  */
 function abstractPattern(signal, Jc) {
-    var tol = 0.05, i, pattern = '', cont = 1;
-    var newNmrJs = [];
+    var tol = 0.05,
+        i,
+        pattern = '',
+        cont = 1,
+        newNmrJs = [];
+
     if (Jc && Jc.length > 0) {
         Jc.sort(function (a, b) {
             return a - b;
         });
+
         for (i = 0; i < Jc.length - 1; i++) {
+
             if (Math.abs(Jc[i] - Jc[i + 1]) < tol) {
                 cont++;
             } else {
@@ -297,7 +303,7 @@ function getNextCombination(ranges, value) {
 /**
  * This function generates the possible values that each peak can contribute
  * to the multiplet.
- * @param {object} peaks
+ * @param {Array} Array of objects with peaks information {intensity}
  * @return {{values: Array, currentIndex: Array, active: number}}
  */
 function getRanges(peaks) {
@@ -588,7 +594,7 @@ function chemicalShift(peaks, mask) {
 
 /**
  * Return the area of a Lorentzian function
- * @param {object} peak
+ * @param {object} peak - object with peak information
  * @return {number}
  * @private
  */

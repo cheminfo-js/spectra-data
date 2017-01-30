@@ -1,7 +1,10 @@
 'use strict';
-/**
- * Created by acastillo on 3/2/16.
- */
+
+const Encoder = require('./VectorEncoder');
+const Integer = {MAX_VALUE: Number.MAX_SAFE_INTEGER, MIN_VALUE: Number.MIN_SAFE_INTEGER};
+const CRLF = '\r\n';
+const version = 'Cheminfo tools ' + require('../../package.json').version;
+const defaultParameters = {'encode': 'DIFDUP', 'yFactor': 1, 'type': 'SIMPLE', 'keep': []};
 /**
  * This class converts a SpectraData object into a String that can be stored as a jcamp file.
  * The string reflects the current state of the object and not the raw data from where this
@@ -9,14 +12,6 @@
  * @author acastillo
  *
  */
-
-const Encoder = require('./VectorEncoder');
-
-const Integer = {MAX_VALUE: 2e31 - 1, MIN_VALUE: -2e31};
-const CRLF = '\r\n';
-const version = 'Cheminfo tools, March 2016';
-const defaultParameters = {'encode': 'DIFDUP', 'yFactor': 1, 'type': 'SIMPLE', 'keep': []};
-
 class JcampCreator {
 
     /**
@@ -26,15 +21,19 @@ class JcampCreator {
      *  http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
      * @param {SD} spectraData
      * @param {object} options - Optional paramteres
+     * @param {string} [options.encode = 'DIFDUP']
+     * @param {number} [options.yFactor = 1]
+     * @param {string} [options.type = 'SIMPLE']
+     * @param {array} [options.keep = [] ]
      * @return {string}
      */
     convert(spectraData, options) {
         // encodeFormat: ('FIX','SQZ','DIF','DIFDUP','CVS','PAC')
-        let opt = Object.assign({}, defaultParameters, options);
-        const encodeFormat = opt.encode.toUpperCase().trim();
-        const factorY = opt.yFactor;
-        let type = opt.type;
-        const userDefinedParams = opt.keep;
+        options = Object.assign({}, defaultParameters, options);
+        const encodeFormat = options.encode.toUpperCase().trim();
+        const factorY = options.yFactor;
+        let type = options.type;
+        const userDefinedParams = options.keep;
 
         if (type === null || type.length === 0) {
             type = 'SIMPLE';
