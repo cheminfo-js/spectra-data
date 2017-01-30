@@ -228,6 +228,7 @@ function exist(output, properties, signal, type, symmetricSearch) {
  * respectively.
  * @param {Array} signals
  * @return {*} A matrix containing the properties of each signal
+ * @private
  */
 function initializeProperties(signals) {
     var signalsProperties = new Array(signals.length);
@@ -260,6 +261,7 @@ function initializeProperties(signals) {
  * @param {object} b
  * @param {boolean} toImage
  * @return {number}
+ * @private
  */
 function distanceTo(a, b, toImage) {
     if (!toImage) {

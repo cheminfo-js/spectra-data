@@ -33,7 +33,7 @@ class SD {
      * @return {SD} Return the constructed SD instance
      */
     static fromJcamp(jcamp, options) {
-        options = Object.assign({}, {xy: true, keepSpectra: true, keepRecordsRegExp: /^.+$/}, options);
+        options = Object.assign({}, {keepSpectra: true, keepRecordsRegExp: /^.+$/}, options, {xy: true});
         var spectrum = JcampConverter.convert(jcamp, options);
         return new this(spectrum);
     }

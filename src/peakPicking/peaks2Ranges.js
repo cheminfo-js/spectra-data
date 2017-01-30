@@ -1,32 +1,41 @@
 'use strict';
-/**
- * Implementation of the peak pickig method described by Cobas in:
- * A new approach to improving automated analysis of proton NMR spectra
- * through Global Spectral Deconvolution (GSD)
- * http://www.spectroscopyeurope.com/images/stories/ColumnPDFs/TD_23_1.pdf
- */
+
 const JAnalyzer = require('./jAnalyzer');
 const Ranges = require('../range/Ranges');
 //var extend = require("extend");
 //var removeImpurities = require('./ImpurityRemover');
 
 const defaultOptions = {
-    nH: 99,                // Number of hydrogens
-    clean: true,           // If true remove all the signals with integral < 0.5
-    compile: true,         // TODO: needs documentation
-    integralFn: 0,         // TODO: needs documentation
-    optimize: true,        // TODO: should this be removed? Can't find a ref to this option
-    idPrefix: '',          // TODO: needs documentation
+    nH: 99,
+    clean: true,
+    compile: true,
+    integralType: 'sum',
+    idPrefix: '',
     format: 'old',         // TODO: remove support for old format
-    frequencyCluster: 16   // TODO: needs documentation
+    frequencyCluster: 16
 };
-
+/**
+ * This function clustering peaks and calculate the integral value for each range from the peak list returned from extractPeaks function.
+ * @param {SD} spectrum - SD instance
+ * @param {Object} peakList - nmr signals
+ * @param {Object} options - options object with some parameter for GSD, detectSignal functions.
+ * @param {number} [options.nH = 99] - Number of hydrogens or some number to normalize the integral data. If it's zero return the absolute integral value
+ * @param {string} [options.integralType = 'sum'] - option to chose between approx area with peaks or the sum of the points of given range
+ * @param {number} [options.frequencyCluster = 16] - distance limit to clustering peaks.
+ * @param {boolean} [options.clean = true] - If true remove all the signals with integral < 0.5
+ * @param {boolean} [options.compile = true] - If true, the Janalyzer function is run over signals to compile the patterns.
+ * @param {string} [options.idPrefix = ''] - prefix for signal ID
+ * @returns {Array}
+ */
 
 function createRanges(spectrum, peakList, options) {
     options = Object.assign({}, defaultOptions, options);
-    var i, j, nHi, sum;
+    var i,
+        j,
+        nHi,
+        sum;
 
-    var signals = detectSignals(peakList, spectrum, options.nH, options.integralFn, options.frequencyCluster);
+    var signals = detectSignals(peakList, spectrum, options.nH, options.integralType, options.frequencyCluster);
 
     //Remove all the signals with small integral
     if (options.clean || false) {
@@ -147,23 +156,33 @@ function createRanges(spectrum, peakList, options) {
 
 
 /**
- * Extract the signals from the peakList and the given spectrum
+ * Extract the signals from the peakList and the given spectrum.
  * @param {object} peakList - nmr signals
  * @param {object} spectrum - spectra data
- * @param {number} nH - number to normalize the integral data
- * @param {number} integralType - option to chose between approx area with gaussian function or sum of the points of given range
+ * @param {number} nH - Number of hydrogens or some number to normalize the integral data, If it's zero return the absolute integral value
+ * @param {string} integralType - option to chose between approx area with peaks or the sum of the points of given range
  * @param {number} frequencyCluster - distance limit to clustering the peaks.
+ * range = frequencyCluster / observeFrequency -> Peaks withing this range are considered to belongs to the same signal1D
  * @return {Array} nmr signals
+ * @private
  */
 function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
     const frequency = spectrum.observeFrequencyX();
-    var signals = [];
-    var signal1D = {};
-    var prevPeak = {x: 100000, y: 0, width: 0};
-    var peaks = null;
-    var rangeX = frequencyCluster / frequency; //Peaks withing this range are considered to belongs to the same signal1D
-    var spectrumIntegral = 0;
-    var cs, sum, i, j;
+    var  cs,
+        sum,
+        i,
+        j,
+        signals = [],
+        signal1D = {},
+        peaks = null,
+        prevPeak = {x: 100000, y: 0, width: 0},
+        spectrumIntegral = 0;
+
+    var frequencyCluster = Number.isFinite(frequencyCluster) ? frequencyCluster : 16;
+    var integralType = (integralType === 'sum' || integralType === 'peaks') ? integralType : 'sum';
+
+    const rangeX = frequencyCluster / frequency;
+
     for (i = 0; i < peakList.length; i++) {
         if (Math.abs(peakList[i].x - prevPeak.x) > rangeX) {
             signal1D = {nbPeaks: 1, units: 'PPM',
@@ -206,10 +225,10 @@ function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
         }
         signals[i].delta1 = cs / sum;
 
-        if (integralType === 0) {
-            integral.value = sum;
+        if (integralType === 'sum') {
+            integral.value = spectrum.getArea(integral.from, integral.to);
         } else {
-            integral.value = spectrum.getArea(integral.from, integral.to);//*nH/spectrumIntegral;
+            integral.value = sum;
         }
         spectrumIntegral += integral.value;
 
@@ -360,7 +379,12 @@ function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
  return 1;
  }
  */
-
+/**
+ * Return the area of a Lorentzian function
+ * @param {object} peak - object with peak information
+ * @return {number}
+ * @private
+ */
 function area(peak) {
     return Math.abs(peak.intensity * peak.width * 1.57);//1.772453851);
 }

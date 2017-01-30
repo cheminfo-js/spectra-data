@@ -4,7 +4,6 @@ const ML = require('ml-curve-fitting');
 const algebra = ML.algebra;
 const fittingProfile = require('./fittingProfile')
 
-
 function getSignals(pdata, maxShiftDifference) {
     var signals = [];
     var signalsTemp = [];
@@ -56,6 +55,7 @@ function updateSignals(pdata, maxShiftDifference) {
  * @param {Object} options - see {@link #fittingProfile}
  * @returns {Array}
  */
+
 function mddNmrPlot(data, options) {
 
     var parAjusted = new Array(data.length);

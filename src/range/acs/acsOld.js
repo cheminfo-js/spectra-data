@@ -1,7 +1,7 @@
 'use strict';
 /**
  * This library formats a set of nmr1D signals to the ACS format.
- * Created by acastillo on 3/11/15. p
+ * Created by acastillo on 3/11/15.
  */
 
 var acsString = '';

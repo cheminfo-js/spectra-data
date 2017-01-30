@@ -1,21 +1,18 @@
 'use strict';
 /**
- * Created by acastillo on 11/21/16.
- */
-/**
  * This function converts an array of peaks [{x, y, width}] in a vector equally x,y vector from a given window
  * TODO: This function is very general and should be placed somewhere else
- * @param {Array} peaks
- * @param {object} opt - it has some options to
- * @option {number} from - one limit of given window
- * @option {number} to - one limit of given window
- * @option {string} fnName - function name to generate the signals form
- * @option {number} nWidth - width factor of signal form
- * @option {number} nbPoints - number of points
+ * @param {Array} peaks - List of the peaks
+ * @param {object} options - it has some options to
+ * @param {number} [options.from] - one limit of given window
+ * @param {number} [options.to] - one limit of given window
+ * @param {string} [options.fnName] - function name to generate the signals form
+ * @param {number} [options.nWidth] - width factor of signal form
+ * @param {number} [options.nbPoints] - number of points that the vector will have
  * @return {{x: Array, y: Array}}
  */
-function peak2Vector(peaks, opt) {
-    var options = opt || {};
+function peak2Vector(peaks, options) {
+    var options = options || {};
     var from = options.from;
     var to = options.to;
     var nbPoints = options.nbPoints || 16 * 1024;
@@ -82,3 +79,4 @@ function peak2Vector(peaks, opt) {
 }
 
 module.exports = peak2Vector;
+
