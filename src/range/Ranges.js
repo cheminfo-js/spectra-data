@@ -30,7 +30,7 @@ class Ranges extends Array {
      * @returns {Ranges}
      */
     static fromPrediction(predictions, options) {
-        let options = Object.assign({}, {lineWidth: 1, frequency: 400, nucleus: '1H'}, options);
+        options = Object.assign({}, {lineWidth: 1, frequency: 400, nucleus: '1H'}, options);
         //1. Collapse all the equivalent predictions
         const nPredictions = predictions.length;
         const ids = new Array(nPredictions);

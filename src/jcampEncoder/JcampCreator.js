@@ -21,15 +21,19 @@ class JcampCreator {
      *  http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
      * @param {SD} spectraData
      * @param {object} options - Optional paramteres
+     * @param {string} [options.encode = 'DIFDUP']
+     * @param {number} [options.yFactor = 1]
+     * @param {string} [options.type = 'SIMPLE']
+     * @param {array} [options.keep = [] ]
      * @return {string}
      */
     convert(spectraData, options) {
         // encodeFormat: ('FIX','SQZ','DIF','DIFDUP','CVS','PAC')
-        let opt = Object.assign({}, defaultParameters, options);
-        const encodeFormat = opt.encode.toUpperCase().trim();
-        const factorY = opt.yFactor;
-        let type = opt.type;
-        const userDefinedParams = opt.keep;
+        options = Object.assign({}, defaultParameters, options);
+        const encodeFormat = options.encode.toUpperCase().trim();
+        const factorY = options.yFactor;
+        let type = options.type;
+        const userDefinedParams = options.keep;
 
         if (type === null || type.length === 0) {
             type = 'SIMPLE';

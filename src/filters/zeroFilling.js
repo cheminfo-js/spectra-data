@@ -3,7 +3,7 @@
  * This function make a zero filling to each Active element in a SD instance.
  * @param {SD} spectra-data instance.
  * @param {number} zeroFillingX - number of points that FID will have, if is it lower
- * than inicial number of points, the FID dwill be spliced
+ * than initial number of points, the FID will be spliced
  */
 
 
