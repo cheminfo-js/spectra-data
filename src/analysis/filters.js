@@ -118,3 +118,5 @@ function peakPickingSomeRegions(pdata, filename, regions) {
         }
     }
 };
+
+module.exports = {getSignals: getSignals, peakPickingSomeRegions: peakPickingSomeRegions, mddNmrPlot: mddNmrPlot}

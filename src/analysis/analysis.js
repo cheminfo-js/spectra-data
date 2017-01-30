@@ -2,4 +2,4 @@
 
 module.exports.profile = require('./profile.js');
 module.exports.singleFitting = require('./fittingProfile.js');
-module.exports.getSignals = require('./filters');
+module.exports.filters = require('./filters');
