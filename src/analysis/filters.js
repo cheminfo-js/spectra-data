@@ -1,7 +1,4 @@
 'use strict';
-/**
- * Created by Abol on 12/23/2016.
- */
 
 const ML = require('ml-curve-fitting');
 const algebra = ML.algebra;
@@ -102,7 +99,7 @@ function peakPickingSomeRegions(pdata, filename, regions) {
                     }
                     if (!SE) {
                         var spectrum = new SD.NMR(tmp.value, {});
-                        var options = pdata[i].optionsNMRPeakDetection;
+                        var options = pdata[i].optionsNmrPeakDetection;
                         options.from = from;
                         options.to = to;
                         var peakList = spectrum.createRanges(options);

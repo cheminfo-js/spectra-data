@@ -1,9 +1,5 @@
 'use strict';
 /**
- * Created by abol on 12/9/16.
- */
-
-/**
  * This function extract the grandient of concentration from a spatial (z) profile acquired with successives
  * experiments of spatially selective NMR. More information with descriptive pictures are found here: 10.1002/mrc.4561
  *
