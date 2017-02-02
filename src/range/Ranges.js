@@ -112,10 +112,10 @@ class Ranges extends Array {
             realTop: false,
             thresholdFactor: 1,
             compile: true,
-            integralFn: 0,
+            integralType: 'sum',
             optimize: true,
             idPrefix: '',
-            format: 'old',
+            format: 'new',
             frequencyCluster: 16,
         }, opt);
 
@@ -156,7 +156,7 @@ class Ranges extends Array {
             var nH = options.sum || 1;
             var sumObserved = 0;
             for (i = 0; i < this.length; i++) {
-                sumObserved += Math.round(this[i].integral);
+                sumObserved += this[i].integral;
             }
             factor = nH / sumObserved;
         }

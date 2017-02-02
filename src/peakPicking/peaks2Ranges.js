@@ -11,7 +11,7 @@ const defaultOptions = {
     compile: true,
     integralType: 'sum',
     idPrefix: '',
-    format: 'old',         // TODO: remove support for old format
+    format: 'new',         // TODO: remove support for old format
     frequencyCluster: 16
 };
 /**
@@ -20,7 +20,7 @@ const defaultOptions = {
  * @param {Object} peakList - nmr signals
  * @param {Object} options - options object with some parameter for GSD, detectSignal functions.
  * @param {number} [options.nH = 99] - Number of hydrogens or some number to normalize the integral data. If it's zero return the absolute integral value
- * @param {string} [options.integralType = 'sum'] - option to chose between approx area with peaks or the sum of the points of given range
+ * @param {string} [options.integralType = 'sum'] - option to chose between approx area with peaks or the sum of the points of given range ('sum', 'peaks')
  * @param {number} [options.frequencyCluster = 16] - distance limit to clustering peaks.
  * @param {boolean} [options.clean = true] - If true remove all the signals with integral < 0.5
  * @param {boolean} [options.compile = true] - If true, the Janalyzer function is run over signals to compile the patterns.
@@ -78,7 +78,7 @@ function createRanges(spectrum, peakList, options) {
                     for (j = peaksO.length - 1; j >= 0; j--) {
                         peaks1.push(peaksO[j]);
                     }
-                    let ranges = detectSignals(peaks1, spectrum, nHi, options.integralFn, options.frequencyCluster);
+                    let ranges = detectSignals(peaks1, spectrum, nHi, options.integralType, options.frequencyCluster);
 
                     for (j = 0; j < ranges.length; j++) {
                         signals.push(ranges[j]);

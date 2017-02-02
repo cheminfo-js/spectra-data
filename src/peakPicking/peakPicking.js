@@ -24,7 +24,7 @@ const GSD = require('ml-gsd');
 const defaultOptions = {
 
     thresholdFactor: 1,
-    optimize: true,
+    optimize: false,
     minMaxRatio: 0.01,
     broadRatio: 0.00025,
     smoothY: true,

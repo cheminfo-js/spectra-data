@@ -33086,7 +33086,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    for (j = peaksO.length - 1; j >= 0; j--) {
 	                        peaks1.push(peaksO[j]);
 	                    }
-	                    let ranges = detectSignals(peaks1, spectrum, nHi, options.integralFn, options.frequencyCluster);
+	                    let ranges = detectSignals(peaks1, spectrum, nHi, options.integralType, options.frequencyCluster);
 
 	                    for (j = 0; j < ranges.length; j++) {
 	                        signals.push(ranges[j]);
@@ -34127,7 +34127,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            realTop: false,
 	            thresholdFactor: 1,
 	            compile: true,
-	            integralFn: 0,
+	            integralType: 0,
 	            optimize: true,
 	            idPrefix: '',
 	            format: 'old',
