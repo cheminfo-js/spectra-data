@@ -4,8 +4,8 @@ const SD = require('./SD');
 const Filters = require('./filters/Filters.js');
 const Brukerconverter = require('brukerconverter');
 const peaks2Ranges = require('./peakPicking/peaks2Ranges');
-const NmrPredictor = require('nmr-predictor');
-const simulator = require('nmr-simulation');
+// const NmrPredictor = require('nmr-predictor');
+// const simulator = require('nmr-simulation');
 
 /**
  * @class NMR
@@ -26,14 +26,14 @@ class NMR extends SD {
      */
 
     static fromMolfile(molfile, options) {
-        let opt = Object.assign({}, {title: 'Simulated spectrum', nucleus: '1H'}, options);
-        const predictor = new NmrPredictor('spinus');
-        return predictor.predict(molfile, {group: false, atomLabel: opt.nucleus.replace(/[0-9]*/g,'')}).then(prediction => {
-            const spinSystem = simulator.SpinSystem.fromPrediction(prediction);
-            opt.output = 'xy';
-            var simulation = simulator.simulate1D(spinSystem, opt);
-            return NMR.fromXY(simulation.x, simulation.y, opt);
-        });
+        // let opt = Object.assign({}, {title: 'Simulated spectrum', nucleus: '1H'}, options);
+        // const predictor = new NmrPredictor('spinus');
+        // return predictor.predict(molfile, {group: false, atomLabel: opt.nucleus.replace(/[0-9]*/g,'')}).then(prediction => {
+        //     const spinSystem = simulator.SpinSystem.fromPrediction(prediction);
+        //     opt.output = 'xy';
+        //     var simulation = simulator.simulate1D(spinSystem, opt);
+        //     return NMR.fromXY(simulation.x, simulation.y, opt);
+        // });
     }
 
     /**

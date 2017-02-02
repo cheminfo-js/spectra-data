@@ -117,43 +117,43 @@ Copyright by the U.S. Sec. Commerce on behalf of U.S.A. All rights reserved.
 M  END
 `;
 
-describe('spectra-data from molfile', function () {
-
-    it('get parameters', function (done) {
-        this.timeout(3000);
-        Data.NMR.fromMolfile(molfile, {frequency: 400, from: 0.5, to: 9.5, lineWidth: 2, nbPoints: 1024 * 32}).then(spectrum => {
-            spectrum.getNucleus().should.equal('1H');
-            spectrum.getSolventName().should.equal('none');
-            spectrum.getFirstX().should.equal(0.5);
-            spectrum.getLastX().should.equal(9.5);
-            spectrum.getFirstY().should.equal(0);
-            spectrum.getLastY().should.equal(0);
-            spectrum.getTitle().should.equal('Simulated spectrum');
-            var x = spectrum.getXData();
-            x.should.be.instanceof(Array).and.have.lengthOf(1024 * 32);
-            x[0].should.equal(0.5);
-
-            var y = spectrum.getYData();
-            y.should.be.instanceof(Array).and.have.lengthOf(1024 * 32);
-            y[0].should.equal(0);
-
-            var xy = spectrum.getXYData();
-            xy.should.be.instanceof(Array).and.have.lengthOf(2);
-            xy[0].should.be.instanceof(Array).and.have.lengthOf(1024 * 32);
-            xy[1].should.be.instanceof(Array).and.have.lengthOf(1024 * 32);
-            xy[0][0].should.equal(0.5);
-            xy[1][0].should.equal(0);
-            spectrum.is2D().should.equal(false);
-            var peakPicking = spectrum.getRanges({'nH': 10, realTop: true, thresholdFactor: 0.1, clean: true, compile: true, idPrefix: '1H', format: 'new'});
-            peakPicking.length.should.eql(3);
-            peakPicking[2].signal[0].peak.length.should.equal(3);
-            peakPicking[2].signal[0].multiplicity.should.eql('t');
-            peakPicking[1].signal[0].peak.length.should.equal(4);
-            peakPicking[1].signal[0].multiplicity.should.eql('q');
-            done();
-        });
-    });
-});
+// describe('spectra-data from molfile', function () {
+//
+//     it('get parameters', function (done) {
+//         this.timeout(3000);
+//         Data.NMR.fromMolfile(molfile, {frequency: 400, from: 0.5, to: 9.5, lineWidth: 2, nbPoints: 1024 * 32}).then(spectrum => {
+//             spectrum.getNucleus().should.equal('1H');
+//             spectrum.getSolventName().should.equal('none');
+//             spectrum.getFirstX().should.equal(0.5);
+//             spectrum.getLastX().should.equal(9.5);
+//             spectrum.getFirstY().should.equal(0);
+//             spectrum.getLastY().should.equal(0);
+//             spectrum.getTitle().should.equal('Simulated spectrum');
+//             var x = spectrum.getXData();
+//             x.should.be.instanceof(Array).and.have.lengthOf(1024 * 32);
+//             x[0].should.equal(0.5);
+//
+//             var y = spectrum.getYData();
+//             y.should.be.instanceof(Array).and.have.lengthOf(1024 * 32);
+//             y[0].should.equal(0);
+//
+//             var xy = spectrum.getXYData();
+//             xy.should.be.instanceof(Array).and.have.lengthOf(2);
+//             xy[0].should.be.instanceof(Array).and.have.lengthOf(1024 * 32);
+//             xy[1].should.be.instanceof(Array).and.have.lengthOf(1024 * 32);
+//             xy[0][0].should.equal(0.5);
+//             xy[1][0].should.equal(0);
+//             spectrum.is2D().should.equal(false);
+//             var peakPicking = spectrum.getRanges({'nH': 10, realTop: true, thresholdFactor: 0.1, clean: true, compile: true, idPrefix: '1H', format: 'new'});
+//             peakPicking.length.should.eql(3);
+//             peakPicking[2].signal[0].peak.length.should.equal(3);
+//             peakPicking[2].signal[0].multiplicity.should.eql('t');
+//             peakPicking[1].signal[0].peak.length.should.equal(4);
+//             peakPicking[1].signal[0].multiplicity.should.eql('q');
+//             done();
+//         });
+//     });
+// });
 
 
 
