@@ -39,6 +39,16 @@ class NMR2D extends SD {
         }
         return null;
     }
+
+    /**
+     * This function creates a 2D spectrum from a matrix containing the independent values of the spectrum and a set
+     * of options...
+     * @param data
+     * @param options
+     */
+    fromMatrix(data, options) {
+
+    }
     /**
      * Returns true if the it is an homo-nuclear experiment
      * @return {boolean}
