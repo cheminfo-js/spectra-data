@@ -1,61 +1,78 @@
 'use strict';
 
 const Matrix = require('ml-matrix');
+
 var defaultOptions = {
     nbPointsX: 1024 * 1,
     nbPointsY: 1024 * 2
 }
-// dentro de table debe venir los atomLabel, fromID, toID, J, pathLength de la interaccion
-function simule2DNmrSpectrum(table, options) {
-    const fromAtomLabel = table[0].fromAtomLabel;
-    const toAtomLabel = table[0].toAtomLabel;
 
-    // ver si es necesario tener diferentes nbPoints
-    if (fromAtomLabel === toAtomLabel) {
-        const homoNuclear = true
-        const nbPointsX = options.nbPointsX || 1024 * 16;
-        const nbPointsY = nbPointsX;
+function simule2DNmrSpectrum(table, options) {
+    const fromLabel = table[0].fromAtomLabel;
+    const toLabel = table[0].toLabel;
+    var i,
+        j;
+
+    if (fromLabel === toLabel) {
+        var homoNuclear = true;
+        var nbPointsX = options.nbPointsX || 100;//1024 * 16;
+        var nbPointsY = options.nbPointsY || nbPointsX;
+        var spectraMatrix = new Matrix(nbPointsY, nbPointsX).fill(0) // esto si primero son rows y luego columns
     } else {
-        const homonuclear = false;
-        const nbPointsX = options.nbPointsX || 1024 * 16;
-        const nbPointsY = options.nbPointsY || 1024 * 16;
+        var homonuclear = false;
+        var nbPointsX = options.nbPointsX || 100;//1024 * 16;
+        var nbPointsY = options.nbPointsY || 100;//1024 * 16;
+        var spectraMatrix = new Matrix(nbPointsY, nbPointsX).fill(0); // esto si primero son rows y luego columns
     }
 
-    var i,
-        j = 0;
-    var spectraMatrix = new Matrix(nbPointsY, nbPointsX) // esto si primero son rows y luego columns
+    i = 1;
+    var minX = table[0].fromChemicalShift,
+        maxX = table[0].fromChemicalShift,
+        minY = table[0].toChemicalShift,
+        maxY = table[0].toChemicalShift;
 
-    i=0;
-    while(i < table)
+    while(i < table.length) {
+        if(minX > table[i].fromChemicalShift) {
+            minX = table[i].fromChemicalShift;
+        } else if (maxX < table[i].fromChemicalShift) {
+            maxX = table[i].fromChemicalShift;
+        }
+        if(minY > table[i].toChemicalShift) {
+            minX = table[i].toChemicalShift;
+        } else if (maxX < table[i].toChemicalShift) {
+            maxX = table[i].toChemicalShift;
+        }
+        i += 1;
+    };
+    var parameters = {
+        nbPointsX: nbPointsX,
+        fromToX: {from: minX - 0.5, to: maxX + 0.5},
+        fromToY: {from: minY - 0.5, to: maxY + 0.5},
+        nbPointsY: nbPointsY
+    }
     i = 0;
     while(i < table.length) {
-        var fromId = table[i].fromId,
-            toId = table[i].toId,
-            coupling = table[i].J,
-            pathLength = table[i].pathLength;
-
-
+        parameters.fromAtoms = table[i].fromAtom
+        parameters.toAtoms = table[i].toAtoms
+        parameters.jCoupling = table[i].j
+        parameters.pathLength = table[i].pathLength
+        parameters.fromChemicalShift = table[i].fromChemicalShift
+        parameters.toChemicalShift = table[i].toChemicalShift
+        addPeak(spectraMatrix, parameters);
         i += 1;
     }
-
-    var firstX = 0,
-        lastX = 0,
-        firstY = 0,
-        lastY = 0;
-
-    firstX = nmrSignals2D[0].x;
-    lastX = nmrSignals2D[0].x;
-    firstY = nmrSignals2D[0].y;
-    lastY = nmrSignals2D[]
+    return spectraMatrix;
 }
 
 
 
 function getIndex(ppm, from, to, nbPoints) {
-    return (ppm - from) * (nbPoints - 1) / (to - from)
+    return Math.round(
+        (ppm - from) * (nbPoints - 1) / (to - from)
+    );
 }
 
-function addPeak(matrix, from, to, parameters) {
+function addPeak(matrix, parameters) {
     const fromToX = parameters.fromToX;
     const fromToY = parameters.fromToY;
     const X = parameters.fromChemicalShift;
@@ -89,6 +106,9 @@ function addPeak(matrix, from, to, parameters) {
     }
 }
 
+
+
+
 // function createPeaksFromNmrSignals(spectraData, signals) {
 //     car firstX = 1
 // }
@@ -117,3 +137,4 @@ function addPeak(matrix, from, to, parameters) {
 // }
 
 
+module.exports = simule2DNmrSpectrum;
