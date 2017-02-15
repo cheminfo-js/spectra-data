@@ -47,7 +47,53 @@ class NMR2D extends SD {
      * @param options
      */
     fromMatrix(data, options) {
+        var result = {};
+        result.profiling = [];
+        result.logs = [];
+        var spectra = [];
+        let nbPoints = data[0].length;
+        result.spectra = spectra;
+        result.info = {};
+        let x = options.x;
+        if(!x) {
+            x = new Array(nbPoints);
+            for(let i = 0; i < nbPoints; i++) {
+                x[i] = i;
+            }
+        }
 
+        data.forEach(y => {
+            var spectrum = {};
+            spectrum.isXYdata = true;
+            spectrum.nbPoints = nbPoints;
+            spectrum.firstX = x[0];
+            spectrum.firstY = y[0];
+            spectrum.lastX = x[spectrum.nbPoints - 1];
+            spectrum.lastY = y[spectrum.nbPoints - 1];
+            spectrum.xFactor = 1;
+            spectrum.yFactor = 1;
+            spectrum.deltaX = (spectrum.lastX - spectrum.firstX) / (spectrum.nbPoints - 1);
+            spectrum.title = options.title || 'spectra-data from xy';
+            spectrum.dataType = options.dataType || 'NMR';
+            spectrum.observeFrequency = options.frequency || 400;
+            spectrum.data = [{x: x, y: y}];
+            result.xType = options.xType || options.nucleusX || '1H';
+            spectra.push(spectrum);
+        });
+
+        result.ntuples = [{units: options.xUnit || 'PPM'}, {units: options.yUnit || 'PPM'}, {units: options.zUnit || 'Intensity'}];
+        result.info['2D_Y_FREQUENCY'] = spectrum.observeFrequencyY;
+        result.info['2D_X_FREQUENCY'] = spectrum.observeFrequencyX;
+        result.info['.SOLVENTNAME'] = options.solvent || 'none';
+        result.info['$SW_h'] = Math.abs(spectrum.lastX - spectrum.firstX) * spectrum.observeFrequency;
+        result.info['$SW'] = Math.abs(spectrum.lastX - spectrum.firstX);
+        result.info['$TD'] = spectrum.nbPoints;
+        result.info['firstY'] = options.firstY || 0;
+        result.info['lastY'] = options.lastY || nbPoints - 1;
+
+        result.yType = options.yType || options.nucleusY || '1H';
+        result.twoD = true;
+        return new NMR2D(result);
     }
     /**
      * Returns true if the it is an homo-nuclear experiment

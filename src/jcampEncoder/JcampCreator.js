@@ -186,7 +186,7 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
             outString += '##VAR_DIM=\t' + spectraData.getNbSubSpectra() + ',\t' + spectraData.getNbPoints() + ',\t' + spectraData.getNbPoints() + CRLF;
             //We had to change this, for Mestre compatibility
             //outString+=("##UNITS=\tHZ,\t"+ spectraData.getXUnits() + ",\t" + spectraData.getYUnits()+CRLF);
-            outString += '##UNITS=\tHZ,\tHZ,\t' + spectraData.getYUnits() + CRLF;
+            outString += '##UNITS=\tHZ,\tHZ,\t' + spectraData.getZUnits() + CRLF;
             if (spectraData.getXUnits() === 'PPM') {
                 freq1 = spectraData.getParamDouble('2D_Y_FREQUENCY', 1);
             }

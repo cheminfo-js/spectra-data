@@ -88,3 +88,40 @@ describe('spectra-data examples indometacin/hmbc.dx', function () {
 
 });
 
+describe('spectra-data examples indometacin/hmbc.dx', function () {
+    let nPoints = 1024;
+    var data = new Array(nPoints);
+    for(var i = 0; i < nPoints; i++ ) {
+        data[i] = new Array(nPoints);
+        for(var j = 0; j < nPoints; j++ ) {
+            data[i][j] = 0;
+        }
+    }
+
+    for(var i = 412; i < 612; i++ ) {
+        for(var j = 412; j < 612; j++ ) {
+            data[i][j] = -Math.abs(- i + 512) + 200 - Math.abs(- j + 512);
+        }
+    }
+
+    var spectrum = Data.NMR2D.fromMatrix(spectrum, {firsY: 0,
+        lastY: 150,
+        firstX: 0,
+        lastX: 15,
+        xType: '1H',
+        yType: '13C',
+        xUnit: 'PPM',
+        yUnit: 'PPM',
+        zUnit: 'Intensity',
+        observeFrequencyX: 400,
+        observeFrequencyY: 100
+    });
+
+    console.log(spectrum.toJcamp());
+
+    it.only('getNucleus', function () {
+        spectrum.getNucleus(1).should.equal('1H');
+        spectrum.getNucleus(2).should.equal('13C');
+    });
+});
+
