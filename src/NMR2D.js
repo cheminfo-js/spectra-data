@@ -46,7 +46,7 @@ class NMR2D extends SD {
      * @param data
      * @param options
      */
-    fromMatrix(data, options) {
+    static fromMatrix(data, options) {
         var result = {};
         result.profiling = [];
         result.logs = [];
@@ -75,15 +75,15 @@ class NMR2D extends SD {
             spectrum.deltaX = (spectrum.lastX - spectrum.firstX) / (spectrum.nbPoints - 1);
             spectrum.title = options.title || 'spectra-data from xy';
             spectrum.dataType = options.dataType || 'NMR';
-            spectrum.observeFrequency = options.frequency || 400;
+            spectrum.observeFrequency = options.frequencyX || 400;
             spectrum.data = [{x: x, y: y}];
             result.xType = options.xType || options.nucleusX || '1H';
             spectra.push(spectrum);
         });
 
         result.ntuples = [{units: options.xUnit || 'PPM'}, {units: options.yUnit || 'PPM'}, {units: options.zUnit || 'Intensity'}];
-        result.info['2D_Y_FREQUENCY'] = spectrum.observeFrequencyY;
-        result.info['2D_X_FREQUENCY'] = spectrum.observeFrequencyX;
+        result.info['2D_Y_FREQUENCY'] = options.frequencyY || 400;
+        result.info['2D_X_FREQUENCY'] = options.frequencyX || 400;
         result.info['.SOLVENTNAME'] = options.solvent || 'none';
         result.info['$SW_h'] = Math.abs(spectrum.lastX - spectrum.firstX) * spectrum.observeFrequency;
         result.info['$SW'] = Math.abs(spectrum.lastX - spectrum.firstX);

@@ -104,7 +104,7 @@ describe('spectra-data examples indometacin/hmbc.dx', function () {
         }
     }
 
-    var spectrum = Data.NMR2D.fromMatrix(spectrum, {firsY: 0,
+    var spectrum = Data.NMR2D.fromMatrix(data, {firsY: 0,
         lastY: 150,
         firstX: 0,
         lastX: 15,
