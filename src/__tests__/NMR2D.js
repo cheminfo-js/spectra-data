@@ -113,11 +113,12 @@ describe('spectra-data examples indometacin/hmbc.dx', function () {
         xUnit: 'PPM',
         yUnit: 'PPM',
         zUnit: 'Intensity',
-        observeFrequencyX: 400,
-        observeFrequencyY: 100
+        frequencyX: 400,
+        frequencyY: 100
     });
 
-    console.log(spectrum.toJcamp());
+    console.log('sdddddddf dfdddddd');
+    FS.writeFileSync('daSpectrum.jdx', spectrum.toJcamp({type: 'NTUPLES'}));
 
     it.only('getNucleus', function () {
         spectrum.getNucleus(1).should.equal('1H');

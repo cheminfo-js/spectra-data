@@ -87,6 +87,13 @@ class SD {
     }
 
     /**
+     * Return the current page
+     */
+    getPage(index) {
+        return this.sd.spectra[index].page;
+    }
+
+    /**
      * Return the number of points in the current spectrum
      * @param {number} i of sub-spectrum
      * @return {number | *}
@@ -897,7 +904,7 @@ class SD {
      */
     toJcamp(options) {
         var creator = new JcampCreator();
-        return creator.convert(this, options);
+        return creator.convert(this, Object.assign({}, {yFactor: 1, encode: 'DIFDUP', type: 'SIMPLE'}, options));
     }
 }
 

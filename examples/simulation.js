@@ -31,7 +31,6 @@ M  END
 Data.NMR.fromMolfile(molfile, {frequency: 400, from: 0.5, to: 9.5, lineWidth: 2, nbPoints: 1024 * 32}).then(spectrum => {
     //console.log(JSON.stringify(spectrum));
     console.log(spectrum.getNucleus());
-
     console.log(spectrum.getFirstX());
     console.log(spectrum.getLastX());
     console.log(spectrum.toJcamp());

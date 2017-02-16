@@ -31,7 +31,7 @@ class JcampCreator {
         // encodeFormat: ('FIX','SQZ','DIF','DIFDUP','CVS','PAC')
         options = Object.assign({}, defaultParameters, options);
         const encodeFormat = options.encode.toUpperCase().trim();
-        const factorY = options.yFactor;
+        const factorY = options.yFactor || 1;
         let type = options.type;
         const userDefinedParams = options.keep;
 
@@ -43,11 +43,20 @@ class JcampCreator {
         spectraData.setActiveElement(0);
 
         var scale = factorY / spectraData.getParamDouble('YFACTOR', 1);
-        if (spectraData.getMaxY() * scale >= Integer.MAX_VALUE / 2) {
-            scale = Integer.MAX_VALUE / (spectraData.getMaxY() * 2);
+        let minMax = {};
+
+        if(!spectraData.is2D()) {
+            minMax = spectraData.getMinMaxY();
         }
-        if (Math.abs(spectraData.getMaxY() - spectraData.getMinY()) * scale < 16) {
-            scale = 16 / (Math.abs(spectraData.getMaxY() - spectraData.getMinY()));
+        else{
+            minMax = {min: spectraData.getMinZ(), max: spectraData.getMaxZ()}
+        }
+
+        if (minMax.max * scale >= Integer.MAX_VALUE / 2) {
+            scale = Integer.MAX_VALUE / (minMax.max * 2);
+        }
+        if (Math.abs(minMax.max - minMax.min) * scale < 16) {
+            scale = 16 / (Math.abs(minMax.max - minMax.min));
         }
 
         var scaleX = Math.abs(1.0 / spectraData.getDeltaX());
@@ -64,6 +73,8 @@ class JcampCreator {
         if (type === 'SIMPLE') {
             outString += simpleHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams);
         }
+
+        console.log('herererere')
         return outString;
     }
 }
@@ -228,7 +239,7 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
         }
     }
     //Ordinate of the second dimension in case of 2D NMR spectra
-    var yUnits = 0, lastY = 0, dy = 0;
+    var yUnits = 0, lastY = 0, dy = 1;
 
     if (spectraData.is2D() && isNMR) {
         yUnits = spectraData.getParamDouble('firstY', 0) * freq1;
@@ -238,14 +249,13 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
 
     for (sub = 0; sub < spectraData.getNbSubSpectra(); sub++) {
         spectraData.setActiveElement(sub);
-        outString += '##PAGE= ' + spectraData.page + CRLF;
-        yUnits += dy;
+        outString += '##PAGE= ' + yUnits + CRLF;
+        yUnits = spectraData.getParamDouble('firstY', 0) * freq1 + dy*sub;
 
         if (spectraData.is2D() && isNMR) {
             outString += '##FIRST=\t' + spectraData.getParamDouble('firstY', 0) * freq1 + ',\t'
             + spectraData.getFirstX() * freq2 + ',\t' + spectraData.getY(0) + CRLF;
         }
-
 
         outString += '##DATA TABLE= ';
         if (spectraData.isDataClassPeak()) {
@@ -277,7 +287,6 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
 
             tempString += Encoder.encode(data,
                 spectraData.getFirstX() * scaleX, spectraData.getDeltaX() * scaleX, encodeFormat);
-
             outString += tempString + CRLF;
         }
     }

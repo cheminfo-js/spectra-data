@@ -62,7 +62,11 @@ class NMR2D extends SD {
             }
         }
 
-        data.forEach(y => {
+        let observeFrequency = options.frequencyX || 400;
+        let firstY = options.firstY || 0;
+        let lastY = options.lastY || nbPoints - 1;
+        let deltaY = (lastY - firstY) / (data.length - 1);
+        data.forEach((y, index) => {
             var spectrum = {};
             spectrum.isXYdata = true;
             spectrum.nbPoints = nbPoints;
@@ -75,8 +79,9 @@ class NMR2D extends SD {
             spectrum.deltaX = (spectrum.lastX - spectrum.firstX) / (spectrum.nbPoints - 1);
             spectrum.title = options.title || 'spectra-data from xy';
             spectrum.dataType = options.dataType || 'NMR';
-            spectrum.observeFrequency = options.frequencyX || 400;
+            spectrum.observeFrequency = observeFrequency;
             spectrum.data = [{x: x, y: y}];
+            spectrum.page = firstY + index * deltaY;
             result.xType = options.xType || options.nucleusX || '1H';
             spectra.push(spectrum);
         });
@@ -84,19 +89,28 @@ class NMR2D extends SD {
         result.ntuples = [{units: options.xUnit || 'PPM'}, {units: options.yUnit || 'PPM'}, {units: options.zUnit || 'Intensity'}];
         result.info['2D_Y_FREQUENCY'] = options.frequencyY || 400;
         result.info['2D_X_FREQUENCY'] = options.frequencyX || 400;
+        result.info['observefrequency'] = result.info['2D_X_FREQUENCY'];
         result.info['.SOLVENTNAME'] = options.solvent || 'none';
-        result.info['$SW_h'] = Math.abs(spectrum.lastX - spectrum.firstX) * spectrum.observeFrequency;
-        result.info['$SW'] = Math.abs(spectrum.lastX - spectrum.firstX);
-        result.info['$TD'] = spectrum.nbPoints;
-        result.info['firstY'] = options.firstY || 0;
-        result.info['lastY'] = options.lastY || nbPoints - 1;
+        result.info['$SW_h'] = Math.abs(x[nbPoints - 1] - x[0]) * observeFrequency;
+        result.info['$SW'] = Math.abs(x[nbPoints - 1] - x[0]);
+        result.info['$TD'] = nbPoints;
+        result.info['firstY'] = firstY;
+        result.info['lastY'] = lastY;
+        result.minMax = {
+            minY: result.info['firstY'],
+            maxY: result.info['lastY'],
+            minX: x[0],
+            maxX: x[nbPoints - 1],
+            minZ: 0,
+            maxZ: 200
+        }
 
         result.yType = options.yType || options.nucleusY || '1H';
         result.twoD = true;
         return new NMR2D(result);
     }
     /**
-     * Returns true if the it is an homo-nuclear experiment
+     * Return true if the it is an homo-nuclear experiment
      * @return {boolean}
      */
     isHomoNuclear() {
@@ -104,14 +118,14 @@ class NMR2D extends SD {
     }
 
     /**
-     * Returns the observe frequency in the direct dimension
+     * Return the observe frequency in the direct dimension
      * @return {number}
      */
     observeFrequencyX() {
         return this.sd.spectra[0].observeFrequency;
     }
     /**
-     * Returns the observe frequency in the indirect dimension
+     * Return the observe frequency in the indirect dimension
      * @return {number}
      */
     observeFrequencyY() {
@@ -119,7 +133,7 @@ class NMR2D extends SD {
     }
 
     /**
-     * Returns the solvent name.
+     * Return the solvent name.
      * @return {string|XML}
      */
     getSolventName() {
@@ -127,42 +141,44 @@ class NMR2D extends SD {
     }
 
     /**
-     * This function returns the units of the direct dimension. It overrides the SD getXUnits function
+     * This function Return the units of the direct dimension. It overrides the SD getXUnits function
      * @return {ntuples.units|*|b.units}
      */
     getXUnits() {
         return this.sd.ntuples[1].units;
     }
     /**
-     * This function returns the units of the indirect dimension. It overrides the SD getYUnits function
+     * This function Return the units of the indirect dimension. It overrides the SD getYUnits function
      * @return {ntuples.units|*|b.units}
      */
     getYUnits() {
         return this.sd.ntuples[0].units;
     }
     /**
-     * Returns the units of the dependent variable
+     * Return the units of the dependent variable
      * @return {ntuples.units|*|b.units}
      */
     getZUnits() {
         return this.sd.ntuples[2].units;
     }
     /**
-     * Returns the min value in the indirect dimension.
+     * Return the min value in the indirect dimension.
      * @return {sd.minMax.maxY}
      */
     getLastY() {
         return this.sd.minMax.maxY;
     }
+    
+    
     /**
-     * Returns the min value in the indirect dimension.
+     * Return the min value in the indirect dimension.
      * @return {sd.minMax.minY}
      */
     getFirstY() {
         return this.sd.minMax.minY;
     }
     /**
-     * Returns the separation between 2 consecutive points in the indirect domain
+     * Return the separation between 2 consecutive points in the indirect domain
      * @return {number}
      */
     getDeltaY() {
@@ -170,8 +186,24 @@ class NMR2D extends SD {
     }
 
     /**
+     * Return the minimum value of the independent variable
+     * @return {number}
+     */
+    getMinZ() {
+        return this.sd.minMax.minZ;
+    }
+
+    /**
+     * Return the maximum value of the independent variable
+     * @return {number}
+     */
+    getMaxZ() {
+        return this.sd.minMax.maxZ;
+    }
+
+    /**
      * This function process the given spectraData and tries to determine the NMR signals.
-     * Returns an NMRSignal2D array containing all the detected 2D-NMR Signals
+     * Return an NMRSignal2D array containing all the detected 2D-NMR Signals
      * @param	{object} options - Object containing the options.
      * @option	{number} thresholdFactor - A factor to scale the automatically determined noise threshold.
      * @return  {*}	set of NMRSignal2D.
@@ -221,7 +253,7 @@ class NMR2D extends SD {
     }
 
     /**
-     * Returns the noise factor depending on the nucleus.
+     * Return the noise factor depending on the nucleus.
      * @param {string} nucleus
      * @return {number}
      */
@@ -236,7 +268,7 @@ class NMR2D extends SD {
     }
 
     /**
-     * Returns the observed nucleus in the specified dimension
+     * Return the observed nucleus in the specified dimension
      * @param {number} dim
      * @return {string}
      */
