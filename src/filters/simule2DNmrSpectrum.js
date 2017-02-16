@@ -10,20 +10,10 @@ var defaultOptions = {
 function simule2DNmrSpectrum(table, options) {
     const fromLabel = table[0].fromAtomLabel;
     const toLabel = table[0].toLabel;
+    var nbPointsX = options.nbPointsX || 1024;
+    var nbPointsY = options.nbPointsY || 1024;
     var i,
         j;
-
-    if (fromLabel === toLabel) {
-        var homoNuclear = true;
-        var nbPointsX = options.nbPointsX || 100;//1024 * 16;
-        var nbPointsY = options.nbPointsY || nbPointsX;
-        var spectraMatrix = new Matrix(nbPointsY, nbPointsX).fill(0) // esto si primero son rows y luego columns
-    } else {
-        var homonuclear = false;
-        var nbPointsX = options.nbPointsX || 100;//1024 * 16;
-        var nbPointsY = options.nbPointsY || 100;//1024 * 16;
-        var spectraMatrix = new Matrix(nbPointsY, nbPointsX).fill(0); // esto si primero son rows y luego columns
-    }
 
     i = 1;
     var minX = table[0].fromChemicalShift,
@@ -38,43 +28,74 @@ function simule2DNmrSpectrum(table, options) {
             maxX = table[i].fromChemicalShift;
         }
         if(minY > table[i].toChemicalShift) {
-            minX = table[i].toChemicalShift;
-        } else if (maxX < table[i].toChemicalShift) {
-            maxX = table[i].toChemicalShift;
+            minY = table[i].toChemicalShift;
+        } else if (maxY < table[i].toChemicalShift) {
+            maxY = table[i].toChemicalShift;
         }
         i += 1;
-    };
-    var parameters = {
-        nbPointsX: nbPointsX,
-        fromToX: {from: minX - 0.5, to: maxX + 0.5},
-        fromToY: {from: minY - 0.5, to: maxY + 0.5},
-        nbPointsY: nbPointsY
     }
+
+    // con esto se busca simplificar el codigo para los casos en que toLabel === "C" ya que el cuerpo
+    // del codigo esta disenado para tener fromChemicalShift como en el eje X y la solucion es transponer al final.
+    var transpose = false;
+    var homoNuclear = false;
+    if (fromLabel === toLabel) {
+        homoNuclear = true;
+        var parameters = {
+            nbPointsX: nbPointsX,
+            fromToX: {from: minY - 0.5, to: maxY + 0.5},
+            fromToY: {from: minY - 0.5, to: maxY + 0.5},
+            nbPointsY: nbPointsY,
+            sigmaX: 0.2,
+            sigmaY: 0.2,
+        }
+    } else {
+        if(toLabel === "C") {
+            var parameters = {
+                nbPointsX: nbPointsY,
+                fromToX: {from: minX - 0.5, to: maxX + 0.5},
+                fromToY: {from: minY - 10, to: maxY + 10},
+                nbPointsY: nbPointsX
+            }
+            transpose = true;
+        } else {
+            var parameters = {
+                nbPointsX: nbPointsX,
+                fromToX: {from: minY - 15, to: maxY + 15},
+                fromToY: {from: minX - 3, to: maxX + 3},
+                nbPointsY: nbPointsY
+            }
+        }
+    }
+
+    var spectraMatrix = new Matrix(parameters.nbPointsY, parameters.nbPointsX).fill(0)
+
+
     i = 0;
     while(i < table.length) {
-        parameters.fromAtoms = table[i].fromAtom
-        parameters.toAtoms = table[i].toAtoms
-        parameters.jCoupling = table[i].j
-        parameters.pathLength = table[i].pathLength
-        parameters.fromChemicalShift = table[i].fromChemicalShift
-        parameters.toChemicalShift = table[i].toChemicalShift
-        addPeak(spectraMatrix, parameters);
+        parameters.fromAtoms = table[i].fromAtoms;
+        parameters.toAtoms = table[i].toAtoms;
+        parameters.couplingConstant = table[i].j;
+        parameters.pathLength = table[i].pathLength;
+        parameters.fromChemicalShift = table[i].fromChemicalShift;
+        parameters.toChemicalShift = table[i].toChemicalShift;
+        addPeak(spectraMatrix, parameters, transpose);
         i += 1;
     }
-    return spectraMatrix;
+    return transpose ? spectraMatrix.transpose() : spectraMatrix;
 }
-
-
 
 function getIndex(ppm, from, to, nbPoints) {
     return Math.round(
-        (ppm - from) * (nbPoints - 1) / (to - from)
+        (ppm - from) * (nbPoints) / (to - from)
     );
 }
 
-function addPeak(matrix, parameters) {
+function addPeak(matrix, parameters, transpose) {
     const fromToX = parameters.fromToX;
     const fromToY = parameters.fromToY;
+    const toAtoms = parameters.toAtoms;
+    const fromAtoms = parameters.fromAtoms;
     const X = parameters.fromChemicalShift;
     const Y = parameters.toChemicalShift;
     const couplingConstant = parameters.couplingConstant;
@@ -84,20 +105,21 @@ function addPeak(matrix, parameters) {
     var xIndex = getIndex(X, fromToX.from, fromToX.to, nbPointsX);
     var yIndex = getIndex(Y, fromToY.from, fromToY.to, nbPointsY);
 
-    var yMax = Y + couplingConstant * 2.32;
+    var yMax = transpose ? Y + 1.52;
     var yMaxIndex = getIndex(yMax, fromToY.from, fromToY.to, nbPointsY)
-    var xMax = X + couplingConstant * 2.32;
+    var xMax = X + 1.;
     var xMaxIndex = getIndex(xMax, fromToX.from, fromToX.to, nbPointsX)
+    // console.log(Y, X)
     for (var i = 0; i < Math.abs(xIndex - xMaxIndex + 1); i++) {
         for(var j = 0; j < Math.abs(yIndex - yMaxIndex + 1); j++) {
-            var sigmaX = couplingConstant;
-            var sigmaY = couplingConstant;
+            var sigmaX = 0.5;
+            var sigmaY = 0.2;
 
             var result = Math.exp(
                 -1 * (Math.pow(i, 2) /(2 * sigmaX * sigmaX) +
                       Math.pow(j, 2) /(2 * sigmaY * sigmaY))
-                ) / (2 * 3.1416 * sigmaX * sigmaY);
-
+                ) / (2 * 3.1416 * sigmaX * sigmaY) * (toAtoms.length + fromAtoms.length);
+            console.log(result);
             matrix[yIndex + j][xIndex + i] += result;
             matrix[yIndex - j][xIndex + i] += result;
             matrix[yIndex + j][xIndex - i] += result;

@@ -14,7 +14,7 @@ var table = [
     toChemicalShift: 4,
     fromAtomLabel: 'H',
     toAtomLabel: 'H',
-    j: 1 },
+    j: 0.11 },
     { fromDiaID: 'did@`@fTeYWaj@@@GzP`HeT',
         toDiaID: 'did@`@fTeYWaj@@@GzP`HeT',
         fromAtoms: [ 15, 16, 17 ],
@@ -26,8 +26,8 @@ var table = [
         toChemicalShift: 1.27130002,
         fromAtomLabel: 'H',
         toAtomLabel: 'H',
-        j: 1 }
+        j: 0.11 }
 ];
 
 var spectrum = simule2D(table, {});
-console.log(spectrum)
+// console.log(spectrum)
