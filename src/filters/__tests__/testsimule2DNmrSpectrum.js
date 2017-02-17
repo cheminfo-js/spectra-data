@@ -29,5 +29,5 @@ var table = [
         j: 0.11 }
 ];
 
-var spectrum = simule2D(table, {nbPointsX: 100, nbPointsY: 100});
+var spectrum = simule2D(table, {})//, {nbPointsX: 100, nbPointsY: 100});
 // console.log(spectrum)
