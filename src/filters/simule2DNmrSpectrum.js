@@ -8,13 +8,14 @@ var defaultOptions = {
 }
 
 function simule2DNmrSpectrum(table, options) {
+    var i, j;
     const fromLabel = table[0].fromAtomLabel;
     const toLabel = table[0].toLabel;
-    var nbPointsX = options.nbPointsX || 1024;
-    var nbPointsY = options.nbPointsY || 1024;
-    var i,
-        j;
+    const resolution = options.resolution || 0.6;
+    const freqResonanceCarbon = options.freqResonance / 4 || 75;
+    const freqResonanceProton = options.freqResonance || 300;
 
+    // find the maximum and minimum chemical shift
     i = 1;
     var minX = table[0].fromChemicalShift,
         maxX = table[0].fromChemicalShift,
@@ -35,6 +36,12 @@ function simule2DNmrSpectrum(table, options) {
         i += 1;
     }
 
+    var nbPointsX = options.nbPointsX || 2 * (maxX - minX) *
+    freqResonanceCarbon * Math.pow(10, 6) / resolution;
+
+    var nbPointsY = options.nbPointsY || 2 * (maxY - minY) *
+    freqResonanceProton * Math.pow(10, 6) / resolution;
+
     // con esto se busca simplificar el codigo para los casos en que toLabel === "C" ya que el cuerpo
     // del codigo esta disenado para tener fromChemicalShift como en el eje X y la solucion es transponer al final.
     var transpose = false;
@@ -43,46 +50,56 @@ function simule2DNmrSpectrum(table, options) {
         homoNuclear = true;
         var parameters = {
             nbPointsX: nbPointsX,
-            fromToX: {from: minY - 0.5, to: maxY + 0.5},
-            fromToY: {from: minY - 0.5, to: maxY + 0.5},
+            fromToX: [minX - 3, maxX + 3],
+            fromToY: [minX - 3, maxX + 3],
             nbPointsY: nbPointsY,
-            sigmaX: 0.2,
-            sigmaY: 0.2,
+            sigmaX: 0.1,
+            sigmaY: 0.1,
         }
     } else {
-        if(toLabel === "C") {
+        if(fromLabel === "H") {
             var parameters = {
                 nbPointsX: nbPointsY,
-                fromToX: {from: minX - 0.5, to: maxX + 0.5},
-                fromToY: {from: minY - 10, to: maxY + 10},
-                nbPointsY: nbPointsX
+                nbPointsY: nbPointsX,
+                fromToX: [minY - 15, maxY + 15],
+                fromToY: [minX - 3, maxX + 3],
+                sigmaX: 0.1,
+                sigmaY: 0.2,
             }
             transpose = true;
         } else {
             var parameters = {
                 nbPointsX: nbPointsX,
-                fromToX: {from: minY - 15, to: maxY + 15},
-                fromToY: {from: minX - 3, to: maxX + 3},
-                nbPointsY: nbPointsY
+                nbPointsY: nbPointsY,
+                fromToX: [minX - 15, maxX + 15],
+                fromToY: [minY - 3, maxY + 3],
+                sigmaX: 0.2,
+                sigmaY: 0.1,
             }
         }
     }
 
-    var spectraMatrix = new Matrix(parameters.nbPointsY, parameters.nbPointsX).fill(0)
+
+    var spectraMatrix = new Matrix(parameters.nbPointsY, parameters.nbPointsX).fill(0);
 
 
     i = 0;
     while(i < table.length) {
-        parameters.fromAtoms = table[i].fromAtoms;
-        parameters.toAtoms = table[i].toAtoms;
         parameters.couplingConstant = table[i].j;
         parameters.pathLength = table[i].pathLength;
-        parameters.fromChemicalShift = table[i].fromChemicalShift;
-        parameters.toChemicalShift = table[i].toChemicalShift;
+        if(transpose) {
+            parameters.integral = table[i].toAtoms.length;
+            parameters.fromChemicalShift = table[i].toChemicalShift;
+            parameters.toChemicalShift = table[i].fromChemicalShift;
+        } else {
+            parameters.integral = homoNuclear ? table[i].toAtoms.length + table[i].fromAtoms.length : table[i].fromAtoms.length;
+            parameters.fromChemicalShift = table[i].fromChemicalShift;
+            parameters.toChemicalShift = table[i].toChemicalShift;
+        }
         addPeak(spectraMatrix, parameters, transpose);
         i += 1;
     }
-    return transpose ? spectraMatrix.transpose() : spectraMatrix;
+    return spectraMatrix;
 }
 
 function getIndex(ppm, from, to, nbPoints) {
@@ -91,35 +108,35 @@ function getIndex(ppm, from, to, nbPoints) {
     );
 }
 
-function addPeak(matrix, parameters, transpose) {
+function addPeak(matrix, parameters) {
     const fromToX = parameters.fromToX;
     const fromToY = parameters.fromToY;
-    const toAtoms = parameters.toAtoms;
-    const fromAtoms = parameters.fromAtoms;
     const X = parameters.fromChemicalShift;
     const Y = parameters.toChemicalShift;
     const couplingConstant = parameters.couplingConstant;
     const nbPointsX = parameters.nbPointsX;
     const nbPointsY = parameters.nbPointsY;
+    const sigmaX = parameters.sigmaX;
+    const sigmaY = parameters.sigmaY;
+    const integral = parameters.integral;
 
-    var xIndex = getIndex(X, fromToX.from, fromToX.to, nbPointsX);
-    var yIndex = getIndex(Y, fromToY.from, fromToY.to, nbPointsY);
+    var xIndex = getIndex(X, fromToX[0], fromToX[1], nbPointsX);
+    var yIndex = getIndex(Y, fromToY[0], fromToY[1], nbPointsY);
 
-    var yMax = transpose ? Y + 1.52;
-    var yMaxIndex = getIndex(yMax, fromToY.from, fromToY.to, nbPointsY)
-    var xMax = X + 1.;
-    var xMaxIndex = getIndex(xMax, fromToX.from, fromToX.to, nbPointsX)
-    // console.log(Y, X)
+    var yMax = Y - sigmaY * (Math.log(integral) + 0.2258);
+    var yMaxIndex = getIndex(yMax, fromToY[0], fromToY[1], nbPointsY)
+
+    var xMax = X - sigmaY * (Math.log(integral) + 0.2258);
+    var xMaxIndex = getIndex(xMax, fromToX[0], fromToX[1], nbPointsX)
+
     for (var i = 0; i < Math.abs(xIndex - xMaxIndex + 1); i++) {
         for(var j = 0; j < Math.abs(yIndex - yMaxIndex + 1); j++) {
-            var sigmaX = 0.5;
-            var sigmaY = 0.2;
 
             var result = Math.exp(
                 -1 * (Math.pow(i, 2) /(2 * sigmaX * sigmaX) +
                       Math.pow(j, 2) /(2 * sigmaY * sigmaY))
-                ) / (2 * 3.1416 * sigmaX * sigmaY) * (toAtoms.length + fromAtoms.length);
-            console.log(result);
+                ) / (2 * 3.1416 * sigmaX * sigmaY) * 100000;
+            // console.log(result);
             matrix[yIndex + j][xIndex + i] += result;
             matrix[yIndex - j][xIndex + i] += result;
             matrix[yIndex + j][xIndex - i] += result;
