@@ -16,11 +16,12 @@ for(var i = 0; i < nPoints; i++ ) {
 
 for(var i = 412; i < 612; i++ ) {
     for(var j = 412; j < 612; j++ ) {
-        data[i][j] = -Math.abs(- i + 512) + 200 - Math.abs(- j + 512);
+        data[i][j] = 10* Math.exp(-(Math.pow(i-512, 2)/4000 + Math.pow(j-512, 2)/(4000)));//Math.pow(-Math.abs(- i + 512) + 200 - Math.abs(- j + 512), 2);
     }
 }
 
-var spectrum = Data.NMR2D.fromMatrix(data, {firsY: 0,
+var spectrum = Data.NMR2D.fromMatrix(data, {
+    firsY: 0,
     lastY: 150,
     firstX: 0,
     lastX: 15,

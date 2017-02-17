@@ -74,7 +74,6 @@ class JcampCreator {
             outString += simpleHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams);
         }
 
-        console.log('herererere')
         return outString;
     }
 }
@@ -249,8 +248,8 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
 
     for (sub = 0; sub < spectraData.getNbSubSpectra(); sub++) {
         spectraData.setActiveElement(sub);
-        outString += '##PAGE= ' + yUnits + CRLF;
         yUnits = spectraData.getParamDouble('firstY', 0) * freq1 + dy*sub;
+        outString += '##PAGE= ' + yUnits + CRLF;
 
         if (spectraData.is2D() && isNMR) {
             outString += '##FIRST=\t' + spectraData.getParamDouble('firstY', 0) * freq1 + ',\t'

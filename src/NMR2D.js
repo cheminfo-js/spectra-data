@@ -54,31 +54,36 @@ class NMR2D extends SD {
         let nbPoints = data[0].length;
         result.spectra = spectra;
         result.info = {};
+        let firstY = options.firstY || 0;
+        let lastY = options.lastY || data.length - 1;
+        let deltaY = (lastY - firstY) / (data.length - 1);
+
+        let firstX = options.firstX || 0;
+        let lastX = options.lastX || nbPoints - 1;
+        let deltaX = (lastY - firstY) / (nbPoints - 1);
         let x = options.x;
         if(!x) {
             x = new Array(nbPoints);
             for(let i = 0; i < nbPoints; i++) {
-                x[i] = i;
+                x[i] = firstX + deltaX * i;
             }
         }
 
         let observeFrequency = options.frequencyX || 400;
-        let firstY = options.firstY || 0;
-        let lastY = options.lastY || nbPoints - 1;
-        let deltaY = (lastY - firstY) / (data.length - 1);
+
         data.forEach((y, index) => {
             var spectrum = {};
             spectrum.isXYdata = true;
             spectrum.nbPoints = nbPoints;
-            spectrum.firstX = x[0];
+            spectrum.firstX = firstX;
             spectrum.firstY = y[0];
-            spectrum.lastX = x[spectrum.nbPoints - 1];
+            spectrum.lastX = lastX;
             spectrum.lastY = y[spectrum.nbPoints - 1];
             spectrum.xFactor = 1;
             spectrum.yFactor = 1;
             spectrum.deltaX = (spectrum.lastX - spectrum.firstX) / (spectrum.nbPoints - 1);
             spectrum.title = options.title || 'spectra-data from xy';
-            spectrum.dataType = options.dataType || 'NMR';
+            spectrum.dataType = options.dataType || 'nD NMR SPECTRUM';
             spectrum.observeFrequency = observeFrequency;
             spectrum.data = [{x: x, y: y}];
             spectrum.page = firstY + index * deltaY;
@@ -90,17 +95,18 @@ class NMR2D extends SD {
         result.info['2D_Y_FREQUENCY'] = options.frequencyY || 400;
         result.info['2D_X_FREQUENCY'] = options.frequencyX || 400;
         result.info['observefrequency'] = result.info['2D_X_FREQUENCY'];
+        result.info['$BF1'] = result.info['observefrequency'];
         result.info['.SOLVENTNAME'] = options.solvent || 'none';
-        result.info['$SW_h'] = Math.abs(x[nbPoints - 1] - x[0]) * observeFrequency;
-        result.info['$SW'] = Math.abs(x[nbPoints - 1] - x[0]);
+        result.info['$SW_h'] = Math.abs(lastX - firstX) * observeFrequency;
+        result.info['$SW'] = Math.abs(lastX - firstX);
         result.info['$TD'] = nbPoints;
         result.info['firstY'] = firstY;
         result.info['lastY'] = lastY;
         result.minMax = {
-            minY: result.info['firstY'],
-            maxY: result.info['lastY'],
-            minX: x[0],
-            maxX: x[nbPoints - 1],
+            minY: firstY,
+            maxY: lastY,
+            minX: firstX,
+            maxX: lastX,
             minZ: 0,
             maxZ: 200
         }
