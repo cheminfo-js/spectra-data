@@ -6,7 +6,6 @@ const StatArray = require('ml-stat').array;
 const ArrayUtils = require('ml-array-utils');
 const JcampConverter = require('jcampconverter');
 const JcampCreator = require('./jcampEncoder/JcampCreator');
-const OCL = require('openchemlib-extended');
 const peakPicking = require('./peakPicking/peakPicking');
 
 const DATACLASS_XY = 1;
@@ -855,9 +854,10 @@ class SD {
      */
     setMolfile(molfile) {
         this.molfile = molfile;
-        this.molecule = OCL.Molecule.fromMolfile(molfile);
-        this.molecule.addImplicitHydrogens();
-        this.mf = this.molecule.getMolecularFormula().getFormula() + '';
+    }
+
+    setMF(mf) {
+        this.mf = mf;
     }
 
     /**
