@@ -51,7 +51,6 @@ while(i < peakPicking.length) {
 function Xrange(start, end, NbPoints) {
     var a = new Array(NbPoints);
     var jump = (end - start)/(NbPoints-1);
-    console.log(jump)
     for (var i = 0; i < NbPoints; i++) {
         a[i] = start + jump * i;
     }
