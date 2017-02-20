@@ -719,16 +719,15 @@ class SD {
      * @param {object} options - option such as nH for normalization, if it is nH is zero the integral value returned 
      * is absolute value
      */
-    getIntegrals(ranges, options) {
+    updateIntegrals(ranges, options) {
         var sum = 0;
-        var that = this;
-        ranges.forEach(function (range) {
-            range.integral = that.getArea(range.from, range.to);
+        ranges.forEach(range => {
+            range.integral = this.getArea(range.from, range.to);
             sum += range.integral;
         });
         if (options.nH !== 0) {
             var factor = options.nH / sum;
-            ranges.forEach(function (range) {
+            ranges.forEach(range => {
                 range.integral *= factor;
             });
         }
