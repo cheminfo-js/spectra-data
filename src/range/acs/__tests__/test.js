@@ -17,6 +17,17 @@ singleRange[0].signal = [{nbAtoms: 0,
     j: []},
 ];
 
+var singleRangePublication = [{from: 0.9, to: 1.1, pubIntegral: '1a H'}];
+singleRangePublication[0].signal = [{nbAtoms: 0,
+    diaID: '',
+    multiplicity: '',
+    peak: [{x: 1, intensity: 0, width: 0}],
+    delta: 1,
+    remark: '',
+    j: []},
+];
+
+
 describe('ACS tests: formating and parsing', function () {
     it('format ACS', function () {
         var acs = ACS(peakPicking, {rangeForMultiplet: true});
@@ -41,5 +52,10 @@ describe('ACS tests: formating and parsing', function () {
         singleRange[0].signal[0].j = [{multiplicity: 'd', coupling: 7}];
         var acs4 = ACS(singleRange, {rangeForMultiplet: true, nucleus: '1H', observe: 400});
         acs4.should.equal('<sup>1</sup>H NMR (400 MHz) δ 1.00 (d, 1 H, <i>J</i> = 7.0 Hz).');
+    });
+
+    it('format single range with custom integral', function () {
+        var acs = ACS(singleRangePublication, {rangeForMultiplet: true, nucleus: '1H', observe: 400});
+        acs.should.equal('<sup>1</sup>H NMR (400 MHz) δ 1.00 (1a H).');
     });
 });
