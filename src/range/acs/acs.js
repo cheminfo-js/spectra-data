@@ -159,9 +159,9 @@ function appendParenthesis(line, nbDecimal) {
 }
 
 function appendIntegration(line) {
-    if (line.pubIntegration) {
+    if (line.pubIntegral) {
         appendParenthesisSeparator();
-        parenthesis += line.pubIntegration;
+        parenthesis += line.pubIntegral;
     } else if (line.integral) {
         appendParenthesisSeparator();
         parenthesis += line.integral.toFixed(0) + ' H';
