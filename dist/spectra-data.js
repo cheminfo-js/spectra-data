@@ -25779,7 +25779,7 @@ module.exports = g;
 
 module.exports = {
 	"name": "spectra-data",
-	"version": "3.0.0",
+	"version": "3.0.1",
 	"description": "spectra-data project - manipulate spectra",
 	"keywords": [
 		"spectra-data",
@@ -28286,9 +28286,9 @@ function appendParenthesis(line, nbDecimal) {
 }
 
 function appendIntegration(line) {
-    if (line.pubIntegration) {
+    if (line.pubIntegral) {
         appendParenthesisSeparator();
-        parenthesis += line.pubIntegration;
+        parenthesis += line.pubIntegral;
     } else if (line.integral) {
         appendParenthesisSeparator();
         parenthesis += line.integral.toFixed(0) + ' H';
