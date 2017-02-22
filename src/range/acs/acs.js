@@ -1,6 +1,5 @@
 'use strict';
 
-const old = require('./acsOld');
 
 var acsString = '';
 var parenthesis = '';
@@ -13,7 +12,7 @@ function toAcs(rangesIn, opt) {
     var ranges = JSON.parse(JSON.stringify(rangesIn));
 
     if (ranges[0].delta1) {//Old signals format
-        return old.toACS(ranges, options);
+        console.log('Old unsupported format')
     }
     if (ranges.updateMultiplicity) {
         ranges = ranges.updateMultiplicity();
