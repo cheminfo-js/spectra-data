@@ -11,7 +11,6 @@ const defaultOptions = {
     compile: true,
     integralType: 'sum',
     idPrefix: '',
-    format: 'new',         // TODO: remove support for old format
     frequencyCluster: 16
 };
 /**
@@ -121,35 +120,35 @@ function createRanges(spectrum, peakList, options) {
         signals[i]._highlight = [signals[i].signalID];
     }
 
-    if (options.format === 'new') {
-        let ranges = new Array(signals.length);
-        for (i = 0; i < signals.length; i++) {
-            var signal = signals[i];
-            ranges[i] = {
-                from: signal.integralData.from,
-                to: signal.integralData.to,
-                integral: signal.integralData.value,
-                signal: [{
-                    nbAtoms: 0,
-                    diaID: [],
-                    multiplicity: signal.multiplicity,
-                    peak: signal.peaks,
-                    kind: '',
-                    remark: ''
-                }],
-                signalID: signal.signalID,
-                _highlight: signal._highlight
 
-            };
-            if (signal.nmrJs) {
-                ranges[i].signal[0].j = signal.nmrJs;
-            }
-            if (!signal.asymmetric || signal.multiplicity === 'm') {
-                ranges[i].signal[0].delta = signal.delta1;
-            }
+    let ranges = new Array(signals.length);
+    for (i = 0; i < signals.length; i++) {
+        var signal = signals[i];
+        ranges[i] = {
+            from: signal.integralData.from,
+            to: signal.integralData.to,
+            integral: signal.integralData.value,
+            signal: [{
+                nbAtoms: 0,
+                diaID: [],
+                multiplicity: signal.multiplicity,
+                peak: signal.peaks,
+                kind: '',
+                remark: ''
+            }],
+            signalID: signal.signalID,
+            _highlight: signal._highlight
+
+        };
+        if (signal.nmrJs) {
+            ranges[i].signal[0].j = signal.nmrJs;
         }
-        signals = new Ranges(ranges);
+        if (!signal.asymmetric || signal.multiplicity === 'm') {
+            ranges[i].signal[0].delta = signal.delta1;
+        }
     }
+    signals = new Ranges(ranges);
+
 
     return signals;
 }

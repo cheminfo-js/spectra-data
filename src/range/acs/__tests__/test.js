@@ -30,8 +30,7 @@ singleRangePublication[0].signal = [{nbAtoms: 0,
 
 describe('ACS tests: formating and parsing', function () {
     it('format ACS', function () {
-        var acs = ACS(peakPicking, {rangeForMultiplet: true});
-        acs.should.equal('<sup>1</sup>H NMR (400 MHz) δ 7.26-7.32 (m, 2 H), 7.15-7.23 (m, 3 H), 2.60 (q, 2 H, <i>J</i> = 7.6 Hz), 1.19 (t, 3 H, <i>J</i> = 7.6 Hz).');
+        (function ()  {ACS(peakPicking, {rangeForMultiplet: true});} ).should.throw('Old unsupported format');
     });
 
     it('format ACS new input format', function () {

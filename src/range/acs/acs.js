@@ -12,7 +12,7 @@ function toAcs(rangesIn, opt) {
     var ranges = JSON.parse(JSON.stringify(rangesIn));
 
     if (ranges[0].delta1) {//Old signals format
-        console.log('Old unsupported format')
+        throw new Error( 'Old unsupported format');
     }
     if (ranges.updateMultiplicity) {
         ranges = ranges.updateMultiplicity();
