@@ -12870,7 +12870,7 @@ const SD = __webpack_require__(7);
 const Filters = __webpack_require__(50);
 const Brukerconverter = __webpack_require__(20);
 const peaks2Ranges = __webpack_require__(142);
-const simulator = __webpack_require__(42).simulate1D;
+const simulator = __webpack_require__(42);
 
 /**
  * @class NMR
@@ -12891,7 +12891,7 @@ class NMR extends SD {
      */
     static fromPrediction(prediction, options) {
         const spinSystem = simulator.SpinSystem.fromPrediction(prediction);
-        var opt = Object.assign({}, options, {
+        let opt = Object.assign({}, options, {
             nbPoints: 16*1024,
             maxClusterSize: 8,
             output: 'xy'
@@ -32822,7 +32822,7 @@ function hasOwnProperty(obj, prop) {
 
 module.exports = {
 	"name": "spectra-data",
-	"version": "3.0.2",
+	"version": "3.0.3",
 	"description": "spectra-data project - manipulate spectra",
 	"keywords": [
 		"spectra-data",
