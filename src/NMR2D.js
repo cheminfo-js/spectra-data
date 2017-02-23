@@ -5,11 +5,26 @@ const peakPicking2D = require('./peakPicking/peakPicking2D');
 const PeakOptimizer = require('./peakPicking/peakOptimizer');
 const Brukerconverter = require('brukerconverter');
 const Filters = require('./filters/Filters.js');
-
+const StatArray = require('ml-stat').array;
+const simule2DNmrSpectrum = require('nmr-simulation').simulate2D;
 
 class NMR2D extends SD {
+
     constructor(sd) {
         super(sd);
+    }
+
+    /**
+     * This function creates a SD instance from the given 2D prediction
+     * @param prediction
+     * @param options
+     * @returns {SD}
+     */
+    static fromPrediction(prediction, options) {
+        var data = simule2DNmrSpectrum(prediction, options);
+        var spectrum = NMR2D.fromMatrix(data, options);
+        var jcamp = spectrum.toJcamp({type:'NTUPLES'});
+        return NMR2D.fromJcamp(jcamp);
     }
 
     /**
@@ -70,6 +85,8 @@ class NMR2D extends SD {
         }
 
         let observeFrequency = options.frequencyX || 400;
+        let minZ = Number.MAX_SAFE_INTEGER;
+        let maxZ = Number.MIN_SAFE_INTEGER;
 
         data.forEach((y, index) => {
             var spectrum = {};
@@ -82,13 +99,18 @@ class NMR2D extends SD {
             spectrum.xFactor = 1;
             spectrum.yFactor = 1;
             spectrum.deltaX = (spectrum.lastX - spectrum.firstX) / (spectrum.nbPoints - 1);
-            spectrum.title = options.title || 'spectra-data from xy';
+            spectrum.title = options.title || 'spectra-data from matrix';
             spectrum.dataType = options.dataType || 'nD NMR SPECTRUM';
             spectrum.observeFrequency = observeFrequency;
             spectrum.data = [{x: x, y: y}];
             spectrum.page = firstY + index * deltaY;
             result.xType = options.xType || options.nucleusX || '1H';
             spectra.push(spectrum);
+
+            let minMax = StatArray.minMax(y);
+            minZ = Math.min(minZ, minMax.min);
+            maxZ = Math.max(maxZ, minMax.max);
+
         });
 
         result.ntuples = [{units: options.xUnit || 'PPM'}, {units: options.yUnit || 'PPM'}, {units: options.zUnit || 'Intensity'}];
@@ -107,8 +129,8 @@ class NMR2D extends SD {
             maxY: lastY,
             minX: firstX,
             maxX: lastX,
-            minZ: 0,
-            maxZ: 200
+            minZ: minZ,
+            maxZ: maxZ
         }
 
         result.yType = options.yType || options.nucleusY || '1H';

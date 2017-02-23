@@ -4,8 +4,7 @@ const SD = require('./SD');
 const Filters = require('./filters/Filters.js');
 const Brukerconverter = require('brukerconverter');
 const peaks2Ranges = require('./peakPicking/peaks2Ranges');
-// const NmrPredictor = require('nmr-predictor');
-// const simulator = require('nmr-simulation');
+const simulator = require('nmr-simulation').simulate1D;
 
 /**
  * @class NMR
@@ -19,21 +18,21 @@ class NMR extends SD {
     }
 
     /**
-     * This function return a SD instance computed with nmr chemical shift predictor "spinus" from molfile.
-     * @param {string} molfile - molfile to generate the spin system and compute the spectrum
-     * @param {object} options - parameters for simulation of spectrum
-     * @return {NMR} SD instante.
+     * This function creates a SD instance from the given 1D prediction
+     * @param prediction
+     * @param options
+     * @returns {SD}
      */
-
-    static fromMolfile(molfile, options) {
-        // let opt = Object.assign({}, {title: 'Simulated spectrum', nucleus: '1H'}, options);
-        // const predictor = new NmrPredictor('spinus');
-        // return predictor.predict(molfile, {group: false, atomLabel: opt.nucleus.replace(/[0-9]*/g,'')}).then(prediction => {
-        //     const spinSystem = simulator.SpinSystem.fromPrediction(prediction);
-        //     opt.output = 'xy';
-        //     var simulation = simulator.simulate1D(spinSystem, opt);
-        //     return NMR.fromXY(simulation.x, simulation.y, opt);
-        // });
+    static fromPrediction(prediction, options) {
+        const spinSystem = simulator.SpinSystem.fromPrediction(prediction);
+        var opt = Object.assign({}, options, {
+            nbPoints: 16*1024,
+            maxClusterSize: 8,
+            output: 'xy'
+        });
+        spinSystem.ensureClusterSize(opt);
+        var data = simulator.simulate1D(spinSystem, opt);
+        return NMR.fromXY(data.x, data.y, options);
     }
 
     /**
