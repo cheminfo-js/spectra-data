@@ -28,7 +28,13 @@ class Zones extends Array {
      * @returns {Ranges}
      */
     static fromPrediction(predictions, options) {
-        options = Object.assign({}, {lineWidth: 1, frequency: 400, nucleus: '1H'}, options);
+        let defOptions = {'H': {frequency: 400, lineWidth: 10}, 'C': {frequency: 100, lineWidth: 10}}
+        const fromLabel = predictions[0].fromAtomLabel;
+        const toLabel = predictions[0].toLabel;
+        const frequencyX = options.frequencyX || defOptions[fromLabel].frequency;
+        const frequencyY = options.frequencyY || defOptions[toLabel].frequency;
+        var lineWidthX = options.lineWidthX  || defOptions[fromLabel].lineWidth;
+        var lineWidthY = options.lineWidthY  || defOptions[toLabel].lineWidth;http://www.eltiempo.com/estilo-de-vida/gente/charles-feeney-creador-de-duty-free-dono-su-fortuna/16830757
         //1. Collapse all the equivalent predictions
         const nPredictions = predictions.length;
         const ids = new Array(nPredictions);
@@ -104,19 +110,7 @@ class Zones extends Array {
      * @returns {Ranges}
      */
     static fromSpectrum(spectrum, opt) {
-        this.options = Object.assign({}, {
-            nH: 99,
-            clean: true,
-            realTop: false,
-            thresholdFactor: 1,
-            compile: true,
-            integralType: 'sum',
-            optimize: true,
-            idPrefix: '',
-            format: 'new',
-            frequencyCluster: 16,
-        }, opt);
-
+        this.options = Object.assign({}, {}, opt);
         return new Zones(peakPicking2D(spectrum, this.options));
     }
 
