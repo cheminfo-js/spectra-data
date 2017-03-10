@@ -11,41 +11,41 @@
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
-
+/******/
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
-
+/******/
 /******/ 		// Check if module is in cache
 /******/ 		if(installedModules[moduleId])
 /******/ 			return installedModules[moduleId].exports;
-
+/******/
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = installedModules[moduleId] = {
 /******/ 			i: moduleId,
 /******/ 			l: false,
 /******/ 			exports: {}
 /******/ 		};
-
+/******/
 /******/ 		// Execute the module function
 /******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-
+/******/
 /******/ 		// Flag the module as loaded
 /******/ 		module.l = true;
-
+/******/
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-
-
+/******/
+/******/
 /******/ 	// expose the modules object (__webpack_modules__)
 /******/ 	__webpack_require__.m = modules;
-
+/******/
 /******/ 	// expose the module cache
 /******/ 	__webpack_require__.c = installedModules;
-
+/******/
 /******/ 	// identity function for calling harmony imports with the correct context
 /******/ 	__webpack_require__.i = function(value) { return value; };
-
+/******/
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
@@ -56,7 +56,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 			});
 /******/ 		}
 /******/ 	};
-
+/******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
 /******/ 	__webpack_require__.n = function(module) {
 /******/ 		var getter = module && module.__esModule ?
@@ -65,15 +65,15 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 		__webpack_require__.d(getter, 'a', getter);
 /******/ 		return getter;
 /******/ 	};
-
+/******/
 /******/ 	// Object.prototype.hasOwnProperty.call
 /******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
-
+/******/
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
-
+/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 146);
+/******/ 	return __webpack_require__(__webpack_require__.s = 152);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -83,8 +83,8 @@ return /******/ (function(modules) { // webpackBootstrap
 "use strict";
 
 var support = __webpack_require__(5);
-var compressions = __webpack_require__(9);
-var nodeBuffer = __webpack_require__(10);
+var compressions = __webpack_require__(11);
+var nodeBuffer = __webpack_require__(12);
 /**
  * Convert a string to a "binary string" : a string containing only char codes between 0 and 255.
  * @param {string} str the string to transform.
@@ -434,6 +434,154 @@ exports.extend = function() {
 "use strict";
 
 
+__webpack_require__(125);
+var abstractMatrix = __webpack_require__(47);
+var util = __webpack_require__(8);
+
+class Matrix extends abstractMatrix(Array) {
+    constructor(nRows, nColumns) {
+        var i;
+        if (arguments.length === 1 && typeof nRows === 'number') {
+            return new Array(nRows);
+        }
+        if (Matrix.isMatrix(nRows)) {
+            return nRows.clone();
+        } else if (Number.isInteger(nRows) && nRows > 0) { // Create an empty matrix
+            super(nRows);
+            if (Number.isInteger(nColumns) && nColumns > 0) {
+                for (i = 0; i < nRows; i++) {
+                    this[i] = new Array(nColumns);
+                }
+            } else {
+                throw new TypeError('nColumns must be a positive integer');
+            }
+        } else if (Array.isArray(nRows)) { // Copy the values from the 2D array
+            const matrix = nRows;
+            nRows = matrix.length;
+            nColumns = matrix[0].length;
+            if (typeof nColumns !== 'number' || nColumns === 0) {
+                throw new TypeError('Data must be a 2D array with at least one element');
+            }
+            super(nRows);
+            for (i = 0; i < nRows; i++) {
+                if (matrix[i].length !== nColumns) {
+                    throw new RangeError('Inconsistent array dimensions');
+                }
+                this[i] = [].concat(matrix[i]);
+            }
+        } else {
+            throw new TypeError('First argument must be a positive number or an array');
+        }
+        this.rows = nRows;
+        this.columns = nColumns;
+        return this;
+    }
+
+    set(rowIndex, columnIndex, value) {
+        this[rowIndex][columnIndex] = value;
+        return this;
+    }
+
+    get(rowIndex, columnIndex) {
+        return this[rowIndex][columnIndex];
+    }
+
+    /**
+     * Creates an exact and independent copy of the matrix
+     * @return {Matrix}
+     */
+    clone() {
+        var newMatrix = new this.constructor[Symbol.species](this.rows, this.columns);
+        for (var row = 0; row < this.rows; row++) {
+            for (var column = 0; column < this.columns; column++) {
+                newMatrix.set(row, column, this.get(row, column));
+            }
+        }
+        return newMatrix;
+    }
+
+    /**
+     * Removes a row from the given index
+     * @param {number} index - Row index
+     * @return {Matrix} this
+     */
+    removeRow(index) {
+        util.checkRowIndex(this, index);
+        if (this.rows === 1) {
+            throw new RangeError('A matrix cannot have less than one row');
+        }
+        this.splice(index, 1);
+        this.rows -= 1;
+        return this;
+    }
+
+    /**
+     * Adds a row at the given index
+     * @param {number} [index = this.rows] - Row index
+     * @param {Array|Matrix} array - Array or vector
+     * @return {Matrix} this
+     */
+    addRow(index, array) {
+        if (array === undefined) {
+            array = index;
+            index = this.rows;
+        }
+        util.checkRowIndex(this, index, true);
+        array = util.checkRowVector(this, array, true);
+        this.splice(index, 0, array);
+        this.rows += 1;
+        return this;
+    }
+
+    /**
+     * Removes a column from the given index
+     * @param {number} index - Column index
+     * @return {Matrix} this
+     */
+    removeColumn(index) {
+        util.checkColumnIndex(this, index);
+        if (this.columns === 1) {
+            throw new RangeError('A matrix cannot have less than one column');
+        }
+        for (var i = 0; i < this.rows; i++) {
+            this[i].splice(index, 1);
+        }
+        this.columns -= 1;
+        return this;
+    }
+
+    /**
+     * Adds a column at the given index
+     * @param {number} [index = this.columns] - Column index
+     * @param {Array|Matrix} array - Array or vector
+     * @return {Matrix} this
+     */
+    addColumn(index, array) {
+        if (typeof array === 'undefined') {
+            array = index;
+            index = this.columns;
+        }
+        util.checkColumnIndex(this, index, true);
+        array = util.checkColumnVector(this, array);
+        for (var i = 0; i < this.rows; i++) {
+            this[i].splice(index, 0, array[i]);
+        }
+        this.columns += 1;
+        return this;
+    }
+}
+
+exports.Matrix = Matrix;
+Matrix.abstractMatrix = abstractMatrix;
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
 
 var TYPED_OK =  (typeof Uint8Array !== 'undefined') &&
                 (typeof Uint16Array !== 'undefined') &&
@@ -537,7 +685,7 @@ exports.setTyped(TYPED_OK);
 
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2014,1598 +2162,29 @@ module.exports = Matrix;
 
 
 /***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.array = __webpack_require__(41);
-exports.matrix = __webpack_require__(102);
-
-
-/***/ }),
 /* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const arrayUtils = __webpack_require__(105);
+var abstractMatrix = __webpack_require__(47);
+var Matrix = __webpack_require__(1);
 
-/**
- * Real matrix
- * @class Matrix
- * @param {number|Array|Matrix} nRows - Number of rows of the new matrix,
- * 2D array containing the data or Matrix instance to clone
- * @param {number} [nColumns] - Number of columns of the new matrix
- */
-class Matrix extends Array {
-    constructor(nRows, nColumns) {
-        if (Matrix.isMatrix(nRows)) {
-            return nRows.clone();
-        } else if (Number.isInteger(nRows) && nRows > 0) { // Create an empty matrix
-            super(nRows);
-            if (Number.isInteger(nColumns) && nColumns > 0) {
-                for (var i = 0; i < nRows; i++) {
-                    this[i] = new Array(nColumns);
-                }
-            } else {
-                throw new TypeError('nColumns must be a positive integer');
-            }
-        } else if (Array.isArray(nRows)) { // Copy the values from the 2D array
-            var matrix = nRows;
-            nRows = matrix.length;
-            nColumns = matrix[0].length;
-            if (typeof nColumns !== 'number' || nColumns === 0) {
-                throw new TypeError('Data must be a 2D array with at least one element');
-            }
-            super(nRows);
-            for (var i = 0; i < nRows; i++) {
-                if (matrix[i].length !== nColumns) {
-                    throw new RangeError('Inconsistent array dimensions');
-                }
-                this[i] = [].concat(matrix[i]);
-            }
-        } else {
-            throw new TypeError('First argument must be a positive number or an array');
-        }
-        this.rows = nRows;
-        this.columns = nColumns;
+class BaseView extends abstractMatrix() {
+    constructor(matrix, rows, columns) {
+        super();
+        this.matrix = matrix;
+        this.rows = rows;
+        this.columns = columns;
     }
 
-    // Native array methods should return instances of Array, not Matrix
     static get [Symbol.species]() {
-        return Array;
-    }
-
-    /**
-     * Constructs a Matrix with the chosen dimensions from a 1D array
-     * @param {number} newRows - Number of rows
-     * @param {number} newColumns - Number of columns
-     * @param {Array} newData - A 1D array containing data for the matrix
-     * @returns {Matrix} - The new matrix
-     */
-    static from1DArray(newRows, newColumns, newData) {
-        var length = newRows * newColumns;
-        if (length !== newData.length) {
-            throw new RangeError('Data length does not match given dimensions');
-        }
-        var newMatrix = new Matrix(newRows, newColumns);
-        for (var row = 0; row < newRows; row++) {
-            for (var column = 0; column < newColumns; column++) {
-                newMatrix[row][column] = newData[row * newColumns + column];
-            }
-        }
-        return newMatrix;
-    }
-
-    /**
-     * Creates a row vector, a matrix with only one row.
-     * @param {Array} newData - A 1D array containing data for the vector
-     * @returns {Matrix} - The new matrix
-     */
-    static rowVector(newData) {
-        var vector = new Matrix(1, newData.length);
-        for (var i = 0; i < newData.length; i++) {
-            vector[0][i] = newData[i];
-        }
-        return vector;
-    }
-
-    /**
-     * Creates a column vector, a matrix with only one column.
-     * @param {Array} newData - A 1D array containing data for the vector
-     * @returns {Matrix} - The new matrix
-     */
-    static columnVector(newData) {
-        var vector = new Matrix(newData.length, 1);
-        for (var i = 0; i < newData.length; i++) {
-            vector[i][0] = newData[i];
-        }
-        return vector;
-    }
-
-    /**
-     * Creates an empty matrix with the given dimensions. Values will be undefined. Same as using new Matrix(rows, columns).
-     * @param {number} rows - Number of rows
-     * @param {number} columns - Number of columns
-     * @returns {Matrix} - The new matrix
-     */
-    static empty(rows, columns) {
-        return new Matrix(rows, columns);
-    }
-
-    /**
-     * Creates a matrix with the given dimensions. Values will be set to zero.
-     * @param {number} rows - Number of rows
-     * @param {number} columns - Number of columns
-     * @returns {Matrix} - The new matrix
-     */
-    static zeros(rows, columns) {
-        return Matrix.empty(rows, columns).fill(0);
-    }
-
-    /**
-     * Creates a matrix with the given dimensions. Values will be set to one.
-     * @param {number} rows - Number of rows
-     * @param {number} columns - Number of columns
-     * @returns {Matrix} - The new matrix
-     */
-    static ones(rows, columns) {
-        return Matrix.empty(rows, columns).fill(1);
-    }
-
-    /**
-     * Creates a matrix with the given dimensions. Values will be randomly set.
-     * @param {number} rows - Number of rows
-     * @param {number} columns - Number of columns
-     * @param {function} [rng] - Random number generator (default: Math.random)
-     * @returns {Matrix} The new matrix
-     */
-    static rand(rows, columns, rng) {
-        if (rng === undefined) rng = Math.random;
-        var matrix = Matrix.empty(rows, columns);
-        for (var i = 0; i < rows; i++) {
-            for (var j = 0; j < columns; j++) {
-                matrix[i][j] = rng();
-            }
-        }
-        return matrix;
-    }
-
-    /**
-     * Creates an identity matrix with the given dimension. Values of the diagonal will be 1 and others will be 0.
-     * @param {number} rows - Number of rows
-     * @param {number} [columns] - Number of columns (Default: rows)
-     * @returns {Matrix} - The new identity matrix
-     */
-    static eye(rows, columns) {
-        if (columns === undefined) columns = rows;
-        var min = Math.min(rows, columns);
-        var matrix = Matrix.zeros(rows, columns);
-        for (var i = 0; i < min; i++) {
-            matrix[i][i] = 1;
-        }
-        return matrix;
-    }
-
-    /**
-     * Creates a diagonal matrix based on the given array.
-     * @param {Array} data - Array containing the data for the diagonal
-     * @param {number} [rows] - Number of rows (Default: data.length)
-     * @param {number} [columns] - Number of columns (Default: rows)
-     * @returns {Matrix} - The new diagonal matrix
-     */
-    static diag(data, rows, columns) {
-        var l = data.length;
-        if (rows === undefined) rows = l;
-        if (columns === undefined) columns = rows;
-        var min = Math.min(l, rows, columns);
-        var matrix = Matrix.zeros(rows, columns);
-        for (var i = 0; i < min; i++) {
-            matrix[i][i] = data[i];
-        }
-        return matrix;
-    }
-
-    /**
-     * Returns a matrix whose elements are the minimum between matrix1 and matrix2
-     * @param matrix1
-     * @param matrix2
-     * @returns {Matrix}
-     */
-    static min(matrix1, matrix2) {
-        var rows = matrix1.length;
-        var columns = matrix1[0].length;
-        var result = new Matrix(rows, columns);
-        for (var i = 0; i < rows; i++) {
-            for (var j = 0; j < columns; j++) {
-                result[i][j] = Math.min(matrix1[i][j], matrix2[i][j]);
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Returns a matrix whose elements are the maximum between matrix1 and matrix2
-     * @param matrix1
-     * @param matrix2
-     * @returns {Matrix}
-     */
-    static max(matrix1, matrix2) {
-        var rows = matrix1.length;
-        var columns = matrix1[0].length;
-        var result = new Matrix(rows, columns);
-        for (var i = 0; i < rows; i++) {
-            for (var j = 0; j < columns; j++) {
-                result[i][j] = Math.max(matrix1[i][j], matrix2[i][j]);
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Check that the provided value is a Matrix and tries to instantiate one if not
-     * @param value - The value to check
-     * @returns {Matrix}
-     */
-    static checkMatrix(value) {
-        return Matrix.isMatrix(value) ? value : new Matrix(value);
-    }
-
-    /**
-     * Returns true if the argument is a Matrix, false otherwise
-     * @param value - The value to check
-     * @return {boolean}
-     */
-    static isMatrix(value) {
-        return (value != null) && (value.klass === 'Matrix');
-    }
-
-    /**
-     * @property {number} - The number of elements in the matrix.
-     */
-    get size() {
-        return this.rows * this.columns;
-    }
-
-    /**
-     * Applies a callback for each element of the matrix. The function is called in the matrix (this) context.
-     * @param {function} callback - Function that will be called with two parameters : i (row) and j (column)
-     * @returns {Matrix} this
-     */
-    apply(callback) {
-        if (typeof callback !== 'function') {
-            throw new TypeError('callback must be a function');
-        }
-        var ii = this.rows;
-        var jj = this.columns;
-        for (var i = 0; i < ii; i++) {
-            for (var j = 0; j < jj; j++) {
-                callback.call(this, i, j);
-            }
-        }
-        return this;
-    }
-
-    /**
-     * Creates an exact and independent copy of the matrix
-     * @returns {Matrix}
-     */
-    clone() {
-        var newMatrix = new Matrix(this.rows, this.columns);
-        for (var row = 0; row < this.rows; row++) {
-            for (var column = 0; column < this.columns; column++) {
-                newMatrix[row][column] = this[row][column];
-            }
-        }
-        return newMatrix;
-    }
-
-    /**
-     * Returns a new 1D array filled row by row with the matrix values
-     * @returns {Array}
-     */
-    to1DArray() {
-        var array = new Array(this.size);
-        for (var i = 0; i < this.rows; i++) {
-            for (var j = 0; j < this.columns; j++) {
-                array[i * this.columns + j] = this[i][j];
-            }
-        }
-        return array;
-    }
-
-    /**
-     * Returns a 2D array containing a copy of the data
-     * @returns {Array}
-     */
-    to2DArray() {
-        var copy = new Array(this.rows);
-        for (var i = 0; i < this.rows; i++) {
-            copy[i] = [].concat(this[i]);
-        }
-        return copy;
-    }
-
-    /**
-     * @returns {boolean} true if the matrix has one row
-     */
-    isRowVector() {
-        return this.rows === 1;
-    }
-
-    /**
-     * @returns {boolean} true if the matrix has one column
-     */
-    isColumnVector() {
-        return this.columns === 1;
-    }
-
-    /**
-     * @returns {boolean} true if the matrix has one row or one column
-     */
-    isVector() {
-        return (this.rows === 1) || (this.columns === 1);
-    }
-
-    /**
-     * @returns {boolean} true if the matrix has the same number of rows and columns
-     */
-    isSquare() {
-        return this.rows === this.columns;
-    }
-
-    /**
-     * @returns {boolean} true if the matrix is square and has the same values on both sides of the diagonal
-     */
-    isSymmetric() {
-        if (this.isSquare()) {
-            for (var i = 0; i < this.rows; i++) {
-                for (var j = 0; j <= i; j++) {
-                    if (this[i][j] !== this[j][i]) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Sets a given element of the matrix. mat.set(3,4,1) is equivalent to mat[3][4]=1
-     * @param {number} rowIndex - Index of the row
-     * @param {number} columnIndex - Index of the column
-     * @param {number} value - The new value for the element
-     * @returns {Matrix} this
-     */
-    set(rowIndex, columnIndex, value) {
-        this[rowIndex][columnIndex] = value;
-        return this;
-    }
-
-    /**
-     * Returns the given element of the matrix. mat.get(3,4) is equivalent to matrix[3][4]
-     * @param {number} rowIndex - Index of the row
-     * @param {number} columnIndex - Index of the column
-     * @returns {number}
-     */
-    get(rowIndex, columnIndex) {
-        return this[rowIndex][columnIndex];
-    }
-
-    /**
-     * Creates a new matrix that is a repetition of the current matrix. New matrix has rowRep times the number of
-     * rows of the matrix, and colRep times the number of columns of the matrix
-     * @param {number} rowRep - Number of times the rows should be repeated
-     * @param {number} colRep - Number of times the columns should be re
-     * @example
-     * var matrix = new Matrix([[1,2]]);
-     * matrix.repeat(2); // [[1,2],[1,2]]
-     */
-    repeat(rowRep, colRep) {
-        rowRep = rowRep || 1;
-        colRep = colRep || 1;
-        var matrix = new Matrix(this.rows * rowRep, this.columns * colRep);
-        for (var i = 0; i < rowRep; i++) {
-            for (var j = 0; j < colRep; j++) {
-                matrix.setSubMatrix(this, this.rows * i, this.columns * j);
-            }
-        }
-        return matrix;
-    }
-
-    /**
-     * Fills the matrix with a given value. All elements will be set to this value.
-     * @param {number} value - New value
-     * @returns {Matrix} this
-     */
-    fill(value) {
-        for (var i = 0; i < this.rows; i++) {
-            for (var j = 0; j < this.columns; j++) {
-                this[i][j] = value;
-            }
-        }
-        return this;
-    }
-
-    /**
-     * Negates the matrix. All elements will be multiplied by (-1)
-     * @returns {Matrix} this
-     */
-    neg() {
-        return this.mulS(-1);
-    }
-
-    /**
-     * Returns a new array from the given row index
-     * @param {number} index - Row index
-     * @returns {Array}
-     */
-    getRow(index) {
-        checkRowIndex(this, index);
-        return [].concat(this[index]);
-    }
-
-    /**
-     * Returns a new row vector from the given row index
-     * @param {number} index - Row index
-     * @returns {Matrix}
-     */
-    getRowVector(index) {
-        return Matrix.rowVector(this.getRow(index));
-    }
-
-    /**
-     * Sets a row at the given index
-     * @param {number} index - Row index
-     * @param {Array|Matrix} array - Array or vector
-     * @returns {Matrix} this
-     */
-    setRow(index, array) {
-        checkRowIndex(this, index);
-        array = checkRowVector(this, array, true);
-        this[index] = array;
-        return this;
-    }
-
-    /**
-     * Removes a row from the given index
-     * @param {number} index - Row index
-     * @returns {Matrix} this
-     */
-    removeRow(index) {
-        checkRowIndex(this, index);
-        if (this.rows === 1)
-            throw new RangeError('A matrix cannot have less than one row');
-        this.splice(index, 1);
-        this.rows -= 1;
-        return this;
-    }
-
-    /**
-     * Adds a row at the given index
-     * @param {number} [index = this.rows] - Row index
-     * @param {Array|Matrix} array - Array or vector
-     * @returns {Matrix} this
-     */
-    addRow(index, array) {
-        if (array === undefined) {
-            array = index;
-            index = this.rows;
-        }
-        checkRowIndex(this, index, true);
-        array = checkRowVector(this, array, true);
-        this.splice(index, 0, array);
-        this.rows += 1;
-        return this;
-    }
-
-    /**
-     * Swaps two rows
-     * @param {number} row1 - First row index
-     * @param {number} row2 - Second row index
-     * @returns {Matrix} this
-     */
-    swapRows(row1, row2) {
-        checkRowIndex(this, row1);
-        checkRowIndex(this, row2);
-        var temp = this[row1];
-        this[row1] = this[row2];
-        this[row2] = temp;
-        return this;
-    }
-
-    /**
-     * Returns a new array from the given column index
-     * @param {number} index - Column index
-     * @returns {Array}
-     */
-    getColumn(index) {
-        checkColumnIndex(this, index);
-        var column = new Array(this.rows);
-        for (var i = 0; i < this.rows; i++) {
-            column[i] = this[i][index];
-        }
-        return column;
-    }
-
-    /**
-     * Returns a new column vector from the given column index
-     * @param {number} index - Column index
-     * @returns {Matrix}
-     */
-    getColumnVector(index) {
-        return Matrix.columnVector(this.getColumn(index));
-    }
-
-    /**
-     * Sets a column at the given index
-     * @param {number} index - Column index
-     * @param {Array|Matrix} array - Array or vector
-     * @returns {Matrix} this
-     */
-    setColumn(index, array) {
-        checkColumnIndex(this, index);
-        array = checkColumnVector(this, array);
-        for (var i = 0; i < this.rows; i++) {
-            this[i][index] = array[i];
-        }
-        return this;
-    }
-
-    /**
-     * Removes a column from the given index
-     * @param {number} index - Column index
-     * @returns {Matrix} this
-     */
-    removeColumn(index) {
-        checkColumnIndex(this, index);
-        if (this.columns === 1)
-            throw new RangeError('A matrix cannot have less than one column');
-        for (var i = 0; i < this.rows; i++) {
-            this[i].splice(index, 1);
-        }
-        this.columns -= 1;
-        return this;
-    }
-
-    /**
-     * Adds a column at the given index
-     * @param {number} [index = this.columns] - Column index
-     * @param {Array|Matrix} array - Array or vector
-     * @returns {Matrix} this
-     */
-    addColumn(index, array) {
-        if (typeof array === 'undefined') {
-            array = index;
-            index = this.columns;
-        }
-        checkColumnIndex(this, index, true);
-        array = checkColumnVector(this, array);
-        for (var i = 0; i < this.rows; i++) {
-            this[i].splice(index, 0, array[i]);
-        }
-        this.columns += 1;
-        return this;
-    }
-
-    /**
-     * Swaps two columns
-     * @param {number} column1 - First column index
-     * @param {number} column2 - Second column index
-     * @returns {Matrix} this
-     */
-    swapColumns(column1, column2) {
-        checkColumnIndex(this, column1);
-        checkColumnIndex(this, column2);
-        var temp, row;
-        for (var i = 0; i < this.rows; i++) {
-            row = this[i];
-            temp = row[column1];
-            row[column1] = row[column2];
-            row[column2] = temp;
-        }
-        return this;
-    }
-
-    /**
-     * Adds the values of a vector to each row
-     * @param {Array|Matrix} vector - Array or vector
-     * @returns {Matrix} this
-     */
-    addRowVector(vector) {
-        vector = checkRowVector(this, vector);
-        for (var i = 0; i < this.rows; i++) {
-            for (var j = 0; j < this.columns; j++) {
-                this[i][j] += vector[j];
-            }
-        }
-        return this;
-    }
-
-    /**
-     * Subtracts the values of a vector from each row
-     * @param {Array|Matrix} vector - Array or vector
-     * @returns {Matrix} this
-     */
-    subRowVector(vector) {
-        vector = checkRowVector(this, vector);
-        for (var i = 0; i < this.rows; i++) {
-            for (var j = 0; j < this.columns; j++) {
-                this[i][j] -= vector[j];
-            }
-        }
-        return this;
-    }
-
-    /**
-     * Multiplies the values of a vector with each row
-     * @param {Array|Matrix} vector - Array or vector
-     * @returns {Matrix} this
-     */
-    mulRowVector(vector) {
-        vector = checkRowVector(this, vector);
-        for (var i = 0; i < this.rows; i++) {
-            for (var j = 0; j < this.columns; j++) {
-                this[i][j] *= vector[j];
-            }
-        }
-        return this;
-    }
-
-    /**
-     * Divides the values of each row by those of a vector
-     * @param {Array|Matrix} vector - Array or vector
-     * @returns {Matrix} this
-     */
-    divRowVector(vector) {
-        vector = checkRowVector(this, vector);
-        for (var i = 0; i < this.rows; i++) {
-            for (var j = 0; j < this.columns; j++) {
-                this[i][j] /= vector[j];
-            }
-        }
-        return this;
-    }
-
-    /**
-     * Adds the values of a vector to each column
-     * @param {Array|Matrix} vector - Array or vector
-     * @returns {Matrix} this
-     */
-    addColumnVector(vector) {
-        vector = checkColumnVector(this, vector);
-        for (var i = 0; i < this.rows; i++) {
-            for (var j = 0; j < this.columns; j++) {
-                this[i][j] += vector[i];
-            }
-        }
-        return this;
-    }
-
-    /**
-     * Subtracts the values of a vector from each column
-     * @param {Array|Matrix} vector - Array or vector
-     * @returns {Matrix} this
-     */
-    subColumnVector(vector) {
-        vector = checkColumnVector(this, vector);
-        for (var i = 0; i < this.rows; i++) {
-            for (var j = 0; j < this.columns; j++) {
-                this[i][j] -= vector[i];
-            }
-        }
-        return this;
-    }
-
-    /**
-     * Multiplies the values of a vector with each column
-     * @param {Array|Matrix} vector - Array or vector
-     * @returns {Matrix} this
-     */
-    mulColumnVector(vector) {
-        vector = checkColumnVector(this, vector);
-        for (var i = 0; i < this.rows; i++) {
-            for (var j = 0; j < this.columns; j++) {
-                this[i][j] *= vector[i];
-            }
-        }
-        return this;
-    }
-
-    /**
-     * Divides the values of each column by those of a vector
-     * @param {Array|Matrix} vector - Array or vector
-     * @returns {Matrix} this
-     */
-    divColumnVector(vector) {
-        vector = checkColumnVector(this, vector);
-        for (var i = 0; i < this.rows; i++) {
-            for (var j = 0; j < this.columns; j++) {
-                this[i][j] /= vector[i];
-            }
-        }
-        return this;
-    }
-
-    /**
-     * Multiplies the values of a row with a scalar
-     * @param {number} index - Row index
-     * @param {number} value
-     * @returns {Matrix} this
-     */
-    mulRow(index, value) {
-        checkRowIndex(this, index);
-        for (var i = 0; i < this.columns; i++) {
-            this[index][i] *= value;
-        }
-        return this;
-    }
-
-    /**
-     * Multiplies the values of a column with a scalar
-     * @param {number} index - Column index
-     * @param {number} value
-     * @returns {Matrix} this
-     */
-    mulColumn(index, value) {
-        checkColumnIndex(this, index);
-        for (var i = 0; i < this.rows; i++) {
-            this[i][index] *= value;
-        }
-    }
-
-    /**
-     * Returns the maximum value of the matrix
-     * @returns {number}
-     */
-    max() {
-        var v = this[0][0];
-        for (var i = 0; i < this.rows; i++) {
-            for (var j = 0; j < this.columns; j++) {
-                if (this[i][j] > v) {
-                    v = this[i][j];
-                }
-            }
-        }
-        return v;
-    }
-
-    /**
-     * Returns the index of the maximum value
-     * @returns {Array}
-     */
-    maxIndex() {
-        var v = this[0][0];
-        var idx = [0, 0];
-        for (var i = 0; i < this.rows; i++) {
-            for (var j = 0; j < this.columns; j++) {
-                if (this[i][j] > v) {
-                    v = this[i][j];
-                    idx[0] = i;
-                    idx[1] = j;
-                }
-            }
-        }
-        return idx;
-    }
-
-    /**
-     * Returns the minimum value of the matrix
-     * @returns {number}
-     */
-    min() {
-        var v = this[0][0];
-        for (var i = 0; i < this.rows; i++) {
-            for (var j = 0; j < this.columns; j++) {
-                if (this[i][j] < v) {
-                    v = this[i][j];
-                }
-            }
-        }
-        return v;
-    }
-
-    /**
-     * Returns the index of the minimum value
-     * @returns {Array}
-     */
-    minIndex() {
-        var v = this[0][0];
-        var idx = [0, 0];
-        for (var i = 0; i < this.rows; i++) {
-            for (var j = 0; j < this.columns; j++) {
-                if (this[i][j] < v) {
-                    v = this[i][j];
-                    idx[0] = i;
-                    idx[1] = j;
-                }
-            }
-        }
-        return idx;
-    }
-
-    /**
-     * Returns the maximum value of one row
-     * @param {number} row - Row index
-     * @returns {number}
-     */
-    maxRow(row) {
-        checkRowIndex(this, row);
-        var v = this[row][0];
-        for (var i = 1; i < this.columns; i++) {
-            if (this[row][i] > v) {
-                v = this[row][i];
-            }
-        }
-        return v;
-    }
-
-    /**
-     * Returns the index of the maximum value of one row
-     * @param {number} row - Row index
-     * @returns {Array}
-     */
-    maxRowIndex(row) {
-        checkRowIndex(this, row);
-        var v = this[row][0];
-        var idx = [row, 0];
-        for (var i = 1; i < this.columns; i++) {
-            if (this[row][i] > v) {
-                v = this[row][i];
-                idx[1] = i;
-            }
-        }
-        return idx;
-    }
-
-    /**
-     * Returns the minimum value of one row
-     * @param {number} row - Row index
-     * @returns {number}
-     */
-    minRow(row) {
-        checkRowIndex(this, row);
-        var v = this[row][0];
-        for (var i = 1; i < this.columns; i++) {
-            if (this[row][i] < v) {
-                v = this[row][i];
-            }
-        }
-        return v;
-    }
-
-    /**
-     * Returns the index of the maximum value of one row
-     * @param {number} row - Row index
-     * @returns {Array}
-     */
-    minRowIndex(row) {
-        checkRowIndex(this, row);
-        var v = this[row][0];
-        var idx = [row, 0];
-        for (var i = 1; i < this.columns; i++) {
-            if (this[row][i] < v) {
-                v = this[row][i];
-                idx[1] = i;
-            }
-        }
-        return idx;
-    }
-
-    /**
-     * Returns the maximum value of one column
-     * @param {number} column - Column index
-     * @returns {number}
-     */
-    maxColumn(column) {
-        checkColumnIndex(this, column);
-        var v = this[0][column];
-        for (var i = 1; i < this.rows; i++) {
-            if (this[i][column] > v) {
-                v = this[i][column];
-            }
-        }
-        return v;
-    }
-
-    /**
-     * Returns the index of the maximum value of one column
-     * @param {number} column - Column index
-     * @returns {Array}
-     */
-    maxColumnIndex(column) {
-        checkColumnIndex(this, column);
-        var v = this[0][column];
-        var idx = [0, column];
-        for (var i = 1; i < this.rows; i++) {
-            if (this[i][column] > v) {
-                v = this[i][column];
-                idx[0] = i;
-            }
-        }
-        return idx;
-    }
-
-    /**
-     * Returns the minimum value of one column
-     * @param {number} column - Column index
-     * @returns {number}
-     */
-    minColumn(column) {
-        checkColumnIndex(this, column);
-        var v = this[0][column];
-        for (var i = 1; i < this.rows; i++) {
-            if (this[i][column] < v) {
-                v = this[i][column];
-            }
-        }
-        return v;
-    }
-
-    /**
-     * Returns the index of the minimum value of one column
-     * @param {number} column - Column index
-     * @returns {Array}
-     */
-    minColumnIndex(column) {
-        checkColumnIndex(this, column);
-        var v = this[0][column];
-        var idx = [0, column];
-        for (var i = 1; i < this.rows; i++) {
-            if (this[i][column] < v) {
-                v = this[i][column];
-                idx[0] = i;
-            }
-        }
-        return idx;
-    }
-
-    /**
-     * Returns an array containing the diagonal values of the matrix
-     * @returns {Array}
-     */
-    diag() {
-        var min = Math.min(this.rows, this.columns);
-        var diag = new Array(min);
-        for (var i = 0; i < min; i++) {
-            diag[i] = this[i][i];
-        }
-        return diag;
-    }
-
-    /**
-     * Returns the sum of all elements of the matrix
-     * @returns {number}
-     */
-    sum() {
-        var v = 0;
-        for (var i = 0; i < this.rows; i++) {
-            for (var j = 0; j < this.columns; j++) {
-                v += this[i][j];
-            }
-        }
-        return v;
-    }
-
-    /**
-     * Returns the mean of all elements of the matrix
-     * @returns {number}
-     */
-    mean() {
-        return this.sum() / this.size;
-    }
-
-    /**
-     * Returns the product of all elements of the matrix
-     * @returns {number}
-     */
-    prod() {
-        var prod = 1;
-        for (var i = 0; i < this.rows; i++) {
-            for (var j = 0; j < this.columns; j++) {
-                prod *= this[i][j];
-            }
-        }
-        return prod;
-    }
-
-    /**
-     * Computes the cumulative sum of the matrix elements (in place, row by row)
-     * @returns {Matrix} this
-     */
-    cumulativeSum() {
-        var sum = 0;
-        for (var i = 0; i < this.rows; i++) {
-            for (var j = 0; j < this.columns; j++) {
-                sum += this[i][j];
-                this[i][j] = sum;
-            }
-        }
-        return this;
-    }
-
-    /**
-     * Computes the dot (scalar) product between the matrix and another
-     * @param {Matrix} vector2 vector
-     * @returns {number}
-     */
-    dot(vector2) {
-        if (Matrix.isMatrix(vector2)) vector2 = vector2.to1DArray();
-        var vector1 = this.to1DArray();
-        if (vector1.length !== vector2.length) {
-            throw new RangeError('vectors do not have the same size');
-        }
-        var dot = 0;
-        for (var i = 0; i < vector1.length; i++) {
-            dot += vector1[i] * vector2[i];
-        }
-        return dot;
-    }
-
-    /**
-     * Returns the matrix product between this and other
-     * @param {Matrix} other
-     * @returns {Matrix}
-     */
-    mmul(other) {
-        other = Matrix.checkMatrix(other);
-        if (this.columns !== other.rows)
-            console.warn('Number of columns of left matrix are not equal to number of rows of right matrix.');
-
-        var m = this.rows;
-        var n = this.columns;
-        var p = other.columns;
-
-        var result = new Matrix(m, p);
-
-        var Bcolj = new Array(n);
-        for (var j = 0; j < p; j++) {
-            for (var k = 0; k < n; k++)
-                Bcolj[k] = other[k][j];
-
-            for (var i = 0; i < m; i++) {
-                var Arowi = this[i];
-
-                var s = 0;
-                for (k = 0; k < n; k++)
-                    s += Arowi[k] * Bcolj[k];
-
-                result[i][j] = s;
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Returns a row-by-row scaled matrix
-     * @param {Number} [min=0] - Minimum scaled value
-     * @param {Number} [max=1] - Maximum scaled value
-     * @returns {Matrix} - The scaled matrix
-     */
-    scaleRows(min, max) {
-        min = min === undefined ? 0 : min;
-        max = max === undefined ? 1 : max;
-        if (min >= max) {
-            throw new RangeError('min should be strictly smaller than max');
-        }
-        var newMatrix = Matrix.empty(this.rows, this.columns);
-        for (var i = 0; i < this.rows; i++) {
-            var scaled = arrayUtils.scale(this.getRow(i), {min, max});
-            newMatrix.setRow(i, scaled);
-        }
-        return newMatrix;
-    }
-
-    /**
-     * Returns a new column-by-column scaled matrix
-     * @param {Number} [min=0] - Minimum scaled value
-     * @param {Number} [max=1] - Maximum scaled value
-     * @returns {Matrix} - The new scaled matrix
-     * @example
-     * var matrix = new Matrix([[1,2],[-1,0]]);
-     * var scaledMatrix = matrix.scaleColumns(); // [[1,1],[0,0]]
-     */
-    scaleColumns(min, max) {
-        min = min === undefined ? 0 : min;
-        max = max === undefined ? 1 : max;
-        if (min >= max) {
-            throw new RangeError('min should be strictly smaller than max');
-        }
-        var newMatrix = Matrix.empty(this.rows, this.columns);
-        for (var i = 0; i < this.columns; i++) {
-            var scaled = arrayUtils.scale(this.getColumn(i), {
-                min: min,
-                max: max
-            });
-            newMatrix.setColumn(i, scaled);
-        }
-        return newMatrix;
-    }
-
-
-    /**
-     * Returns the Kronecker product (also known as tensor product) between this and other
-     * See https://en.wikipedia.org/wiki/Kronecker_product
-     * @param {Matrix} other
-     * @return {Matrix}
-     */
-    kroneckerProduct(other) {
-        other = Matrix.checkMatrix(other);
-
-        var m = this.rows;
-        var n = this.columns;
-        var p = other.rows;
-        var q = other.columns;
-
-        var result = new Matrix(m * p, n * q);
-        for (var i = 0; i < m; i++) {
-            for (var j = 0; j < n; j++) {
-                for (var k = 0; k < p; k++) {
-                    for (var l = 0; l < q; l++) {
-                        result[p * i + k][q * j + l] = this[i][j] * other[k][l];
-                    }
-                }
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Transposes the matrix and returns a new one containing the result
-     * @returns {Matrix}
-     */
-    transpose() {
-        var result = new Matrix(this.columns, this.rows);
-        for (var i = 0; i < this.rows; i++) {
-            for (var j = 0; j < this.columns; j++) {
-                result[j][i] = this[i][j];
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Sorts the rows (in place)
-     * @param {function} compareFunction - usual Array.prototype.sort comparison function
-     * @returns {Matrix} this
-     */
-    sortRows(compareFunction) {
-        if (compareFunction === undefined) compareFunction = compareNumbers;
-        for (var i = 0; i < this.rows; i++) {
-            this[i].sort(compareFunction);
-        }
-        return this;
-    }
-
-    /**
-     * Sorts the columns (in place)
-     * @param {function} compareFunction - usual Array.prototype.sort comparison function
-     * @returns {Matrix} this
-     */
-    sortColumns(compareFunction) {
-        if (compareFunction === undefined) compareFunction = compareNumbers;
-        for (var i = 0; i < this.columns; i++) {
-            this.setColumn(i, this.getColumn(i).sort(compareFunction));
-        }
-        return this;
-    }
-
-    /**
-     * Returns a subset of the matrix
-     * @param {number} startRow - First row index
-     * @param {number} endRow - Last row index
-     * @param {number} startColumn - First column index
-     * @param {number} endColumn - Last column index
-     * @returns {Matrix}
-     */
-    subMatrix(startRow, endRow, startColumn, endColumn) {
-        if ((startRow > endRow) || (startColumn > endColumn) || (startRow < 0) || (startRow >= this.rows) || (endRow < 0) || (endRow >= this.rows) || (startColumn < 0) || (startColumn >= this.columns) || (endColumn < 0) || (endColumn >= this.columns)) {
-            throw new RangeError('Argument out of range');
-        }
-        var newMatrix = new Matrix(endRow - startRow + 1, endColumn - startColumn + 1);
-        for (var i = startRow; i <= endRow; i++) {
-            for (var j = startColumn; j <= endColumn; j++) {
-                newMatrix[i - startRow][j - startColumn] = this[i][j];
-            }
-        }
-        return newMatrix;
-    }
-
-    /**
-     * Returns a subset of the matrix based on an array of row indices
-     * @param {Array} indices - Array containing the row indices
-     * @param {number} [startColumn = 0] - First column index
-     * @param {number} [endColumn = this.columns-1] - Last column index
-     * @returns {Matrix}
-     */
-    subMatrixRow(indices, startColumn, endColumn) {
-        if (startColumn === undefined) startColumn = 0;
-        if (endColumn === undefined) endColumn = this.columns - 1;
-        if ((startColumn > endColumn) || (startColumn < 0) || (startColumn >= this.columns) || (endColumn < 0) || (endColumn >= this.columns)) {
-            throw new RangeError('Argument out of range');
-        }
-
-        var newMatrix = new Matrix(indices.length, endColumn - startColumn + 1);
-        for (var i = 0; i < indices.length; i++) {
-            for (var j = startColumn; j <= endColumn; j++) {
-                if (indices[i] < 0 || indices[i] >= this.rows) {
-                    throw new RangeError('Row index out of range: ' + indices[i]);
-                }
-                newMatrix[i][j - startColumn] = this[indices[i]][j];
-            }
-        }
-        return newMatrix;
-    }
-
-    /**
-     * Returns a subset of the matrix based on an array of column indices
-     * @param {Array} indices - Array containing the column indices
-     * @param {number} [startRow = 0] - First row index
-     * @param {number} [endRow = this.rows-1] - Last row index
-     * @returns {Matrix}
-     */
-    subMatrixColumn(indices, startRow, endRow) {
-        if (startRow === undefined) startRow = 0;
-        if (endRow === undefined) endRow = this.rows - 1;
-        if ((startRow > endRow) || (startRow < 0) || (startRow >= this.rows) || (endRow < 0) || (endRow >= this.rows)) {
-            throw new RangeError('Argument out of range');
-        }
-
-        var newMatrix = new Matrix(endRow - startRow + 1, indices.length);
-        for (var i = 0; i < indices.length; i++) {
-            for (var j = startRow; j <= endRow; j++) {
-                if (indices[i] < 0 || indices[i] >= this.columns) {
-                    throw new RangeError('Column index out of range: ' + indices[i]);
-                }
-                newMatrix[j - startRow][i] = this[j][indices[i]];
-            }
-        }
-        return newMatrix;
-    }
-
-    /**
-     * Set a part of the matrix to the given sub-matrix
-     * @param {Matrix|Array< Array >} matrix - The source matrix from which to extract values.
-     * @param startRow - The index of the first row to set
-     * @param startColumn - The index of the first column to set
-     * @returns {Matrix}
-     */
-    setSubMatrix(matrix, startRow, startColumn) {
-        matrix = Matrix.checkMatrix(matrix);
-        var endRow = startRow + matrix.rows - 1;
-        var endColumn = startColumn + matrix.columns - 1;
-        if ((startRow > endRow) || (startColumn > endColumn) || (startRow < 0) || (startRow >= this.rows) || (endRow < 0) || (endRow >= this.rows) || (startColumn < 0) || (startColumn >= this.columns) || (endColumn < 0) || (endColumn >= this.columns)) {
-            throw new RangeError('Argument out of range');
-        }
-        for (var i = 0; i < matrix.rows; i++) {
-            for (var j = 0; j < matrix.columns; j++) {
-                this[startRow + i][startColumn + j] = matrix[i][j];
-            }
-        }
-        return this;
-    }
-
-    /**
-     * Returns the trace of the matrix (sum of the diagonal elements)
-     * @returns {number}
-     */
-    trace() {
-        var min = Math.min(this.rows, this.columns);
-        var trace = 0;
-        for (var i = 0; i < min; i++) {
-            trace += this[i][i];
-        }
-        return trace;
+        return Matrix.Matrix;
     }
 }
 
-Matrix.prototype.klass = 'Matrix';
-
-module.exports = Matrix;
-
-/**
- * @private
- * Check that a row index is not out of bounds
- * @param {Matrix} matrix
- * @param {number} index
- * @param {boolean} [outer]
- */
-function checkRowIndex(matrix, index, outer) {
-    var max = outer ? matrix.rows : matrix.rows - 1;
-    if (index < 0 || index > max)
-        throw new RangeError('Row index out of range');
-}
-
-/**
- * @private
- * Check that the provided vector is an array with the right length
- * @param {Matrix} matrix
- * @param {Array|Matrix} vector
- * @param {boolean} copy
- * @returns {Array}
- * @throws {RangeError}
- */
-function checkRowVector(matrix, vector, copy) {
-    if (Matrix.isMatrix(vector)) {
-        vector = vector.to1DArray();
-    } else if (copy) {
-        vector = [].concat(vector);
-    }
-    if (vector.length !== matrix.columns)
-        throw new RangeError('vector size must be the same as the number of columns');
-    return vector;
-}
-
-/**
- * @private
- * Check that the provided vector is an array with the right length
- * @param {Matrix} matrix
- * @param {Array|Matrix} vector
- * @param {boolean} copy
- * @returns {Array}
- * @throws {RangeError}
- */
-function checkColumnVector(matrix, vector, copy) {
-    if (Matrix.isMatrix(vector)) {
-        vector = vector.to1DArray();
-    } else if (copy) {
-        vector = [].concat(vector);
-    }
-    if (vector.length !== matrix.rows)
-        throw new RangeError('vector size must be the same as the number of rows');
-    return vector;
-}
-
-/**
- * @private
- * Check that a column index is not out of bounds
- * @param {Matrix} matrix
- * @param {number} index
- * @param {boolean} [outer]
- */
-function checkColumnIndex(matrix, index, outer) {
-    var max = outer ? matrix.columns : matrix.columns - 1;
-    if (index < 0 || index > max)
-        throw new RangeError('Column index out of range');
-}
-
-/**
- * @private
- * Check that two matrices have the same dimensions
- * @param {Matrix} matrix
- * @param {Matrix} otherMatrix
- */
-function checkDimensions(matrix, otherMatrix) {
-    if (matrix.rows !== otherMatrix.length ||
-        matrix.columns !== otherMatrix[0].length) {
-        throw new RangeError('Matrices dimensions must be equal');
-    }
-}
-
-function compareNumbers(a, b) {
-    return a - b;
-}
-
-/*
- Synonyms
- */
-
-Matrix.random = Matrix.rand;
-Matrix.diagonal = Matrix.diag;
-Matrix.prototype.diagonal = Matrix.prototype.diag;
-Matrix.identity = Matrix.eye;
-Matrix.prototype.negate = Matrix.prototype.neg;
-Matrix.prototype.tensorProduct = Matrix.prototype.kroneckerProduct;
-
-/*
- Add dynamically instance and static methods for mathematical operations
- */
-
-var inplaceOperator = `
-(function %name%(value) {
-    if (typeof value === 'number') return this.%name%S(value);
-    return this.%name%M(value);
-})
-`;
-
-var inplaceOperatorScalar = `
-(function %name%S(value) {
-    for (var i = 0; i < this.rows; i++) {
-        for (var j = 0; j < this.columns; j++) {
-            this[i][j] = this[i][j] %op% value;
-        }
-    }
-    return this;
-})
-`;
-
-var inplaceOperatorMatrix = `
-(function %name%M(matrix) {
-    checkDimensions(this, matrix);
-    for (var i = 0; i < this.rows; i++) {
-        for (var j = 0; j < this.columns; j++) {
-            this[i][j] = this[i][j] %op% matrix[i][j];
-        }
-    }
-    return this;
-})
-`;
-
-var staticOperator = `
-(function %name%(matrix, value) {
-    var newMatrix = new Matrix(matrix);
-    return newMatrix.%name%(value);
-})
-`;
-
-var inplaceMethod = `
-(function %name%() {
-    for (var i = 0; i < this.rows; i++) {
-        for (var j = 0; j < this.columns; j++) {
-            this[i][j] = %method%(this[i][j]);
-        }
-    }
-    return this;
-})
-`;
-
-var staticMethod = `
-(function %name%(matrix) {
-    var newMatrix = new Matrix(matrix);
-    return newMatrix.%name%();
-})
-`;
-
-var inplaceMethodWithArgs = `
-(function %name%(%args%) {
-    for (var i = 0; i < this.rows; i++) {
-        for (var j = 0; j < this.columns; j++) {
-            this[i][j] = %method%(this[i][j], %args%);
-        }
-    }
-    return this;
-})
-`;
-
-var staticMethodWithArgs = `
-(function %name%(matrix, %args%) {
-    var newMatrix = new Matrix(matrix);
-    return newMatrix.%name%(%args%);
-})
-`;
-
-var inplaceMethodWithOneArgScalar = `
-(function %name%S(%args%) {
-    for (var i = 0; i < this.rows; i++) {
-        for (var j = 0; j < this.columns; j++) {
-            this[i][j] = %method%(this[i][j], %args%);
-        }
-    }
-    return this;
-})
-`;
-var inplaceMethodWithOneArgMatrix = `
-(function %name%M(%args%) {
-    checkDimensions(this, %args%);
-    for (var i = 0; i < this.rows; i++) {
-        for (var j = 0; j < this.columns; j++) {
-            this[i][j] = %method%(this[i][j], %args%[i][j]);
-        }
-    }
-    return this;
-})
-`;
-
-var inplaceMethodWithOneArg = `
-(function %name%(value) {
-    if (typeof value === 'number') return this.%name%S(value);
-    return this.%name%M(value);
-})
-`;
-
-var staticMethodWithOneArg = staticMethodWithArgs;
-
-var operators = [
-    // Arithmetic operators
-    ['+', 'add'],
-    ['-', 'sub', 'subtract'],
-    ['*', 'mul', 'multiply'],
-    ['/', 'div', 'divide'],
-    ['%', 'mod', 'modulus'],
-    // Bitwise operators
-    ['&', 'and'],
-    ['|', 'or'],
-    ['^', 'xor'],
-    ['<<', 'leftShift'],
-    ['>>', 'signPropagatingRightShift'],
-    ['>>>', 'rightShift', 'zeroFillRightShift']
-];
-
-for (var operator of operators) {
-    var inplaceOp = eval(fillTemplateFunction(inplaceOperator, {name: operator[1], op: operator[0]}));
-    var inplaceOpS = eval(fillTemplateFunction(inplaceOperatorScalar, {name: operator[1] + 'S', op: operator[0]}));
-    var inplaceOpM = eval(fillTemplateFunction(inplaceOperatorMatrix, {name: operator[1] + 'M', op: operator[0]}));
-    var staticOp = eval(fillTemplateFunction(staticOperator, {name: operator[1]}));
-    for (var i = 1; i < operator.length; i++) {
-        Matrix.prototype[operator[i]] = inplaceOp;
-        Matrix.prototype[operator[i] + 'S'] = inplaceOpS;
-        Matrix.prototype[operator[i] + 'M'] = inplaceOpM;
-        Matrix[operator[i]] = staticOp;
-    }
-}
-
-var methods = [
-    ['~', 'not']
-];
-
-[
-    'abs', 'acos', 'acosh', 'asin', 'asinh', 'atan', 'atanh', 'cbrt', 'ceil',
-    'clz32', 'cos', 'cosh', 'exp', 'expm1', 'floor', 'fround', 'log', 'log1p',
-    'log10', 'log2', 'round', 'sign', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', 'trunc'
-].forEach(function (mathMethod) {
-    methods.push(['Math.' + mathMethod, mathMethod]);
-});
-
-for (var method of methods) {
-    var inplaceMeth = eval(fillTemplateFunction(inplaceMethod, {name: method[1], method: method[0]}));
-    var staticMeth = eval(fillTemplateFunction(staticMethod, {name: method[1]}));
-    for (var i = 1; i < method.length; i++) {
-        Matrix.prototype[method[i]] = inplaceMeth;
-        Matrix[method[i]] = staticMeth;
-    }
-}
-
-var methodsWithArgs = [
-    ['Math.pow', 1, 'pow']
-];
-
-for (var methodWithArg of methodsWithArgs) {
-    var args = 'arg0';
-    for (var i = 1; i < methodWithArg[1]; i++) {
-        args += `, arg${i}`;
-    }
-    if (methodWithArg[1] !== 1) {
-        var inplaceMethWithArgs = eval(fillTemplateFunction(inplaceMethodWithArgs, {
-            name: methodWithArg[2],
-            method: methodWithArg[0],
-            args: args
-        }));
-        var staticMethWithArgs = eval(fillTemplateFunction(staticMethodWithArgs, {name: methodWithArg[2], args: args}));
-        for (var i = 2; i < methodWithArg.length; i++) {
-            Matrix.prototype[methodWithArg[i]] = inplaceMethWithArgs;
-            Matrix[methodWithArg[i]] = staticMethWithArgs;
-        }
-    } else {
-        var tmplVar = {
-            name: methodWithArg[2],
-            args: args,
-            method: methodWithArg[0]
-        };
-        console.log(tmplVar);
-        let inplaceMethod = eval(fillTemplateFunction(inplaceMethodWithOneArg, tmplVar));
-        let inplaceMethodS = eval(fillTemplateFunction(inplaceMethodWithOneArgScalar, tmplVar));
-        let inplaceMethodM = eval(fillTemplateFunction(inplaceMethodWithOneArgMatrix, tmplVar));
-        console.log(fillTemplateFunction(staticMethodWithOneArg, tmplVar));
-        let staticMethod = eval(fillTemplateFunction(staticMethodWithOneArg, tmplVar));
-        for (var i = 2; i < methodWithArg.length; i++) {
-            Matrix.prototype[methodWithArg[i]] = inplaceMethod;
-            Matrix.prototype[methodWithArg[i] + 'M'] = inplaceMethodM;
-            Matrix.prototype[methodWithArg[i] + 'S'] = inplaceMethodS;
-            Matrix[methodWithArg[i]] = staticMethod;
-        }
-    }
-}
-
-function fillTemplateFunction(template, values) {
-    for (var i in values) {
-        template = template.replace(new RegExp('%' + i + '%', 'g'), values[i]);
-    }
-    return template;
-}
+module.exports = BaseView;
 
 
 /***/ }),
@@ -3648,7 +2227,7 @@ else {
     }
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(21).Buffer))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(27).Buffer))
 
 /***/ }),
 /* 6 */
@@ -3657,8 +2236,8 @@ else {
 "use strict";
 
 
-module.exports = __webpack_require__(2);
-module.exports.Decompositions = module.exports.DC = __webpack_require__(97);
+exports.array = __webpack_require__(46);
+exports.matrix = __webpack_require__(120);
 
 
 /***/ }),
@@ -3667,17 +2246,177 @@ module.exports.Decompositions = module.exports.DC = __webpack_require__(97);
 
 "use strict";
 
+
+module.exports = __webpack_require__(3);
+module.exports.Decompositions = module.exports.DC = __webpack_require__(113);
+
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var Matrix = __webpack_require__(1);
+
+/**
+ * @private
+ * Check that a row index is not out of bounds
+ * @param {Matrix} matrix
+ * @param {number} index
+ * @param {boolean} [outer]
+ */
+exports.checkRowIndex = function checkRowIndex(matrix, index, outer) {
+    var max = outer ? matrix.rows : matrix.rows - 1;
+    if (index < 0 || index > max) {
+        throw new RangeError('Row index out of range');
+    }
+};
+
+/**
+ * @private
+ * Check that a column index is not out of bounds
+ * @param {Matrix} matrix
+ * @param {number} index
+ * @param {boolean} [outer]
+ */
+exports.checkColumnIndex = function checkColumnIndex(matrix, index, outer) {
+    var max = outer ? matrix.columns : matrix.columns - 1;
+    if (index < 0 || index > max) {
+        throw new RangeError('Column index out of range');
+    }
+};
+
+/**
+ * @private
+ * Check that the provided vector is an array with the right length
+ * @param {Matrix} matrix
+ * @param {Array|Matrix} vector
+ * @return {Array}
+ * @throws {RangeError}
+ */
+exports.checkRowVector = function checkRowVector(matrix, vector) {
+    if (vector.to1DArray) {
+        vector = vector.to1DArray();
+    }
+    if (vector.length !== matrix.columns) {
+        throw new RangeError('vector size must be the same as the number of columns');
+    }
+    return vector;
+};
+
+/**
+ * @private
+ * Check that the provided vector is an array with the right length
+ * @param {Matrix} matrix
+ * @param {Array|Matrix} vector
+ * @return {Array}
+ * @throws {RangeError}
+ */
+exports.checkColumnVector = function checkColumnVector(matrix, vector) {
+    if (vector.to1DArray) {
+        vector = vector.to1DArray();
+    }
+    if (vector.length !== matrix.rows) {
+        throw new RangeError('vector size must be the same as the number of rows');
+    }
+    return vector;
+};
+
+exports.checkIndices = function checkIndices(matrix, rowIndices, columnIndices) {
+    var rowOut = rowIndices.some(r => {
+        return r < 0 || r >= matrix.rows;
+
+    });
+
+    var columnOut = columnIndices.some(c => {
+        return c < 0 || c >= matrix.columns;
+    });
+
+    if (rowOut || columnOut) {
+        throw new RangeError('Indices are out of range');
+    }
+
+    if (typeof rowIndices !== 'object' || typeof columnIndices !== 'object') {
+        throw new TypeError('Unexpected type for row/column indices');
+    }
+    if (!Array.isArray(rowIndices)) rowIndices = Array.from(rowIndices);
+    if (!Array.isArray(columnIndices)) rowIndices = Array.from(columnIndices);
+
+    return {
+        row: rowIndices,
+        column: columnIndices
+    };
+};
+
+exports.checkRange = function checkRange(matrix, startRow, endRow, startColumn, endColumn) {
+    if (arguments.length !== 5) throw new TypeError('Invalid argument type');
+    var notAllNumbers = Array.from(arguments).slice(1).some(function (arg) {
+        return typeof arg !== 'number';
+    });
+    if (notAllNumbers) throw new TypeError('Invalid argument type');
+    if (startRow > endRow || startColumn > endColumn || startRow < 0 || startRow >= matrix.rows || endRow < 0 || endRow >= matrix.rows || startColumn < 0 || startColumn >= matrix.columns || endColumn < 0 || endColumn >= matrix.columns) {
+        throw new RangeError('Submatrix indices are out of range');
+    }
+};
+
+exports.getRange = function getRange(from, to) {
+    var arr = new Array(to - from + 1);
+    for (var i = 0; i < arr.length; i++) {
+        arr[i] = from + i;
+    }
+    return arr;
+};
+
+exports.sumByRow = function sumByRow(matrix) {
+    var sum = Matrix.Matrix.zeros(matrix.rows, 1);
+    for (var i = 0; i < matrix.rows; ++i) {
+        for (var j = 0; j < matrix.columns; ++j) {
+            sum.set(i, 0, sum.get(i, 0) + matrix.get(i, j));
+        }
+    }
+    return sum;
+};
+
+exports.sumByColumn = function sumByColumn(matrix) {
+    var sum = Matrix.Matrix.zeros(1, matrix.columns);
+    for (var i = 0; i < matrix.rows; ++i) {
+        for (var j = 0; j < matrix.columns; ++j) {
+            sum.set(0, j, sum.get(0, j) + matrix.get(i, j));
+        }
+    }
+    return sum;
+};
+
+exports.sumAll = function sumAll(matrix) {
+    var v = 0;
+    for (var i = 0; i < matrix.rows; i++) {
+        for (var j = 0; j < matrix.columns; j++) {
+            v += matrix.get(i, j);
+        }
+    }
+    return v;
+};
+
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
 // small note on the best way to define array
 // http://jsperf.com/lp-array-and-loops/2
 
-const StatArray = __webpack_require__(3).array;
-const ArrayUtils = __webpack_require__(72);
-const JcampConverter = __webpack_require__(23);
-const JcampCreator = __webpack_require__(138);
-const peakPicking = __webpack_require__(52);
+var StatArray = __webpack_require__(6).array;
+var ArrayUtils = __webpack_require__(38);
+var JcampConverter = __webpack_require__(29);
+var JcampCreator = __webpack_require__(66);
+var peakPicking = __webpack_require__(24);
 
-const DATACLASS_XY = 1;
-const DATACLASS_PEAK = 2;
+var DATACLASS_XY = 1;
+var DATACLASS_PEAK = 2;
 
 /**
  * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
@@ -3700,7 +2439,7 @@ class SD {
      * @return {SD} Return the constructed SD instance
      */
     static fromJcamp(jcamp, options) {
-        options = Object.assign({}, {keepSpectra: true, keepRecordsRegExp: /^.+$/}, options, {xy: true});
+        options = Object.assign({}, { keepSpectra: true, keepRecordsRegExp: /^.+$/ }, options, { xy: true });
         var spectrum = JcampConverter.convert(jcamp, options);
         return new this(spectrum);
     }
@@ -3798,7 +2537,6 @@ class SD {
         i = i || this.activeElement;
         return this.sd.spectra[i].lastX;
     }
-
 
     /**
      * Set the last value of the direct dimension. You have to force and update of the xAxis after!!!
@@ -4025,7 +2763,6 @@ class SD {
         return StatArray.minMax(this.getYData(i));
     }
 
-
     /**
      * Get the noise threshold level of the current spectrum. It uses median instead of the mean
      * @return {number}
@@ -4041,7 +2778,7 @@ class SD {
      * @return {number}
      */
     arrayPointToUnits(doublePoint) {
-        return (this.getFirstX() - (doublePoint * (this.getFirstX() - this.getLastX()) / (this.getNbPoints() - 1)));
+        return this.getFirstX() - doublePoint * (this.getFirstX() - this.getLastX()) / (this.getNbPoints() - 1);
     }
 
     /**
@@ -4057,7 +2794,10 @@ class SD {
         if (this.isDataClassXY()) {
             return Math.round((this.getFirstX() - inValue) * (-1.0 / this.getDeltaX()));
         } else if (this.isDataClassPeak()) {
-            var currentArrayPoint = 0, upperLimit = this.getNbPoints() - 1, lowerLimit = 0, midPoint;
+            var currentArrayPoint = 0,
+                upperLimit = this.getNbPoints() - 1,
+                lowerLimit = 0,
+                midPoint;
             //If inverted scale
             if (this.getFirstX() > this.getLastX()) {
                 upperLimit = 0;
@@ -4114,7 +2854,7 @@ class SD {
      * @param {number} max - Maximum desired value for Y
      */
     setMinMax(min, max) {
-        ArrayUtils.scale(this.getYData(), {min: min, max: max, inplace: true});
+        ArrayUtils.scale(this.getYData(), { min: min, max: max, inplace: true });
     }
 
     /**
@@ -4122,7 +2862,7 @@ class SD {
      * @param {number} min - Minimum desired value for Y
      */
     setMin(min) {
-        ArrayUtils.scale(this.getYData(), {min: min, inplace: true});
+        ArrayUtils.scale(this.getYData(), { min: min, inplace: true });
     }
 
     /**
@@ -4130,7 +2870,7 @@ class SD {
      * @param {number} max - Maximum desired value for Y
      */
     setMax(max) {
-        ArrayUtils.scale(this.getYData(), {max: max, inplace: true});
+        ArrayUtils.scale(this.getYData(), { max: max, inplace: true });
     }
 
     /**
@@ -4139,7 +2879,8 @@ class SD {
      */
     yShift(value) {
         var y = this.getSpectrumData().y;
-        var length = this.getNbPoints(), i = 0;
+        var length = this.getNbPoints(),
+            i = 0;
         for (i = 0; i < length; i++) {
             y[i] += value;
         }
@@ -4153,10 +2894,11 @@ class SD {
      * @param {number} globalShift - Distance of the shift for direct dimension.
      */
     shift(globalShift) {
-        for (let i = 0; i < this.getNbSubSpectra(); i++) {
+        for (var i = 0; i < this.getNbSubSpectra(); i++) {
             this.setActiveElement(i);
             var x = this.getSpectrumData().x;
-            var length = this.getNbPoints(), j = 0;
+            var length = this.getNbPoints(),
+                j = 0;
             for (j = 0; j < length; j++) {
                 x[j] += globalShift;
             }
@@ -4221,7 +2963,6 @@ class SD {
         this.setDataClass(DATACLASS_PEAK);
     }
 
-
     /**
      * This function performs a simple peak detection in a spectraData. The parameters that can be specified are:
      * Returns a two dimensional array of double specifying [x,y] of the detected peaks.
@@ -4246,7 +2987,8 @@ class SD {
      */
     getMaxPeak() {
         var y = this.getSpectraDataY();
-        var max = y[0], index = 0;
+        var max = y[0],
+            index = 0;
         for (var i = 0; i < y.length; i++) {
             if (max < y[i]) {
                 max = y[i];
@@ -4344,9 +3086,9 @@ class SD {
     /**
      * Update min max values of X and Y axis.
      */
-    resetMinMax() {
-        //TODO: Implement this function
-    }
+    resetMinMax() {}
+    //TODO: Implement this function
+
 
     /**
      * Set a new parameter to this spectrum
@@ -4383,7 +3125,7 @@ class SD {
     /**
      * This function return the integral values for certains ranges at specific SD instance .
      * @param {array} ranges - array of objects ranges
-     * @param {object} options - option such as nH for normalization, if it is nH is zero the integral value returned 
+     * @param {object} options - option such as nH for normalization, if it is nH is zero the integral value returned
      * is absolute value
      */
     updateIntegrals(ranges, options) {
@@ -4409,8 +3151,7 @@ class SD {
      */
     getVector(from, to, nPoints) {
         if (nPoints) {
-            return ArrayUtils.getEquallySpacedData(this.getSpectraDataX(), this.getSpectraDataY(),
-                {from: from, to: to, numberOfPoints: nPoints});
+            return ArrayUtils.getEquallySpacedData(this.getSpectraDataX(), this.getSpectraDataY(), { from: from, to: to, numberOfPoints: nPoints });
         } else {
             return this.getPointsInWindow(from, to);
         }
@@ -4427,7 +3168,9 @@ class SD {
     getPointsInWindow(from, to, nPoints) {
         var x = this.getSpectraDataX();
         var y = this.getSpectraDataY();
-        var start = 0, end = x.length - 1, direction = 1;
+        var start = 0,
+            end = x.length - 1,
+            direction = 1;
 
         if (x[0] > x[1]) {
             direction = -1;
@@ -4509,7 +3252,7 @@ class SD {
                 return this.mf.replace(/.*C([0-9]+).*/, '$1') * 1;
             }
         } else {
-                //throw "Could not determine the totalIntegral";
+            //throw "Could not determine the totalIntegral";
             return 100;
         }
 
@@ -4553,8 +3296,7 @@ class SD {
     }
 
     /*autoAssignment(options) {
-
-    }*/
+     }*/
 
     /**
      * This function creates a String that represents the given spectraData in the format JCAMP-DX 5.0
@@ -4571,15 +3313,14 @@ class SD {
      */
     toJcamp(options) {
         var creator = new JcampCreator();
-        return creator.convert(this, Object.assign({}, {yFactor: 1, encode: 'DIFDUP', type: 'SIMPLE'}, options));
+        return creator.convert(this, Object.assign({}, { yFactor: 1, encode: 'DIFDUP', type: 'SIMPLE' }, options));
     }
 }
 
 module.exports = SD;
 
-
 /***/ }),
-/* 8 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4656,7 +3397,7 @@ exports.decode = function(input, utf8) {
 
 
 /***/ }),
-/* 9 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4672,11 +3413,11 @@ exports.STORE = {
     compressInputType: null,
     uncompressInputType: null
 };
-exports.DEFLATE = __webpack_require__(62);
+exports.DEFLATE = __webpack_require__(83);
 
 
 /***/ }),
-/* 10 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4688,26 +3429,26 @@ module.exports.test = function(b){
     return Buffer.isBuffer(b);
 };
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(21).Buffer))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(27).Buffer))
 
 /***/ }),
-/* 11 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var support = __webpack_require__(5);
 var utils = __webpack_require__(0);
-var crc32 = __webpack_require__(60);
-var signature = __webpack_require__(28);
-var defaults = __webpack_require__(27);
-var base64 = __webpack_require__(8);
-var compressions = __webpack_require__(9);
-var CompressedObject = __webpack_require__(25);
-var nodeBuffer = __webpack_require__(10);
-var utf8 = __webpack_require__(31);
-var StringWriter = __webpack_require__(66);
-var Uint8ArrayWriter = __webpack_require__(67);
+var crc32 = __webpack_require__(81);
+var signature = __webpack_require__(34);
+var defaults = __webpack_require__(33);
+var base64 = __webpack_require__(10);
+var compressions = __webpack_require__(11);
+var CompressedObject = __webpack_require__(31);
+var nodeBuffer = __webpack_require__(12);
+var utf8 = __webpack_require__(37);
+var StringWriter = __webpack_require__(87);
+var Uint8ArrayWriter = __webpack_require__(88);
 
 /**
  * Returns the raw data of a ZipObject, decompress the content if necessary.
@@ -5568,13 +4309,26 @@ module.exports = out;
 
 
 /***/ }),
-/* 12 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-function Cluster () {
+exports.FFTUtils = __webpack_require__(96);
+exports.FFT = __webpack_require__(40);
+
+
+/***/ }),
+/* 15 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+const Heap = __webpack_require__(75);
+
+function Cluster() {
     this.children = [];
     this.distance = -1;
     this.index = [];
@@ -5595,52 +4349,66 @@ Cluster.prototype.cut = function (threshold) {
     var ans = [];
     while (list.length > 0) {
         var aux = list.shift();
-        if (threshold >= aux.distance)
+        if (threshold >= aux.distance) {
             ans.push(aux);
-        else
+        } else {
             list = list.concat(aux.children);
+        }
     }
     return ans;
 };
 
 /**
  * Merge the leaves in the minimum way to have 'minGroups' number of clusters
- * @param {number} minGroups
+ * @param {number} minGroups - Them minimum number of children the first level of the tree should have
  * @return {Cluster}
  */
 Cluster.prototype.group = function (minGroups) {
-    if (minGroups < 1) throw new RangeError('Number of groups too small');
-    var root = new Cluster();
-    root.children = this.children;
-    root.distance = this.distance;
-    root.index = this.index;
-    if (minGroups === 1)
-        return root;
-    var list = [root];
-    var aux;
-    while (list.length < minGroups && list.length !== 0) {
-        aux = list.shift();
-        list = list.concat(aux.children);
+    if (!Number.isInteger(minGroups) || minGroups < 1) throw new RangeError('Number of groups must be a positive integer');
+
+    const heap = new Heap(function (a, b) {
+        return b.distance - a.distance;
+    });
+
+    heap.push(this);
+
+    while (heap.size() < minGroups) {
+        var first = heap.pop();
+        if (first.children.length === 0) {
+            break;
+        }
+        first.children.forEach(child => heap.push(child));
     }
-    if (list.length === 0) throw new RangeError('Number of groups too big');
-    for (var i = 0; i < list.length; i++)
-        if (list[i].distance === aux.distance) {
-            list.concat(list[i].children.slice(1));
-            list[i] = list[i].children[0];
-        }
-    for (var j = 0; j < list.length; j++)
-        if (list[j].distance !== 0) {
-            var obj = list[j];
-            obj.children = obj.index;
-        }
+
+    var root = new Cluster();
+    root.children = heap.toArray();
+    root.distance = this.distance;
+
     return root;
+};
+
+/**
+ * Traverses the tree depth-first and provide callback to be called on each individual node
+ * @param {function} cb - The callback to be called on each node encounter
+ * @type {Cluster}
+ */
+Cluster.prototype.traverse = function (cb) {
+    function visit(root, callback) {
+        callback(root);
+        if (root.children) {
+            for (var i = root.children.length - 1; i >= 0; i--) {
+                visit(root.children[i], callback);
+            }
+        }
+    }
+    visit(this, cb);
 };
 
 module.exports = Cluster;
 
 
 /***/ }),
-/* 13 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5661,7 +4429,7 @@ exports.hypotenuse = function hypotenuse(a, b) {
 
 
 /***/ }),
-/* 14 */
+/* 17 */
 /***/ (function(module, exports) {
 
 module.exports = newArray
@@ -5677,19 +4445,20 @@ function newArray (n, value) {
 
 
 /***/ }),
-/* 15 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 exports.hypotenuse = function hypotenuse(a, b) {
+    var r;
     if (Math.abs(a) > Math.abs(b)) {
-        var r = b / a;
+        r = b / a;
         return Math.abs(a) * Math.sqrt(1 + r * r);
     }
     if (b !== 0) {
-        var r = a / b;
+        r = a / b;
         return Math.abs(b) * Math.sqrt(1 + r * r);
     }
     return 0;
@@ -5720,18 +4489,18 @@ exports.getFilled2DArray = function (rows, columns, value) {
 
 
 /***/ }),
-/* 16 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-module.exports = __webpack_require__(4);
-module.exports.Decompositions = module.exports.DC = __webpack_require__(112);
+module.exports = __webpack_require__(1).Matrix;
+module.exports.Decompositions = module.exports.DC = __webpack_require__(124);
 
 
 /***/ }),
-/* 17 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5751,24 +4520,25 @@ module.exports = {
 
 
 /***/ }),
-/* 18 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 //const JAnalyzer = require('./../peakPicking/JAnalyzer');
-const peakPicking = __webpack_require__(52);
-const acs = __webpack_require__(143);
-const peak2Vector = __webpack_require__(144);
-const GUI = __webpack_require__(145);
+
+var peakPicking = __webpack_require__(24);
+var acs = __webpack_require__(71);
+var peak2Vector = __webpack_require__(72);
+var GUI = __webpack_require__(73);
 
 class Ranges extends Array {
 
     constructor(ranges) {
         if (Array.isArray(ranges)) {
             super(ranges.length);
-            for (let i = 0; i < ranges.length; i++) {
+            for (var i = 0; i < ranges.length; i++) {
                 this[i] = ranges[i];
             }
         } else if (typeof ranges === 'number') {
@@ -5787,17 +4557,11 @@ class Ranges extends Array {
      * @returns {Ranges}
      */
     static fromPrediction(predictions, options) {
-        options = Object.assign({}, {lineWidth: 1, frequency: 400, nucleus: '1H'}, options);
+        options = Object.assign({}, { lineWidth: 1, frequency: 400, nucleus: '1H' }, options);
         //1. Collapse all the equivalent predictions
-        const nPredictions = predictions.length;
-        const ids = new Array(nPredictions);
-        var i,
-            j,
-            diaIDs,
-            prediction,
-            width,
-            center,
-            jc;
+        var nPredictions = predictions.length;
+        var ids = new Array(nPredictions);
+        var i, j, diaIDs, prediction, width, center, jc;
         for (i = 0; i < nPredictions; i++) {
             if (!ids[predictions[i].diaIDs[0]]) {
                 ids[predictions[i].diaIDs[0]] = [i];
@@ -5805,8 +4569,8 @@ class Ranges extends Array {
                 ids[predictions[i].diaIDs[0]].push(i);
             }
         }
-        const idsKeys = Object.keys(ids);
-        const result = new Array(idsKeys.length);
+        var idsKeys = Object.keys(ids);
+        var result = new Array(idsKeys.length);
 
         for (i = 0; i < idsKeys.length; i++) {
             diaIDs = ids[idsKeys[i]];
@@ -5819,14 +4583,14 @@ class Ranges extends Array {
                 }
             }
 
-            width += 2 * options.lineWidth;//Add 2 times the spectral lineWidth
+            width += 2 * options.lineWidth; //Add 2 times the spectral lineWidth
 
             width /= options.frequency;
 
-            result[i] = {from: prediction.delta - width,
+            result[i] = { from: prediction.delta - width,
                 to: prediction.delta + width,
                 integral: 1,
-                signal: [predictions[diaIDs[0]]]};
+                signal: [predictions[diaIDs[0]]] };
             for (j = 1; j < diaIDs.length; j++) {
                 result[i].signal.push(predictions[diaIDs[j]]);
                 result[i].integral++;
@@ -5839,8 +4603,7 @@ class Ranges extends Array {
             width = Math.abs(result[i].from - result[i].to);
             for (j = result.length - 1; j > i; j--) {
                 //Does it overlap?
-                if (Math.abs(center - (result[j].from + result[j].to) / 2)
-                    <= Math.abs(width + Math.abs(result[j].from - result[j].to)) / 2) {
+                if (Math.abs(center - (result[j].from + result[j].to) / 2) <= Math.abs(width + Math.abs(result[j].from - result[j].to)) / 2) {
                     result[i].from = Math.min(result[i].from, result[j].from);
                     result[i].to = Math.max(result[i].to, result[j].to);
                     result[i].integral = result[i].integral + result[j].integral;
@@ -5873,7 +4636,7 @@ class Ranges extends Array {
             optimize: true,
             idPrefix: '',
             format: 'new',
-            frequencyCluster: 16,
+            frequencyCluster: 16
         }, opt);
 
         return new Ranges(peakPicking(spectrum, this.options));
@@ -5884,13 +4647,13 @@ class Ranges extends Array {
      * @returns {Ranges}
      */
     updateMultiplicity() {
-        for (let i = 0; i < this.length; i++) {
+        for (var i = 0; i < this.length; i++) {
             var range = this[i];
-            for (let j = 0; j < range.signal.length; j++) {
+            for (var j = 0; j < range.signal.length; j++) {
                 var signal = range.signal[j];
                 if (signal.j && !signal.multiplicity) {
                     signal.multiplicity = '';
-                    for (let k = 0; k < signal.j.length; k++) {
+                    for (var k = 0; k < signal.j.length; k++) {
                         signal.multiplicity += signal.j[k].multiplicity;
                     }
                 }
@@ -5938,8 +4701,7 @@ class Ranges extends Array {
      */
     getPeakList() {
         var peaks = [];
-        var i,
-            j;
+        var i, j;
         for (i = 0; i < this.length; i++) {
             var range = this[i];
             for (j = 0; j < range.signal.length; j++) {
@@ -5965,9 +4727,411 @@ class Ranges extends Array {
 
 module.exports = Ranges;
 
+/***/ }),
+/* 22 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports.fourierTransform = __webpack_require__(62);
+module.exports.zeroFilling = __webpack_require__(65);
+module.exports.apodization = __webpack_require__(60);
+module.exports.phaseCorrection = __webpack_require__(63);
+module.exports.digitalFilter = __webpack_require__(61);
 
 /***/ }),
-/* 19 */
+/* 23 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var diagonalError = 0.05;
+var tolerance = 0.05;
+
+module.exports = {
+
+    clean: function clean(peaks, threshold) {
+        var max = Number.NEGATIVE_INFINITY;
+        var i;
+        //double min = Double.MAX_VALUE;
+        for (i = peaks.length - 1; i >= 0; i--) {
+            if (Math.abs(peaks[i].z) > max) {
+                max = Math.abs(peaks[i].z);
+            }
+        }
+        max *= threshold;
+        for (i = peaks.length - 1; i >= 0; i--) {
+            if (Math.abs(peaks[i].z) < max) {
+                peaks.splice(i, 1);
+            }
+        }
+        return peaks;
+    },
+
+    enhanceSymmetry: function enhanceSymmetry(signals) {
+
+        var properties = initializeProperties(signals);
+        var output = signals;
+
+        //First step of the optimization: Symmetry validation
+        var i, hits, index;
+        var signal;
+        for (i = output.length - 1; i >= 0; i--) {
+            signal = output[i];
+            if (signal.peaks.length > 1) {
+                properties[i][1]++;
+            }
+            if (properties[i][0] === 1) {
+                index = exist(output, properties, signal, -1, true);
+                if (index >= 0) {
+                    properties[i][1] += 2;
+                    properties[index][1] += 2;
+                }
+            }
+        }
+        //Second step of the optimization: Diagonal image existence
+        for (i = output.length - 1; i >= 0; i--) {
+            signal = output[i];
+            if (properties[i][0] === 0) {
+                hits = checkCrossPeaks(output, properties, signal, true);
+                properties[i][1] += hits;
+                //checkCrossPeaks(output, properties, signal, false);
+            }
+        }
+
+        //Now, each peak have a score between 0 and 4, we can complete the patterns which
+        //contains peaks with high scores, and finally, we can remove peaks with scores 0 and 1
+        var count = 0;
+        for (i = output.length - 1; i >= 0; i--) {
+            if (properties[i][0] !== 0 && properties[i][1] > 2) {
+                count++;
+                count += completeMissingIfNeeded(output, properties, output[i], properties[i]);
+            }
+            if (properties[i][1] >= 2 && properties[i][0] === 0) {
+                count++;
+            }
+        }
+
+        var toReturn = new Array(count);
+        count--;
+        for (i = output.length - 1; i >= 0; i--) {
+            if (properties[i][0] !== 0 && properties[i][1] > 2 || properties[i][0] === 0 && properties[i][1] > 1) {
+                toReturn[count--] = output[i];
+            }
+        }
+        return toReturn;
+    },
+
+    /**
+     * This function maps the corresponding 2D signals to the given set of 1D signals
+     * @param {Array} signals2D
+     * @param {Array} references
+     */
+    alignDimensions: function alignDimensions(signals2D, references) {
+        //For each reference dimension
+        for (var i = 0; i < references.length; i++) {
+            var ref = references[i];
+            if (ref) {
+                alignSingleDimension(signals2D, ref);
+            }
+        }
+    }
+};
+
+function completeMissingIfNeeded(output, properties, thisSignal, thisProp) {
+    //Check for symmetry
+    var index = exist(output, properties, thisSignal, -thisProp[0], true);
+    var addedPeaks = 0;
+    var newSignal = null,
+        tmpProp = null;
+    if (index < 0) {
+        //If this signal have no a symmetry image, we have to include it
+        newSignal = { nucleusX: thisSignal.nucleusX, nucleusY: thisSignal.nucleusY };
+        newSignal.resolutionX = thisSignal.resolutionX;
+        newSignal.resolutionY = thisSignal.resolutionY;
+        newSignal.shiftX = thisSignal.shiftY;
+        newSignal.shiftY = thisSignal.shiftX;
+        newSignal.peaks = [{ x: thisSignal.shiftY, y: thisSignal.shiftX, z: 1 }];
+        output.push(newSignal);
+        tmpProp = [-thisProp[0], thisProp[1]];
+        properties.push(tmpProp);
+        addedPeaks++;
+    }
+    //Check for diagonal peaks
+    var j = 0;
+    var diagX = false,
+        diagY = false;
+    var signal;
+    for (j = output.length - 1; j >= 0; j--) {
+        signal = output[j];
+        if (properties[j][0] === 0) {
+            if (Math.abs(signal.shiftX - thisSignal.shiftX) < diagonalError) {
+                diagX = true;
+            }
+            if (Math.abs(signal.shiftY - thisSignal.shiftY) < diagonalError) {
+                diagY = true;
+            }
+        }
+    }
+    if (diagX === false) {
+        newSignal = { nucleusX: thisSignal.nucleusX, nucleusY: thisSignal.nucleusY };
+        newSignal.resolutionX = thisSignal.resolutionX;
+        newSignal.resolutionY = thisSignal.resolutionY;
+        newSignal.shiftX = thisSignal.shiftX;
+        newSignal.shiftY = thisSignal.shiftX;
+        newSignal.peaks = [{ x: thisSignal.shiftX, y: thisSignal.shiftX, z: 1 }];
+        output.push(newSignal);
+        tmpProp = [0, thisProp[1]];
+        properties.push(tmpProp);
+        addedPeaks++;
+    }
+    if (diagY === false) {
+        newSignal = { nucleusX: thisSignal.nucleusX, nucleusY: thisSignal.nucleusY };
+        newSignal.resolutionX = thisSignal.resolutionX;
+        newSignal.resolutionY = thisSignal.resolutionY;
+        newSignal.shiftX = thisSignal.shiftY;
+        newSignal.shiftY = thisSignal.shiftY;
+        newSignal.peaks = [{ x: thisSignal.shiftY, y: thisSignal.shiftY, z: 1 }];
+        output.push(newSignal);
+        tmpProp = [0, thisProp[1]];
+        properties.push(tmpProp);
+        addedPeaks++;
+    }
+    return addedPeaks;
+}
+
+//Check for any diagonal peak that match this cross peak
+function checkCrossPeaks(output, properties, signal, updateProperties) {
+    var hits = 0,
+        i = 0,
+        shift = signal.shiftX * 4;
+    var crossPeaksX = [],
+        crossPeaksY = [];
+    var cross;
+    for (i = output.length - 1; i >= 0; i--) {
+        cross = output[i];
+        if (properties[i][0] !== 0) {
+            if (Math.abs(cross.shiftX - signal.shiftX) < diagonalError) {
+                hits++;
+                if (updateProperties) {
+                    properties[i][1]++;
+                }
+                crossPeaksX.push(i);
+                shift += cross.shiftX;
+            } else {
+                if (Math.abs(cross.shiftY - signal.shiftY) < diagonalError) {
+                    hits++;
+                    if (updateProperties) {
+                        properties[i][1]++;
+                    }
+                    crossPeaksY.push(i);
+                    shift += cross.shiftY;
+                }
+            }
+        }
+    }
+    //Update found crossPeaks and diagonal peak
+    shift /= crossPeaksX.length + crossPeaksY.length + 4;
+    if (crossPeaksX.length > 0) {
+        for (i = crossPeaksX.length - 1; i >= 0; i--) {
+            output[crossPeaksX[i]].shiftX = shift;
+        }
+    }
+    if (crossPeaksY.length > 0) {
+        for (i = crossPeaksY.length - 1; i >= 0; i--) {
+            output[crossPeaksY[i]].shiftY = shift;
+        }
+    }
+    signal.shiftX = shift;
+    signal.shiftY = shift;
+    return hits;
+}
+
+function exist(output, properties, signal, type, symmetricSearch) {
+    for (var i = output.length - 1; i >= 0; i--) {
+        if (properties[i][0] === type) {
+            if (distanceTo(signal, output[i], symmetricSearch) < tolerance) {
+                if (!symmetricSearch) {
+                    var shiftX = (output[i].shiftX + signal.shiftX) / 2.0;
+                    var shiftY = (output[i].shiftY + signal.shiftY) / 2.0;
+                    output[i].shiftX = shiftX;
+                    output[i].shiftY = shiftY;
+                    signal.shiftX = shiftX;
+                    signal.shiftY = shiftY;
+                } else {
+                    var _shiftX = signal.shiftX;
+                    var _shiftY = output[i].shiftX;
+                    output[i].shiftY = _shiftX;
+                    signal.shiftY = _shiftY;
+                }
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+/**
+ * We try to determine the position of each signal within the spectrum matrix.
+ * Peaks could be of 3 types: upper diagonal, diagonal or under diagonal 1,0,-1
+ * respectively.
+ * @param {Array} signals
+ * @return {*} A matrix containing the properties of each signal
+ * @private
+ */
+function initializeProperties(signals) {
+    var signalsProperties = new Array(signals.length);
+    for (var i = signals.length - 1; i >= 0; i--) {
+        signalsProperties[i] = [0, 0];
+        //We check if it is a diagonal peak
+        if (Math.abs(signals[i].shiftX - signals[i].shiftY) <= diagonalError) {
+            signalsProperties[i][1] = 1;
+            //We adjust the x and y value to be symmetric.
+            //In general chemical shift in the direct dimension is better than in the other one,
+            //so, we believe more to the shiftX than to the shiftY.
+            var shift = (signals[i].shiftX * 2 + signals[i].shiftY) / 3.0;
+            signals[i].shiftX = shift;
+            signals[i].shiftY = shift;
+        } else {
+            if (signals[i].shiftX - signals[i].shiftY > 0) {
+                signalsProperties[i][0] = 1;
+            } else {
+                signalsProperties[i][0] = -1;
+            }
+        }
+    }
+    return signalsProperties;
+}
+
+/**
+ * This function calculates the distance between 2 nmr signals . If toImage is true,
+ * it will interchange x by y in the distance calculation for the second signal.
+ * @param {object} a
+ * @param {object} b
+ * @param {boolean} toImage
+ * @return {number}
+ * @private
+ */
+function distanceTo(a, b, toImage) {
+    if (!toImage) {
+        return Math.sqrt(Math.pow(a.shiftX - b.shiftX, 2) + Math.pow(a.shiftY - b.shiftY, 2));
+    } else {
+        return Math.sqrt(Math.pow(a.shiftX - b.shiftY, 2) + Math.pow(a.shiftY - b.shiftX, 2));
+    }
+}
+
+function alignSingleDimension(signals2D, references) {
+    //For each 2D signal
+    var center = 0,
+        width = 0,
+        i,
+        j;
+    for (i = 0; i < signals2D.length; i++) {
+        var signal2D = signals2D[i];
+        //For each reference 1D signal
+        for (j = 0; j < references.length; j++) {
+            center = (references[j].startX + references[j].stopX) / 2;
+            width = Math.abs(references[j].startX - references[j].stopX) / 2;
+            if (signal2D.nucleusX === references[j].nucleus) {
+                //The 2D peak overlaps with the 1D signal
+                if (Math.abs(signal2D.shiftX - center) <= width) {
+                    signal2D._highlight.push(references[j]._highlight[0]);
+                }
+            }
+            if (signal2D.nucleusY === references[j].nucleus) {
+                if (Math.abs(signal2D.shiftY - center) <= width) {
+                    signal2D._highlight.push(references[j]._highlight[0]);
+                }
+            }
+        }
+    }
+}
+
+/***/ }),
+/* 24 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/**
+ * Implementation of the peak picking method described by Cobas in:
+ * A new approach to improving automated analysis of proton NMR spectra
+ * through Global Spectral Deconvolution (GSD)
+ * http://www.spectroscopyeurope.com/images/stories/ColumnPDFs/TD_23_1.pdf
+ * @param {SD} spectrum - SD instance
+ * @param {Object} peakList - nmr signals
+ * @param {Object} options - options object with some parameter for GSD
+ * @param {boolean} [options.clean = true] - If true remove all the signals with integral < 0.5
+ * @param {number} [options.minMaxRatio = 0.01] - Threshold to determine if a given peak should be considered as a noise, bases on its relative height compared to the highest peak.
+ * @param {number} [options.broadRatio = 0.00025] - If broadRatio is higher than 0, then all the peaks which second derivative smaller than broadRatio * maxAbsSecondDerivative will be marked with the soft mask equal to true.
+ * @param {boolean} [options.smoothY = true] - Select the peak intensities from a smoothed version of the independent variables?
+ * @param {number} [options.nL = 4] - factor to determine the width at the moment to group the peaks in signals in 'GSD.optimizePeaks' function.
+ * @param {boolean} [options.optimize = true] - if it's true adjust an train of gaussian or lorentzian shapes to spectrum.
+ * @param {string} [options.functionType = 'gaussian'] - This option allows us choose between 'gaussian' or 'lorentzian' function when options.optimize is true.
+ * @param {number} [options.broadWidth = 0.25] - Threshold to determine if some peak is candidate to clustering into range.
+ * @returns {Array}
+ */
+
+var GSD = __webpack_require__(98);
+//var extend = require("extend");
+//var removeImpurities = require('./ImpurityRemover');
+
+var defaultOptions = {
+
+    thresholdFactor: 1,
+    optimize: false,
+    minMaxRatio: 0.01,
+    broadRatio: 0.00025,
+    smoothY: true,
+    nL: 4,
+    functionType: 'gaussian',
+    broadWidth: 0.25,
+    sgOptions: { windowSize: 9, polynomial: 3 }
+};
+
+function extractPeaks(spectrum, optionsEx) {
+    var options = Object.assign({}, defaultOptions, optionsEx);
+    var noiseLevel = Math.abs(spectrum.getNoiseLevel()) * options.thresholdFactor;
+    var data = spectrum.getXYData();
+
+    if (options.from && options.to) {
+        data = spectrum.getVector(options.from, options.to);
+    }
+
+    var peakList = GSD.gsd(data[0], data[1], options);
+
+    if (options.broadWidth) {
+        peakList = GSD.post.joinBroadPeaks(peakList, { width: options.broadWidth });
+    }
+
+    if (options.optimize) {
+        peakList = GSD.post.optimizePeaks(peakList, data[0], data[1], options.nL, options.functionType);
+    }
+
+    return clearList(peakList, noiseLevel);
+}
+
+/**
+ * this function remove the peaks with an intensity lower to threshold
+ * @param {object} peakList - peaks
+ * @param {number} threshold
+ * @returns {object} the clean peakList
+ * @private
+ */
+function clearList(peakList, threshold) {
+    for (var i = peakList.length - 1; i >= 0; i--) {
+        if (Math.abs(peakList[i].y) < threshold) {
+            peakList.splice(i, 1);
+        }
+    }
+    return peakList;
+}
+
+module.exports = extractPeaks;
+
+/***/ }),
+/* 25 */
 /***/ (function(module, exports) {
 
 module.exports = function(haystack, needle, comparator, low, high) {
@@ -6016,15 +5180,15 @@ module.exports = function(haystack, needle, comparator, low, high) {
 
 
 /***/ }),
-/* 20 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const Converter = __webpack_require__(23);
-const IOBuffer = __webpack_require__(57);
-const JSZip = __webpack_require__(63);
+const Converter = __webpack_require__(29);
+const IOBuffer = __webpack_require__(78);
+const JSZip = __webpack_require__(84);
 
 // constants
 var BINARY = 1;
@@ -6567,7 +5731,7 @@ module.exports =  {
 };
 
 /***/ }),
-/* 21 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6581,9 +5745,9 @@ module.exports =  {
 
 
 
-var base64 = __webpack_require__(55)
-var ieee754 = __webpack_require__(56)
-var isArray = __webpack_require__(58)
+var base64 = __webpack_require__(74)
+var ieee754 = __webpack_require__(77)
+var isArray = __webpack_require__(79)
 
 exports.Buffer = Buffer
 exports.SlowBuffer = SlowBuffer
@@ -8361,10 +7525,10 @@ function isnan (val) {
   return val !== val // eslint-disable-line no-self-compare
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(49)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(57)))
 
 /***/ }),
-/* 22 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8457,13 +7621,13 @@ module.exports = function extend() {
 
 
 /***/ }),
-/* 23 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var parseXYDataRegExp = __webpack_require__(59);
+var parseXYDataRegExp = __webpack_require__(80);
 
 
 function getConverter() {
@@ -9339,12 +8503,12 @@ module.exports = {
 
 
 /***/ }),
-/* 24 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var DataReader = __webpack_require__(26);
+var DataReader = __webpack_require__(32);
 
 function ArrayReader(data) {
     if (data) {
@@ -9397,7 +8561,7 @@ module.exports = ArrayReader;
 
 
 /***/ }),
-/* 25 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9432,7 +8596,7 @@ module.exports = CompressedObject;
 
 
 /***/ }),
-/* 26 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9547,7 +8711,7 @@ module.exports = DataReader;
 
 
 /***/ }),
-/* 27 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9565,7 +8729,7 @@ exports.dosPermissions = null;
 
 
 /***/ }),
-/* 28 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9579,12 +8743,12 @@ exports.DATA_DESCRIPTOR = "PK\x07\x08";
 
 
 /***/ }),
-/* 29 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var DataReader = __webpack_require__(26);
+var DataReader = __webpack_require__(32);
 var utils = __webpack_require__(0);
 
 function StringReader(data, optimizedBinaryString) {
@@ -9623,12 +8787,12 @@ module.exports = StringReader;
 
 
 /***/ }),
-/* 30 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var ArrayReader = __webpack_require__(24);
+var ArrayReader = __webpack_require__(30);
 
 function Uint8ArrayReader(data) {
     if (data) {
@@ -9656,7 +8820,7 @@ module.exports = Uint8ArrayReader;
 
 
 /***/ }),
-/* 31 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9664,7 +8828,7 @@ module.exports = Uint8ArrayReader;
 
 var utils = __webpack_require__(0);
 var support = __webpack_require__(5);
-var nodeBuffer = __webpack_require__(10);
+var nodeBuffer = __webpack_require__(12);
 
 /**
  * The following functions come from pako, from pako/lib/utils/strings
@@ -9870,7 +9034,18 @@ exports.utf8decode = function utf8decode(buf) {
 
 
 /***/ }),
-/* 32 */
+/* 38 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = exports = __webpack_require__(91);
+
+
+exports.getEquallySpacedData = __webpack_require__(92).getEquallySpacedData;
+exports.SNV = __webpack_require__(93).SNV;
+
+
+/***/ }),
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9893,7 +9068,7 @@ euclidean.squared = squaredEuclidean;
 
 
 /***/ }),
-/* 33 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -10130,31 +9305,20 @@ var FFT = (function(){
 
 
 /***/ }),
-/* 34 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-exports.FFTUtils = __webpack_require__(76);
-exports.FFT = __webpack_require__(33);
+const Cluster = __webpack_require__(15);
+const util = __webpack_require__(150);
 
-
-/***/ }),
-/* 35 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var Cluster = __webpack_require__(12);
-var util = __webpack_require__(130);
-
-function ClusterLeaf (index) {
+function ClusterLeaf(index) {
     Cluster.call(this);
     this.index = index;
     this.distance = 0;
-    this.children = undefined;
+    this.children = [];
 }
 
 util.inherits(ClusterLeaf, Cluster);
@@ -10163,244 +9327,7 @@ module.exports = ClusterLeaf;
 
 
 /***/ }),
-/* 36 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
- * Fast Fourier Transform module
- * 1D-FFT/IFFT, 2D-FFT/IFFT (radix-2)
- */
-var FFT = (function(){
-  var FFT;  
-  
-  if(true) {
-    FFT = exports;   // for CommonJS
-  } else {
-    FFT = {};
-  }
-  
-  var version = {
-    release: '0.3.0',
-    date: '2013-03'
-  };
-  FFT.toString = function() {
-    return "version " + version.release + ", released " + version.date;
-  };
-
-  // core operations
-  var _n = 0,          // order
-      _bitrev = null,  // bit reversal table
-      _cstb = null;    // sin/cos table
-
-  var core = {
-    init : function(n) {
-      if(n !== 0 && (n & (n - 1)) === 0) {
-        _n = n;
-        core._initArray();
-        core._makeBitReversalTable();
-        core._makeCosSinTable();
-      } else {
-        throw new Error("init: radix-2 required");
-      }
-    },
-    // 1D-FFT
-    fft1d : function(re, im) {
-      core.fft(re, im, 1);
-    },
-    // 1D-IFFT
-    ifft1d : function(re, im) {
-      var n = 1/_n;
-      core.fft(re, im, -1);
-      for(var i=0; i<_n; i++) {
-        re[i] *= n;
-        im[i] *= n;
-      }
-    },
-     // 1D-IFFT
-    bt1d : function(re, im) {
-      core.fft(re, im, -1);
-    },
-    // 2D-FFT Not very useful if the number of rows have to be equal to cols
-    fft2d : function(re, im) {
-      var tre = [],
-          tim = [],
-          i = 0;
-      // x-axis
-      for(var y=0; y<_n; y++) {
-        i = y*_n;
-        for(var x1=0; x1<_n; x1++) {
-          tre[x1] = re[x1 + i];
-          tim[x1] = im[x1 + i];
-        }
-        core.fft1d(tre, tim);
-        for(var x2=0; x2<_n; x2++) {
-          re[x2 + i] = tre[x2];
-          im[x2 + i] = tim[x2];
-        }
-      }
-      // y-axis
-      for(var x=0; x<_n; x++) {
-        for(var y1=0; y1<_n; y1++) {
-          i = x + y1*_n;
-          tre[y1] = re[i];
-          tim[y1] = im[i];
-        }
-        core.fft1d(tre, tim);
-        for(var y2=0; y2<_n; y2++) {
-          i = x + y2*_n;
-          re[i] = tre[y2];
-          im[i] = tim[y2];
-        }
-      }
-    },
-    // 2D-IFFT
-    ifft2d : function(re, im) {
-      var tre = [],
-          tim = [],
-          i = 0;
-      // x-axis
-      for(var y=0; y<_n; y++) {
-        i = y*_n;
-        for(var x1=0; x1<_n; x1++) {
-          tre[x1] = re[x1 + i];
-          tim[x1] = im[x1 + i];
-        }
-        core.ifft1d(tre, tim);
-        for(var x2=0; x2<_n; x2++) {
-          re[x2 + i] = tre[x2];
-          im[x2 + i] = tim[x2];
-        }
-      }
-      // y-axis
-      for(var x=0; x<_n; x++) {
-        for(var y1=0; y1<_n; y1++) {
-          i = x + y1*_n;
-          tre[y1] = re[i];
-          tim[y1] = im[i];
-        }
-        core.ifft1d(tre, tim);
-        for(var y2=0; y2<_n; y2++) {
-          i = x + y2*_n;
-          re[i] = tre[y2];
-          im[i] = tim[y2];
-        }
-      }
-    },
-    // core operation of FFT
-    fft : function(re, im, inv) {
-      var d, h, ik, m, tmp, wr, wi, xr, xi,
-          n4 = _n >> 2;
-      // bit reversal
-      for(var l=0; l<_n; l++) {
-        m = _bitrev[l];
-        if(l < m) {
-          tmp = re[l];
-          re[l] = re[m];
-          re[m] = tmp;
-          tmp = im[l];
-          im[l] = im[m];
-          im[m] = tmp;
-        }
-      }
-      // butterfly operation
-      for(var k=1; k<_n; k<<=1) {
-        h = 0;
-        d = _n/(k << 1);
-        for(var j=0; j<k; j++) {
-          wr = _cstb[h + n4];
-          wi = inv*_cstb[h];
-          for(var i=j; i<_n; i+=(k<<1)) {
-            ik = i + k;
-            xr = wr*re[ik] + wi*im[ik];
-            xi = wr*im[ik] - wi*re[ik];
-            re[ik] = re[i] - xr;
-            re[i] += xr;
-            im[ik] = im[i] - xi;
-            im[i] += xi;
-          }
-          h += d;
-        }
-      }
-    },
-    // initialize the array (supports TypedArray)
-    _initArray : function() {
-      if(typeof Uint32Array !== 'undefined') {
-        _bitrev = new Uint32Array(_n);
-      } else {
-        _bitrev = [];
-      }
-      if(typeof Float64Array !== 'undefined') {
-        _cstb = new Float64Array(_n*1.25);
-      } else {
-        _cstb = [];
-      }
-    },
-    // zero padding
-    _paddingZero : function() {
-      // TODO
-    },
-    // makes bit reversal table
-    _makeBitReversalTable : function() {
-      var i = 0,
-          j = 0,
-          k = 0;
-      _bitrev[0] = 0;
-      while(++i < _n) {
-        k = _n >> 1;
-        while(k <= j) {
-          j -= k;
-          k >>= 1;
-        }
-        j += k;
-        _bitrev[i] = j;
-      }
-    },
-    // makes trigonometiric function table
-    _makeCosSinTable : function() {
-      var n2 = _n >> 1,
-          n4 = _n >> 2,
-          n8 = _n >> 3,
-          n2p4 = n2 + n4,
-          t = Math.sin(Math.PI/_n),
-          dc = 2*t*t,
-          ds = Math.sqrt(dc*(2 - dc)),
-          c = _cstb[n4] = 1,
-          s = _cstb[0] = 0;
-      t = 2*dc;
-      for(var i=1; i<n8; i++) {
-        c -= dc;
-        dc += t*c;
-        s += ds;
-        ds -= t*s;
-        _cstb[i] = s;
-        _cstb[n4 - i] = c;
-      }
-      if(n8 !== 0) {
-        _cstb[n8] = Math.sqrt(0.5);
-      }
-      for(var j=0; j<n4; j++) {
-        _cstb[n2 - j]  = _cstb[j];
-      }
-      for(var k=0; k<n2p4; k++) {
-        _cstb[k + n2] = -_cstb[k];
-      }
-    }
-  };
-  // aliases (public APIs)
-  var apis = ['init', 'fft1d', 'ifft1d', 'fft2d', 'ifft2d'];
-  for(var i=0; i<apis.length; i++) {
-    FFT[apis[i]] = core[apis[i]];
-  }
-  FFT.bt = core.bt1d;
-  FFT.fft = core.fft1d;
-  FFT.ifft = core.ifft1d;
-  
-  return FFT;
-}).call(this);
-
-
-/***/ }),
-/* 37 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10413,7 +9340,7 @@ var FFT = (function(){
 
 
 
-var Matrix = __webpack_require__(6);
+var Matrix = __webpack_require__(7);
 
 function matrix(A,B){
     return new Matrix(A,B);
@@ -10659,7 +9586,7 @@ module.exports = {
 
 
 /***/ }),
-/* 38 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11119,7 +10046,7 @@ exports.cumulativeSum = function cumulativeSum(array) {
 
 
 /***/ }),
-/* 39 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11234,10 +10161,10 @@ function fullClusterGeneratorVector(conn){
 }
 
 /***/ }),
-/* 40 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const HashTable = __webpack_require__(80);
+const HashTable = __webpack_require__(100);
 
 class SparseMatrix {
     constructor(rows, columns, options = {}) {
@@ -11532,7 +10459,7 @@ function fillTemplateFunction(template, values) {
 
 
 /***/ }),
-/* 41 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12018,24 +10945,2551 @@ exports.cumulativeSum = function cumulativeSum(array) {
 
 
 /***/ }),
-/* 42 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-exports.SpinSystem = __webpack_require__(113);
-exports.simulate1D = __webpack_require__(115);
-exports.simulate2D = __webpack_require__(116);
+module.exports = abstractMatrix;
+
+var LuDecomposition = __webpack_require__(48);
+var SvDecomposition = __webpack_require__(49);
+var arrayUtils = __webpack_require__(38);
+var util = __webpack_require__(8);
+var MatrixTransposeView = __webpack_require__(132);
+var MatrixRowView = __webpack_require__(129);
+var MatrixSubView = __webpack_require__(131);
+var MatrixSelectionView = __webpack_require__(130);
+var MatrixColumnView = __webpack_require__(126);
+var MatrixFlipRowView = __webpack_require__(128);
+var MatrixFlipColumnView = __webpack_require__(127);
+
+function abstractMatrix(superCtor) {
+    if (superCtor === undefined) superCtor = Object;
+
+    /**
+     * Real matrix
+     * @class Matrix
+     * @param {number|Array|Matrix} nRows - Number of rows of the new matrix,
+     * 2D array containing the data or Matrix instance to clone
+     * @param {number} [nColumns] - Number of columns of the new matrix
+     */
+    class Matrix extends superCtor {
+        static get [Symbol.species]() {
+            return this;
+        }
+
+        /**
+         * Constructs a Matrix with the chosen dimensions from a 1D array
+         * @param {number} newRows - Number of rows
+         * @param {number} newColumns - Number of columns
+         * @param {Array} newData - A 1D array containing data for the matrix
+         * @return {Matrix} - The new matrix
+         */
+        static from1DArray(newRows, newColumns, newData) {
+            var length = newRows * newColumns;
+            if (length !== newData.length) {
+                throw new RangeError('Data length does not match given dimensions');
+            }
+            var newMatrix = new this(newRows, newColumns);
+            for (var row = 0; row < newRows; row++) {
+                for (var column = 0; column < newColumns; column++) {
+                    newMatrix.set(row, column, newData[row * newColumns + column]);
+                }
+            }
+            return newMatrix;
+        }
+
+        /**
+         * Creates a row vector, a matrix with only one row.
+         * @param {Array} newData - A 1D array containing data for the vector
+         * @return {Matrix} - The new matrix
+         */
+        static rowVector(newData) {
+            var vector = new this(1, newData.length);
+            for (var i = 0; i < newData.length; i++) {
+                vector.set(0, i, newData[i]);
+            }
+            return vector;
+        }
+
+        /**
+         * Creates a column vector, a matrix with only one column.
+         * @param {Array} newData - A 1D array containing data for the vector
+         * @return {Matrix} - The new matrix
+         */
+        static columnVector(newData) {
+            var vector = new this(newData.length, 1);
+            for (var i = 0; i < newData.length; i++) {
+                vector.set(i, 0, newData[i]);
+            }
+            return vector;
+        }
+
+        /**
+         * Creates an empty matrix with the given dimensions. Values will be undefined. Same as using new Matrix(rows, columns).
+         * @param {number} rows - Number of rows
+         * @param {number} columns - Number of columns
+         * @return {Matrix} - The new matrix
+         */
+        static empty(rows, columns) {
+            return new this(rows, columns);
+        }
+
+        /**
+         * Creates a matrix with the given dimensions. Values will be set to zero.
+         * @param {number} rows - Number of rows
+         * @param {number} columns - Number of columns
+         * @return {Matrix} - The new matrix
+         */
+        static zeros(rows, columns) {
+            return this.empty(rows, columns).fill(0);
+        }
+
+        /**
+         * Creates a matrix with the given dimensions. Values will be set to one.
+         * @param {number} rows - Number of rows
+         * @param {number} columns - Number of columns
+         * @return {Matrix} - The new matrix
+         */
+        static ones(rows, columns) {
+            return this.empty(rows, columns).fill(1);
+        }
+
+        /**
+         * Creates a matrix with the given dimensions. Values will be randomly set.
+         * @param {number} rows - Number of rows
+         * @param {number} columns - Number of columns
+         * @param {function} [rng=Math.random] - Random number generator
+         * @return {Matrix} The new matrix
+         */
+        static rand(rows, columns, rng) {
+            if (rng === undefined) rng = Math.random;
+            var matrix = this.empty(rows, columns);
+            for (var i = 0; i < rows; i++) {
+                for (var j = 0; j < columns; j++) {
+                    matrix.set(i, j, rng());
+                }
+            }
+            return matrix;
+        }
+
+        /**
+         * Creates a matrix with the given dimensions. Values will be random integers.
+         * @param {number} rows - Number of rows
+         * @param {number} columns - Number of columns
+         * @param {number} [maxValue=1000] - Maximum value
+         * @param {function} [rng=Math.random] - Random number generator
+         * @return {Matrix} The new matrix
+         */
+        static randInt(rows, columns, maxValue, rng) {
+            if (maxValue === undefined) maxValue = 1000;
+            if (rng === undefined) rng = Math.random;
+            var matrix = this.empty(rows, columns);
+            for (var i = 0; i < rows; i++) {
+                for (var j = 0; j < columns; j++) {
+                    var value = Math.floor(rng() * maxValue);
+                    matrix.set(i, j, value);
+                }
+            }
+            return matrix;
+        }
+
+        /**
+         * Creates an identity matrix with the given dimension. Values of the diagonal will be 1 and others will be 0.
+         * @param {number} rows - Number of rows
+         * @param {number} [columns=rows] - Number of columns
+         * @param {number} [value=1] - Value to fill the diagonal with
+         * @return {Matrix} - The new identity matrix
+         */
+        static eye(rows, columns, value) {
+            if (columns === undefined) columns = rows;
+            if (value === undefined) value = 1;
+            var min = Math.min(rows, columns);
+            var matrix = this.zeros(rows, columns);
+            for (var i = 0; i < min; i++) {
+                matrix.set(i, i, value);
+            }
+            return matrix;
+        }
+
+        /**
+         * Creates a diagonal matrix based on the given array.
+         * @param {Array} data - Array containing the data for the diagonal
+         * @param {number} [rows] - Number of rows (Default: data.length)
+         * @param {number} [columns] - Number of columns (Default: rows)
+         * @return {Matrix} - The new diagonal matrix
+         */
+        static diag(data, rows, columns) {
+            var l = data.length;
+            if (rows === undefined) rows = l;
+            if (columns === undefined) columns = rows;
+            var min = Math.min(l, rows, columns);
+            var matrix = this.zeros(rows, columns);
+            for (var i = 0; i < min; i++) {
+                matrix.set(i, i, data[i]);
+            }
+            return matrix;
+        }
+
+        /**
+         * Returns a matrix whose elements are the minimum between matrix1 and matrix2
+         * @param {Matrix} matrix1
+         * @param {Matrix} matrix2
+         * @return {Matrix}
+         */
+        static min(matrix1, matrix2) {
+            matrix1 = this.checkMatrix(matrix1);
+            matrix2 = this.checkMatrix(matrix2);
+            var rows = matrix1.rows;
+            var columns = matrix1.columns;
+            var result = new this(rows, columns);
+            for (var i = 0; i < rows; i++) {
+                for (var j = 0; j < columns; j++) {
+                    result.set(i, j, Math.min(matrix1.get(i, j), matrix2.get(i, j)));
+                }
+            }
+            return result;
+        }
+
+        /**
+         * Returns a matrix whose elements are the maximum between matrix1 and matrix2
+         * @param {Matrix} matrix1
+         * @param {Matrix} matrix2
+         * @return {Matrix}
+         */
+        static max(matrix1, matrix2) {
+            matrix1 = this.checkMatrix(matrix1);
+            matrix2 = this.checkMatrix(matrix2);
+            var rows = matrix1.rows;
+            var columns = matrix1.columns;
+            var result = new this(rows, columns);
+            for (var i = 0; i < rows; i++) {
+                for (var j = 0; j < columns; j++) {
+                    result.set(i, j, Math.max(matrix1.get(i, j), matrix2.get(i, j)));
+                }
+            }
+            return result;
+        }
+
+        /**
+         * Check that the provided value is a Matrix and tries to instantiate one if not
+         * @param {*} value - The value to check
+         * @return {Matrix}
+         */
+        static checkMatrix(value) {
+            return Matrix.isMatrix(value) ? value : new this(value);
+        }
+
+        /**
+         * Returns true if the argument is a Matrix, false otherwise
+         * @param {*} value - The value to check
+         * @return {boolean}
+         */
+        static isMatrix(value) {
+            return (value != null) && (value.klass === 'Matrix');
+        }
+
+        /**
+         * @prop {number} size - The number of elements in the matrix.
+         */
+        get size() {
+            return this.rows * this.columns;
+        }
+
+        /**
+         * Applies a callback for each element of the matrix. The function is called in the matrix (this) context.
+         * @param {function} callback - Function that will be called with two parameters : i (row) and j (column)
+         * @return {Matrix} this
+         */
+        apply(callback) {
+            if (typeof callback !== 'function') {
+                throw new TypeError('callback must be a function');
+            }
+            var ii = this.rows;
+            var jj = this.columns;
+            for (var i = 0; i < ii; i++) {
+                for (var j = 0; j < jj; j++) {
+                    callback.call(this, i, j);
+                }
+            }
+            return this;
+        }
+
+        /**
+         * Returns a new 1D array filled row by row with the matrix values
+         * @return {Array}
+         */
+        to1DArray() {
+            var array = new Array(this.size);
+            for (var i = 0; i < this.rows; i++) {
+                for (var j = 0; j < this.columns; j++) {
+                    array[i * this.columns + j] = this.get(i, j);
+                }
+            }
+            return array;
+        }
+
+        /**
+         * Returns a 2D array containing a copy of the data
+         * @return {Array}
+         */
+        to2DArray() {
+            var copy = new Array(this.rows);
+            for (var i = 0; i < this.rows; i++) {
+                copy[i] = new Array(this.columns);
+                for (var j = 0; j < this.columns; j++) {
+                    copy[i][j] = this.get(i, j);
+                }
+            }
+            return copy;
+        }
+
+        /**
+         * @return {boolean} true if the matrix has one row
+         */
+        isRowVector() {
+            return this.rows === 1;
+        }
+
+        /**
+         * @return {boolean} true if the matrix has one column
+         */
+        isColumnVector() {
+            return this.columns === 1;
+        }
+
+        /**
+         * @return {boolean} true if the matrix has one row or one column
+         */
+        isVector() {
+            return (this.rows === 1) || (this.columns === 1);
+        }
+
+        /**
+         * @return {boolean} true if the matrix has the same number of rows and columns
+         */
+        isSquare() {
+            return this.rows === this.columns;
+        }
+
+        /**
+         * @return {boolean} true if the matrix is square and has the same values on both sides of the diagonal
+         */
+        isSymmetric() {
+            if (this.isSquare()) {
+                for (var i = 0; i < this.rows; i++) {
+                    for (var j = 0; j <= i; j++) {
+                        if (this.get(i, j) !== this.get(j, i)) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * Sets a given element of the matrix. mat.set(3,4,1) is equivalent to mat[3][4]=1
+         * @abstract
+         * @param {number} rowIndex - Index of the row
+         * @param {number} columnIndex - Index of the column
+         * @param {number} value - The new value for the element
+         * @return {Matrix} this
+         */
+        set(rowIndex, columnIndex, value) { // eslint-disable-line no-unused-vars
+            throw new Error('set method is unimplemented');
+        }
+
+        /**
+         * Returns the given element of the matrix. mat.get(3,4) is equivalent to matrix[3][4]
+         * @abstract
+         * @param {number} rowIndex - Index of the row
+         * @param {number} columnIndex - Index of the column
+         * @return {number}
+         */
+        get(rowIndex, columnIndex) { // eslint-disable-line no-unused-vars
+            throw new Error('get method is unimplemented');
+        }
+
+        /**
+         * Creates a new matrix that is a repetition of the current matrix. New matrix has rowRep times the number of
+         * rows of the matrix, and colRep times the number of columns of the matrix
+         * @param {number} rowRep - Number of times the rows should be repeated
+         * @param {number} colRep - Number of times the columns should be re
+         * @return {Matrix}
+         * @example
+         * var matrix = new Matrix([[1,2]]);
+         * matrix.repeat(2); // [[1,2],[1,2]]
+         */
+        repeat(rowRep, colRep) {
+            rowRep = rowRep || 1;
+            colRep = colRep || 1;
+            var matrix = new this.constructor[Symbol.species](this.rows * rowRep, this.columns * colRep);
+            for (var i = 0; i < rowRep; i++) {
+                for (var j = 0; j < colRep; j++) {
+                    matrix.setSubMatrix(this, this.rows * i, this.columns * j);
+                }
+            }
+            return matrix;
+        }
+
+        /**
+         * Fills the matrix with a given value. All elements will be set to this value.
+         * @param {number} value - New value
+         * @return {Matrix} this
+         */
+        fill(value) {
+            for (var i = 0; i < this.rows; i++) {
+                for (var j = 0; j < this.columns; j++) {
+                    this.set(i, j, value);
+                }
+            }
+            return this;
+        }
+
+        /**
+         * Negates the matrix. All elements will be multiplied by (-1)
+         * @return {Matrix} this
+         */
+        neg() {
+            return this.mulS(-1);
+        }
+
+        /**
+         * Returns a new array from the given row index
+         * @param {number} index - Row index
+         * @return {Array}
+         */
+        getRow(index) {
+            util.checkRowIndex(this, index);
+            var row = new Array(this.columns);
+            for (var i = 0; i < this.columns; i++) {
+                row[i] = this.get(index, i);
+            }
+            return row;
+        }
+
+        /**
+         * Returns a new row vector from the given row index
+         * @param {number} index - Row index
+         * @return {Matrix}
+         */
+        getRowVector(index) {
+            return this.constructor.rowVector(this.getRow(index));
+        }
+
+        /**
+         * Sets a row at the given index
+         * @param {number} index - Row index
+         * @param {Array|Matrix} array - Array or vector
+         * @return {Matrix} this
+         */
+        setRow(index, array) {
+            util.checkRowIndex(this, index);
+            array = util.checkRowVector(this, array);
+            for (var i = 0; i < this.columns; i++) {
+                this.set(index, i, array[i]);
+            }
+            return this;
+        }
+
+        /**
+         * Swaps two rows
+         * @param {number} row1 - First row index
+         * @param {number} row2 - Second row index
+         * @return {Matrix} this
+         */
+        swapRows(row1, row2) {
+            util.checkRowIndex(this, row1);
+            util.checkRowIndex(this, row2);
+            for (var i = 0; i < this.columns; i++) {
+                var temp = this.get(row1, i);
+                this.set(row1, i, this.get(row2, i));
+                this.set(row2, i, temp);
+            }
+            return this;
+        }
+
+        /**
+         * Returns a new array from the given column index
+         * @param {number} index - Column index
+         * @return {Array}
+         */
+        getColumn(index) {
+            util.checkColumnIndex(this, index);
+            var column = new Array(this.rows);
+            for (var i = 0; i < this.rows; i++) {
+                column[i] = this.get(i, index);
+            }
+            return column;
+        }
+
+        /**
+         * Returns a new column vector from the given column index
+         * @param {number} index - Column index
+         * @return {Matrix}
+         */
+        getColumnVector(index) {
+            return this.constructor.columnVector(this.getColumn(index));
+        }
+
+        /**
+         * Sets a column at the given index
+         * @param {number} index - Column index
+         * @param {Array|Matrix} array - Array or vector
+         * @return {Matrix} this
+         */
+        setColumn(index, array) {
+            util.checkColumnIndex(this, index);
+            array = util.checkColumnVector(this, array);
+            for (var i = 0; i < this.rows; i++) {
+                this.set(i, index, array[i]);
+            }
+            return this;
+        }
+
+        /**
+         * Swaps two columns
+         * @param {number} column1 - First column index
+         * @param {number} column2 - Second column index
+         * @return {Matrix} this
+         */
+        swapColumns(column1, column2) {
+            util.checkColumnIndex(this, column1);
+            util.checkColumnIndex(this, column2);
+            for (var i = 0; i < this.rows; i++) {
+                var temp = this.get(i, column1);
+                this.set(i, column1, this.get(i, column2));
+                this.set(i, column2, temp);
+            }
+            return this;
+        }
+
+        /**
+         * Adds the values of a vector to each row
+         * @param {Array|Matrix} vector - Array or vector
+         * @return {Matrix} this
+         */
+        addRowVector(vector) {
+            vector = util.checkRowVector(this, vector);
+            for (var i = 0; i < this.rows; i++) {
+                for (var j = 0; j < this.columns; j++) {
+                    this.set(i, j, this.get(i, j) + vector[j]);
+                }
+            }
+            return this;
+        }
+
+        /**
+         * Subtracts the values of a vector from each row
+         * @param {Array|Matrix} vector - Array or vector
+         * @return {Matrix} this
+         */
+        subRowVector(vector) {
+            vector = util.checkRowVector(this, vector);
+            for (var i = 0; i < this.rows; i++) {
+                for (var j = 0; j < this.columns; j++) {
+                    this.set(i, j, this.get(i, j) - vector[j]);
+                }
+            }
+            return this;
+        }
+
+        /**
+         * Multiplies the values of a vector with each row
+         * @param {Array|Matrix} vector - Array or vector
+         * @return {Matrix} this
+         */
+        mulRowVector(vector) {
+            vector = util.checkRowVector(this, vector);
+            for (var i = 0; i < this.rows; i++) {
+                for (var j = 0; j < this.columns; j++) {
+                    this.set(i, j, this.get(i, j) * vector[j]);
+                }
+            }
+            return this;
+        }
+
+        /**
+         * Divides the values of each row by those of a vector
+         * @param {Array|Matrix} vector - Array or vector
+         * @return {Matrix} this
+         */
+        divRowVector(vector) {
+            vector = util.checkRowVector(this, vector);
+            for (var i = 0; i < this.rows; i++) {
+                for (var j = 0; j < this.columns; j++) {
+                    this.set(i, j, this.get(i, j) / vector[j]);
+                }
+            }
+            return this;
+        }
+
+        /**
+         * Adds the values of a vector to each column
+         * @param {Array|Matrix} vector - Array or vector
+         * @return {Matrix} this
+         */
+        addColumnVector(vector) {
+            vector = util.checkColumnVector(this, vector);
+            for (var i = 0; i < this.rows; i++) {
+                for (var j = 0; j < this.columns; j++) {
+                    this.set(i, j, this.get(i, j) + vector[i]);
+                }
+            }
+            return this;
+        }
+
+        /**
+         * Subtracts the values of a vector from each column
+         * @param {Array|Matrix} vector - Array or vector
+         * @return {Matrix} this
+         */
+        subColumnVector(vector) {
+            vector = util.checkColumnVector(this, vector);
+            for (var i = 0; i < this.rows; i++) {
+                for (var j = 0; j < this.columns; j++) {
+                    this.set(i, j, this.get(i, j) - vector[i]);
+                }
+            }
+            return this;
+        }
+
+        /**
+         * Multiplies the values of a vector with each column
+         * @param {Array|Matrix} vector - Array or vector
+         * @return {Matrix} this
+         */
+        mulColumnVector(vector) {
+            vector = util.checkColumnVector(this, vector);
+            for (var i = 0; i < this.rows; i++) {
+                for (var j = 0; j < this.columns; j++) {
+                    this.set(i, j, this.get(i, j) * vector[i]);
+                }
+            }
+            return this;
+        }
+
+        /**
+         * Divides the values of each column by those of a vector
+         * @param {Array|Matrix} vector - Array or vector
+         * @return {Matrix} this
+         */
+        divColumnVector(vector) {
+            vector = util.checkColumnVector(this, vector);
+            for (var i = 0; i < this.rows; i++) {
+                for (var j = 0; j < this.columns; j++) {
+                    this.set(i, j, this.get(i, j) / vector[i]);
+                }
+            }
+            return this;
+        }
+
+        /**
+         * Multiplies the values of a row with a scalar
+         * @param {number} index - Row index
+         * @param {number} value
+         * @return {Matrix} this
+         */
+        mulRow(index, value) {
+            util.checkRowIndex(this, index);
+            for (var i = 0; i < this.columns; i++) {
+                this.set(index, i, this.get(index, i) * value);
+            }
+            return this;
+        }
+
+        /**
+         * Multiplies the values of a column with a scalar
+         * @param {number} index - Column index
+         * @param {number} value
+         * @return {Matrix} this
+         */
+        mulColumn(index, value) {
+            util.checkColumnIndex(this, index);
+            for (var i = 0; i < this.rows; i++) {
+                this.set(i, index, this.get(i, index) * value);
+            }
+            return this;
+        }
+
+        /**
+         * Returns the maximum value of the matrix
+         * @return {number}
+         */
+        max() {
+            var v = this.get(0, 0);
+            for (var i = 0; i < this.rows; i++) {
+                for (var j = 0; j < this.columns; j++) {
+                    if (this.get(i, j) > v) {
+                        v = this.get(i, j);
+                    }
+                }
+            }
+            return v;
+        }
+
+        /**
+         * Returns the index of the maximum value
+         * @return {Array}
+         */
+        maxIndex() {
+            var v = this.get(0, 0);
+            var idx = [0, 0];
+            for (var i = 0; i < this.rows; i++) {
+                for (var j = 0; j < this.columns; j++) {
+                    if (this.get(i, j) > v) {
+                        v = this.get(i, j);
+                        idx[0] = i;
+                        idx[1] = j;
+                    }
+                }
+            }
+            return idx;
+        }
+
+        /**
+         * Returns the minimum value of the matrix
+         * @return {number}
+         */
+        min() {
+            var v = this.get(0, 0);
+            for (var i = 0; i < this.rows; i++) {
+                for (var j = 0; j < this.columns; j++) {
+                    if (this.get(i, j) < v) {
+                        v = this.get(i, j);
+                    }
+                }
+            }
+            return v;
+        }
+
+        /**
+         * Returns the index of the minimum value
+         * @return {Array}
+         */
+        minIndex() {
+            var v = this.get(0, 0);
+            var idx = [0, 0];
+            for (var i = 0; i < this.rows; i++) {
+                for (var j = 0; j < this.columns; j++) {
+                    if (this.get(i, j) < v) {
+                        v = this.get(i, j);
+                        idx[0] = i;
+                        idx[1] = j;
+                    }
+                }
+            }
+            return idx;
+        }
+
+        /**
+         * Returns the maximum value of one row
+         * @param {number} row - Row index
+         * @return {number}
+         */
+        maxRow(row) {
+            util.checkRowIndex(this, row);
+            var v = this.get(row, 0);
+            for (var i = 1; i < this.columns; i++) {
+                if (this.get(row, i) > v) {
+                    v = this.get(row, i);
+                }
+            }
+            return v;
+        }
+
+        /**
+         * Returns the index of the maximum value of one row
+         * @param {number} row - Row index
+         * @return {Array}
+         */
+        maxRowIndex(row) {
+            util.checkRowIndex(this, row);
+            var v = this.get(row, 0);
+            var idx = [row, 0];
+            for (var i = 1; i < this.columns; i++) {
+                if (this.get(row, i) > v) {
+                    v = this.get(row, i);
+                    idx[1] = i;
+                }
+            }
+            return idx;
+        }
+
+        /**
+         * Returns the minimum value of one row
+         * @param {number} row - Row index
+         * @return {number}
+         */
+        minRow(row) {
+            util.checkRowIndex(this, row);
+            var v = this.get(row, 0);
+            for (var i = 1; i < this.columns; i++) {
+                if (this.get(row, i) < v) {
+                    v = this.get(row, i);
+                }
+            }
+            return v;
+        }
+
+        /**
+         * Returns the index of the maximum value of one row
+         * @param {number} row - Row index
+         * @return {Array}
+         */
+        minRowIndex(row) {
+            util.checkRowIndex(this, row);
+            var v = this.get(row, 0);
+            var idx = [row, 0];
+            for (var i = 1; i < this.columns; i++) {
+                if (this.get(row, i) < v) {
+                    v = this.get(row, i);
+                    idx[1] = i;
+                }
+            }
+            return idx;
+        }
+
+        /**
+         * Returns the maximum value of one column
+         * @param {number} column - Column index
+         * @return {number}
+         */
+        maxColumn(column) {
+            util.checkColumnIndex(this, column);
+            var v = this.get(0, column);
+            for (var i = 1; i < this.rows; i++) {
+                if (this.get(i, column) > v) {
+                    v = this.get(i, column);
+                }
+            }
+            return v;
+        }
+
+        /**
+         * Returns the index of the maximum value of one column
+         * @param {number} column - Column index
+         * @return {Array}
+         */
+        maxColumnIndex(column) {
+            util.checkColumnIndex(this, column);
+            var v = this.get(0, column);
+            var idx = [0, column];
+            for (var i = 1; i < this.rows; i++) {
+                if (this.get(i, column) > v) {
+                    v = this.get(i, column);
+                    idx[0] = i;
+                }
+            }
+            return idx;
+        }
+
+        /**
+         * Returns the minimum value of one column
+         * @param {number} column - Column index
+         * @return {number}
+         */
+        minColumn(column) {
+            util.checkColumnIndex(this, column);
+            var v = this.get(0, column);
+            for (var i = 1; i < this.rows; i++) {
+                if (this.get(i, column) < v) {
+                    v = this.get(i, column);
+                }
+            }
+            return v;
+        }
+
+        /**
+         * Returns the index of the minimum value of one column
+         * @param {number} column - Column index
+         * @return {Array}
+         */
+        minColumnIndex(column) {
+            util.checkColumnIndex(this, column);
+            var v = this.get(0, column);
+            var idx = [0, column];
+            for (var i = 1; i < this.rows; i++) {
+                if (this.get(i, column) < v) {
+                    v = this.get(i, column);
+                    idx[0] = i;
+                }
+            }
+            return idx;
+        }
+
+        /**
+         * Returns an array containing the diagonal values of the matrix
+         * @return {Array}
+         */
+        diag() {
+            var min = Math.min(this.rows, this.columns);
+            var diag = new Array(min);
+            for (var i = 0; i < min; i++) {
+                diag[i] = this.get(i, i);
+            }
+            return diag;
+        }
+
+        /**
+         * Returns the sum by the argument given, if no argument given,
+         * it returns the sum of all elements of the matrix.
+         * @param {string} by - sum by 'row' or 'column'.
+         * @return {Matrix|number}
+         */
+        sum(by) {
+            switch (by) {
+                case 'row':
+                    return util.sumByRow(this);
+                case 'column':
+                    return util.sumByColumn(this);
+                default:
+                    return util.sumAll(this);
+            }
+        }
+
+        /**
+         * Returns the mean of all elements of the matrix
+         * @return {number}
+         */
+        mean() {
+            return this.sum() / this.size;
+        }
+
+        /**
+         * Returns the product of all elements of the matrix
+         * @return {number}
+         */
+        prod() {
+            var prod = 1;
+            for (var i = 0; i < this.rows; i++) {
+                for (var j = 0; j < this.columns; j++) {
+                    prod *= this.get(i, j);
+                }
+            }
+            return prod;
+        }
+
+        /**
+         * Computes the cumulative sum of the matrix elements (in place, row by row)
+         * @return {Matrix} this
+         */
+        cumulativeSum() {
+            var sum = 0;
+            for (var i = 0; i < this.rows; i++) {
+                for (var j = 0; j < this.columns; j++) {
+                    sum += this.get(i, j);
+                    this.set(i, j, sum);
+                }
+            }
+            return this;
+        }
+
+        /**
+         * Computes the dot (scalar) product between the matrix and another
+         * @param {Matrix} vector2 vector
+         * @return {number}
+         */
+        dot(vector2) {
+            if (Matrix.isMatrix(vector2)) vector2 = vector2.to1DArray();
+            var vector1 = this.to1DArray();
+            if (vector1.length !== vector2.length) {
+                throw new RangeError('vectors do not have the same size');
+            }
+            var dot = 0;
+            for (var i = 0; i < vector1.length; i++) {
+                dot += vector1[i] * vector2[i];
+            }
+            return dot;
+        }
+
+        /**
+         * Returns the matrix product between this and other
+         * @param {Matrix} other
+         * @return {Matrix}
+         */
+        mmul(other) {
+            other = this.constructor.checkMatrix(other);
+            if (this.columns !== other.rows) {
+                // eslint-disable-next-line no-console
+                console.warn('Number of columns of left matrix are not equal to number of rows of right matrix.');
+            }
+
+            var m = this.rows;
+            var n = this.columns;
+            var p = other.columns;
+
+            var result = new this.constructor[Symbol.species](m, p);
+
+            var Bcolj = new Array(n);
+            for (var j = 0; j < p; j++) {
+                for (var k = 0; k < n; k++) {
+                    Bcolj[k] = other.get(k, j);
+                }
+
+                for (var i = 0; i < m; i++) {
+                    var s = 0;
+                    for (k = 0; k < n; k++) {
+                        s += this.get(i, k) * Bcolj[k];
+                    }
+
+                    result.set(i, j, s);
+                }
+            }
+            return result;
+        }
+
+        strassen2x2(other) {
+            var result = new this.constructor[Symbol.species](2, 2);
+            const a11 = this.get(0, 0);
+            const b11 = other.get(0, 0);
+            const a12 = this.get(0, 1);
+            const b12 = other.get(0, 1);
+            const a21 = this.get(1, 0);
+            const b21 = other.get(1, 0);
+            const a22 = this.get(1, 1);
+            const b22 = other.get(1, 1);
+
+            // Compute intermediate values.
+            const m1 = (a11 + a22) * (b11 + b22);
+            const m2 = (a21 + a22) * b11;
+            const m3 = a11 * (b12 - b22);
+            const m4 = a22 * (b21 - b11);
+            const m5 = (a11 + a12) * b22;
+            const m6 = (a21 - a11) * (b11 + b12);
+            const m7 = (a12 - a22) * (b21 + b22);
+
+            // Combine intermediate values into the output.
+            const c00 = m1 + m4 - m5 + m7;
+            const c01 = m3 + m5;
+            const c10 = m2 + m4;
+            const c11 = m1 - m2 + m3 + m6;
+
+            result.set(0, 0, c00);
+            result.set(0, 1, c01);
+            result.set(1, 0, c10);
+            result.set(1, 1, c11);
+            return result;
+        }
+
+        strassen3x3(other) {
+            var result = new this.constructor[Symbol.species](3, 3);
+
+            const a00 = this.get(0, 0);
+            const a01 = this.get(0, 1);
+            const a02 = this.get(0, 2);
+            const a10 = this.get(1, 0);
+            const a11 = this.get(1, 1);
+            const a12 = this.get(1, 2);
+            const a20 = this.get(2, 0);
+            const a21 = this.get(2, 1);
+            const a22 = this.get(2, 2);
+
+            const b00 = other.get(0, 0);
+            const b01 = other.get(0, 1);
+            const b02 = other.get(0, 2);
+            const b10 = other.get(1, 0);
+            const b11 = other.get(1, 1);
+            const b12 = other.get(1, 2);
+            const b20 = other.get(2, 0);
+            const b21 = other.get(2, 1);
+            const b22 = other.get(2, 2);
+
+            const m1 = (a00 + a01 + a02 - a10 - a11 - a21 - a22) * b11;
+            const m2 = (a00 - a10) * (-b01 + b11);
+            const m3 = a11 * (-b00 + b01 + b10 - b11 - b12 - b20 + b22);
+            const m4 = (-a00 + a10 + a11) * (b00 - b01 + b11);
+            const m5 = (a10 + a11) * (-b00 + b01);
+            const m6 = a00 * b00;
+            const m7 = (-a00 + a20 + a21) * (b00 - b02 + b12);
+            const m8 = (-a00 + a20) * (b02 - b12);
+            const m9 = (a20 + a21) * (-b00 + b02);
+            const m10 = (a00 + a01 + a02 - a11 - a12 - a20 - a21) * b12;
+            const m11 = a21 * (-b00 + b02 + b10 - b11 - b12 - b20 + b21);
+            const m12 = (-a02 + a21 + a22) * (b11 + b20 - b21);
+            const m13 = (a02 - a22) * (b11 - b21);
+            const m14 = a02 * b20;
+            const m15 = (a21 + a22) * (-b20 + b21);
+            const m16 = (-a02 + a11 + a12) * (b12 + b20 - b22);
+            const m17 = (a02 - a12) * (b12 - b22);
+            const m18 = (a11 + a12) * (-b20 + b22);
+            const m19 = a01 * b10;
+            const m20 = a12 * b21;
+            const m21 = a10 * b02;
+            const m22 = a20 * b01;
+            const m23 = a22 * b22;
+
+            const c00 = m6 + m14 + m19;
+            const c01 = m1 + m4 + m5 + m6 + m12 + m14 + m15;
+            const c02 = m6 + m7 + m9 + m10 + m14 + m16 + m18;
+            const c10 = m2 + m3 + m4 + m6 + m14 + m16 + m17;
+            const c11 = m2 + m4 + m5 + m6 + m20;
+            const c12 = m14 + m16 + m17 + m18 + m21;
+            const c20 = m6 + m7 + m8 + m11 + m12 + m13 + m14;
+            const c21 = m12 + m13 + m14 + m15 + m22;
+            const c22 = m6 + m7 + m8 + m9 + m23;
+
+            result.set(0, 0, c00);
+            result.set(0, 1, c01);
+            result.set(0, 2, c02);
+            result.set(1, 0, c10);
+            result.set(1, 1, c11);
+            result.set(1, 2, c12);
+            result.set(2, 0, c20);
+            result.set(2, 1, c21);
+            result.set(2, 2, c22);
+            return result;
+        }
+
+        /**
+         * Returns the matrix product between x and y. More efficient than mmul(other) only when we multiply squared matrix and when the size of the matrix is > 1000.
+         * @param {Matrix} y
+         * @return {Matrix}
+         */
+        mmulStrassen(y) {
+            var x = this.clone();
+            var r1 = x.rows;
+            var c1 = x.columns;
+            var r2 = y.rows;
+            var c2 = y.columns;
+            if (c1 !== r2) {
+                // eslint-disable-next-line no-console
+                console.warn(`Multiplying ${r1} x ${c1} and ${r2} x ${c2} matrix: dimensions do not match.`);
+            }
+
+            // Put a matrix into the top left of a matrix of zeros.
+            // `rows` and `cols` are the dimensions of the output matrix.
+            function embed(mat, rows, cols) {
+                var r = mat.rows;
+                var c = mat.columns;
+                if ((r === rows) && (c === cols)) {
+                    return mat;
+                } else {
+                    var resultat = Matrix.zeros(rows, cols);
+                    resultat = resultat.setSubMatrix(mat, 0, 0);
+                    return resultat;
+                }
+            }
+
+
+            // Make sure both matrices are the same size.
+            // This is exclusively for simplicity:
+            // this algorithm can be implemented with matrices of different sizes.
+
+            var r = Math.max(r1, r2);
+            var c = Math.max(c1, c2);
+            x = embed(x, r, c);
+            y = embed(y, r, c);
+
+            // Our recursive multiplication function.
+            function blockMult(a, b, rows, cols) {
+                // For small matrices, resort to naive multiplication.
+                if (rows <= 512 || cols <= 512) {
+                    return a.mmul(b); // a is equivalent to this
+                }
+
+                // Apply dynamic padding.
+                if ((rows % 2 === 1) && (cols % 2 === 1)) {
+                    a = embed(a, rows + 1, cols + 1);
+                    b = embed(b, rows + 1, cols + 1);
+                } else if (rows % 2 === 1) {
+                    a = embed(a, rows + 1, cols);
+                    b = embed(b, rows + 1, cols);
+                } else if (cols % 2 === 1) {
+                    a = embed(a, rows, cols + 1);
+                    b = embed(b, rows, cols + 1);
+                }
+
+                var halfRows = parseInt(a.rows / 2);
+                var halfCols = parseInt(a.columns / 2);
+                // Subdivide input matrices.
+                var a11 = a.subMatrix(0, halfRows - 1, 0, halfCols - 1);
+                var b11 = b.subMatrix(0, halfRows - 1, 0, halfCols - 1);
+
+                var a12 = a.subMatrix(0, halfRows - 1, halfCols, a.columns - 1);
+                var b12 = b.subMatrix(0, halfRows - 1, halfCols, b.columns - 1);
+
+                var a21 = a.subMatrix(halfRows, a.rows - 1, 0, halfCols - 1);
+                var b21 = b.subMatrix(halfRows, b.rows - 1, 0, halfCols - 1);
+
+                var a22 = a.subMatrix(halfRows, a.rows - 1, halfCols, a.columns - 1);
+                var b22 = b.subMatrix(halfRows, b.rows - 1, halfCols, b.columns - 1);
+
+                // Compute intermediate values.
+                var m1 = blockMult(Matrix.add(a11, a22), Matrix.add(b11, b22), halfRows, halfCols);
+                var m2 = blockMult(Matrix.add(a21, a22), b11, halfRows, halfCols);
+                var m3 = blockMult(a11, Matrix.sub(b12, b22), halfRows, halfCols);
+                var m4 = blockMult(a22, Matrix.sub(b21, b11), halfRows, halfCols);
+                var m5 = blockMult(Matrix.add(a11, a12), b22, halfRows, halfCols);
+                var m6 = blockMult(Matrix.sub(a21, a11), Matrix.add(b11, b12), halfRows, halfCols);
+                var m7 = blockMult(Matrix.sub(a12, a22), Matrix.add(b21, b22), halfRows, halfCols);
+
+                // Combine intermediate values into the output.
+                var c11 = Matrix.add(m1, m4);
+                c11.sub(m5);
+                c11.add(m7);
+                var c12 = Matrix.add(m3, m5);
+                var c21 = Matrix.add(m2, m4);
+                var c22 = Matrix.sub(m1, m2);
+                c22.add(m3);
+                c22.add(m6);
+
+                //Crop output to the desired size (undo dynamic padding).
+                var resultat = Matrix.zeros(2 * c11.rows, 2 * c11.columns);
+                resultat = resultat.setSubMatrix(c11, 0, 0);
+                resultat = resultat.setSubMatrix(c12, c11.rows, 0);
+                resultat = resultat.setSubMatrix(c21, 0, c11.columns);
+                resultat = resultat.setSubMatrix(c22, c11.rows, c11.columns);
+                return resultat.subMatrix(0, rows - 1, 0, cols - 1);
+            }
+            return blockMult(x, y, r, c);
+        }
+
+        /**
+         * Returns a row-by-row scaled matrix
+         * @param {number} [min=0] - Minimum scaled value
+         * @param {number} [max=1] - Maximum scaled value
+         * @return {Matrix} - The scaled matrix
+         */
+        scaleRows(min, max) {
+            min = min === undefined ? 0 : min;
+            max = max === undefined ? 1 : max;
+            if (min >= max) {
+                throw new RangeError('min should be strictly smaller than max');
+            }
+            var newMatrix = this.constructor.empty(this.rows, this.columns);
+            for (var i = 0; i < this.rows; i++) {
+                var scaled = arrayUtils.scale(this.getRow(i), {min, max});
+                newMatrix.setRow(i, scaled);
+            }
+            return newMatrix;
+        }
+
+        /**
+         * Returns a new column-by-column scaled matrix
+         * @param {number} [min=0] - Minimum scaled value
+         * @param {number} [max=1] - Maximum scaled value
+         * @return {Matrix} - The new scaled matrix
+         * @example
+         * var matrix = new Matrix([[1,2],[-1,0]]);
+         * var scaledMatrix = matrix.scaleColumns(); // [[1,1],[0,0]]
+         */
+        scaleColumns(min, max) {
+            min = min === undefined ? 0 : min;
+            max = max === undefined ? 1 : max;
+            if (min >= max) {
+                throw new RangeError('min should be strictly smaller than max');
+            }
+            var newMatrix = this.constructor.empty(this.rows, this.columns);
+            for (var i = 0; i < this.columns; i++) {
+                var scaled = arrayUtils.scale(this.getColumn(i), {
+                    min: min,
+                    max: max
+                });
+                newMatrix.setColumn(i, scaled);
+            }
+            return newMatrix;
+        }
+
+
+        /**
+         * Returns the Kronecker product (also known as tensor product) between this and other
+         * See https://en.wikipedia.org/wiki/Kronecker_product
+         * @param {Matrix} other
+         * @return {Matrix}
+         */
+        kroneckerProduct(other) {
+            other = this.constructor.checkMatrix(other);
+
+            var m = this.rows;
+            var n = this.columns;
+            var p = other.rows;
+            var q = other.columns;
+
+            var result = new this.constructor[Symbol.species](m * p, n * q);
+            for (var i = 0; i < m; i++) {
+                for (var j = 0; j < n; j++) {
+                    for (var k = 0; k < p; k++) {
+                        for (var l = 0; l < q; l++) {
+                            result[p * i + k][q * j + l] = this.get(i, j) * other.get(k, l);
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        /**
+         * Transposes the matrix and returns a new one containing the result
+         * @return {Matrix}
+         */
+        transpose() {
+            var result = new this.constructor[Symbol.species](this.columns, this.rows);
+            for (var i = 0; i < this.rows; i++) {
+                for (var j = 0; j < this.columns; j++) {
+                    result.set(j, i, this.get(i, j));
+                }
+            }
+            return result;
+        }
+
+        /**
+         * Sorts the rows (in place)
+         * @param {function} compareFunction - usual Array.prototype.sort comparison function
+         * @return {Matrix} this
+         */
+        sortRows(compareFunction) {
+            if (compareFunction === undefined) compareFunction = compareNumbers;
+            for (var i = 0; i < this.rows; i++) {
+                this.setRow(i, this.getRow(i).sort(compareFunction));
+            }
+            return this;
+        }
+
+        /**
+         * Sorts the columns (in place)
+         * @param {function} compareFunction - usual Array.prototype.sort comparison function
+         * @return {Matrix} this
+         */
+        sortColumns(compareFunction) {
+            if (compareFunction === undefined) compareFunction = compareNumbers;
+            for (var i = 0; i < this.columns; i++) {
+                this.setColumn(i, this.getColumn(i).sort(compareFunction));
+            }
+            return this;
+        }
+
+        /**
+         * Returns a subset of the matrix
+         * @param {number} startRow - First row index
+         * @param {number} endRow - Last row index
+         * @param {number} startColumn - First column index
+         * @param {number} endColumn - Last column index
+         * @return {Matrix}
+         */
+        subMatrix(startRow, endRow, startColumn, endColumn) {
+            util.checkRange(this, startRow, endRow, startColumn, endColumn);
+            var newMatrix = new this.constructor[Symbol.species](endRow - startRow + 1, endColumn - startColumn + 1);
+            for (var i = startRow; i <= endRow; i++) {
+                for (var j = startColumn; j <= endColumn; j++) {
+                    newMatrix[i - startRow][j - startColumn] = this.get(i, j);
+                }
+            }
+            return newMatrix;
+        }
+
+        /**
+         * Returns a subset of the matrix based on an array of row indices
+         * @param {Array} indices - Array containing the row indices
+         * @param {number} [startColumn = 0] - First column index
+         * @param {number} [endColumn = this.columns-1] - Last column index
+         * @return {Matrix}
+         */
+        subMatrixRow(indices, startColumn, endColumn) {
+            if (startColumn === undefined) startColumn = 0;
+            if (endColumn === undefined) endColumn = this.columns - 1;
+            if ((startColumn > endColumn) || (startColumn < 0) || (startColumn >= this.columns) || (endColumn < 0) || (endColumn >= this.columns)) {
+                throw new RangeError('Argument out of range');
+            }
+
+            var newMatrix = new this.constructor[Symbol.species](indices.length, endColumn - startColumn + 1);
+            for (var i = 0; i < indices.length; i++) {
+                for (var j = startColumn; j <= endColumn; j++) {
+                    if (indices[i] < 0 || indices[i] >= this.rows) {
+                        throw new RangeError('Row index out of range: ' + indices[i]);
+                    }
+                    newMatrix.set(i, j - startColumn, this.get(indices[i], j));
+                }
+            }
+            return newMatrix;
+        }
+
+        /**
+         * Returns a subset of the matrix based on an array of column indices
+         * @param {Array} indices - Array containing the column indices
+         * @param {number} [startRow = 0] - First row index
+         * @param {number} [endRow = this.rows-1] - Last row index
+         * @return {Matrix}
+         */
+        subMatrixColumn(indices, startRow, endRow) {
+            if (startRow === undefined) startRow = 0;
+            if (endRow === undefined) endRow = this.rows - 1;
+            if ((startRow > endRow) || (startRow < 0) || (startRow >= this.rows) || (endRow < 0) || (endRow >= this.rows)) {
+                throw new RangeError('Argument out of range');
+            }
+
+            var newMatrix = new this.constructor[Symbol.species](endRow - startRow + 1, indices.length);
+            for (var i = 0; i < indices.length; i++) {
+                for (var j = startRow; j <= endRow; j++) {
+                    if (indices[i] < 0 || indices[i] >= this.columns) {
+                        throw new RangeError('Column index out of range: ' + indices[i]);
+                    }
+                    newMatrix.set(j - startRow, i, this.get(j, indices[i]));
+                }
+            }
+            return newMatrix;
+        }
+
+        /**
+         * Set a part of the matrix to the given sub-matrix
+         * @param {Matrix|Array< Array >} matrix - The source matrix from which to extract values.
+         * @param {number} startRow - The index of the first row to set
+         * @param {number} startColumn - The index of the first column to set
+         * @return {Matrix}
+         */
+        setSubMatrix(matrix, startRow, startColumn) {
+            matrix = this.constructor.checkMatrix(matrix);
+            var endRow = startRow + matrix.rows - 1;
+            var endColumn = startColumn + matrix.columns - 1;
+            util.checkRange(this, startRow, endRow, startColumn, endColumn);
+            for (var i = 0; i < matrix.rows; i++) {
+                for (var j = 0; j < matrix.columns; j++) {
+                    this[startRow + i][startColumn + j] = matrix.get(i, j);
+                }
+            }
+            return this;
+        }
+
+        /**
+         * Return a new matrix based on a selection of rows and columns
+         * @param {Array<number>} rowIndices - The row indices to select. Order matters and an index can be more than once.
+         * @param {Array<number>} columnIndices - The column indices to select. Order matters and an index can be use more than once.
+         * @return {Matrix} The new matrix
+         */
+        selection(rowIndices, columnIndices) {
+            var indices = util.checkIndices(this, rowIndices, columnIndices);
+            var newMatrix = new this.constructor[Symbol.species](rowIndices.length, columnIndices.length);
+            for (var i = 0; i < indices.row.length; i++) {
+                var rowIndex = indices.row[i];
+                for (var j = 0; j < indices.column.length; j++) {
+                    var columnIndex = indices.column[j];
+                    newMatrix[i][j] = this.get(rowIndex, columnIndex);
+                }
+            }
+            return newMatrix;
+        }
+
+        /**
+         * Returns the trace of the matrix (sum of the diagonal elements)
+         * @return {number}
+         */
+        trace() {
+            var min = Math.min(this.rows, this.columns);
+            var trace = 0;
+            for (var i = 0; i < min; i++) {
+                trace += this.get(i, i);
+            }
+            return trace;
+        }
+
+        /*
+         Matrix views
+         */
+
+        /**
+         * Returns a view of the transposition of the matrix
+         * @return {MatrixTransposeView}
+         */
+        transposeView() {
+            return new MatrixTransposeView(this);
+        }
+
+        /**
+         * Returns a view of the row vector with the given index
+         * @param {number} row - row index of the vector
+         * @return {MatrixRowView}
+         */
+        rowView(row) {
+            util.checkRowIndex(this, row);
+            return new MatrixRowView(this, row);
+        }
+
+        /**
+         * Returns a view of the column vector with the given index
+         * @param {number} column - column index of the vector
+         * @return {MatrixColumnView}
+         */
+        columnView(column) {
+            util.checkColumnIndex(this, column);
+            return new MatrixColumnView(this, column);
+        }
+
+        /**
+         * Returns a view of the matrix flipped in the row axis
+         * @return {MatrixFlipRowView}
+         */
+        flipRowView() {
+            return new MatrixFlipRowView(this);
+        }
+
+        /**
+         * Returns a view of the matrix flipped in the column axis
+         * @return {MatrixFlipColumnView}
+         */
+        flipColumnView() {
+            return new MatrixFlipColumnView(this);
+        }
+
+        /**
+         * Returns a view of a submatrix giving the index boundaries
+         * @param {number} startRow - first row index of the submatrix
+         * @param {number} endRow - last row index of the submatrix
+         * @param {number} startColumn - first column index of the submatrix
+         * @param {number} endColumn - last column index of the submatrix
+         * @return {MatrixSubView}
+         */
+        subMatrixView(startRow, endRow, startColumn, endColumn) {
+            return new MatrixSubView(this, startRow, endRow, startColumn, endColumn);
+        }
+
+        /**
+         * Returns a view of the cross of the row indices and the column indices
+         * @example
+         * // resulting vector is [[2], [2]]
+         * var matrix = new Matrix([[1,2,3], [4,5,6]]).selectionView([0, 0], [1])
+         * @param {Array<number>} rowIndices
+         * @param {Array<number>} columnIndices
+         * @return {MatrixSelectionView}
+         */
+        selectionView(rowIndices, columnIndices) {
+            return new MatrixSelectionView(this, rowIndices, columnIndices);
+        }
+
+
+        /**
+        * Calculates and returns the determinant of a matrix as a Number
+        * @example
+        *   new Matrix([[1,2,3], [4,5,6]]).det()
+        * @return {number}
+        */
+        det() {
+            if (this.isSquare()) {
+                var a, b, c, d;
+                if (this.columns === 2) {
+                    // 2 x 2 matrix
+                    a = this.get(0, 0);
+                    b = this.get(0, 1);
+                    c = this.get(1, 0);
+                    d = this.get(1, 1);
+
+                    return a * d - (b * c);
+                } else if (this.columns === 3) {
+                    // 3 x 3 matrix
+                    var subMatrix0, subMatrix1, subMatrix2;
+                    subMatrix0 = this.selectionView([1, 2], [1, 2]);
+                    subMatrix1 = this.selectionView([1, 2], [0, 2]);
+                    subMatrix2 = this.selectionView([1, 2], [0, 1]);
+                    a = this.get(0, 0);
+                    b = this.get(0, 1);
+                    c = this.get(0, 2);
+
+                    return a * subMatrix0.det() - b * subMatrix1.det() + c * subMatrix2.det();
+                } else {
+                    // general purpose determinant using the LU decomposition
+                    return new LuDecomposition(this).determinant;
+                }
+
+            } else {
+                throw Error('Determinant can only be calculated for a square matrix.');
+            }
+        }
+
+        /**
+         * Returns inverse of a matrix if it exists or the pseudoinverse
+         * @param {number} threshold - threshold for taking inverse of singular values (default = 1e-15)
+         * @return {Matrix} the (pseudo)inverted matrix.
+         */
+        pseudoInverse(threshold) {
+            if (threshold === undefined) threshold = Number.EPSILON;
+            var svdSolution = new SvDecomposition(this, {autoTranspose: true});
+
+            var U = svdSolution.leftSingularVectors;
+            var V = svdSolution.rightSingularVectors;
+            var s = svdSolution.diagonal;
+
+            for (var i = 0; i < s.length; i++) {
+                if (Math.abs(s[i]) > threshold) {
+                    s[i] = 1.0 / s[i];
+                } else {
+                    s[i] = 0.0;
+                }
+            }
+
+            // convert list to diagonal
+            s = this.constructor[Symbol.species].diag(s);
+            return V.mmul(s.mmul(U.transposeView()));
+        }
+    }
+
+    Matrix.prototype.klass = 'Matrix';
+
+    /**
+     * @private
+     * Check that two matrices have the same dimensions
+     * @param {Matrix} matrix
+     * @param {Matrix} otherMatrix
+     */
+    function checkDimensions(matrix, otherMatrix) { // eslint-disable-line no-unused-vars
+        if (matrix.rows !== otherMatrix.rows ||
+            matrix.columns !== otherMatrix.columns) {
+            throw new RangeError('Matrices dimensions must be equal');
+        }
+    }
+
+    function compareNumbers(a, b) {
+        return a - b;
+    }
+
+    /*
+     Synonyms
+     */
+
+    Matrix.random = Matrix.rand;
+    Matrix.diagonal = Matrix.diag;
+    Matrix.prototype.diagonal = Matrix.prototype.diag;
+    Matrix.identity = Matrix.eye;
+    Matrix.prototype.negate = Matrix.prototype.neg;
+    Matrix.prototype.tensorProduct = Matrix.prototype.kroneckerProduct;
+    Matrix.prototype.determinant = Matrix.prototype.det;
+
+    /*
+     Add dynamically instance and static methods for mathematical operations
+     */
+
+    var inplaceOperator = `
+(function %name%(value) {
+    if (typeof value === 'number') return this.%name%S(value);
+    return this.%name%M(value);
+})
+`;
+
+    var inplaceOperatorScalar = `
+(function %name%S(value) {
+    for (var i = 0; i < this.rows; i++) {
+        for (var j = 0; j < this.columns; j++) {
+            this.set(i, j, this.get(i, j) %op% value);
+        }
+    }
+    return this;
+})
+`;
+
+    var inplaceOperatorMatrix = `
+(function %name%M(matrix) {
+    matrix = this.constructor.checkMatrix(matrix);
+    checkDimensions(this, matrix);
+    for (var i = 0; i < this.rows; i++) {
+        for (var j = 0; j < this.columns; j++) {
+            this.set(i, j, this.get(i, j) %op% matrix.get(i, j));
+        }
+    }
+    return this;
+})
+`;
+
+    var staticOperator = `
+(function %name%(matrix, value) {
+    var newMatrix = new this[Symbol.species](matrix);
+    return newMatrix.%name%(value);
+})
+`;
+
+    var inplaceMethod = `
+(function %name%() {
+    for (var i = 0; i < this.rows; i++) {
+        for (var j = 0; j < this.columns; j++) {
+            this.set(i, j, %method%(this.get(i, j)));
+        }
+    }
+    return this;
+})
+`;
+
+    var staticMethod = `
+(function %name%(matrix) {
+    var newMatrix = new this[Symbol.species](matrix);
+    return newMatrix.%name%();
+})
+`;
+
+    var inplaceMethodWithArgs = `
+(function %name%(%args%) {
+    for (var i = 0; i < this.rows; i++) {
+        for (var j = 0; j < this.columns; j++) {
+            this.set(i, j, %method%(this.get(i, j), %args%));
+        }
+    }
+    return this;
+})
+`;
+
+    var staticMethodWithArgs = `
+(function %name%(matrix, %args%) {
+    var newMatrix = new this[Symbol.species](matrix);
+    return newMatrix.%name%(%args%);
+})
+`;
+
+
+    var inplaceMethodWithOneArgScalar = `
+(function %name%S(value) {
+    for (var i = 0; i < this.rows; i++) {
+        for (var j = 0; j < this.columns; j++) {
+            this.set(i, j, %method%(this.get(i, j), value));
+        }
+    }
+    return this;
+})
+`;
+    var inplaceMethodWithOneArgMatrix = `
+(function %name%M(matrix) {
+    matrix = this.constructor.checkMatrix(matrix);
+    checkDimensions(this, matrix);
+    for (var i = 0; i < this.rows; i++) {
+        for (var j = 0; j < this.columns; j++) {
+            this.set(i, j, %method%(this.get(i, j), matrix.get(i, j)));
+        }
+    }
+    return this;
+})
+`;
+
+    var inplaceMethodWithOneArg = `
+(function %name%(value) {
+    if (typeof value === 'number') return this.%name%S(value);
+    return this.%name%M(value);
+})
+`;
+
+    var staticMethodWithOneArg = staticMethodWithArgs;
+
+    var operators = [
+        // Arithmetic operators
+        ['+', 'add'],
+        ['-', 'sub', 'subtract'],
+        ['*', 'mul', 'multiply'],
+        ['/', 'div', 'divide'],
+        ['%', 'mod', 'modulus'],
+        // Bitwise operators
+        ['&', 'and'],
+        ['|', 'or'],
+        ['^', 'xor'],
+        ['<<', 'leftShift'],
+        ['>>', 'signPropagatingRightShift'],
+        ['>>>', 'rightShift', 'zeroFillRightShift']
+    ];
+
+    var i;
+
+    for (var operator of operators) {
+        var inplaceOp = eval(fillTemplateFunction(inplaceOperator, {name: operator[1], op: operator[0]}));
+        var inplaceOpS = eval(fillTemplateFunction(inplaceOperatorScalar, {name: operator[1] + 'S', op: operator[0]}));
+        var inplaceOpM = eval(fillTemplateFunction(inplaceOperatorMatrix, {name: operator[1] + 'M', op: operator[0]}));
+        var staticOp = eval(fillTemplateFunction(staticOperator, {name: operator[1]}));
+        for (i = 1; i < operator.length; i++) {
+            Matrix.prototype[operator[i]] = inplaceOp;
+            Matrix.prototype[operator[i] + 'S'] = inplaceOpS;
+            Matrix.prototype[operator[i] + 'M'] = inplaceOpM;
+            Matrix[operator[i]] = staticOp;
+        }
+    }
+
+    var methods = [
+        ['~', 'not']
+    ];
+
+    [
+        'abs', 'acos', 'acosh', 'asin', 'asinh', 'atan', 'atanh', 'cbrt', 'ceil',
+        'clz32', 'cos', 'cosh', 'exp', 'expm1', 'floor', 'fround', 'log', 'log1p',
+        'log10', 'log2', 'round', 'sign', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', 'trunc'
+    ].forEach(function (mathMethod) {
+        methods.push(['Math.' + mathMethod, mathMethod]);
+    });
+
+    for (var method of methods) {
+        var inplaceMeth = eval(fillTemplateFunction(inplaceMethod, {name: method[1], method: method[0]}));
+        var staticMeth = eval(fillTemplateFunction(staticMethod, {name: method[1]}));
+        for (i = 1; i < method.length; i++) {
+            Matrix.prototype[method[i]] = inplaceMeth;
+            Matrix[method[i]] = staticMeth;
+        }
+    }
+
+    var methodsWithArgs = [
+        ['Math.pow', 1, 'pow']
+    ];
+
+    for (var methodWithArg of methodsWithArgs) {
+        var args = 'arg0';
+        for (i = 1; i < methodWithArg[1]; i++) {
+            args += `, arg${i}`;
+        }
+        if (methodWithArg[1] !== 1) {
+            var inplaceMethWithArgs = eval(fillTemplateFunction(inplaceMethodWithArgs, {
+                name: methodWithArg[2],
+                method: methodWithArg[0],
+                args: args
+            }));
+            var staticMethWithArgs = eval(fillTemplateFunction(staticMethodWithArgs, {name: methodWithArg[2], args: args}));
+            for (i = 2; i < methodWithArg.length; i++) {
+                Matrix.prototype[methodWithArg[i]] = inplaceMethWithArgs;
+                Matrix[methodWithArg[i]] = staticMethWithArgs;
+            }
+        } else {
+            var tmplVar = {
+                name: methodWithArg[2],
+                args: args,
+                method: methodWithArg[0]
+            };
+            var inplaceMethod2 = eval(fillTemplateFunction(inplaceMethodWithOneArg, tmplVar));
+            var inplaceMethodS = eval(fillTemplateFunction(inplaceMethodWithOneArgScalar, tmplVar));
+            var inplaceMethodM = eval(fillTemplateFunction(inplaceMethodWithOneArgMatrix, tmplVar));
+            var staticMethod2 = eval(fillTemplateFunction(staticMethodWithOneArg, tmplVar));
+            for (i = 2; i < methodWithArg.length; i++) {
+                Matrix.prototype[methodWithArg[i]] = inplaceMethod2;
+                Matrix.prototype[methodWithArg[i] + 'M'] = inplaceMethodM;
+                Matrix.prototype[methodWithArg[i] + 'S'] = inplaceMethodS;
+                Matrix[methodWithArg[i]] = staticMethod2;
+            }
+        }
+    }
+
+    function fillTemplateFunction(template, values) {
+        for (var value in values) {
+            template = template.replace(new RegExp('%' + value + '%', 'g'), values[value]);
+        }
+        return template;
+    }
+
+    return Matrix;
+}
 
 
 /***/ }),
-/* 43 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var numberIsNan = __webpack_require__(117);
+
+var Matrix = __webpack_require__(1);
+
+// https://github.com/lutzroeder/Mapack/blob/master/Source/LuDecomposition.cs
+function LuDecomposition(matrix) {
+    if (!(this instanceof LuDecomposition)) {
+        return new LuDecomposition(matrix);
+    }
+
+    matrix = Matrix.Matrix.checkMatrix(matrix);
+
+    var lu = matrix.clone(),
+        rows = lu.rows,
+        columns = lu.columns,
+        pivotVector = new Array(rows),
+        pivotSign = 1,
+        i, j, k, p, s, t, v,
+        LUrowi, LUcolj, kmax;
+
+    for (i = 0; i < rows; i++) {
+        pivotVector[i] = i;
+    }
+
+    LUcolj = new Array(rows);
+
+    for (j = 0; j < columns; j++) {
+
+        for (i = 0; i < rows; i++) {
+            LUcolj[i] = lu[i][j];
+        }
+
+        for (i = 0; i < rows; i++) {
+            LUrowi = lu[i];
+            kmax = Math.min(i, j);
+            s = 0;
+            for (k = 0; k < kmax; k++) {
+                s += LUrowi[k] * LUcolj[k];
+            }
+            LUrowi[j] = LUcolj[i] -= s;
+        }
+
+        p = j;
+        for (i = j + 1; i < rows; i++) {
+            if (Math.abs(LUcolj[i]) > Math.abs(LUcolj[p])) {
+                p = i;
+            }
+        }
+
+        if (p !== j) {
+            for (k = 0; k < columns; k++) {
+                t = lu[p][k];
+                lu[p][k] = lu[j][k];
+                lu[j][k] = t;
+            }
+
+            v = pivotVector[p];
+            pivotVector[p] = pivotVector[j];
+            pivotVector[j] = v;
+
+            pivotSign = -pivotSign;
+        }
+
+        if (j < rows && lu[j][j] !== 0) {
+            for (i = j + 1; i < rows; i++) {
+                lu[i][j] /= lu[j][j];
+            }
+        }
+    }
+
+    this.LU = lu;
+    this.pivotVector = pivotVector;
+    this.pivotSign = pivotSign;
+}
+
+LuDecomposition.prototype = {
+    isSingular: function () {
+        var data = this.LU,
+            col = data.columns;
+        for (var j = 0; j < col; j++) {
+            if (data[j][j] === 0) {
+                return true;
+            }
+        }
+        return false;
+    },
+    get determinant() {
+        var data = this.LU;
+        if (!data.isSquare()) {
+            throw new Error('Matrix must be square');
+        }
+        var determinant = this.pivotSign, col = data.columns;
+        for (var j = 0; j < col; j++) {
+            determinant *= data[j][j];
+        }
+        return determinant;
+    },
+    get lowerTriangularMatrix() {
+        var data = this.LU,
+            rows = data.rows,
+            columns = data.columns,
+            X = new Matrix.Matrix(rows, columns);
+        for (var i = 0; i < rows; i++) {
+            for (var j = 0; j < columns; j++) {
+                if (i > j) {
+                    X[i][j] = data[i][j];
+                } else if (i === j) {
+                    X[i][j] = 1;
+                } else {
+                    X[i][j] = 0;
+                }
+            }
+        }
+        return X;
+    },
+    get upperTriangularMatrix() {
+        var data = this.LU,
+            rows = data.rows,
+            columns = data.columns,
+            X = new Matrix.Matrix(rows, columns);
+        for (var i = 0; i < rows; i++) {
+            for (var j = 0; j < columns; j++) {
+                if (i <= j) {
+                    X[i][j] = data[i][j];
+                } else {
+                    X[i][j] = 0;
+                }
+            }
+        }
+        return X;
+    },
+    get pivotPermutationVector() {
+        return this.pivotVector.slice();
+    },
+    solve: function (value) {
+        value = Matrix.Matrix.checkMatrix(value);
+
+        var lu = this.LU,
+            rows = lu.rows;
+
+        if (rows !== value.rows) {
+            throw new Error('Invalid matrix dimensions');
+        }
+        if (this.isSingular()) {
+            throw new Error('LU matrix is singular');
+        }
+
+        var count = value.columns;
+        var X = value.subMatrixRow(this.pivotVector, 0, count - 1);
+        var columns = lu.columns;
+        var i, j, k;
+
+        for (k = 0; k < columns; k++) {
+            for (i = k + 1; i < columns; i++) {
+                for (j = 0; j < count; j++) {
+                    X[i][j] -= X[k][j] * lu[i][k];
+                }
+            }
+        }
+        for (k = columns - 1; k >= 0; k--) {
+            for (j = 0; j < count; j++) {
+                X[k][j] /= lu[k][k];
+            }
+            for (i = 0; i < k; i++) {
+                for (j = 0; j < count; j++) {
+                    X[i][j] -= X[k][j] * lu[i][k];
+                }
+            }
+        }
+        return X;
+    }
+};
+
+module.exports = LuDecomposition;
+
+
+/***/ }),
+/* 49 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var Matrix = __webpack_require__(1);
+var util = __webpack_require__(18);
+var hypotenuse = util.hypotenuse;
+var getFilled2DArray = util.getFilled2DArray;
+
+// https://github.com/lutzroeder/Mapack/blob/master/Source/SingularValueDecomposition.cs
+function SingularValueDecomposition(value, options) {
+    if (!(this instanceof SingularValueDecomposition)) {
+        return new SingularValueDecomposition(value, options);
+    }
+    value = Matrix.Matrix.checkMatrix(value);
+
+    options = options || {};
+
+    var m = value.rows,
+        n = value.columns,
+        nu = Math.min(m, n);
+
+    var wantu = true, wantv = true;
+    if (options.computeLeftSingularVectors === false) wantu = false;
+    if (options.computeRightSingularVectors === false) wantv = false;
+    var autoTranspose = options.autoTranspose === true;
+
+    var swapped = false;
+    var a;
+    if (m < n) {
+        if (!autoTranspose) {
+            a = value.clone();
+            // eslint-disable-next-line no-console
+            console.warn('Computing SVD on a matrix with more columns than rows. Consider enabling autoTranspose');
+        } else {
+            a = value.transpose();
+            m = a.rows;
+            n = a.columns;
+            swapped = true;
+            var aux = wantu;
+            wantu = wantv;
+            wantv = aux;
+        }
+    } else {
+        a = value.clone();
+    }
+
+    var s = new Array(Math.min(m + 1, n)),
+        U = getFilled2DArray(m, nu, 0),
+        V = getFilled2DArray(n, n, 0),
+        e = new Array(n),
+        work = new Array(m);
+
+    var nct = Math.min(m - 1, n);
+    var nrt = Math.max(0, Math.min(n - 2, m));
+
+    var i, j, k, p, t, ks, f, cs, sn, max, kase,
+        scale, sp, spm1, epm1, sk, ek, b, c, shift, g;
+
+    for (k = 0, max = Math.max(nct, nrt); k < max; k++) {
+        if (k < nct) {
+            s[k] = 0;
+            for (i = k; i < m; i++) {
+                s[k] = hypotenuse(s[k], a[i][k]);
+            }
+            if (s[k] !== 0) {
+                if (a[k][k] < 0) {
+                    s[k] = -s[k];
+                }
+                for (i = k; i < m; i++) {
+                    a[i][k] /= s[k];
+                }
+                a[k][k] += 1;
+            }
+            s[k] = -s[k];
+        }
+
+        for (j = k + 1; j < n; j++) {
+            if ((k < nct) && (s[k] !== 0)) {
+                t = 0;
+                for (i = k; i < m; i++) {
+                    t += a[i][k] * a[i][j];
+                }
+                t = -t / a[k][k];
+                for (i = k; i < m; i++) {
+                    a[i][j] += t * a[i][k];
+                }
+            }
+            e[j] = a[k][j];
+        }
+
+        if (wantu && (k < nct)) {
+            for (i = k; i < m; i++) {
+                U[i][k] = a[i][k];
+            }
+        }
+
+        if (k < nrt) {
+            e[k] = 0;
+            for (i = k + 1; i < n; i++) {
+                e[k] = hypotenuse(e[k], e[i]);
+            }
+            if (e[k] !== 0) {
+                if (e[k + 1] < 0) {
+                    e[k] = 0 - e[k];
+                }
+                for (i = k + 1; i < n; i++) {
+                    e[i] /= e[k];
+                }
+                e[k + 1] += 1;
+            }
+            e[k] = -e[k];
+            if ((k + 1 < m) && (e[k] !== 0)) {
+                for (i = k + 1; i < m; i++) {
+                    work[i] = 0;
+                }
+                for (j = k + 1; j < n; j++) {
+                    for (i = k + 1; i < m; i++) {
+                        work[i] += e[j] * a[i][j];
+                    }
+                }
+                for (j = k + 1; j < n; j++) {
+                    t = -e[j] / e[k + 1];
+                    for (i = k + 1; i < m; i++) {
+                        a[i][j] += t * work[i];
+                    }
+                }
+            }
+            if (wantv) {
+                for (i = k + 1; i < n; i++) {
+                    V[i][k] = e[i];
+                }
+            }
+        }
+    }
+
+    p = Math.min(n, m + 1);
+    if (nct < n) {
+        s[nct] = a[nct][nct];
+    }
+    if (m < p) {
+        s[p - 1] = 0;
+    }
+    if (nrt + 1 < p) {
+        e[nrt] = a[nrt][p - 1];
+    }
+    e[p - 1] = 0;
+
+    if (wantu) {
+        for (j = nct; j < nu; j++) {
+            for (i = 0; i < m; i++) {
+                U[i][j] = 0;
+            }
+            U[j][j] = 1;
+        }
+        for (k = nct - 1; k >= 0; k--) {
+            if (s[k] !== 0) {
+                for (j = k + 1; j < nu; j++) {
+                    t = 0;
+                    for (i = k; i < m; i++) {
+                        t += U[i][k] * U[i][j];
+                    }
+                    t = -t / U[k][k];
+                    for (i = k; i < m; i++) {
+                        U[i][j] += t * U[i][k];
+                    }
+                }
+                for (i = k; i < m; i++) {
+                    U[i][k] = -U[i][k];
+                }
+                U[k][k] = 1 + U[k][k];
+                for (i = 0; i < k - 1; i++) {
+                    U[i][k] = 0;
+                }
+            } else {
+                for (i = 0; i < m; i++) {
+                    U[i][k] = 0;
+                }
+                U[k][k] = 1;
+            }
+        }
+    }
+
+    if (wantv) {
+        for (k = n - 1; k >= 0; k--) {
+            if ((k < nrt) && (e[k] !== 0)) {
+                for (j = k + 1; j < n; j++) {
+                    t = 0;
+                    for (i = k + 1; i < n; i++) {
+                        t += V[i][k] * V[i][j];
+                    }
+                    t = -t / V[k + 1][k];
+                    for (i = k + 1; i < n; i++) {
+                        V[i][j] += t * V[i][k];
+                    }
+                }
+            }
+            for (i = 0; i < n; i++) {
+                V[i][k] = 0;
+            }
+            V[k][k] = 1;
+        }
+    }
+
+    var pp = p - 1,
+        iter = 0,
+        eps = Math.pow(2, -52);
+    while (p > 0) {
+        for (k = p - 2; k >= -1; k--) {
+            if (k === -1) {
+                break;
+            }
+            if (Math.abs(e[k]) <= eps * (Math.abs(s[k]) + Math.abs(s[k + 1]))) {
+                e[k] = 0;
+                break;
+            }
+        }
+        if (k === p - 2) {
+            kase = 4;
+        } else {
+            for (ks = p - 1; ks >= k; ks--) {
+                if (ks === k) {
+                    break;
+                }
+                t = (ks !== p ? Math.abs(e[ks]) : 0) + (ks !== k + 1 ? Math.abs(e[ks - 1]) : 0);
+                if (Math.abs(s[ks]) <= eps * t) {
+                    s[ks] = 0;
+                    break;
+                }
+            }
+            if (ks === k) {
+                kase = 3;
+            } else if (ks === p - 1) {
+                kase = 1;
+            } else {
+                kase = 2;
+                k = ks;
+            }
+        }
+
+        k++;
+
+        switch (kase) {
+            case 1: {
+                f = e[p - 2];
+                e[p - 2] = 0;
+                for (j = p - 2; j >= k; j--) {
+                    t = hypotenuse(s[j], f);
+                    cs = s[j] / t;
+                    sn = f / t;
+                    s[j] = t;
+                    if (j !== k) {
+                        f = -sn * e[j - 1];
+                        e[j - 1] = cs * e[j - 1];
+                    }
+                    if (wantv) {
+                        for (i = 0; i < n; i++) {
+                            t = cs * V[i][j] + sn * V[i][p - 1];
+                            V[i][p - 1] = -sn * V[i][j] + cs * V[i][p - 1];
+                            V[i][j] = t;
+                        }
+                    }
+                }
+                break;
+            }
+            case 2 : {
+                f = e[k - 1];
+                e[k - 1] = 0;
+                for (j = k; j < p; j++) {
+                    t = hypotenuse(s[j], f);
+                    cs = s[j] / t;
+                    sn = f / t;
+                    s[j] = t;
+                    f = -sn * e[j];
+                    e[j] = cs * e[j];
+                    if (wantu) {
+                        for (i = 0; i < m; i++) {
+                            t = cs * U[i][j] + sn * U[i][k - 1];
+                            U[i][k - 1] = -sn * U[i][j] + cs * U[i][k - 1];
+                            U[i][j] = t;
+                        }
+                    }
+                }
+                break;
+            }
+            case 3 : {
+                scale = Math.max(Math.max(Math.max(Math.max(Math.abs(s[p - 1]), Math.abs(s[p - 2])), Math.abs(e[p - 2])), Math.abs(s[k])), Math.abs(e[k]));
+                sp = s[p - 1] / scale;
+                spm1 = s[p - 2] / scale;
+                epm1 = e[p - 2] / scale;
+                sk = s[k] / scale;
+                ek = e[k] / scale;
+                b = ((spm1 + sp) * (spm1 - sp) + epm1 * epm1) / 2;
+                c = (sp * epm1) * (sp * epm1);
+                shift = 0;
+                if ((b !== 0) || (c !== 0)) {
+                    shift = Math.sqrt(b * b + c);
+                    if (b < 0) {
+                        shift = -shift;
+                    }
+                    shift = c / (b + shift);
+                }
+                f = (sk + sp) * (sk - sp) + shift;
+                g = sk * ek;
+                for (j = k; j < p - 1; j++) {
+                    t = hypotenuse(f, g);
+                    cs = f / t;
+                    sn = g / t;
+                    if (j !== k) {
+                        e[j - 1] = t;
+                    }
+                    f = cs * s[j] + sn * e[j];
+                    e[j] = cs * e[j] - sn * s[j];
+                    g = sn * s[j + 1];
+                    s[j + 1] = cs * s[j + 1];
+                    if (wantv) {
+                        for (i = 0; i < n; i++) {
+                            t = cs * V[i][j] + sn * V[i][j + 1];
+                            V[i][j + 1] = -sn * V[i][j] + cs * V[i][j + 1];
+                            V[i][j] = t;
+                        }
+                    }
+                    t = hypotenuse(f, g);
+                    cs = f / t;
+                    sn = g / t;
+                    s[j] = t;
+                    f = cs * e[j] + sn * s[j + 1];
+                    s[j + 1] = -sn * e[j] + cs * s[j + 1];
+                    g = sn * e[j + 1];
+                    e[j + 1] = cs * e[j + 1];
+                    if (wantu && (j < m - 1)) {
+                        for (i = 0; i < m; i++) {
+                            t = cs * U[i][j] + sn * U[i][j + 1];
+                            U[i][j + 1] = -sn * U[i][j] + cs * U[i][j + 1];
+                            U[i][j] = t;
+                        }
+                    }
+                }
+                e[p - 2] = f;
+                iter = iter + 1;
+                break;
+            }
+            case 4: {
+                if (s[k] <= 0) {
+                    s[k] = (s[k] < 0 ? -s[k] : 0);
+                    if (wantv) {
+                        for (i = 0; i <= pp; i++) {
+                            V[i][k] = -V[i][k];
+                        }
+                    }
+                }
+                while (k < pp) {
+                    if (s[k] >= s[k + 1]) {
+                        break;
+                    }
+                    t = s[k];
+                    s[k] = s[k + 1];
+                    s[k + 1] = t;
+                    if (wantv && (k < n - 1)) {
+                        for (i = 0; i < n; i++) {
+                            t = V[i][k + 1];
+                            V[i][k + 1] = V[i][k];
+                            V[i][k] = t;
+                        }
+                    }
+                    if (wantu && (k < m - 1)) {
+                        for (i = 0; i < m; i++) {
+                            t = U[i][k + 1];
+                            U[i][k + 1] = U[i][k];
+                            U[i][k] = t;
+                        }
+                    }
+                    k++;
+                }
+                iter = 0;
+                p--;
+                break;
+            }
+            // no default
+        }
+    }
+
+    if (swapped) {
+        var tmp = V;
+        V = U;
+        U = tmp;
+    }
+
+    this.m = m;
+    this.n = n;
+    this.s = s;
+    this.U = U;
+    this.V = V;
+}
+
+SingularValueDecomposition.prototype = {
+    get condition() {
+        return this.s[0] / this.s[Math.min(this.m, this.n) - 1];
+    },
+    get norm2() {
+        return this.s[0];
+    },
+    get rank() {
+        var eps = Math.pow(2, -52),
+            tol = Math.max(this.m, this.n) * this.s[0] * eps,
+            r = 0,
+            s = this.s;
+        for (var i = 0, ii = s.length; i < ii; i++) {
+            if (s[i] > tol) {
+                r++;
+            }
+        }
+        return r;
+    },
+    get diagonal() {
+        return this.s;
+    },
+    // https://github.com/accord-net/framework/blob/development/Sources/Accord.Math/Decompositions/SingularValueDecomposition.cs
+    get threshold() {
+        return (Math.pow(2, -52) / 2) * Math.max(this.m, this.n) * this.s[0];
+    },
+    get leftSingularVectors() {
+        if (!Matrix.Matrix.isMatrix(this.U)) {
+            this.U = new Matrix.Matrix(this.U);
+        }
+        return this.U;
+    },
+    get rightSingularVectors() {
+        if (!Matrix.Matrix.isMatrix(this.V)) {
+            this.V = new Matrix.Matrix(this.V);
+        }
+        return this.V;
+    },
+    get diagonalMatrix() {
+        return Matrix.Matrix.diag(this.s);
+    },
+    solve: function (value) {
+
+        var Y = value,
+            e = this.threshold,
+            scols = this.s.length,
+            Ls = Matrix.Matrix.zeros(scols, scols),
+            i;
+
+        for (i = 0; i < scols; i++) {
+            if (Math.abs(this.s[i]) <= e) {
+                Ls[i][i] = 0;
+            } else {
+                Ls[i][i] = 1 / this.s[i];
+            }
+        }
+
+        var U = this.U;
+        var V = this.rightSingularVectors;
+
+        var VL = V.mmul(Ls),
+            vrows = V.rows,
+            urows = U.length,
+            VLU = Matrix.Matrix.zeros(vrows, urows),
+            j, k, sum;
+
+        for (i = 0; i < vrows; i++) {
+            for (j = 0; j < urows; j++) {
+                sum = 0;
+                for (k = 0; k < scols; k++) {
+                    sum += VL[i][k] * U[j][k];
+                }
+                VLU[i][j] = sum;
+            }
+        }
+
+        return VLU.mmul(Y);
+    },
+    solveForDiagonal: function (value) {
+        return this.solve(Matrix.Matrix.diag(value));
+    },
+    inverse: function () {
+        var V = this.V;
+        var e = this.threshold,
+            vrows = V.length,
+            vcols = V[0].length,
+            X = new Matrix.Matrix(vrows, this.s.length),
+            i, j;
+
+        for (i = 0; i < vrows; i++) {
+            for (j = 0; j < vcols; j++) {
+                if (Math.abs(this.s[j]) > e) {
+                    X[i][j] = V[i][j] / this.s[j];
+                } else {
+                    X[i][j] = 0;
+                }
+            }
+        }
+
+        var U = this.U;
+
+        var urows = U.length,
+            ucols = U[0].length,
+            Y = new Matrix.Matrix(vrows, urows),
+            k, sum;
+
+        for (i = 0; i < vrows; i++) {
+            for (j = 0; j < urows; j++) {
+                sum = 0;
+                for (k = 0; k < ucols; k++) {
+                    sum += X[i][k] * U[j][k];
+                }
+                Y[i][j] = sum;
+            }
+        }
+
+        return Y;
+    }
+};
+
+module.exports = SingularValueDecomposition;
+
+
+/***/ }),
+/* 50 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.SpinSystem = __webpack_require__(133);
+exports.simulate1D = __webpack_require__(135);
+exports.simulate2D = __webpack_require__(136);
+
+
+/***/ }),
+/* 51 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var numberIsNan = __webpack_require__(137);
 
 function assertNum(x) {
 	if (typeof x !== 'number' || numberIsNan(x)) {
@@ -12057,7 +13511,7 @@ exports.desc = function (a, b) {
 
 
 /***/ }),
-/* 44 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12065,7 +13519,7 @@ exports.desc = function (a, b) {
 
 
 
-var utils = __webpack_require__(1);
+var utils = __webpack_require__(2);
 
 
 // Quick check if we can use fast array to bin string conversion
@@ -12249,7 +13703,7 @@ exports.utf8border = function (buf, max) {
 
 
 /***/ }),
-/* 45 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12288,7 +13742,7 @@ module.exports = adler32;
 
 
 /***/ }),
-/* 46 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12345,7 +13799,7 @@ module.exports = {
 
 
 /***/ }),
-/* 47 */
+/* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12393,7 +13847,7 @@ module.exports = crc32;
 
 
 /***/ }),
-/* 48 */
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12429,7 +13883,7 @@ module.exports = ZStream;
 
 
 /***/ }),
-/* 49 */
+/* 57 */
 /***/ (function(module, exports) {
 
 var g;
@@ -12456,421 +13910,17 @@ module.exports = g;
 
 
 /***/ }),
-/* 50 */
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-module.exports.fourierTransform = __webpack_require__(134);
-module.exports.zeroFilling = __webpack_require__(137);
-module.exports.apodization = __webpack_require__(132);
-module.exports.phaseCorrection = __webpack_require__(135);
-module.exports.digitalFilter = __webpack_require__(133);
-
-
-/***/ }),
-/* 51 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-
-var diagonalError = 0.05;
-var	tolerance = 0.05;
-
-module.exports = {
-
-    clean: function (peaks, threshold) {
-        var max = Number.NEGATIVE_INFINITY;
-        var i;
-        //double min = Double.MAX_VALUE;
-        for (i = peaks.length - 1; i >= 0; i--) {
-            if (Math.abs(peaks[i].z) > max) {
-                max = Math.abs(peaks[i].z);
-            }
-        }
-        max *= threshold;
-        for (i = peaks.length - 1; i >= 0; i--) {
-            if (Math.abs(peaks[i].z) < max) {
-                peaks.splice(i, 1);
-            }
-        }
-        return peaks;
-    },
-
-    enhanceSymmetry: function (signals) {
-
-        var properties = initializeProperties(signals);
-        var output = signals;
-
-		//First step of the optimization: Symmetry validation
-        var i, hits, index;
-        var signal;
-        for (i = output.length - 1; i >= 0; i--) {
-            signal = output[i];
-            if (signal.peaks.length > 1)				{
-                properties[i][1]++;
-            }
-            if (properties[i][0] === 1) {
-                index = exist(output, properties, signal, -1, true);
-                if (index >= 0) {
-                    properties[i][1] += 2;
-                    properties[index][1] += 2;
-                }
-            }
-        }
-		//Second step of the optimization: Diagonal image existence
-        for (i = output.length - 1; i >= 0; i--) {
-            signal = output[i];
-            if (properties[i][0] === 0) {
-                hits = checkCrossPeaks(output, properties, signal, true);
-                properties[i][1] += hits;
-				//checkCrossPeaks(output, properties, signal, false);
-            }
-        }
-
-		//Now, each peak have a score between 0 and 4, we can complete the patterns which
-		//contains peaks with high scores, and finally, we can remove peaks with scores 0 and 1
-        var count = 0;
-        for (i = output.length - 1; i >= 0; i--) {
-            if (properties[i][0] !== 0 && properties[i][1] > 2) {
-                count++;
-                count += completeMissingIfNeeded(output, properties, output[i], properties[i]);
-            }
-            if (properties[i][1] >= 2 && properties[i][0] === 0)				{
-                count++;
-            }
-        }
-
-        var toReturn = new Array(count);
-        count--;
-        for (i = output.length - 1; i >= 0; i--) {
-            if (properties[i][0] !== 0 && properties[i][1] > 2
-					|| properties[i][0] === 0 && properties[i][1] > 1) {
-                toReturn[count--] = output[i];
-            }
-        }
-        return toReturn;
-    },
-
-    /**
-     * This function maps the corresponding 2D signals to the given set of 1D signals
-     * @param {Array} signals2D
-     * @param {Array} references
-     */
-    alignDimensions: function (signals2D, references) {
-		//For each reference dimension
-        for (var i = 0; i < references.length; i++) {
-            var ref = references[i];
-            if (ref)				{
-                alignSingleDimension(signals2D, ref);
-            }
-        }
-    }
-};
-
-function completeMissingIfNeeded(output, properties, thisSignal, thisProp) {
-	//Check for symmetry
-    var index = exist(output, properties, thisSignal, -thisProp[0], true);
-    var addedPeaks = 0;
-    var newSignal = null, tmpProp = null;
-    if (index < 0) {//If this signal have no a symmetry image, we have to include it
-        newSignal = {nucleusX: thisSignal.nucleusX, nucleusY: thisSignal.nucleusY};
-        newSignal.resolutionX = thisSignal.resolutionX;
-        newSignal.resolutionY = thisSignal.resolutionY;
-        newSignal.shiftX = thisSignal.shiftY;
-        newSignal.shiftY = thisSignal.shiftX;
-        newSignal.peaks = [{x: thisSignal.shiftY, y: thisSignal.shiftX, z: 1}];
-        output.push(newSignal);
-        tmpProp = [-thisProp[0], thisProp[1]];
-        properties.push(tmpProp);
-        addedPeaks++;
-    }
-	//Check for diagonal peaks
-    var j = 0;
-    var diagX = false, diagY = false;
-    var signal;
-    for (j = output.length - 1; j >= 0; j--) {
-        signal = output[j];
-        if (properties[j][0] === 0) {
-            if (Math.abs(signal.shiftX - thisSignal.shiftX) < diagonalError)				{
-                diagX = true;
-            }
-            if (Math.abs(signal.shiftY - thisSignal.shiftY) < diagonalError)				{
-                diagY = true;
-            }
-        }
-    }
-    if (diagX === false) {
-        newSignal = {nucleusX: thisSignal.nucleusX, nucleusY: thisSignal.nucleusY};
-        newSignal.resolutionX = thisSignal.resolutionX;
-        newSignal.resolutionY = thisSignal.resolutionY;
-        newSignal.shiftX = thisSignal.shiftX;
-        newSignal.shiftY = thisSignal.shiftX;
-        newSignal.peaks = [{x: thisSignal.shiftX, y: thisSignal.shiftX, z: 1}];
-        output.push(newSignal);
-        tmpProp = [0, thisProp[1]];
-        properties.push(tmpProp);
-        addedPeaks++;
-    }
-    if (diagY === false) {
-        newSignal = {nucleusX: thisSignal.nucleusX, nucleusY: thisSignal.nucleusY};
-        newSignal.resolutionX = thisSignal.resolutionX;
-        newSignal.resolutionY = thisSignal.resolutionY;
-        newSignal.shiftX = thisSignal.shiftY;
-        newSignal.shiftY = thisSignal.shiftY;
-        newSignal.peaks = [{x: thisSignal.shiftY, y: thisSignal.shiftY, z: 1}];
-        output.push(newSignal);
-        tmpProp = [0, thisProp[1]];
-        properties.push(tmpProp);
-        addedPeaks++;
-    }
-    return addedPeaks;
-
-}
-
-//Check for any diagonal peak that match this cross peak
-function checkCrossPeaks(output, properties, signal, updateProperties) {
-    var hits = 0, i = 0, shift = signal.shiftX * 4;
-    var crossPeaksX = [], crossPeaksY = [];
-    var cross;
-    for (i = output.length - 1; i >= 0; i--) {
-        cross = output[i];
-        if (properties[i][0] !== 0) {
-            if (Math.abs(cross.shiftX - signal.shiftX) < diagonalError) {
-                hits++;
-                if (updateProperties)					{
-                    properties[i][1]++;
-                }
-                crossPeaksX.push(i);
-                shift += cross.shiftX;
-            } else {
-                if (Math.abs(cross.shiftY - signal.shiftY) < diagonalError) {
-                    hits++;
-                    if (updateProperties)						{
-                        properties[i][1]++;
-                    }
-                    crossPeaksY.push(i);
-                    shift += cross.shiftY;
-                }
-            }
-        }
-    }
-	//Update found crossPeaks and diagonal peak
-    shift /= (crossPeaksX.length + crossPeaksY.length + 4);
-    if (crossPeaksX.length > 0) {
-        for (i = crossPeaksX.length - 1; i >= 0; i--) {
-            output[crossPeaksX[i]].shiftX = shift;
-        }
-    }
-    if (crossPeaksY.length > 0) {
-        for (i = crossPeaksY.length - 1; i >= 0; i--) {
-            output[crossPeaksY[i]].shiftY = shift;
-        }
-    }
-    signal.shiftX = shift;
-    signal.shiftY = shift;
-    return hits;
-}
-
-function exist(output, properties, signal, type, symmetricSearch) {
-    for (var i = output.length - 1; i >= 0; i--) {
-        if (properties[i][0] === type) {
-            if (distanceTo(signal, output[i], symmetricSearch) < tolerance) {
-                if (!symmetricSearch) {
-                    let shiftX = (output[i].shiftX + signal.shiftX) / 2.0;
-                    let shiftY = (output[i].shiftY + signal.shiftY) / 2.0;
-                    output[i].shiftX = shiftX;
-                    output[i].shiftY = shiftY;
-                    signal.shiftX = shiftX;
-                    signal.shiftY = shiftY;
-                } else {
-                    let shiftX = signal.shiftX;
-                    let shiftY = output[i].shiftX;
-                    output[i].shiftY = shiftX;
-                    signal.shiftY = shiftY;
-                }
-                return i;
-            }
-        }
-    }
-    return -1;
-}
-/**
- * We try to determine the position of each signal within the spectrum matrix.
- * Peaks could be of 3 types: upper diagonal, diagonal or under diagonal 1,0,-1
- * respectively.
- * @param {Array} signals
- * @return {*} A matrix containing the properties of each signal
- * @private
- */
-function initializeProperties(signals) {
-    var signalsProperties = new Array(signals.length);
-    for (var i = signals.length - 1; i >= 0; i--) {
-        signalsProperties[i] = [0, 0];
-		//We check if it is a diagonal peak
-        if (Math.abs(signals[i].shiftX - signals[i].shiftY) <= diagonalError) {
-            signalsProperties[i][1] = 1;
-			//We adjust the x and y value to be symmetric.
-			//In general chemical shift in the direct dimension is better than in the other one,
-			//so, we believe more to the shiftX than to the shiftY.
-            var shift = (signals[i].shiftX * 2 + signals[i].shiftY) / 3.0;
-            signals[i].shiftX = shift;
-            signals[i].shiftY = shift;
-        } else {
-            if (signals[i].shiftX - signals[i].shiftY > 0)				{
-                signalsProperties[i][0] = 1;
-            } else				{
-                signalsProperties[i][0] = -1;
-            }
-        }
-    }
-    return signalsProperties;
-}
-
-/**
- * This function calculates the distance between 2 nmr signals . If toImage is true,
- * it will interchange x by y in the distance calculation for the second signal.
- * @param {object} a
- * @param {object} b
- * @param {boolean} toImage
- * @return {number}
- * @private
- */
-function distanceTo(a, b, toImage) {
-    if (!toImage) {
-        return Math.sqrt(Math.pow(a.shiftX - b.shiftX, 2)
-			+ Math.pow(a.shiftY - b.shiftY, 2));
-    } else {
-        return Math.sqrt(Math.pow(a.shiftX - b.shiftY, 2)
-			+ Math.pow(a.shiftY - b.shiftX, 2));
-    }
-}
-
-function alignSingleDimension(signals2D, references) {
-	//For each 2D signal
-    var center = 0, width = 0, i, j;
-    for (i = 0; i < signals2D.length; i++) {
-        var signal2D = signals2D[i];
-		//For each reference 1D signal
-        for (j = 0; j < references.length; j++) {
-            center = (references[j].startX + references[j].stopX) / 2;
-            width = Math.abs(references[j].startX - references[j].stopX) / 2;
-            if (signal2D.nucleusX === references[j].nucleus) {
-				//The 2D peak overlaps with the 1D signal
-                if (Math.abs(signal2D.shiftX - center) <= width) {
-                    signal2D._highlight.push(references[j]._highlight[0]);
-                }
-
-            }
-            if (signal2D.nucleusY === references[j].nucleus) {
-                if (Math.abs(signal2D.shiftY - center) <= width) {
-                    signal2D._highlight.push(references[j]._highlight[0]);
-                }
-            }
-        }
-
-    }
-}
-
-
-/***/ }),
-/* 52 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-/**
- * Implementation of the peak picking method described by Cobas in:
- * A new approach to improving automated analysis of proton NMR spectra
- * through Global Spectral Deconvolution (GSD)
- * http://www.spectroscopyeurope.com/images/stories/ColumnPDFs/TD_23_1.pdf
- * @param {SD} spectrum - SD instance
- * @param {Object} peakList - nmr signals
- * @param {Object} options - options object with some parameter for GSD
- * @param {boolean} [options.clean = true] - If true remove all the signals with integral < 0.5
- * @param {number} [options.minMaxRatio = 0.01] - Threshold to determine if a given peak should be considered as a noise, bases on its relative height compared to the highest peak.
- * @param {number} [options.broadRatio = 0.00025] - If broadRatio is higher than 0, then all the peaks which second derivative smaller than broadRatio * maxAbsSecondDerivative will be marked with the soft mask equal to true.
- * @param {boolean} [options.smoothY = true] - Select the peak intensities from a smoothed version of the independent variables?
- * @param {number} [options.nL = 4] - factor to determine the width at the moment to group the peaks in signals in 'GSD.optimizePeaks' function.
- * @param {boolean} [options.optimize = true] - if it's true adjust an train of gaussian or lorentzian shapes to spectrum.
- * @param {string} [options.functionType = 'gaussian'] - This option allows us choose between 'gaussian' or 'lorentzian' function when options.optimize is true.
- * @param {number} [options.broadWidth = 0.25] - Threshold to determine if some peak is candidate to clustering into range.
- * @returns {Array}
- */
-const GSD = __webpack_require__(78);
-//var extend = require("extend");
-//var removeImpurities = require('./ImpurityRemover');
-
-const defaultOptions = {
-
-    thresholdFactor: 1,
-    optimize: false,
-    minMaxRatio: 0.01,
-    broadRatio: 0.00025,
-    smoothY: true,
-    nL: 4,
-    functionType: 'gaussian',
-    broadWidth: 0.25,
-    sgOptions: {windowSize: 9, polynomial: 3}
-};
-
-
-function extractPeaks(spectrum, optionsEx) {
-    var options = Object.assign({}, defaultOptions, optionsEx);
-    var noiseLevel = Math.abs(spectrum.getNoiseLevel()) * (options.thresholdFactor);
-    var data = spectrum.getXYData();
-
-    if (options.from && options.to) {
-        data = spectrum.getVector(options.from, options.to);
-    }
-
-    var peakList = GSD.gsd(data[0], data[1], options);
-
-    if (options.broadWidth) {
-        peakList = GSD.post.joinBroadPeaks(peakList, {width: options.broadWidth});
-    }
-
-    if (options.optimize) {
-        peakList = GSD.post.optimizePeaks(peakList, data[0], data[1], options.nL, options.functionType);
-    }
-
-    return clearList(peakList, noiseLevel);
-}
-
-/**
- * this function remove the peaks with an intensity lower to threshold
- * @param {object} peakList - peaks
- * @param {number} threshold
- * @returns {object} the clean peakList
- * @private
- */
-function clearList(peakList, threshold) {
-    for (var i = peakList.length - 1; i >= 0; i--) {
-        if (Math.abs(peakList[i].y) < threshold) {
-            peakList.splice(i, 1);
-        }
-    }
-    return peakList;
-}
-
-module.exports = extractPeaks;
-
-
-/***/ }),
-/* 53 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-const SD = __webpack_require__(7);
-const Filters = __webpack_require__(50);
-const Brukerconverter = __webpack_require__(20);
-const peaks2Ranges = __webpack_require__(142);
-const simulator = __webpack_require__(42);
+var SD = __webpack_require__(9);
+var Filters = __webpack_require__(22);
+var Brukerconverter = __webpack_require__(26);
+var peaks2Ranges = __webpack_require__(70);
+var simulator = __webpack_require__(50);
 
 /**
  * @class NMR
@@ -12890,9 +13940,9 @@ class NMR extends SD {
      * @returns {SD}
      */
     static fromPrediction(prediction, options) {
-        const spinSystem = simulator.SpinSystem.fromPrediction(prediction);
-        let opt = Object.assign({}, options, {
-            nbPoints: 16*1024,
+        var spinSystem = simulator.SpinSystem.fromPrediction(prediction);
+        var opt = Object.assign({}, options, {
+            nbPoints: 16 * 1024,
             maxClusterSize: 8,
             output: 'xy'
         });
@@ -12932,11 +13982,11 @@ class NMR extends SD {
         spectrum.observeFrequency = options.frequency || 400;
         result.info.observefrequency = spectrum.observeFrequency;
         result.info['.SOLVENTNAME'] = options.solvent || 'none';
-        result.info['$SW_h'] = Math.abs(spectrum.lastX - spectrum.firstX) * spectrum.observeFrequency;
-        result.info['$SW'] = Math.abs(spectrum.lastX - spectrum.firstX);
-        result.info['$TD'] = spectrum.nbPoints;
+        result.info.$SW_h = Math.abs(spectrum.lastX - spectrum.firstX) * spectrum.observeFrequency;
+        result.info.$SW = Math.abs(spectrum.lastX - spectrum.firstX);
+        result.info.$TD = spectrum.nbPoints;
         result.xType = options.nucleus || '1H';
-        spectrum.data = [{x: x, y: y}];
+        spectrum.data = [{ x: x, y: y }];
         result.twoD = false;
         spectra.push(spectrum);
         return new NMR(result);
@@ -12953,7 +14003,7 @@ class NMR extends SD {
      * @return {*}
      */
     static fromBruker(brukerFile, options) {
-        options = Object.assign({}, {xy: true, keepSpectra: true, keepRecordsRegExp: /^.+$/}, options);
+        options = Object.assign({}, { xy: true, keepSpectra: true, keepRecordsRegExp: /^.+$/ }, options);
         var brukerSpectra = null;
         if (Array.isArray(brukerFile)) {
             //It is a folder
@@ -13018,7 +14068,6 @@ class NMR extends SD {
         return 1.0;
     }
 
-
     /**
      * This function adds white noise to the the given spectraData. The intensity of the noise is
      * calculated from the given signal to noise ratio.
@@ -13028,7 +14077,6 @@ class NMR extends SD {
     /*addNoise(SNR) {
         //@TODO Implement addNoise filter
     }*/
-
 
     /**
      *  This filter performs a linear combination of two spectraDatas.
@@ -13048,8 +14096,7 @@ class NMR extends SD {
      */
     /*addSpectraDatas(spec2, factor1, factor2, autoscale) {
         //@TODO Implement addSpectraDatas filter
-
-    }*/
+     }*/
 
     /**
      * Automatically corrects the base line of a given spectraData. After this process the spectraData
@@ -13123,7 +14170,7 @@ class NMR extends SD {
      * @return {NMR} this object
      */
     brukerFilter() {
-        return Filters.digitalFilter(this, {'brukerFilter': true});
+        return Filters.digitalFilter(this, { 'brukerFilter': true });
     }
 
     /**
@@ -13154,9 +14201,8 @@ class NMR extends SD {
      * @return {NMR} this object
      */
     apodization(functionName, lineBroadening) {
-        return Filters.apodization(this, {'functionName': functionName,
-            'lineBroadening': lineBroadening});
-
+        return Filters.apodization(this, { 'functionName': functionName,
+            'lineBroadening': lineBroadening });
     }
 
     /**
@@ -13207,7 +14253,6 @@ class NMR extends SD {
         //@TODO Implement logarithmFilter filter
     }*/
 
-
     /**
      * This function correlates the given spectraData with the given vector func. The correlation
      * operation (*) is defined as:
@@ -13244,7 +14289,6 @@ class NMR extends SD {
         //@TODO Implement automaticPhase filter
     }*/
 
-
     /**
      * This function process the given spectraData and tries to determine the NMR signals. Returns an NMRSignal1D array
      * containing all the detected 1D-NMR Signals
@@ -13260,7 +14304,7 @@ class NMR extends SD {
             return this.ranges;
         } else {
             var peaks = this.getPeaks(parameters);
-            var params = Object.assign({}, {nH: this.totalIntegral}, parameters);
+            var params = Object.assign({}, { nH: this.totalIntegral }, parameters);
             return peaks2Ranges(this, peaks, params);
         }
     }
@@ -13283,27 +14327,25 @@ class NMR extends SD {
     }
 
     /*autoAssignment(options) {
-
-    }*/
+     }*/
 }
 
 module.exports = NMR;
 
-
 /***/ }),
-/* 54 */
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const SD = __webpack_require__(7);
-const peakPicking2D = __webpack_require__(141);
-const PeakOptimizer = __webpack_require__(51);
-const Brukerconverter = __webpack_require__(20);
-const Filters = __webpack_require__(50);
-const StatArray = __webpack_require__(3).array;
-const simule2DNmrSpectrum = __webpack_require__(42).simulate2D;
+var SD = __webpack_require__(9);
+var peakPicking2D = __webpack_require__(69);
+var PeakOptimizer = __webpack_require__(23);
+var Brukerconverter = __webpack_require__(26);
+var Filters = __webpack_require__(22);
+var StatArray = __webpack_require__(6).array;
+var simule2DNmrSpectrum = __webpack_require__(50).simulate2D;
 
 class NMR2D extends SD {
 
@@ -13320,7 +14362,7 @@ class NMR2D extends SD {
     static fromPrediction(prediction, options) {
         var data = simule2DNmrSpectrum(prediction, options);
         var spectrum = NMR2D.fromMatrix(data, options);
-        var jcamp = spectrum.toJcamp({type:'NTUPLES'});
+        var jcamp = spectrum.toJcamp({ type: 'NTUPLES' });
         return NMR2D.fromJcamp(jcamp);
     }
 
@@ -13335,7 +14377,7 @@ class NMR2D extends SD {
      * @return {*}
      */
     static fromBruker(brukerFile, options) {
-        options = Object.assign({}, {xy: true, keepSpectra: true, keepRecordsRegExp: /^.+$/}, options);
+        options = Object.assign({}, { xy: true, keepSpectra: true, keepRecordsRegExp: /^.+$/ }, options);
         var brukerSpectra = null;
         if (Array.isArray(brukerFile)) {
             //It is a folder
@@ -13363,27 +14405,27 @@ class NMR2D extends SD {
         result.profiling = [];
         result.logs = [];
         var spectra = [];
-        let nbPoints = data[0].length;
+        var nbPoints = data[0].length;
         result.spectra = spectra;
         result.info = {};
-        let firstY = options.firstY || 0;
-        let lastY = options.lastY || data.length - 1;
-        let deltaY = (lastY - firstY) / (data.length - 1);
+        var firstY = options.firstY || 0;
+        var lastY = options.lastY || data.length - 1;
+        var deltaY = (lastY - firstY) / (data.length - 1);
 
-        let firstX = options.firstX || 0;
-        let lastX = options.lastX || nbPoints - 1;
-        let deltaX = (lastY - firstY) / (nbPoints - 1);
-        let x = options.x;
-        if(!x) {
+        var firstX = options.firstX || 0;
+        var lastX = options.lastX || nbPoints - 1;
+        var deltaX = (lastY - firstY) / (nbPoints - 1);
+        var x = options.x;
+        if (!x) {
             x = new Array(nbPoints);
-            for(let i = 0; i < nbPoints; i++) {
+            for (var i = 0; i < nbPoints; i++) {
                 x[i] = firstX + deltaX * i;
             }
         }
 
-        let observeFrequency = options.frequencyX || 400;
-        let minZ = Number.MAX_SAFE_INTEGER;
-        let maxZ = Number.MIN_SAFE_INTEGER;
+        var observeFrequency = options.frequencyX || 400;
+        var minZ = Number.MAX_SAFE_INTEGER;
+        var maxZ = Number.MIN_SAFE_INTEGER;
 
         data.forEach((y, index) => {
             var spectrum = {};
@@ -13399,28 +14441,27 @@ class NMR2D extends SD {
             spectrum.title = options.title || 'spectra-data from matrix';
             spectrum.dataType = options.dataType || 'nD NMR SPECTRUM';
             spectrum.observeFrequency = observeFrequency;
-            spectrum.data = [{x: x, y: y}];
+            spectrum.data = [{ x: x, y: y }];
             spectrum.page = firstY + index * deltaY;
             result.xType = options.xType || options.nucleusX || '1H';
             spectra.push(spectrum);
 
-            let minMax = StatArray.minMax(y);
+            var minMax = StatArray.minMax(y);
             minZ = Math.min(minZ, minMax.min);
             maxZ = Math.max(maxZ, minMax.max);
-
         });
 
-        result.ntuples = [{units: options.xUnit || 'PPM'}, {units: options.yUnit || 'PPM'}, {units: options.zUnit || 'Intensity'}];
+        result.ntuples = [{ units: options.xUnit || 'PPM' }, { units: options.yUnit || 'PPM' }, { units: options.zUnit || 'Intensity' }];
         result.info['2D_Y_FREQUENCY'] = options.frequencyY || 400;
         result.info['2D_X_FREQUENCY'] = options.frequencyX || 400;
-        result.info['observefrequency'] = result.info['2D_X_FREQUENCY'];
-        result.info['$BF1'] = result.info['observefrequency'];
+        result.info.observefrequency = result.info['2D_X_FREQUENCY'];
+        result.info.$BF1 = result.info.observefrequency;
         result.info['.SOLVENTNAME'] = options.solvent || 'none';
-        result.info['$SW_h'] = Math.abs(lastX - firstX) * observeFrequency;
-        result.info['$SW'] = Math.abs(lastX - firstX);
-        result.info['$TD'] = nbPoints;
-        result.info['firstY'] = firstY;
-        result.info['lastY'] = lastY;
+        result.info.$SW_h = Math.abs(lastX - firstX) * observeFrequency;
+        result.info.$SW = Math.abs(lastX - firstX);
+        result.info.$TD = nbPoints;
+        result.info.firstY = firstY;
+        result.info.lastY = lastY;
         result.minMax = {
             minY: firstY,
             maxY: lastY,
@@ -13428,7 +14469,7 @@ class NMR2D extends SD {
             maxX: lastX,
             minZ: minZ,
             maxZ: maxZ
-        }
+        };
 
         result.yType = options.yType || options.nucleusY || '1H';
         result.twoD = true;
@@ -13493,8 +14534,7 @@ class NMR2D extends SD {
     getLastY() {
         return this.sd.minMax.maxY;
     }
-    
-    
+
     /**
      * Return the min value in the indirect dimension.
      * @return {sd.minMax.minY}
@@ -13566,7 +14606,7 @@ class NMR2D extends SD {
                         delta: [signal.shiftX, signal.shiftY]
                     }],
                     _highlight: signal._highlight,
-                    signalID: signal.signalID,
+                    signalID: signal.signalID
                 };
             }
             peakList = zones;
@@ -13607,7 +14647,6 @@ class NMR2D extends SD {
         return this.sd.xType;
     }
 
-
     /**
      * This function increase the size of the spectrum, filling the new positions with zero values. Doing it one
      * could increase artificially the spectral resolution.
@@ -13626,7 +14665,7 @@ class NMR2D extends SD {
      * @return {NMR2D} this object
      */
     brukerFilter() {
-        return Filters.digitalFilter(this, {'brukerFilter': true});
+        return Filters.digitalFilter(this, { 'brukerFilter': true });
     }
 
     /**
@@ -13642,7 +14681,6 @@ class NMR2D extends SD {
     digitalFilter(options) {
         return Filters.digitalFilter(this, options);
     }
-
 
     /**
      * Fourier transforms the given spectraData (Note. no 2D handling yet) this spectraData have to be of type NMR_FID or 2DNMR_FID
@@ -13666,12 +14704,2715 @@ class NMR2D extends SD {
     }
 }
 
-
 module.exports = NMR2D;
 
+/***/ }),
+/* 60 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+function apodization(spectraData, parameters) {
+    var params = Object.assign({}, parameters);
+    if (!params) {
+        return spectraData;
+    }
+    return spectraData;
+    //org.cheminfo.hook.nemo.filters.ApodizationFilter
+
+    /*public String toString() {
+     switch (this) {
+     case NONE:
+     return "None";
+     case EXPONENTIAL:
+     return "Exponential";
+     case GAUSSIAN:
+     return "Gaussian";
+     case TRAF:
+     return "TRAF";
+     case SINE_BELL:
+     return "Sine Bell";
+     case SINE_BELL_SQUARED:
+     return "Sine Bell Squared";
+     default:
+     return "";
+     }
+     }*/
+}
+
+module.exports = apodization;
 
 /***/ }),
-/* 55 */
+/* 61 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var rotate = __webpack_require__(64);
+
+function digitalFilter(spectraData, options) {
+    var activeElement = spectraData.activeElement;
+    var nbPoints = 0;
+    if (options.nbPoints) {
+        nbPoints = options.nbPoints;
+    } else {
+        if (options.brukerFilter) {
+            //TODO Determine the number of points to shift, or the ph1 correction
+            //based on DECIM and DSPSVF parameters
+            nbPoints = 0;
+        }
+    }
+
+    var nbSubSpectra = spectraData.getNbSubSpectra();
+    if (nbPoints !== 0) {
+        for (var iSubSpectra = 0; iSubSpectra < nbSubSpectra; iSubSpectra++) {
+            spectraData.setActiveElement(iSubSpectra);
+            rotate(spectraData.getYData(), nbPoints);
+            if (options.rotateX) {
+                rotate(spectraData.getXData(), nbPoints);
+                spectraData.setFirstX(spectraData.getX(0));
+                spectraData.setLastX(spectraData.getX(spectraData.getNbPoints() - 1));
+            }
+        }
+    }
+    spectraData.setActiveElement(activeElement);
+    return spectraData;
+}
+
+module.exports = digitalFilter;
+
+/***/ }),
+/* 62 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var fft = __webpack_require__(14);
+
+/**
+ * This function make a fourier transformation to each FID withing a SD instance
+ * @param {SD} spectraData - SD instance
+ * @returns {SD} return SD with spectrum and FID
+ */
+
+function fourierTransform(spectraData) {
+
+    var nbPoints = spectraData.getNbPoints();
+    var nSubSpectra = spectraData.getNbSubSpectra() / 2;
+    var spectraType = 'NMR SPECTRUM'; //spectraData.TYPE_NMR_SPECTRUM;
+    var FFT = fft.FFT;
+    if (nSubSpectra > 1) {
+        spectraType = 'nD NMR SPECTRUM';
+    } //spectraData.TYPE_2DNMR_SPECTRUM;
+
+    FFT.init(nbPoints);
+
+    var fcor = spectraData.getParamDouble('$FCOR', 0.0);
+    //var tempArray = new Array(nbPoints / 2);
+    for (var iSubSpectra = 0; iSubSpectra < nSubSpectra; iSubSpectra++) {
+        var re = spectraData.getYData(2 * iSubSpectra);
+        var im = spectraData.getYData(2 * iSubSpectra + 1);
+
+        re[0] *= fcor;
+        im[0] *= fcor;
+
+        FFT.fft(re, im);
+        re = re.concat(re.slice(0, (nbPoints + 1) / 2));
+        re.splice(0, (nbPoints + 1) / 2);
+        im = im.concat(im.slice(0, (nbPoints + 1) / 2));
+        im.splice(0, (nbPoints + 1) / 2);
+
+        spectraData.setActiveElement(2 * iSubSpectra);
+        updateSpectra(spectraData, spectraType);
+
+        spectraData.setActiveElement(2 * iSubSpectra + 1);
+        updateSpectra(spectraData, spectraType);
+    }
+    //TODO For Alejandro
+    //Now we can try to apply the FFt on the second dimension
+    if (spectraData.is2D()) {
+        //var mode = spectraData.getParam('.ACQUISITION SCHEME');
+        /*switch (mode) {
+            case 1://"State-TPP"
+                break;
+            case 2://State
+                break;
+            case 3://Echo-Antiecho
+                break;
+                //QF
+                //Does not transform in the indirect dimension
+        }*/
+    }
+    spectraData.setActiveElement(0);
+    return spectraData;
+}
+
+function updateSpectra(spectraData, spectraType) {
+    var baseFrequency = spectraData.getParamDouble('$BF1', NaN);
+    var spectralFrequency = spectraData.getParamDouble('$SFO1', NaN);
+    var spectralWidth = spectraData.getParamDouble('$SW', NaN);
+    var xMiddle = (spectralFrequency - baseFrequency) / baseFrequency * 1e6;
+    var dx = 0.5 * spectralWidth * spectralFrequency / baseFrequency;
+
+    spectraData.setDataType(spectraType);
+    spectraData.setFirstX(xMiddle + dx);
+    spectraData.setLastX(xMiddle - dx);
+    spectraData.setXUnits('PPM');
+
+    var x = spectraData.getXData();
+    var tmp = xMiddle + dx;
+    dx = -2 * dx / (x.length - 1);
+
+    for (var i = 0; i < x.length; i++) {
+        x[i] = tmp;
+        tmp += dx;
+    }
+
+    //TODO update minmax in Y axis
+}
+
+module.exports = fourierTransform;
+
+/***/ }),
+/* 63 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * Phase correction filter
+ * @param {SD} spectraData - SD instance
+ * @param {number} [phi0 = 0] - value
+ * @param {number} [phi1 = 0] - value
+ * @return {SD} returns the modified spectraData
+ */
+
+function phaseCorrection(spectraData, phi0, phi1) {
+
+    phi0 = Number.isFinite(phi0) ? phi0 : 0;
+    phi1 = Number.isFinite(phi1) ? phi1 : 0;
+
+    var nbPoints = spectraData.getNbPoints();
+    var reData = spectraData.getYData(0);
+    var imData = spectraData.getYData(1);
+    //var corrections = spectraData.getParam("corrections");
+
+    //for(var k=0;k<corrections.length;k++){
+    //    Point2D phi = corrections.elementAt(k);
+
+    //double phi0 = phi.getX();
+    //double phi1 = phi.getY();
+
+    var delta = phi1 / nbPoints;
+    var alpha = 2 * Math.pow(Math.sin(delta / 2), 2);
+    var beta = Math.sin(delta);
+    var cosTheta = Math.cos(phi0);
+    var sinTheta = Math.sin(phi0);
+    var cosThetaNew, sinThetaNew;
+
+    var reTmp, imTmp;
+    var index;
+    for (var i = 0; i < nbPoints; i++) {
+        index = nbPoints - i - 1;
+        index = i;
+        reTmp = reData[index] * cosTheta - imData[index] * sinTheta;
+        imTmp = reData[index] * sinTheta + imData[index] * cosTheta;
+        reData[index] = reTmp;
+        imData[index] = imTmp;
+        // calculate angles i+1 from i
+        cosThetaNew = cosTheta - (alpha * cosTheta + beta * sinTheta);
+        sinThetaNew = sinTheta - (alpha * sinTheta - beta * cosTheta);
+        cosTheta = cosThetaNew;
+        sinTheta = sinThetaNew;
+    }
+    //toApply--;
+    //}
+
+    spectraData.resetMinMax();
+    //spectraData.updateDefaults();
+    //spectraData.updateY();
+    spectraData.putParam('PHC0', phi0);
+    spectraData.putParam('PHC1', phi1);
+
+    return spectraData;
+}
+
+module.exports = phaseCorrection;
+
+/***/ }),
+/* 64 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * This function performs a circular shift of the input object without realocating memory.
+ * Positive values of shifts will shift to the right and negative values will do to the left
+ * @example rotate([1,2,3,4],1) -> [4,1,2,3]
+ * @example rotate([1,2,3,4],-1) -> [2,3,4,1]
+ * @param {Array} array - the array that will be rotated
+ * @param {number} shift
+ */
+
+function rotate(array, shift) {
+    var nbPoints = array.length;
+    //Lets calculate the lest amount of points to shift.
+    //It decreases the amount of validations in the loop
+    shift = shift % nbPoints;
+
+    if (Math.abs(shift) > nbPoints / 2) {
+        shift = shift > 0 ? shift - nbPoints : shift + nbPoints;
+    }
+
+    if (shift !== 0) {
+        var currentIndex = 0,
+            nextIndex = shift;
+        var toMove = nbPoints;
+        var current = array[currentIndex],
+            next;
+        var lastFirstIndex = shift;
+        var direction = shift > 0 ? 1 : -1;
+
+        while (toMove > 0) {
+            nextIndex = putInRange(nextIndex, nbPoints);
+            next = array[nextIndex];
+            array[nextIndex] = current;
+            nextIndex += shift;
+            current = next;
+            toMove--;
+
+            if (nextIndex === lastFirstIndex) {
+                nextIndex = putInRange(nextIndex + direction, nbPoints);
+                lastFirstIndex = nextIndex;
+                currentIndex = putInRange(nextIndex - shift, nbPoints);
+                current = array[currentIndex];
+            }
+        }
+    }
+}
+/**
+ * @private
+ */
+function putInRange(value, nbPoints) {
+    if (value < 0) {
+        value += nbPoints;
+    }
+    if (value >= nbPoints) {
+        value -= nbPoints;
+    }
+    return value;
+}
+
+module.exports = rotate;
+
+/***/ }),
+/* 65 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/**
+ * This function make a zero filling to each Active element in a SD instance.
+ * @param {SD} spectra-data instance.
+ * @param {number} zeroFillingX - number of points that FID will have, if is it lower
+ * than initial number of points, the FID will be spliced
+ */
+
+function zeroFilling(spectraData, zeroFillingX) {
+    var nbSubSpectra = spectraData.getNbSubSpectra();
+    //var zeroPadding = spectraData.getParamDouble("$$ZEROPADDING", 0);
+    var nbXPoints, lastX, deltaX, k, x, y;
+    if (zeroFillingX !== 0) {
+        for (var iSubSpectra = 0; iSubSpectra < nbSubSpectra; iSubSpectra++) {
+            spectraData.setActiveElement(iSubSpectra);
+            nbXPoints = spectraData.getNbPoints();
+            y = spectraData.getYData();
+            x = spectraData.getXData();
+            lastX = spectraData.getLastX();
+            deltaX = (lastX - x[0]) / (nbXPoints - 1);
+            for (k = nbXPoints; k < zeroFillingX; k++) {
+                y.push(0);
+                x.push(lastX + deltaX);
+            }
+            if (zeroFillingX < nbXPoints) {
+                y.splice(zeroFillingX, y.length - 1);
+                x.splice(zeroFillingX, x.length - 1);
+            }
+            spectraData.setFirstX(x[0]);
+            spectraData.setLastX(x[x.length - 1]);
+        }
+    }
+
+    spectraData.setActiveElement(0);
+    return spectraData;
+    // @TODO implement zeroFillingY for 2D spectra
+}
+module.exports = zeroFilling;
+
+/***/ }),
+/* 66 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var Encoder = __webpack_require__(67);
+var Integer = { MAX_VALUE: Number.MAX_SAFE_INTEGER, MIN_VALUE: Number.MIN_SAFE_INTEGER };
+var CRLF = '\r\n';
+var version = 'Cheminfo tools ' + __webpack_require__(151).version;
+var defaultParameters = { 'encode': 'DIFDUP', 'yFactor': 1, 'type': 'SIMPLE', 'keep': [] };
+/**
+ * This class converts a SpectraData object into a String that can be stored as a jcamp file.
+ * The string reflects the current state of the object and not the raw data from where this
+ * spectrum was initially loaded.
+ * @author acastillo
+ *
+ */
+class JcampCreator {
+
+    /**
+     * This function creates a String that represents the given spectraData, in the format JCAM-DX 5.0
+     * The X,Y data can be compressed using one of the methods described in:
+     * "JCAMP-DX. A STANDARD FORMAT FOR THE EXCHANGE OF ION MOBILITY SPECTROMETRY DATA",
+     *  http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
+     * @param {SD} spectraData
+     * @param {object} options - Optional paramteres
+     * @param {string} [options.encode = 'DIFDUP']
+     * @param {number} [options.yFactor = 1]
+     * @param {string} [options.type = 'SIMPLE']
+     * @param {array} [options.keep = [] ]
+     * @return {string}
+     */
+    convert(spectraData, options) {
+        // encodeFormat: ('FIX','SQZ','DIF','DIFDUP','CVS','PAC')
+        options = Object.assign({}, defaultParameters, options);
+        var encodeFormat = options.encode.toUpperCase().trim();
+        var factorY = options.yFactor || 1;
+        var type = options.type;
+        var userDefinedParams = options.keep;
+
+        if (type === null || type.length === 0) {
+            type = 'SIMPLE';
+        }
+
+        var outString = '';
+        spectraData.setActiveElement(0);
+
+        var scale = factorY / spectraData.getParamDouble('YFACTOR', 1);
+        var minMax = {};
+
+        if (!spectraData.is2D()) {
+            minMax = spectraData.getMinMaxY();
+        } else {
+            minMax = { min: spectraData.getMinZ(), max: spectraData.getMaxZ() };
+        }
+
+        if (minMax.max * scale >= Integer.MAX_VALUE / 2) {
+            scale = Integer.MAX_VALUE / (minMax.max * 2);
+        }
+        if (Math.abs(minMax.max - minMax.min) * scale < 16) {
+            scale = 16 / Math.abs(minMax.max - minMax.min);
+        }
+
+        var scaleX = Math.abs(1.0 / spectraData.getDeltaX());
+
+        outString += '##TITLE= ' + spectraData.getTitle() + CRLF;
+        outString += '##JCAMP-DX= 5.00\t$$' + version + CRLF;
+        outString += '##OWNER= ' + spectraData.getParamString('##OWNER=', '') + CRLF;
+        outString += '##DATA TYPE= ' + spectraData.getDataType() + CRLF;
+
+        if (type === 'NTUPLES') {
+            outString += ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams);
+        }
+
+        if (type === 'SIMPLE') {
+            outString += simpleHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams);
+        }
+
+        return outString;
+    }
+}
+
+function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams) {
+    var outString = '';
+    var variableX = spectraData.getSpectraVariable(0);
+    var variableY = spectraData.getSpectraVariable(1);
+    var variableZ = spectraData.getSpectraVariable(2);
+
+    outString += '##DATA CLASS= NTUPLES' + CRLF;
+    outString += '##NUM DIM= 2' + CRLF;
+    var nTuplesName = spectraData.getDataType().trim();
+    // we set the VarName parameter to the most common ones.
+    // These tables contain the number of occurences of each one
+    var abscVar = {};
+    var sub;
+    for (sub = 0; sub < spectraData.getNbSubSpectra(); sub++) {
+        spectraData.setActiveElement(sub);
+        if (abscVar[spectraData.getXUnits()]) {
+            abscVar[spectraData.getXUnits()].value++;
+        } else {
+            abscVar[spectraData.getXUnits()] = { value: 1, index: sub };
+        }
+    }
+
+    var keys = Object.keys(abscVar);
+    var mostCommon = keys[0],
+        defaultSub = 0;
+
+    for (sub = 1; sub < keys.length; sub++) {
+        if (abscVar[keys[sub]].value > abscVar[mostCommon].value) {
+            mostCommon = keys[sub];
+            defaultSub = abscVar[keys[sub]].index;
+        }
+    }
+    var isComplex = false;
+    spectraData.setActiveElement(defaultSub);
+    var isNMR = spectraData.getDataType().indexOf('NMR') >= 0;
+    //If it is a NMR spectrum
+    if (isNMR) {
+        outString += '##.OBSERVE FREQUENCY= ' + spectraData.getParamDouble('observefrequency', 0) + CRLF;
+        outString += '##.OBSERVE NUCLEUS= ^' + spectraData.getNucleus() + CRLF;
+        outString += '##$DECIM= ' + spectraData.getParamDouble('$DECIM', 0) + CRLF;
+        outString += '##$DSPFVS= ' + spectraData.getParamDouble('$DSPFVS', 0) + CRLF;
+        outString += '##$FCOR= ' + Math.floor(spectraData.getParamDouble('$FCOR', 0)) + CRLF;
+        if (spectraData.containsParam('$SW_h')) {
+            outString += '##$SW_h= ' + spectraData.getParamDouble('$SW_h', 0) + CRLF;
+        } else if (spectraData.containsParam('$SW_p')) {
+            outString += '##$SW_p= ' + spectraData.getParamDouble('$SW_p', 0) + CRLF;
+        }
+        outString += '##$SW= ' + spectraData.getParamDouble('$SW', 0) + CRLF;
+        outString += '##$TD= ' + Math.floor(spectraData.getParamDouble('$TD', 0)) + CRLF;
+        outString += '##$BF1= ' + spectraData.getParamDouble('$BF1', 0) + CRLF;
+        outString += '##$GRPDLY= ' + spectraData.getParamDouble('$GRPDLY', 0) + CRLF;
+        outString += '##.DIGITISER RES= ' + spectraData.getParamInt('.DIGITISER RES', 0) + CRLF;
+        outString += '##.PULSE SEQUENCE= ' + spectraData.getParamString('.PULSE SEQUENCE', '') + CRLF;
+        outString += '##.SOLVENT NAME= ' + spectraData.getSolventName() + CRLF;
+        outString += '##$NUC1= <' + spectraData.getNucleus() + '>' + CRLF;
+        if (spectraData.containsParam('2D_X_FREQUENCY')) {
+            outString += '##$SFO1= ' + spectraData.getParamDouble('2D_X_FREQUENCY', 0) + CRLF;
+        } else {
+            outString += '##$SFO1= ' + spectraData.getParamDouble('$SFO1', 0) + CRLF;
+        }
+
+        if (spectraData.containsParam('2D_X_OFFSET')) {
+            outString += '##$OFFSET= ' + spectraData.getParamDouble('2D_X_OFFSET', 0) + CRLF;
+        }
+
+        if (spectraData.is2D()) {
+            outString += '$$Parameters for 2D NMR Spectrum' + CRLF;
+            outString += '##$NUC1= <' + spectraData.getNucleus(2) + '>' + CRLF;
+            if (spectraData.containsParam('2D_Y_FREQUENCY')) {
+                outString += '##$SFO1= ' + spectraData.getParamDouble('2D_Y_FREQUENCY', 0) + CRLF;
+                outString += '##$SFO2= ' + spectraData.getParamDouble('2D_Y_FREQUENCY', 0) + CRLF;
+                outString += '##$BF2= ' + spectraData.getParamDouble('2D_Y_FREQUENCY', 0) + CRLF;
+            }
+            if (spectraData.containsParam('2D_Y_OFFSET')) {
+                outString += '##$OFFSET= ' + spectraData.getParamDouble('2D_Y_OFFSET', 0) + CRLF;
+            }
+
+            outString += '$$End of Parameters for 2D NMR Spectrum' + CRLF;
+        }
+    }
+    outString += '##NTUPLES=\t' + nTuplesName + CRLF;
+    var freq1 = 1,
+        freq2 = 1; //spectraData.getParamDouble("2D_Y_FREQUENCY", 0);
+    if (!spectraData.is2D() && spectraData.getNbSubSpectra() > 1 && isNMR) {
+        isComplex = true;
+    }
+    if (isComplex) {
+        outString += '##VAR_NAME=\t' + spectraData.getXUnits() + ',\t' + nTuplesName.substring(4) + '/REAL,\t' + nTuplesName.substring(4) + '/IMAG' + CRLF;
+        outString += '##SYMBOL=\tX,\tR,\tI' + CRLF;
+        outString += '##VAR_TYPE=\tINDEPENDENT,\tDEPENDENT,\tDEPENDENT' + CRLF;
+        if (encodeFormat !== 'CSV' || encodeFormat !== 'PAC') {
+            outString += '##VAR_FORM=\tAFFN,\tASDF,\tASDF' + CRLF;
+        } else {
+            outString += '##VAR_FORM=\tAFFN,\tAFFN,\tAFFN' + CRLF;
+        }
+        outString += '##VAR_DIM=\t' + spectraData.getNbPoints() + ',\t' + spectraData.getNbPoints() + ',\t' + spectraData.getNbPoints() + CRLF;
+        outString += '##UNITS=\tHZ' + ',\t' + spectraData.getYUnits() + ',\t' + variableZ.units + CRLF;
+        outString += '##FACTOR=\t' + 1.0 / scaleX + ',\t' + 1.0 / scale + ',\t' + 1.0 / scale + CRLF;
+
+        if (spectraData.getXUnits() === 'PPM') {
+            freq1 = spectraData.observeFrequencyX();
+        }
+
+        outString += '##FIRST=\t' + spectraData.getFirstX() * freq1 + ',\t' + spectraData.getY(0) + ',\t0' + CRLF;
+        outString += '##LAST=\t' + spectraData.getLastX() * freq1 + ',\t' + spectraData.getLastY() + ',\t0' + CRLF;
+    } else {
+        freq1 = 1;
+        if (spectraData.is2D()) {
+            outString += '##VAR_NAME=\tFREQUENCY1,\tFREQUENCY2,\tSPECTRUM' + CRLF;
+            outString += '##SYMBOL=\tF1,\tF2,\tY' + CRLF;
+            outString += '##.NUCLEUS=\t' + spectraData.getNucleus(2) + ',\t' + spectraData.getNucleus(1) + CRLF;
+            outString += '##VAR_TYPE=\tINDEPENDENT,\tINDEPENDENT,\tDEPENDENT' + CRLF;
+            if (encodeFormat !== 'CSV' || encodeFormat !== 'PAC') {
+                outString += '##VAR_FORM=\tAFFN,\tAFFN,\tASDF' + CRLF;
+            } else {
+                outString += '##VAR_FORM=\tAFFN,\tAFFN,\tASDF' + CRLF;
+            }
+            outString += '##VAR_DIM=\t' + spectraData.getNbSubSpectra() + ',\t' + spectraData.getNbPoints() + ',\t' + spectraData.getNbPoints() + CRLF;
+            //We had to change this, for Mestre compatibility
+            //outString+=("##UNITS=\tHZ,\t"+ spectraData.getXUnits() + ",\t" + spectraData.getYUnits()+CRLF);
+            outString += '##UNITS=\tHZ,\tHZ,\t' + spectraData.getZUnits() + CRLF;
+            if (spectraData.getXUnits() === 'PPM') {
+                freq1 = spectraData.getParamDouble('2D_Y_FREQUENCY', 1);
+            }
+            if (spectraData.getYUnits() === 'PPM') {
+                freq2 = spectraData.getParamDouble('2D_X_FREQUENCY', 1);
+            }
+            outString += '##FACTOR=\t1,\t' + freq2 / scaleX + ',\t' + 1.0 / scale + CRLF;
+            outString += '##FIRST=\t' + spectraData.getParamDouble('firstY', 0) * freq1 + ',\t' + spectraData.getFirstX() * freq2 + ',\t' + spectraData.getY(0) + CRLF;
+            outString += '##LAST=\t' + spectraData.getParamDouble('lastY', 0) * freq1 + ',\t' + spectraData.getLastX() * freq2 + ',\t' + spectraData.getY(spectraData.getNbPoints() - 1) + CRLF;
+        } else {
+            outString += '##VAR_NAME=\t' + variableX.varname + ',\t' + variableY.varname + ',\t' + variableX.varname + CRLF;
+            outString += '##SYMBOL=\t' + variableX.symbol + ',\t' + variableY.symbol + ',\t' + variableZ.symbol + CRLF;
+            outString += '##VAR_TYPE=\t' + variableX.vartype + ',\t' + variableY.vartype + ',\t' + variableZ.vartype + CRLF;
+            if (encodeFormat !== 'CSV' || encodeFormat !== 'PAC') {
+                outString += '##VAR_FORM=\tAFFN,\tASDF,\tASDF' + CRLF;
+            } else {
+                outString += '##VAR_FORM=\tAFFN,\tAFFN,\tAFFN' + CRLF;
+            }
+            outString += '##VAR_DIM=\t' + variableX.vardim + ',\t' + variableY.vardim + ',\t' + variableZ.vardim + CRLF;
+            outString += '##UNITS=\tHZ' + ',\t' + spectraData.getYUnits() + ',\t' + variableZ.units + CRLF;
+            if (spectraData.getXUnits() === 'PPM') {
+                freq1 = spectraData.observeFrequencyX();
+            }
+            outString += '##FACTOR=\t' + 1.0 / scaleX + ',\t' + 1.0 / scale + CRLF;
+            outString += '##FIRST=\t' + variableX.first * freq1 + ',\t' + variableY.first + ',\t' + variableZ.first + CRLF;
+            outString += '##LAST=\t' + variableX.last * freq1 + ',\t' + variableY.last + ',\t' + variableZ.last + CRLF;
+        }
+    }
+
+    //Set the user defined parameters
+    if (userDefinedParams !== null) {
+        for (var i = userDefinedParams.length - 1; i >= 0; i--) {
+            if (spectraData.containsParam(userDefinedParams[i])) {
+                outString += '##' + userDefinedParams[i] + '= ' + spectraData.getParam(userDefinedParams[i], '') + CRLF;
+            }
+        }
+    }
+    //Ordinate of the second dimension in case of 2D NMR spectra
+    var yUnits = 0,
+        lastY = 0,
+        dy = 1;
+
+    if (spectraData.is2D() && isNMR) {
+        yUnits = spectraData.getParamDouble('firstY', 0) * freq1;
+        lastY = spectraData.getParamDouble('lastY', 0) * freq1;
+        dy = (lastY - yUnits) / (spectraData.getNbSubSpectra() - 1);
+    }
+
+    for (sub = 0; sub < spectraData.getNbSubSpectra(); sub++) {
+        spectraData.setActiveElement(sub);
+        yUnits = spectraData.getParamDouble('firstY', 0) * freq1 + dy * sub;
+        outString += '##PAGE= ' + yUnits + CRLF;
+
+        if (spectraData.is2D() && isNMR) {
+            outString += '##FIRST=\t' + spectraData.getParamDouble('firstY', 0) * freq1 + ',\t' + spectraData.getFirstX() * freq2 + ',\t' + spectraData.getY(0) + CRLF;
+        }
+
+        outString += '##DATA TABLE= ';
+        if (spectraData.isDataClassPeak()) {
+            outString += '(XY..XY), PEAKS' + CRLF;
+            for (var point = 0; point < spectraData.getNbPoints(); point++) {
+                outString += spectraData.getX(point) + ', ' + spectraData.getY(point) + CRLF;
+            }
+        } else if (spectraData.isDataClassXY()) {
+            if (isNMR) {
+                if (spectraData.is2D()) {
+                    outString += '(F2++(Y..Y)), PROFILE' + CRLF;
+                } else {
+                    if (sub % 2 === 0) {
+                        outString += '(X++(R..R)), XYDATA' + CRLF;
+                    } else {
+                        outString += '(X++(I..I)), XYDATA' + CRLF;
+                    }
+                }
+            } else {
+                outString += '(X++(Y..Y)), XYDATA' + CRLF;
+            }
+
+            var tempString = '';
+            var data = new Array(spectraData.getNbPoints());
+            for (var _point = data.length - 1; _point >= 0; _point--) {
+                data[_point] = Math.round(spectraData.getY(_point) * scale);
+            }
+
+            tempString += Encoder.encode(data, spectraData.getFirstX() * scaleX, spectraData.getDeltaX() * scaleX, encodeFormat);
+            outString += tempString + CRLF;
+        }
+    }
+    outString += '##END NTUPLES= ' + nTuplesName + CRLF;
+    outString += '##END= ';
+
+    spectraData.setActiveElement(0);
+
+    return outString;
+}
+
+function simpleHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams) {
+    //var variableX = spectraData.getSpectraVariable(0);
+    //var variableY = spectraData.getSpectraVariable(1);
+    var outString = '';
+    if (spectraData.isDataClassPeak()) {
+        outString += '##DATA CLASS= PEAK TABLE' + CRLF;
+    }
+    if (spectraData.isDataClassXY()) {
+        outString += '##DATA CLASS= XYDATA' + CRLF;
+    }
+
+    spectraData.setActiveElement(0);
+    //If it is a NMR spectrum
+    if (spectraData.getDataType().indexOf('NMR') >= 0) {
+        outString += '##.OBSERVE FREQUENCY= ' + spectraData.getParamDouble('observefrequency', 0) + CRLF;
+        outString += '##.OBSERVE NUCLEUS= ^' + spectraData.getNucleus() + CRLF;
+        outString += '##$DECIM= ' + Math.round(spectraData.getParamDouble('$DECIM', 0)) + CRLF;
+        outString += '##$DSPFVS= ' + Math.round(spectraData.getParamDouble('$DSPFVS', 0)) + CRLF;
+        outString += '##$FCOR= ' + Math.round(spectraData.getParamDouble('$FCOR', 0)) + CRLF;
+        outString += '##$SW_h= ' + spectraData.getParamDouble('$SW_h', 0) + CRLF;
+        outString += '##$SW= ' + spectraData.getParamDouble('$SW', 0) + CRLF;
+        outString += '##$TD= ' + Math.round(spectraData.getParamDouble('$TD', 0)) + CRLF;
+        outString += '##$GRPDLY= ' + spectraData.getParamDouble('$GRPDLY', 0) + CRLF;
+        outString += '##$BF1= ' + spectraData.getParamDouble('$BF1', 0) + CRLF;
+        outString += '##$SFO1= ' + spectraData.getParamDouble('$SFO1', 0) + CRLF;
+        outString += '##$NUC1= <' + spectraData.getNucleus() + '>' + CRLF;
+        outString += '##.SOLVENT NAME= ' + spectraData.getSolventName() + CRLF;
+    }
+    outString += '##XUNITS=\t' + spectraData.getXUnits() + CRLF;
+    outString += '##YUNITS=\t' + spectraData.getYUnits() + CRLF;
+    outString += '##NPOINTS=\t' + spectraData.getNbPoints() + CRLF;
+    outString += '##FIRSTX=\t' + spectraData.getFirstX() + CRLF;
+    outString += '##LASTX=\t' + spectraData.getLastX() + CRLF;
+    outString += '##FIRSTY=\t' + spectraData.getFirstY() + CRLF;
+    outString += '##LASTY=\t' + spectraData.getLastY() + CRLF;
+    if (spectraData.isDataClassPeak()) {
+        outString += '##XFACTOR=1' + CRLF;
+        outString += '##YFACTOR=1' + CRLF;
+    } else if (spectraData.isDataClassXY()) {
+        outString += '##XFACTOR= ' + 1.0 / scaleX + CRLF;
+        outString += '##YFACTOR= ' + 1.0 / scale + CRLF;
+    }
+    outString += '##MAXY= ' + spectraData.getMaxY() + CRLF;
+    outString += '##MINY= ' + spectraData.getMinY() + CRLF;
+
+    //Set the user defined parameters
+    if (userDefinedParams !== null) {
+        for (var i = userDefinedParams.length - 1; i >= 0; i--) {
+            if (spectraData.containsParam(userDefinedParams[i])) {
+                outString += '##' + userDefinedParams[i] + '= ' + spectraData.getParam(userDefinedParams[i], '') + CRLF;
+            }
+        }
+    }
+
+    if (spectraData.isDataClassPeak()) {
+        outString += '##PEAK TABLE= (XY..XY)' + CRLF;
+        for (var point = 0; point < spectraData.getNbPoints(); point++) {
+            outString += spectraData.getX(point) + ', ' + spectraData.getY(point) + CRLF;
+        }
+        outString += '##END ';
+    } else if (spectraData.isDataClassXY()) {
+        outString += '##DELTAX= ' + spectraData.getDeltaX() + CRLF;
+        outString += '##XYDATA=(X++(Y..Y))' + CRLF;
+        var tempString = '';
+        var data = new Array(spectraData.getNbPoints());
+        for (var _point2 = data.length - 1; _point2 >= 0; _point2--) {
+            data[_point2] = Math.round(spectraData.getY(_point2) * scale);
+        }
+
+        tempString += Encoder.encode(data, spectraData.getFirstX() * scaleX, spectraData.getDeltaX() * scaleX, encodeFormat);
+
+        outString += tempString + CRLF;
+        outString += '##END= ';
+    }
+
+    spectraData.setActiveElement(0);
+    return outString;
+}
+
+module.exports = JcampCreator;
+
+/***/ }),
+/* 67 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+* class encodes a integer vector as a String in order to store it in a text file.
+* The algorithms used to encode the data are describe in:
+*            http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
+* Created by acastillo on 3/2/16.
+*/
+
+var newLine = '\r\n';
+
+var pseudoDigits = [['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'], ['@', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'], ['@', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'], ['%', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'], ['%', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r'], [' ', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 's']];
+
+var SQZ_P = 1,
+    SQZ_N = 2,
+    DIF_P = 3,
+    DIF_N = 4,
+    DUP = 5,
+    MaxLinelength = 100;
+
+/**
+ * This function encodes the given vector. The encoding format is specified by the
+ * encoding option
+ * @param {Array} data
+ * @param {number} firstX
+ * @param {number} intervalX
+ * @param {string} encoding: ('FIX','SQZ','DIF','DIFDUP','CVS','PAC') Default 'DIFDUP'
+ * @return {string}
+ */
+function encode(data, firstX, intervalX, encoding) {
+    switch (encoding) {
+        case 'FIX':
+            return fixEncoding(data, firstX, intervalX);
+        case 'SQZ':
+            return squeezedEncoding(data, firstX, intervalX);
+        case 'DIF':
+            return differenceEncoding(data, firstX, intervalX);
+        case 'DIFDUP':
+            return differenceDuplicateEncoding(data, firstX, intervalX);
+        case 'CSV':
+            return commaSeparatedValuesEncoding(data, firstX, intervalX);
+        case 'PAC':
+            return packedEncoding(data, firstX, intervalX);
+        default:
+            return differenceEncoding(data, firstX, intervalX);
+    }
+}
+
+/**
+ * @private
+ * No data compression used. The data is separated by a comma(',').
+ * @param {Array} data
+ * @param {number} firstX
+ * @param {number} intervalX
+ * @return {string}
+ */
+function commaSeparatedValuesEncoding(data, firstX, intervalX) {
+    return fixEncoding(data, firstX, intervalX, ',');
+}
+
+/**
+ * @private
+ * No data compression used. The data is separated by the specified separator.
+ * @param {Array} data
+ * @param {number} firstX
+ * @param {number} intervalX
+ * @param {string} separator, The separator character
+ * @return {string}
+ */
+function fixEncoding(data, firstX, intervalX, separator) {
+    if (!separator) {
+        separator = ' ';
+    }
+    var outputData = '';
+    var j = 0,
+        TD = data.length,
+        i;
+    while (j < TD - 7) {
+        outputData += Math.ceil(firstX + j * intervalX);
+        for (i = 0; i < 8; i++) {
+            outputData += separator + data[j++];
+        }
+        outputData += newLine;
+    }
+    if (j < TD) {
+        //We add last numbers
+        outputData += Math.ceil(firstX + j * intervalX);
+        for (i = j; i < TD; i++) {
+            outputData += separator + data[i];
+        }
+    }
+    return outputData;
+}
+/**
+ * @private
+ * No data compression used. The data is separated by the sign of the number.
+ * @param {Array} data
+ * @param {number} firstX
+ * @param {number} intervalX
+ * @return {string}
+ */
+function packedEncoding(data, firstX, intervalX) {
+    var outputData = '';
+    var j = 0,
+        TD = data.length,
+        i;
+
+    while (j < TD - 7) {
+        outputData += Math.ceil(firstX + j * intervalX);
+        for (i = 0; i < 8; i++) {
+            if (data[j] < 0) {
+                outputData += '-' + data[j++];
+            } else {
+                outputData += '+' + data[j++];
+            }
+        }
+        outputData += newLine;
+    }
+    if (j < TD) {
+        //We add last numbers
+        outputData += Math.ceil(firstX + j * intervalX);
+        for (i = j; i < TD; i++) {
+            if (data[i] < 0) {
+                outputData += '-' + data[i];
+            } else {
+                outputData += '+' + data[i];
+            }
+        }
+    }
+    return outputData;
+}
+/**
+ * @private
+ * Data compression is possible using the squeezed form (SQZ) in which the delimiter, the leading digit,
+ * and sign are replaced by a pseudo-digit from Table 1. For example, the Y-values 30, 32 would be
+ * represented as C0C2.
+ * @param {Array} data
+ * @param {number} firstX
+ * @param {number} intervalX
+ * @return {string}
+ */
+function squeezedEncoding(data, firstX, intervalX) {
+    var outputData = '';
+    //String outputData = new String();
+    var j = 0,
+        TD = data.length,
+        i;
+
+    while (j < TD - 10) {
+        outputData += Math.ceil(firstX + j * intervalX);
+        for (i = 0; i < 10; i++) {
+            outputData += squeezedDigit(data[j++].toString());
+        }
+        outputData += newLine;
+    }
+    if (j < TD) {
+        //We add last numbers
+        outputData += Math.ceil(firstX + j * intervalX);
+        for (i = j; i < TD; i++) {
+            outputData += squeezedDigit(data[i].toString());
+        }
+    }
+
+    return outputData;
+}
+
+/**
+ * @private
+ * Duplicate suppression encoding
+ * @param {Array} data
+ * @param {number} firstX
+ * @param {number} intervalX
+ * @return {string}
+ */
+function differenceDuplicateEncoding(data, firstX, intervalX) {
+    var mult = 0,
+        index = 0,
+        charCount = 0,
+        i;
+    //We built a string where we store the encoded data.
+    var encodData = '',
+        encodNumber = '',
+        temp = '';
+
+    //We calculate the differences vector
+    var diffData = new Array(data.length - 1);
+    for (i = 0; i < diffData.length; i++) {
+        diffData[i] = data[i + 1] - data[i];
+    }
+
+    //We simulate a line carry
+    var numDiff = diffData.length;
+    while (index < numDiff) {
+        if (charCount === 0) {
+            //Start line
+            encodNumber = Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString()) + differenceDigit(diffData[index].toString());
+            encodData += encodNumber;
+            charCount += encodNumber.length;
+        } else {
+            //Try to insert next difference
+            if (diffData[index - 1] === diffData[index]) {
+                mult++;
+            } else {
+                if (mult > 0) {
+                    //Now we know that it can be in line
+                    mult++;
+                    encodNumber = duplicateDigit(mult.toString());
+                    encodData += encodNumber;
+                    charCount += encodNumber.length;
+                    mult = 0;
+                    index--;
+                } else {
+                    //Mirar si cabe, en caso contrario iniciar una nueva linea
+                    encodNumber = differenceDigit(diffData[index].toString());
+                    if (encodNumber.length + charCount < MaxLinelength) {
+                        encodData += encodNumber;
+                        charCount += encodNumber.length;
+                    } else {
+                        //Iniciar nueva linea
+                        encodData += newLine;
+                        temp = Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString()) + encodNumber;
+                        encodData += temp; //Each line start with first index number.
+                        charCount = temp.length;
+                    }
+                }
+            }
+        }
+        index++;
+    }
+    if (mult > 0) {
+        encodData += duplicateDigit((mult + 1).toString());
+    }
+    //We insert the last data from fid. It is done to control of data
+    //The last line start with the number of datas in the fid.
+    encodData += newLine + Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString());
+
+    return encodData;
+}
+
+/**
+ * @private
+ * Differential encoding
+ * @param {Array} data
+ * @param {number} firstX
+ * @param {number} intervalX
+ * @return {string}
+ */
+function differenceEncoding(data, firstX, intervalX) {
+    var index = 0,
+        charCount = 0,
+        i;
+
+    var encodData = '';
+    //String encodData = new String();
+    var encodNumber = '',
+        temp = '';
+
+    //We calculate the differences vector
+    var diffData = new Array(data.length - 1);
+    for (i = 0; i < diffData.length; i++) {
+        diffData[i] = data[i + 1] - data[i];
+    }
+
+    index = 0;
+    var numDiff = diffData.length;
+    while (index < numDiff) {
+        if (charCount === 0) {
+            //Iniciar linea
+            //We convert the first number.
+            encodNumber = Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString()) + differenceDigit(diffData[index].toString());
+            encodData += encodNumber;
+            charCount += encodNumber.length;
+        } else {
+            //Mirar si cabe, en caso contrario iniciar una nueva linea
+            encodNumber = differenceDigit(diffData[index].toString());
+            if (encodNumber.length + charCount < MaxLinelength) {
+                encodData += encodNumber;
+                charCount += encodNumber.length;
+            } else {
+                //Iniciar nueva linea
+                encodData += newLine;
+                temp = Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString()) + encodNumber;
+                encodData += temp; //Each line start with first index number.
+                charCount = temp.length;
+            }
+        }
+        index++;
+    }
+    //We insert the last number from data. It is done to control of data
+    encodData += newLine + Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString());
+
+    return encodData;
+}
+
+/**
+ * @private
+ * Convert number to the ZQZ format, using pseudo digits.
+ * @param {number} num
+ * @return {string}
+ */
+function squeezedDigit(num) {
+    //console.log(num+" "+num.length);
+    var SQZdigit = '';
+    if (num.charAt(0) === '-') {
+        SQZdigit += pseudoDigits[SQZ_N][num.charAt(1)];
+        if (num.length > 2) {
+            SQZdigit += num.substring(2);
+        }
+    } else {
+        SQZdigit += pseudoDigits[SQZ_P][num.charAt(0)];
+        if (num.length > 1) {
+            SQZdigit += num.substring(1);
+        }
+    }
+
+    return SQZdigit;
+}
+/**
+ * @private
+ * Convert number to the DIF format, using pseudo digits.
+ * @param {number} num
+ * @return {string}
+ */
+function differenceDigit(num) {
+    var DIFFdigit = '';
+
+    if (num.charAt(0) === '-') {
+        DIFFdigit += pseudoDigits[DIF_N][num.charAt(1)];
+        if (num.length > 2) {
+            DIFFdigit += num.substring(2);
+        }
+    } else {
+        DIFFdigit += pseudoDigits[DIF_P][num.charAt(0)];
+        if (num.length > 1) {
+            DIFFdigit += num.substring(1);
+        }
+    }
+
+    return DIFFdigit;
+}
+/**
+ * @private
+ * Convert number to the DUP format, using pseudo digits.
+ * @param {number} num
+ * @return {string}
+ */
+function duplicateDigit(num) {
+    var DUPdigit = '';
+    DUPdigit += pseudoDigits[DUP][num.charAt(0)];
+    if (num.length > 1) {
+        DUPdigit += num.substring(1);
+    }
+
+    return DUPdigit;
+}
+
+module.exports = {
+    encode,
+    fixEncoding,
+    commaSeparatedValuesEncoding,
+    packedEncoding,
+    squeezedEncoding,
+    differenceDuplicateEncoding,
+    differenceEncoding
+};
+
+/***/ }),
+/* 68 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/*
+ * This library implements the J analyser described by Cobas et al in the paper:
+ * A two-stage approach to automatic determination of 1H NMR coupling constants
+ */
+
+
+var patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
+var symRatio = 1.5;
+var maxErrorIter1 = 2.5; //Hz
+var maxErrorIter2 = 1; //Hz
+
+module.exports = {
+    /**
+     * The compilation process implements at the first stage a normalization procedure described by Golotvin et al.
+     * embedding in peak-component-counting method described by Hoyes et al.
+     * @param {object} signal
+     * @private
+     */
+    compilePattern: function compilePattern(signal) {
+        //if (DEBUG) console.log('Debugin...');
+
+        signal.multiplicity = 'm'; //By default the multiplicity is massive
+        // 1.1 symmetrize
+        // It will add a set of peaks(signal.peaksComp) to the signal that will be used during
+        // the compilation process. The unit of those peaks will be in Hz
+        signal.symRank = symmetrizeChoiseBest(signal, maxErrorIter1, 1);
+        signal.asymmetric = true;
+        // console.log(signal.delta1+" "+signal.symRank);
+        //Is the signal symmetric?
+        if (signal.symRank >= 0.95 && signal.peaksComp.length < 32) {
+            //if (DEBUG)console.log(signal.delta1 + ' nbPeaks ' + signal.peaksComp.length);
+            signal.asymmetric = false;
+            var i,
+                j,
+                n,
+                k = 1,
+                P1,
+                Jc = [],
+                n2,
+                maxFlagged;
+            //Loop over the possible number of coupling contributing to the multiplet
+            for (n = 0; n < 9; n++) {
+                //if (DEBUG)console.log('Trying ' + n + ' couplings');
+                //1.2 Normalize. It makes a deep copy of the peaks before to modify them.
+                var peaks = normalize(signal, n);
+                //signal.peaksCompX = peaks;
+                var validPattern = false; //It will change to true, when we find the good patter
+                //Lets check if the signal could be a singulet.
+                if (peaks.length === 1 && n === 0) {
+                    validPattern = true;
+                } else {
+                    if (peaks.length <= 1) {
+                        continue;
+                    }
+                }
+                // 1.3 Establish a range for the Heights Hi [peaks.intensity*0.85,peaks.intensity*1.15];
+                var ranges = getRanges(peaks);
+                n2 = Math.pow(2, n);
+
+                /*if (DEBUG) {
+                    console.log('ranges: ' + JSON.stringify(ranges));
+                    console.log('Target sum: ' + n2);
+                }*/
+
+                // 1.4 Find a combination of integer heights Hi, one from each Si, that sums to 2^n.
+                var heights = null;
+                while (!validPattern && (heights = getNextCombination(ranges, n2)) !== null) {
+
+                    /*if (DEBUG) {
+                        console.log('Possible pattern found with ' + n + ' couplings!!!');
+                        console.log(heights);
+                    }*/
+                    // 2.1 Number the components of the multiplet consecutively from 1 to 2n,
+                    //starting at peak 1
+                    var numbering = new Array(heights.length);
+                    k = 1;
+                    for (i = 0; i < heights.length; i++) {
+                        numbering[i] = new Array(heights[i]);
+                        for (j = 0; j < heights[i]; j++) {
+                            numbering[i][j] = k++;
+                        }
+                    }
+
+                    //if (DEBUG) console.log('Numbering: ' + JSON.stringify(numbering));
+
+                    Jc = []; //The array to store the detected j-coupling
+                    // 2.2 Set j = 1; J1 = P2 - P1. Flag components 1 and 2 as accounted for.
+                    j = 1;
+                    Jc.push(peaks[1].x - peaks[0].x);
+                    P1 = peaks[0].x;
+                    numbering[0].splice(0, 1); //Flagged
+                    numbering[1].splice(0, 1); //Flagged
+                    k = 1;
+                    var nFlagged = 2;
+                    maxFlagged = Math.pow(2, n) - 1;
+                    while (Jc.length < n && nFlagged < maxFlagged && k < peaks.length) {
+                        /*if (DEBUG) {
+                            console.log('New Jc' + JSON.stringify(Jc));
+                            console.log('Aval. numbering ' + JSON.stringify(numbering));
+                        }*/
+                        // 4.1. Increment j. Set k to the number of the first unflagged component.
+                        j++;
+                        while (k < peaks.length && numbering[k].length === 0) {
+                            k++;
+                        }
+                        if (k < peaks.length) {
+                            // 4.2 Jj = Pk - P1.
+                            Jc.push(peaks[k].x - peaks[0].x);
+                            //Flag component k and, for each sum of the...
+                            numbering[k].splice(0, 1); //Flageed
+                            nFlagged++;
+                            //Flag the other components of the multiplet
+                            for (var u = 2; u <= j; u++) {
+                                //TODO improve those loops
+                                var jSum = 0;
+                                for (i = 0; i < u; i++) {
+                                    jSum += Jc[i];
+                                }
+                                for (i = 1; i < numbering.length; i++) {
+                                    //Maybe 0.25 Hz is too much?
+                                    if (Math.abs(peaks[i].x - (P1 + jSum)) < 0.25) {
+                                        numbering[i].splice(0, 1); //Flageed
+                                        nFlagged++;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    //Calculate the ideal patter by using the extracted j-couplings
+                    var pattern = idealPattern(Jc);
+                    //Compare the ideal pattern with the proposed intensities.
+                    // All the intensities have to match to accept the multiplet
+                    validPattern = true;
+                    for (i = 0; i < pattern.length; i++) {
+                        if (pattern[i].intensity !== heights[i]) {
+                            validPattern = false;
+                        }
+                    }
+                    //More verbosity of the process
+                    /*if (DEBUG) {
+                        console.log('Jc ' + JSON.stringify(Jc));
+                        console.log('Heights ' + JSON.stringify(heights));
+                        console.log('pattern ' + JSON.stringify(pattern));
+                        console.log('Valid? ' + validPattern);
+                    }*/
+                }
+                //If we found a valid pattern we should inform about the pattern.
+                if (validPattern) {
+                    updateSignal(signal, Jc);
+                }
+            }
+        }
+
+        //Before to return, change the units of peaksComp from Hz to PPM again
+        for (i = 0; i < signal.peaksComp.length; i++) {
+            signal.peaksComp[i].x /= signal.observe;
+        }
+    }
+};
+
+function updateSignal(signal, Jc) {
+    //Update the limits of the signal
+    var peaks = signal.peaksComp; //Always in Hz
+    var nbPeaks = peaks.length;
+    signal.startX = peaks[0].x / signal.observe - peaks[0].width;
+    signal.stopX = peaks[nbPeaks - 1].x / signal.observe + peaks[nbPeaks - 1].width;
+
+    signal.integralData.from = peaks[0].x / signal.observe - peaks[0].width * 3;
+    signal.integralData.to = peaks[nbPeaks - 1].x / signal.observe + peaks[nbPeaks - 1].width * 3;
+
+    //Compile the pattern and format the constant couplings
+    signal.maskPattern = signal.mask2;
+    signal.multiplicity = abstractPattern(signal, Jc);
+    signal.pattern = signal.multiplicity; //Our library depends on this parameter, but it is old
+    //console.log(signal);
+    /*if (DEBUG)        {
+        console.log('Final j-couplings: ' + JSON.stringify(Jc));
+    }*/
+}
+
+/**
+ * Returns the multiplet in the compact format
+ * @param {object} signal
+ * @param {object} Jc
+ * @return {string}
+ * @private
+ */
+function abstractPattern(signal, Jc) {
+    var tol = 0.05,
+        i,
+        pattern = '',
+        cont = 1,
+        newNmrJs = [];
+
+    if (Jc && Jc.length > 0) {
+        Jc.sort(function (a, b) {
+            return a - b;
+        });
+
+        for (i = 0; i < Jc.length - 1; i++) {
+
+            if (Math.abs(Jc[i] - Jc[i + 1]) < tol) {
+                cont++;
+            } else {
+                newNmrJs.push({ 'coupling': Math.abs(Jc[i]), 'multiplicity': patterns[cont] });
+                pattern += patterns[cont];
+                cont = 1;
+            }
+        }
+        newNmrJs.push({ 'coupling': Math.abs(Jc[i]), 'multiplicity': patterns[cont] });
+        pattern += patterns[cont];
+        signal.nmrJs = newNmrJs;
+    } else {
+        pattern = 's';
+        if (Math.abs(signal.startX - signal.stopX) * signal.observe > 16) {
+            pattern = 'br s';
+        }
+    }
+    return pattern;
+}
+
+/**
+ * This function creates an ideal pattern from the given J-couplings
+ * @private
+ * @param {Array} Jc
+ * @return {*[]}
+ * @private
+ */
+function idealPattern(Jc) {
+    var hsum = Math.pow(2, Jc.length),
+        i,
+        j;
+    var pattern = [{ x: 0, intensity: hsum }];
+    //To split the initial height
+    for (i = 0; i < Jc.length; i++) {
+        for (j = pattern.length - 1; j >= 0; j--) {
+            pattern.push({ x: pattern[j].x + Jc[i] / 2,
+                intensity: pattern[j].intensity / 2 });
+            pattern[j].x = pattern[j].x - Jc[i] / 2;
+            pattern[j].intensity = pattern[j].intensity / 2;
+        }
+    }
+    //To sum the heights in the same positions
+    pattern.sort(function compare(a, b) {
+        return a.x - b.x;
+    });
+    for (j = pattern.length - 2; j >= 0; j--) {
+        if (Math.abs(pattern[j].x - pattern[j + 1].x) < 0.1) {
+            pattern[j].intensity += pattern[j + 1].intensity;
+            pattern.splice(j + 1, 1);
+        }
+    }
+    return pattern;
+}
+
+/**
+ * Find a combination of integer heights Hi, one from each Si, that sums to 2n.
+ * @param {object} ranges
+ * @param {number} value
+ * @return {*}
+ * @private
+ */
+function getNextCombination(ranges, value) {
+    var half = Math.ceil(ranges.values.length / 2),
+        lng = ranges.values.length;
+    var sum = 0,
+        i,
+        ok;
+    while (sum !== value) {
+        //Update the indexes to point at the next possible combination
+        ok = false;
+        while (!ok) {
+            ok = true;
+            ranges.currentIndex[ranges.active]++;
+            if (ranges.currentIndex[ranges.active] >= ranges.values[ranges.active].length) {
+                //In this case, there is no more possible combinations
+                if (ranges.active + 1 === half) {
+                    return null;
+                } else {
+                    //If this happens we need to try the next active peak
+                    ranges.currentIndex[ranges.active] = 0;
+                    ok = false;
+                    ranges.active++;
+                }
+            } else {
+                ranges.active = 0;
+            }
+        }
+        // Sum the heights for this combination
+        sum = 0;
+        for (i = 0; i < half; i++) {
+            sum += ranges.values[i][ranges.currentIndex[i]] * 2;
+        }
+        if (ranges.values.length % 2 !== 0) {
+            sum -= ranges.values[half - 1][ranges.currentIndex[half - 1]];
+        }
+        /*if (DEBUG) {
+            console.log(ranges.currentIndex);
+            console.log(sum + ' ' + value);
+        }*/
+    }
+    //If the sum is equal to the expected value, fill the array to return
+    if (sum === value) {
+        var heights = new Array(lng);
+        for (i = 0; i < half; i++) {
+            heights[i] = ranges.values[i][ranges.currentIndex[i]];
+            heights[lng - i - 1] = ranges.values[i][ranges.currentIndex[i]];
+        }
+        return heights;
+    }
+    return null;
+}
+
+/**
+ * This function generates the possible values that each peak can contribute
+ * to the multiplet.
+ * @param {Array} Array of objects with peaks information {intensity}
+ * @return {{values: Array, currentIndex: Array, active: number}}
+ */
+function getRanges(peaks) {
+    var ranges = new Array(peaks.length);
+    var currentIndex = new Array(peaks.length);
+    var min, max;
+    ranges[0] = [1];
+    ranges[peaks.length - 1] = [1];
+    currentIndex[0] = -1;
+    currentIndex[peaks.length - 1] = 0;
+    for (var i = 1; i < peaks.length - 1; i++) {
+        min = Math.round(peaks[i].intensity * 0.85);
+        max = Math.round(peaks[i].intensity * 1.15);
+        ranges[i] = [];
+        for (var j = min; j <= max; j++) {
+            ranges[i].push(j);
+        }
+        currentIndex[i] = 0;
+    }
+    return { values: ranges, currentIndex: currentIndex, active: 0 };
+}
+/**
+ * Performs a symmetrization of the signal by using different aproximations to the center.
+ * It will return the result of the symmetrization that removes less peaks from the signal
+ * @param {object} signal
+ * @param {number} maxError
+ * @param {number} iteration
+ * @return {*}
+ * @private
+ */
+function symmetrizeChoiseBest(signal, maxError, iteration) {
+    var symRank1 = symmetrize(signal, maxError, iteration);
+    var tmpPeaks = signal.peaksComp;
+    var tmpMask = signal.mask;
+    var cs = signal.delta1;
+    signal.delta1 = (signal.peaks[0].x + signal.peaks[signal.peaks.length - 1].x) / 2;
+    var symRank2 = symmetrize(signal, maxError, iteration);
+    if (signal.peaksComp.length > tmpPeaks.length) {
+        return symRank2;
+    } else {
+        signal.delta1 = cs;
+        signal.peaksComp = tmpPeaks;
+        signal.mask = tmpMask;
+        return symRank1;
+    }
+}
+
+/**
+ * This function will return a set of symmetric peaks that will
+ * be the enter point for the patter compilation process.
+ * @param {object} signal
+ * @param {number} maxError
+ * @param {number} iteration
+ * @return {number}
+ * @private
+ */
+function symmetrize(signal, maxError, iteration) {
+    //Before to symmetrize we need to keep only the peaks that possibly conforms the multiplete
+    var max, min, avg, ratio, avgWidth, j;
+    var peaks = new Array(signal.peaks.length);
+    //Make a deep copy of the peaks and convert PPM ot HZ
+    for (j = 0; j < peaks.length; j++) {
+        peaks[j] = { x: signal.peaks[j].x * signal.observe,
+            intensity: signal.peaks[j].intensity,
+            width: signal.peaks[j].width };
+    }
+    //Join the peaks that are closer than 0.25 Hz
+    for (j = peaks.length - 2; j >= 0; j--) {
+        if (Math.abs(peaks[j].x - peaks[j + 1].x) < 0.25) {
+            peaks[j].x = peaks[j].x * peaks[j].intensity + peaks[j + 1].x * peaks[j + 1].intensity;
+            peaks[j].intensity = peaks[j].intensity + peaks[j + 1].intensity;
+            peaks[j].x /= peaks[j].intensity;
+            peaks[j].intensity /= 2;
+            peaks[j].width += peaks[j + 1].width;
+            peaks.splice(j + 1, 1);
+        }
+    }
+    signal.peaksComp = peaks;
+    var nbPeaks = peaks.length;
+    var mask = new Array(nbPeaks);
+    signal.mask = mask;
+    var left = 0,
+        right = peaks.length - 1,
+        cs = signal.delta1 * signal.observe,
+        middle = [(peaks[0].x + peaks[nbPeaks - 1].x) / 2, 1];
+    maxError = error(Math.abs(cs - middle[0]));
+    var heightSum = 0;
+    //We try to symmetrize the extreme peaks. We consider as candidates for symmetricing those which have
+    //ratio smaller than 3
+    for (var i = 0; i < nbPeaks; i++) {
+        mask[i] = true;
+        heightSum += signal.peaks[i].intensity;
+    }
+
+    while (left <= right) {
+        mask[left] = true;
+        mask[right] = true;
+        if (left === right) {
+            if (nbPeaks > 2 && Math.abs(peaks[left].x - cs) > maxError) {
+                mask[left] = false;
+            }
+        } else {
+            max = Math.max(peaks[left].intensity, peaks[right].intensity);
+            min = Math.min(peaks[left].intensity, peaks[right].intensity);
+            ratio = max / min;
+            if (ratio > symRatio) {
+                if (peaks[left].intensity === min) {
+                    mask[left] = false;
+                    right++;
+                } else {
+                    mask[right] = false;
+                    left--;
+                }
+            } else {
+                var diffL = Math.abs(peaks[left].x - cs);
+                var diffR = Math.abs(peaks[right].x - cs);
+
+                if (Math.abs(diffL - diffR) < maxError) {
+                    //avg = (peaks[left].intensity+peaks[right].intensity)/2;
+                    avg = Math.min(peaks[left].intensity, peaks[right].intensity);
+                    avgWidth = Math.min(peaks[left].width, peaks[right].width);
+                    peaks[left].intensity = peaks[right].intensity = avg;
+                    peaks[left].width = peaks[right].width = avgWidth;
+                    middle = [middle[0] + (peaks[right].x + peaks[left].x) / 2, middle[1] + 1];
+                } else {
+                    if (Math.max(diffL, diffR) === diffR) {
+                        mask[right] = false;
+                        left--;
+                    } else {
+                        mask[left] = false;
+                        right++;
+                    }
+                }
+                /*if (DEBUG) {
+                    console.log('MaxError: ' + maxError + ' ' + middle[0] + ' ' + middle[1]);
+                    console.log(iteration + ' CS: ' + cs + ' Hz ' + cs / signal.observe + ' PPM');
+                    console.log('Middle: ' + (middle[0] / middle[1]) + ' Hz ' + (middle[0] / middle[1]) / signal.observe + ' PPM');
+                    console.log(diffL + ' ' + diffR);
+                    console.log(Math.abs(diffL - diffR));
+                    console.log(JSON.stringify(peaks));
+                    console.log(JSON.stringify(mask));
+                }*/
+            }
+        }
+        left++;
+        right--;
+        //Only alter cs if it is the first iteration of the sym process.
+        if (iteration === 1) {
+            cs = chemicalShift(peaks, mask);
+            //There is not more available peaks
+            if (isNaN(cs)) {
+                return 0;
+            }
+        }
+        maxError = error(Math.abs(cs - middle[0] / middle[1]));
+    }
+    //To remove the weak peaks and recalculate the cs
+    for (i = nbPeaks - 1; i >= 0; i--) {
+        if (mask[i] === false) {
+            peaks.splice(i, 1);
+        }
+    }
+    cs = chemicalShift(peaks);
+    if (isNaN(cs)) {
+        return 0;
+    }
+    signal.delta1 = cs / signal.observe;
+    //Now, the peak should be symmetric in heights, but we need to know if it is symmetric in x
+    var symFactor = 0,
+        weight = 0;
+    if (peaks.length > 1) {
+        for (i = Math.ceil(peaks.length / 2) - 1; i >= 0; i--) {
+            symFactor += (3 + Math.min(Math.abs(peaks[i].x - cs), Math.abs(peaks[peaks.length - 1 - i].x - cs))) / (3 + Math.max(Math.abs(peaks[i].x - cs), Math.abs(peaks[peaks.length - 1 - i].x - cs))) * peaks[i].intensity;
+            weight += peaks[i].intensity;
+        }
+        symFactor /= weight;
+    } else {
+        if (peaks.length === 1) {
+            symFactor = 1;
+        }
+    }
+    var newSumHeights = 0;
+    for (i = 0; i < peaks.length; i++) {
+        newSumHeights += peaks[i].intensity;
+    }
+    symFactor -= (heightSum - newSumHeights) / heightSum * 0.12; //Removed peaks penalty
+    /*if (DEBUG) {
+        console.log('Penalty ' + (heightSum - newSumHeights) / heightSum * 0.12);
+        console.log('cs: ' + (cs / signal.observe) + ' symFactor: ' + symFactor);
+    }*/
+    //Sometimes we need a second opinion after the first symmetrization.
+    if (symFactor > 0.8 && symFactor < 0.97 && iteration < 2) {
+        return symmetrize(signal, maxErrorIter2, 2);
+    } else {
+        //Center the given pattern at cs and symmetrize x
+        if (peaks.length > 1) {
+            var dxi = void 0;
+            for (i = Math.ceil(peaks.length / 2) - 1; i >= 0; i--) {
+                dxi = (peaks[i].x - peaks[peaks.length - 1 - i].x) / 2.0;
+                peaks[i].x = cs + dxi;
+                peaks[peaks.length - 1 - i].x = cs - dxi;
+            }
+        }
+    }
+    return symFactor;
+}
+/**
+ * Error validator
+ * @param {number} value
+ * @return {number}
+ * @private
+ */
+function error(value) {
+    var maxError = value * 2.5;
+    if (maxError < 0.75) {
+        maxError = 0.75;
+    }
+    if (maxError > 3) {
+        maxError = 3;
+    }
+    return maxError;
+}
+/**
+ * 2 stages normalizarion of the peaks heights to Math.pow(2,n).
+ * Creates a new mask with the peaks that could contribute to the multiplete
+ * @param {object} signal
+ * @param {number} n
+ * @return {*}
+ */
+function normalize(signal, n) {
+    //Perhaps this is slow
+    var peaks = JSON.parse(JSON.stringify(signal.peaksComp));
+    var norm = 0,
+        norm2 = 0,
+        i; //Math.pow(2,n);
+    for (i = 0; i < peaks.length; i++) {
+        norm += peaks[i].intensity;
+    }
+    norm = Math.pow(2, n) / norm;
+    signal.mask2 = JSON.parse(JSON.stringify(signal.mask));
+    //console.log("Mask0 "+JSON.stringify(signal.mask2));
+    var index = signal.mask2.length - 1;
+    for (i = peaks.length - 1; i >= 0; i--) {
+        peaks[i].intensity *= norm;
+        while (index >= 0 && signal.mask2[index] === false) {
+            index--;
+        }
+        if (peaks[i].intensity < 0.75) {
+            //if (DEBUG) console.log('Peak ' + i + ' does not seem to belong to this multiplet ' + peaks[i].intensity);
+            peaks.splice(i, 1);
+            signal.mask2[index] = false;
+        } else {
+            norm2 += peaks[i].intensity;
+        }
+        index--;
+    }
+    norm2 = Math.pow(2, n) / norm2;
+    for (i = peaks.length - 1; i >= 0; i--) {
+        peaks[i].intensity *= norm2;
+    }
+    //console.log("Mask1 "+JSON.stringify(signal.mask2));
+    //if (DEBUG) console.log(JSON.stringify(peaks));
+    return peaks;
+}
+
+/**
+ * Calculates the chemical shift as the weighted sum of the peaks
+ * @param {Array} peaks
+ * @param {Array} mask
+ * @return {number}
+ */
+function chemicalShift(peaks, mask) {
+    var sum = 0,
+        cs = 0,
+        i,
+        area;
+    if (mask) {
+        for (i = 0; i < peaks.length; i++) {
+            //console.log(mask[i]);
+            if (mask[i] === true) {
+                area = getArea(peaks[i]);
+                sum += area;
+                cs += area * peaks[i].x;
+            }
+        }
+    } else {
+        for (i = 0; i < peaks.length; i++) {
+            area = getArea(peaks[i]);
+            sum += area;
+            cs += area * peaks[i].x;
+        }
+    }
+    return cs / sum;
+}
+
+/**
+ * Return the area of a Lorentzian function
+ * @param {object} peak - object with peak information
+ * @return {number}
+ * @private
+ */
+function getArea(peak) {
+    return Math.abs(peak.intensity * peak.width * 1.57); //1.772453851);
+}
+
+/***/ }),
+/* 69 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var PeakOptimizer = __webpack_require__(23);
+var simpleClustering = __webpack_require__(44);
+var matrixPeakFinders = __webpack_require__(107);
+var FFTUtils = __webpack_require__(14).FFTUtils;
+
+var smallFilter = [[0, 0, 1, 2, 2, 2, 1, 0, 0], [0, 1, 4, 7, 7, 7, 4, 1, 0], [1, 4, 5, 3, 0, 3, 5, 4, 1], [2, 7, 3, -12, -23, -12, 3, 7, 2], [2, 7, 0, -23, -40, -23, 0, 7, 2], [2, 7, 3, -12, -23, -12, 3, 7, 2], [1, 4, 5, 3, 0, 3, 5, 4, 1], [0, 1, 3, 7, 7, 7, 3, 1, 0], [0, 0, 1, 2, 2, 2, 1, 0, 0]];
+
+function getZones(spectraData, thresholdFactor) {
+    if (thresholdFactor === 0) {
+        thresholdFactor = 1;
+    }
+    if (thresholdFactor < 0) {
+        thresholdFactor = -thresholdFactor;
+    }
+    var nbPoints = spectraData.getNbPoints();
+    var nbSubSpectra = spectraData.getNbSubSpectra();
+
+    var data = new Array(nbPoints * nbSubSpectra);
+    var isHomonuclear = spectraData.isHomoNuclear();
+
+    for (var iSubSpectra = 0; iSubSpectra < nbSubSpectra; iSubSpectra++) {
+        var spectrum = spectraData.getYData(iSubSpectra);
+        for (var iCol = 0; iCol < nbPoints; iCol++) {
+            if (isHomonuclear) {
+                data[iSubSpectra * nbPoints + iCol] = spectrum[iCol] > 0 ? spectrum[iCol] : 0;
+            } else {
+                data[iSubSpectra * nbPoints + iCol] = Math.abs(spectrum[iCol]);
+            }
+        }
+    }
+
+    var nStdDev = getLoGnStdDevNMR(spectraData);
+    if (isHomonuclear) {
+        var convolutedSpectrum = FFTUtils.convolute(data, smallFilter, nbSubSpectra, nbPoints);
+        var peaksMC1 = matrixPeakFinders.findPeaks2DRegion(data, { filteredData: convolutedSpectrum, rows: nbSubSpectra, cols: nbPoints, nStdDev: nStdDev * thresholdFactor }); //)1.5);
+        var peaksMax1 = matrixPeakFinders.findPeaks2DMax(data, { filteredData: convolutedSpectrum, rows: nbSubSpectra, cols: nbPoints, nStdDev: (nStdDev + 0.5) * thresholdFactor }); //2.0);
+        for (var i = 0; i < peaksMC1.length; i++) {
+            peaksMax1.push(peaksMC1[i]);
+        }
+        return PeakOptimizer.enhanceSymmetry(createSignals2D(peaksMax1, spectraData, 24));
+    } else {
+        var _convolutedSpectrum = FFTUtils.convolute(data, smallFilter, nbSubSpectra, nbPoints);
+        var _peaksMC = matrixPeakFinders.findPeaks2DRegion(data, { filteredData: _convolutedSpectrum, rows: nbSubSpectra, cols: nbPoints, nStdDev: nStdDev * thresholdFactor });
+        //Peak2D[] peaksMC1 = matrixPeakFinders.findPeaks2DMax(data, nbSubSpectra, nbPoints, (nStdDev+0.5)*thresholdFactor);
+        //Remove peaks with less than 3% of the intensity of the highest peak
+        return createSignals2D(PeakOptimizer.clean(_peaksMC, 0.05), spectraData, 24);
+    }
+}
+
+//How noisy is the spectrum depending on the kind of experiment.
+function getLoGnStdDevNMR(spectraData) {
+    if (spectraData.isHomoNuclear()) {
+        return 1.5;
+    } else {
+        return 3;
+    }
+}
+
+/**
+ * This function converts a set of 2D-peaks in 2D-signals. Each signal could be composed
+ * of many 2D-peaks, and it has some additional information related to the NMR spectrum.
+ * @param {Array} peaks
+ * @param {NMR} spectraData
+ * @param {number} tolerance
+ * @return {Array}
+ * @private
+ */
+function createSignals2D(peaks, spectraData, tolerance) {
+
+    var bf1 = spectraData.observeFrequencyX();
+    var bf2 = spectraData.observeFrequencyY();
+
+    var firstY = spectraData.getFirstY();
+    var dy = spectraData.getDeltaY();
+    var i;
+    for (i = peaks.length - 1; i >= 0; i--) {
+        peaks[i].x = spectraData.arrayPointToUnits(peaks[i].x);
+        peaks[i].y = firstY + dy * peaks[i].y;
+
+        //Still having problems to correctly detect peaks on those areas. So I'm removing everything there.
+        if (peaks[i].y < -1 || peaks[i].y >= 210) {
+            peaks.splice(i, 1);
+        }
+    }
+    //The connectivity matrix is an square and symmetric matrix, so we'll only store the upper diagonal in an
+    //array like form
+    var connectivity = [];
+    var tmp = 0;
+    tolerance *= tolerance;
+    //console.log(tolerance);
+    for (i = 0; i < peaks.length; i++) {
+        for (var j = i; j < peaks.length; j++) {
+            tmp = Math.pow((peaks[i].x - peaks[j].x) * bf1, 2) + Math.pow((peaks[i].y - peaks[j].y) * bf2, 2);
+            if (tmp < tolerance) {
+                //30*30Hz We cannot distinguish peaks with less than 20 Hz of separation
+                connectivity.push(1);
+            } else {
+                connectivity.push(0);
+            }
+        }
+    }
+
+    var clusters = simpleClustering(connectivity);
+
+    var signals = [];
+    if (peaks != null) {
+        for (var iCluster = 0; iCluster < clusters.length; iCluster++) {
+            var signal = { nucleusX: spectraData.getNucleus(1), nucleusY: spectraData.getNucleus(2) };
+            signal.resolutionX = (spectraData.getLastX() - spectraData.getFirstX()) / spectraData.getNbPoints();
+            signal.resolutionY = dy;
+            var peaks2D = [];
+            signal.shiftX = 0;
+            signal.shiftY = 0;
+            var minMax1 = [Number.MAX_VALUE, 0];
+            var minMax2 = [Number.MAX_VALUE, 0];
+            var sumZ = 0;
+            for (var jPeak = clusters[iCluster].length - 1; jPeak >= 0; jPeak--) {
+                if (clusters[iCluster][jPeak] === 1) {
+                    peaks2D.push({
+                        x: peaks[jPeak].x,
+                        y: peaks[jPeak].y,
+                        z: peaks[jPeak].z
+
+                    });
+                    signal.shiftX += peaks[jPeak].x * peaks[jPeak].z;
+                    signal.shiftY += peaks[jPeak].y * peaks[jPeak].z;
+                    sumZ += peaks[jPeak].z;
+                    if (peaks[jPeak].x < minMax1[0]) {
+                        minMax1[0] = peaks[jPeak].x;
+                    }
+                    if (peaks[jPeak].x > minMax1[1]) {
+                        minMax1[1] = peaks[jPeak].x;
+                    }
+                    if (peaks[jPeak].y < minMax2[0]) {
+                        minMax2[0] = peaks[jPeak].y;
+                    }
+                    if (peaks[jPeak].y > minMax2[1]) {
+                        minMax2[1] = peaks[jPeak].y;
+                    }
+                }
+            }
+            signal.fromTo = [{ from: minMax1[0], to: minMax1[1] }, { from: minMax2[0], to: minMax2[1] }];
+            signal.shiftX /= sumZ;
+            signal.shiftY /= sumZ;
+            signal.peaks = peaks2D;
+            signals.push(signal);
+        }
+    }
+    return signals;
+}
+
+module.exports = getZones;
+
+/***/ }),
+/* 70 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var JAnalyzer = __webpack_require__(68);
+var Ranges = __webpack_require__(21);
+//var extend = require("extend");
+//var removeImpurities = require('./ImpurityRemover');
+
+var defaultOptions = {
+    nH: 99,
+    clean: true,
+    compile: true,
+    integralType: 'sum',
+    idPrefix: '',
+    frequencyCluster: 16
+};
+/**
+ * This function clustering peaks and calculate the integral value for each range from the peak list returned from extractPeaks function.
+ * @param {SD} spectrum - SD instance
+ * @param {Object} peakList - nmr signals
+ * @param {Object} options - options object with some parameter for GSD, detectSignal functions.
+ * @param {number} [options.nH = 99] - Number of hydrogens or some number to normalize the integral data. If it's zero return the absolute integral value
+ * @param {string} [options.integralType = 'sum'] - option to chose between approx area with peaks or the sum of the points of given range ('sum', 'peaks')
+ * @param {number} [options.frequencyCluster = 16] - distance limit to clustering peaks.
+ * @param {boolean} [options.clean = true] - If true remove all the signals with integral < 0.5
+ * @param {boolean} [options.compile = true] - If true, the Janalyzer function is run over signals to compile the patterns.
+ * @param {string} [options.idPrefix = ''] - prefix for signal ID
+ * @returns {Array}
+ */
+
+function createRanges(spectrum, peakList, options) {
+    options = Object.assign({}, defaultOptions, options);
+    var i, j, nHi, sum;
+
+    var signals = detectSignals(peakList, spectrum, options.nH, options.integralType, options.frequencyCluster);
+
+    //Remove all the signals with small integral
+    if (options.clean || false) {
+        for (i = signals.length - 1; i >= 0; i--) {
+            if (signals[i].integralData.value < 0.5) {
+                signals.splice(i, 1);
+            }
+        }
+    }
+
+    if (options.compile || false) {
+        for (i = 0; i < signals.length; i++) {
+            //console.log("Sum "+signals[i].integralData.value);
+            JAnalyzer.compilePattern(signals[i]);
+
+            if (signals[i].maskPattern && signals[i].multiplicity !== 'm' && signals[i].multiplicity !== '') {
+                //Create a new signal with the removed peaks
+                nHi = 0;
+                sum = 0;
+                var peaksO = [];
+                for (j = signals[i].maskPattern.length - 1; j >= 0; j--) {
+                    sum += area(signals[i].peaks[j]);
+
+                    if (signals[i].maskPattern[j] === false) {
+                        var peakR = signals[i].peaks.splice(j, 1)[0];
+                        peaksO.push({ x: peakR.x, y: peakR.intensity, width: peakR.width });
+                        //peaksO.push(peakR);
+                        signals[i].mask.splice(j, 1);
+                        signals[i].mask2.splice(j, 1);
+                        signals[i].maskPattern.splice(j, 1);
+                        signals[i].nbPeaks--;
+                        nHi += area(peakR);
+                    }
+                }
+                if (peaksO.length > 0) {
+                    nHi = nHi * signals[i].integralData.value / sum;
+                    signals[i].integralData.value -= nHi;
+                    var peaks1 = [];
+                    for (j = peaksO.length - 1; j >= 0; j--) {
+                        peaks1.push(peaksO[j]);
+                    }
+                    var _ranges = detectSignals(peaks1, spectrum, nHi, options.integralType, options.frequencyCluster);
+
+                    for (j = 0; j < _ranges.length; j++) {
+                        signals.push(_ranges[j]);
+                    }
+                }
+            }
+        }
+        // it was a updateIntegrals function.
+        var sumIntegral = 0,
+            sumObserved = 0;
+        for (i = 0; i < signals.length; i++) {
+            sumObserved += Math.round(signals[i].integralData.value);
+        }
+        if (sumObserved !== options.nH) {
+            sumIntegral = options.nH / sumObserved;
+            for (i = 0; i < signals.length; i++) {
+                signals[i].integralData.value *= sumIntegral;
+            }
+        }
+    }
+
+    signals.sort(function (a, b) {
+        return b.delta1 - a.delta1;
+    });
+
+    if (options.clean || false) {
+        for (i = signals.length - 1; i >= 0; i--) {
+            //console.log(signals[i]);
+            if (signals[i].integralData.value < 0.5) {
+                signals.splice(i, 1);
+            }
+        }
+    }
+
+    for (i = 0; i < signals.length; i++) {
+        if (options.idPrefix && options.idPrefix.length > 0) {
+            signals[i].signalID = options.idPrefix + '_' + (i + 1);
+        } else {
+            signals[i].signalID = i + 1 + '';
+        }
+        signals[i]._highlight = [signals[i].signalID];
+    }
+
+    var ranges = new Array(signals.length);
+    for (i = 0; i < signals.length; i++) {
+        var signal = signals[i];
+        ranges[i] = {
+            from: signal.integralData.from,
+            to: signal.integralData.to,
+            integral: signal.integralData.value,
+            signal: [{
+                nbAtoms: 0,
+                diaID: [],
+                multiplicity: signal.multiplicity,
+                peak: signal.peaks,
+                kind: '',
+                remark: ''
+            }],
+            signalID: signal.signalID,
+            _highlight: signal._highlight
+
+        };
+        if (signal.nmrJs) {
+            ranges[i].signal[0].j = signal.nmrJs;
+        }
+        if (!signal.asymmetric || signal.multiplicity === 'm') {
+            ranges[i].signal[0].delta = signal.delta1;
+        }
+    }
+    signals = new Ranges(ranges);
+
+    return signals;
+}
+
+/**
+ * Extract the signals from the peakList and the given spectrum.
+ * @param {object} peakList - nmr signals
+ * @param {object} spectrum - spectra data
+ * @param {number} nH - Number of hydrogens or some number to normalize the integral data, If it's zero return the absolute integral value
+ * @param {string} integralType - option to chose between approx area with peaks or the sum of the points of given range
+ * @param {number} frequencyCluster - distance limit to clustering the peaks.
+ * range = frequencyCluster / observeFrequency -> Peaks withing this range are considered to belongs to the same signal1D
+ * @return {Array} nmr signals
+ * @private
+ */
+function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
+    var frequency = spectrum.observeFrequencyX();
+    var cs,
+        sum,
+        i,
+        j,
+        signals = [],
+        signal1D = {},
+        peaks = null,
+        prevPeak = { x: 100000, y: 0, width: 0 },
+        spectrumIntegral = 0;
+
+    var frequencyCluster = Number.isFinite(frequencyCluster) ? frequencyCluster : 16;
+    var integralType = integralType === 'sum' || integralType === 'peaks' ? integralType : 'sum';
+
+    var rangeX = frequencyCluster / frequency;
+
+    for (i = 0; i < peakList.length; i++) {
+        if (Math.abs(peakList[i].x - prevPeak.x) > rangeX) {
+            signal1D = { nbPeaks: 1, units: 'PPM',
+                'startX': peakList[i].x - peakList[i].width,
+                'stopX': peakList[i].x + peakList[i].width,
+                'multiplicity': '', 'pattern': '',
+                'observe': frequency, 'nucleus': '1H',
+                'integralData': { 'from': peakList[i].x - peakList[i].width * 3,
+                    'to': peakList[i].x + peakList[i].width * 3
+                    //"value":area(peakList[i])
+                },
+                'peaks': [] };
+            signal1D.peaks.push({ x: peakList[i].x, 'intensity': peakList[i].y, width: peakList[i].width });
+            signals.push(signal1D);
+            //spectrumIntegral+=area(peakList[i]);
+        } else {
+            var tmp = peakList[i].x + peakList[i].width;
+            signal1D.stopX = Math.max(signal1D.stopX, tmp);
+            tmp = peakList[i].x - peakList[i].width;
+            signal1D.startX = Math.min(signal1D.startX, tmp);
+            signal1D.nbPeaks++;
+            signal1D.peaks.push({ x: peakList[i].x, 'intensity': peakList[i].y, width: peakList[i].width });
+            //signal1D.integralData.value+=area(peakList[i]);
+            signal1D.integralData.from = Math.min(signal1D.integralData.from, peakList[i].x - peakList[i].width * 3);
+            signal1D.integralData.to = Math.max(signal1D.integralData.to, peakList[i].x + peakList[i].width * 3);
+            //spectrumIntegral+=area(peakList[i]);
+        }
+        prevPeak = peakList[i];
+    }
+    //Normalize the integral to the normalization parameter and calculate cs
+    for (i = 0; i < signals.length; i++) {
+        peaks = signals[i].peaks;
+        var integral = signals[i].integralData;
+        cs = 0;
+        sum = 0;
+
+        for (j = 0; j < peaks.length; j++) {
+            cs += peaks[j].x * area(peaks[j]); //.intensity;
+            sum += area(peaks[j]);
+        }
+        signals[i].delta1 = cs / sum;
+
+        if (integralType === 'sum') {
+            integral.value = spectrum.getArea(integral.from, integral.to);
+        } else {
+            integral.value = sum;
+        }
+        spectrumIntegral += integral.value;
+    }
+    if (nH !== 0) {
+        for (i = 0; i < signals.length; i++) {
+            //console.log(integral.value);
+            var _integral = signals[i].integralData;
+            _integral.value *= nH / spectrumIntegral;
+        }
+    }
+
+    return signals;
+}
+
+/**
+ * Updates the score that a given impurity is present in the current spectrum. In this part I would expect
+ * to have into account the multiplicity of the signal. Also the relative intensity of the signals.
+ * THIS IS the KEY part of the algorithm!!!!!!!!!
+ * @param candidates
+ * @param peakList
+ * @param maxIntensity
+ * @param frequency
+ * @return {number}
+ */
+/*function updateScore(candidates, peakList, maxIntensity, frequency) {
+ //You may do it to avoid this part.
+ //Check the multiplicity
+ var mul, index, k;
+ var j = 0;
+ var min = 0;
+ var indexMin = 0;
+ var score = 0;
+ for (var i = candidates.length - 1; i >= 0; i--) {
+ mul = candidates[i][1];
+ j = candidates[i][2];
+ index = candidates[i][4][0];
+ //I guess we should try to identify the pattern in the nearby.
+ if (mul.indexOf('sep') >= 0) {
+ if (peakList[index][1] > maxIntensity * 0.33) {
+ candidates.splice(i, 1);//Not a candidate anymore.
+ }
+ } else {
+ if (mul.indexOf('s') >= 0 || mul.indexOf('X') >= 0) {
+ k = index - 1;
+ min = peakList[index][1];
+ indexMin = index;
+ while (k >= 0 && Math.abs(peakList[index][0] - peakList[k][0]) < 0.025) {
+ if (peakList[k][1] < min) {
+ min = peakList[k][1];
+ indexMin = k;
+ }
+ k--;
+ }
+ k = index + 1;
+ while (k < peakList.length && Math.abs(peakList[index][0] - peakList[k][0]) < 0.025) {
+ if (peakList[k][1] < min) {
+ min = peakList[k][1];
+ indexMin = k;
+ }
+ k++;
+ }
+ candidates[i][4][0] = indexMin;
+ score += 1;
+ }
+ }
+ if (mul.indexOf('d') >= 0) {
+ if (index > 0 && index < peakList.length - 1) {
+ let thisJ1 = Math.abs(Math.abs(peakList[index - 1][0] - peakList[index][0]) * frequency - j);
+ let thisJ2 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index][0]) * frequency - j);
+ let thisJ3 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index - 1][0]) * frequency - j);
+ if (thisJ1 < 2 || thisJ2 < 2 || thisJ3 < 2) {
+ if (thisJ1 < thisJ2) {
+ if (thisJ1 < thisJ3) {
+ candidates[i][4] = [index - 1, index];
+ score += 1;
+ }                        else {
+ candidates[i][4] = [index - 1, index + 1];
+ score += 1;
+ }
+ }                    else {
+ if (thisJ2 < thisJ3) {
+ candidates[i][4] = [index, index + 1];
+ score += 1;
+ }                        else {
+ candidates[i][4] = [index - 1, index + 1];
+ score += 1;
+ }
+ }
+ }
+ }
+ }
+ if (mul.indexOf('t') >= 0) {
+ if (index > 0 && index < peakList.length - 1) {
+ let thisJ1 = Math.abs(Math.abs(peakList[index - 1][0] - peakList[index][0]) * frequency - j);
+ let thisJ2 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index][0]) * frequency - j);
+ let thisJ3 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index + 2][0]) * frequency - j);
+ //console.log("XX "+thisJ1+" "+thisJ2);
+ if (thisJ1 < 2) {
+ candidates[i][4] = [index - 1, index];
+ score += 0.5;
+ }
+ if (thisJ2 < 2) {
+ candidates[i][4].push(index + 1);
+ score += 0.5;
+ }
+ if (thisJ3 < 2) {
+ candidates[i][4].push(index + 2);
+ score += 0.5;
+ }
+
+ }
+ }
+ if (mul.indexOf('q') >= 0) {
+ if (index > 1 && index < peakList.length - 2) {
+ var thisJ1 = Math.abs(Math.abs(peakList[index - 2][0] - peakList[index - 1][0]) * frequency - j);
+ var thisJ2 = Math.abs(Math.abs(peakList[index - 1][0] - peakList[index][0]) * frequency - j);
+ var thisJ3 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index][0]) * frequency - j);
+ var thisJ4 = Math.abs(Math.abs(peakList[index + 2][0] - peakList[index + 1][0]) * frequency - j);
+ if (thisJ1 < 2) {
+ candidates[i][4].push(index - 2);
+ score += 0.25;
+ }
+ if (thisJ2 < 2) {
+ candidates[i][4].push(index - 1);
+ score += 0.25;
+ }
+ if (thisJ3 < 2) {
+ candidates[i][4].push(index + 1);
+ score += 0.25;
+ }
+ if (thisJ4 < 2) {
+ candidates[i][4].push(index + 2);
+ score += 0.25;
+ }
+ }
+ }
+ }
+ //Lets remove the candidates to be impurities.
+ //It would be equivalent to mark the peaks as valid again
+ if (score / candidates.length < 0.5) {
+ for (var i = candidates.length - 1; i >= 0; i--) {
+ candidates.splice(i, 1);
+ }
+ return 0;
+ }
+ //Check the relative intensity
+ return 1;
+ }
+ */
+/**
+ * Return the area of a Lorentzian function
+ * @param {object} peak - object with peak information
+ * @return {number}
+ * @private
+ */
+function area(peak) {
+    return Math.abs(peak.intensity * peak.width * 1.57); //1.772453851);
+}
+
+module.exports = createRanges;
+
+/***/ }),
+/* 71 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var acsString = '';
+var parenthesis = '';
+var rangeForMultiplet = false;
+
+function toAcs(rangesIn, opt) {
+    var options = Object.assign({}, { nucleus: '1H' }, opt);
+
+    var ranges = JSON.parse(JSON.stringify(rangesIn));
+
+    if (ranges[0].delta1) {
+        //Old signals format
+        throw new Error('Old unsupported format');
+    }
+    if (ranges.updateMultiplicity) {
+        ranges = ranges.updateMultiplicity();
+    }
+
+    acsString = '';
+    parenthesis = '';
+    var solvent = null;
+    if (options && options.solvent) {
+        solvent = options.solvent;
+    }
+    if (options && options.rangeForMultiplet !== undefined) {
+        rangeForMultiplet = options.rangeForMultiplet;
+    }
+
+    if (options && options.ascending) {
+        ranges.sort(function (a, b) {
+            return b.from - a.from;
+        });
+    } else {
+        ranges.sort(function (a, b) {
+            return a.from - b.from;
+        });
+    }
+
+    ranges.type = 'NMR SPEC';
+    if (options && options.nucleus === '1H') {
+        formatAcsDefault(ranges, false, 2, 1, solvent, options);
+    }
+    if (options && options.nucleus === '13C') {
+        formatAcsDefault(ranges, false, 1, 0, solvent, options);
+    }
+
+    if (acsString.length > 0) acsString += '.';
+
+    return acsString;
+}
+
+function formatAcsDefault(ranges, ascending, decimalValue, decimalJ, solvent, options) {
+    appendSeparator();
+    appendSpectroInformation(ranges, solvent, options);
+    var numberSmartPeakLabels = ranges.length;
+    var signal;
+    for (var i = 0; i < numberSmartPeakLabels; i++) {
+        if (ascending) {
+            signal = ranges[i];
+        } else {
+            signal = ranges[numberSmartPeakLabels - i - 1];
+        }
+        if (signal) {
+            appendSeparator();
+            appendDelta(signal, decimalValue);
+            appendParenthesis(signal, decimalJ);
+        }
+    }
+}
+
+function appendSpectroInformation(range, solvent, options) {
+    if (range.type === 'NMR SPEC') {
+        if (options.nucleus) {
+            acsString += formatNucleus(options.nucleus);
+        }
+        acsString += ' NMR';
+        if (solvent || options.observe) {
+            acsString += ' (';
+            if (options.observe) {
+                acsString += (options.observe * 1).toFixed(0) + ' MHz';
+                if (solvent) acsString += ', ';
+            }
+            if (solvent) {
+                acsString += formatMF(solvent);
+            }
+            acsString += ')';
+        }
+        acsString += ' δ ';
+    } else if (range.type === 'IR') {
+        acsString += ' IR ';
+    } else if (range.type === 'MASS') {
+        acsString += ' MASS ';
+    }
+}
+
+function appendDelta(line, nbDecimal) {
+    var startX = 0,
+        stopX = 0,
+        delta1 = 0,
+        asymmetric;
+    if (line.from) {
+        if (typeof line.from === 'string') {
+            startX = parseFloat(line.from);
+        } else {
+            startX = line.from;
+        }
+    }
+    if (line.to) {
+        if (typeof line.to === 'string') {
+            stopX = parseFloat(line.to);
+        } else {
+            stopX = line.to;
+        }
+    }
+    if (line.signal[0].delta) {
+        if (typeof line.signal[0].delta === 'string') {
+            delta1 = parseFloat(line.signal[0].delta);
+        } else {
+            delta1 = line.signal[0].delta;
+        }
+    } else {
+        asymmetric = true;
+    }
+
+    if (asymmetric === true || line.signal[0].multiplicity === 'm' && rangeForMultiplet === true) {
+        //Is it massive??
+        if (line.from && line.to) {
+            if (startX < stopX) {
+                acsString += startX.toFixed(nbDecimal) + '-' + stopX.toFixed(nbDecimal);
+            } else {
+                acsString += stopX.toFixed(nbDecimal) + '-' + startX.toFixed(nbDecimal);
+            }
+        } else if (line.signal[0].delta) {
+            acsString += '?';
+        }
+    } else if (line.signal[0].delta) {
+        acsString += delta1.toFixed(nbDecimal);
+    } else if (line.from && line.to) {
+        acsString += ((startX + stopX) / 2).toFixed(nbDecimal);
+    }
+}
+
+/*
+ function appendValue(line, nbDecimal) {
+ if (line.xPosition) {
+ acsString += line.xPosition.toFixed(nbDecimal);
+ }
+ }
+ */
+function appendParenthesis(line, nbDecimal) {
+    parenthesis = '';
+    appendMultiplicity(line);
+    appendIntegration(line);
+    appendCoupling(line, nbDecimal);
+    appendAssignment(line);
+
+    if (parenthesis.length > 0) {
+        acsString += ' (' + parenthesis + ')';
+    }
+}
+
+function appendIntegration(line) {
+    if (line.pubIntegral) {
+        appendParenthesisSeparator();
+        parenthesis += line.pubIntegral;
+    } else if (line.integral) {
+        appendParenthesisSeparator();
+        parenthesis += line.integral.toFixed(0) + ' H';
+    }
+}
+
+function appendAssignment(line) {
+    if (line.signal[0].pubAssignment) {
+        appendParenthesisSeparator();
+        parenthesis += formatAssignment(line.signal[0].pubAssignment);
+    } else if (line.signal[0].assignment) {
+        appendParenthesisSeparator();
+        parenthesis += formatAssignment(line.signal[0].assignment);
+    }
+}
+
+function appendMultiplicity(line) {
+    if (line.signal[0].pubMultiplicity) {
+        appendParenthesisSeparator();
+        parenthesis += line.pubMultiplicity;
+    } else if (line.signal[0].multiplicity) {
+        appendParenthesisSeparator();
+        parenthesis += line.signal[0].multiplicity;
+    }
+}
+
+function appendCoupling(line, nbDecimal) {
+    if ('sm'.indexOf(line.signal[0].multiplicity) < 0 && line.signal[0].j && line.signal[0].j.length > 0) {
+        var Js = line.signal[0].j;
+        var j = '<i>J</i> = ';
+        for (var i = 0; i < Js.length; i++) {
+            var coupling = Js[i].coupling || 0;
+            if (j.length > 11) {
+                j += ', ';
+            }
+            j += coupling.toFixed(nbDecimal);
+        }
+        appendParenthesisSeparator();
+        parenthesis += j + ' Hz';
+    }
+}
+
+function formatAssignment(assignment) {
+    assignment = assignment.replace(/([0-9])/g, '<sub>$1</sub>');
+    assignment = assignment.replace(/\"([^\"]*)\"/g, '<i>$1</i>');
+    return assignment;
+}
+
+function formatMF(mf) {
+    mf = mf.replace(/([0-9])/g, '<sub>$1</sub>');
+    return mf;
+}
+
+function formatNucleus(nucleus) {
+    nucleus = nucleus.replace(/([0-9])/g, '<sup>$1</sup>');
+    return nucleus;
+}
+
+function appendSeparator() {
+    if (acsString.length > 0 && !acsString.match(/ $/)) {
+        acsString += ', ';
+    }
+}
+
+function appendParenthesisSeparator() {
+    if (parenthesis.length > 0 && !parenthesis.match(', $')) parenthesis += ', ';
+}
+
+module.exports = toAcs;
+
+/***/ }),
+/* 72 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/**
+ * This function converts an array of peaks [{x, y, width}] in a vector equally x,y vector from a given window
+ * TODO: This function is very general and should be placed somewhere else
+ * @param {Array} peaks - List of the peaks
+ * @param {object} options - it has some options to
+ * @param {number} [options.from] - one limit of given window
+ * @param {number} [options.to] - one limit of given window
+ * @param {string} [options.fnName] - function name to generate the signals form
+ * @param {number} [options.nWidth] - width factor of signal form
+ * @param {number} [options.nbPoints] - number of points that the vector will have
+ * @return {{x: Array, y: Array}}
+ */
+
+function peak2Vector(peaks, options) {
+    var options = options || {};
+    var from = options.from;
+    var to = options.to;
+    var nbPoints = options.nbPoints || 16 * 1024;
+    var fnName = options.fnName || 'gaussian';
+    var nWidth = options.nWidth || 4;
+
+    if (!from) {
+        from = Number.MAX_VALUE;
+        for (var i = 0; i < peaks.length; i++) {
+            if (peaks[i].x - peaks[i].width * nWidth < from) {
+                from = peaks[i].x - peaks[i].width * nWidth;
+            }
+        }
+    }
+
+    if (!to) {
+        to = Number.MIN_VALUE;
+        for (var _i = 0; _i < peaks.length; _i++) {
+            if (peaks[_i].x + peaks[_i].width * nWidth > to) {
+                to = peaks[_i].x + peaks[_i].width * nWidth;
+            }
+        }
+    }
+
+    var x = new Array(nbPoints);
+    var y = new Array(nbPoints);
+    var dx = (to - from) / (nbPoints - 1);
+    for (var _i2 = 0; _i2 < nbPoints; _i2++) {
+        x[_i2] = from + _i2 * dx;
+        y[_i2] = 0;
+    }
+
+    var intensity = 'intensity';
+    if (peaks[0].y) {
+        intensity = 'y';
+    }
+
+    for (var _i3 = 0; _i3 < peaks.length; _i3++) {
+        var peak = peaks[_i3];
+        if (peak.x > from && peak.x < to) {
+            var index = Math.round((peak.x - from) / dx);
+            var w = Math.round(peak.width * nWidth / dx);
+            if (fnName === 'gaussian') {
+                for (var j = index - w; j < index + w; j++) {
+                    if (j >= 0 && j < nbPoints) {
+                        y[j] += peak[intensity] * Math.exp(-0.5 * Math.pow((peak.x - x[j]) / (peak.width / 2), 2));
+                    }
+                }
+            } else {
+                var factor = peak[intensity] * Math.pow(peak.width, 2) / 4;
+                for (var _j = index - w; _j < index + w; _j++) {
+                    if (_j >= 0 && _j < nbPoints) {
+                        y[_j] += factor / (Math.pow(peak.x - x[_j], 2) + Math.pow(peak.width / 2, 2));
+                    }
+                }
+            }
+        }
+    }
+
+    return { x: x, y: y };
+}
+
+module.exports = peak2Vector;
+
+/***/ }),
+/* 73 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * Created by acastillo on 5/25/16.
+ */
+
+var options1D = { type: 'rect', line: 0, lineLabel: 1, labelColor: 'red', strokeColor: 'red', strokeWidth: '1px', fillColor: 'green', width: 0.05, height: 10, toFixed: 1 };
+var options2D = { type: 'rect', labelColor: 'red', strokeColor: 'red', strokeWidth: '1px', fillColor: 'green', width: '6px', height: '6px' };
+
+function annotations1D(ranges, optionsG) {
+    var options = Object.assign({}, options1D, optionsG);
+    var height = options.height;
+    var annotations = [];
+    for (var i = 0; i < ranges.length; i++) {
+        var prediction = ranges[i];
+        var annotation = {};
+
+        annotations.push(annotation);
+        annotation.line = options.line;
+        annotation._highlight = prediction._highlight;
+        if (!annotation._highlight || annotation._highlight.length === 0) {
+            annotation._highlight = [prediction.signalID];
+            prediction.signal.forEach(function (signal) {
+                for (var j = 0; j < signal.diaID.length; j++) {
+                    annotation._highlight.push(signal.diaID[j]);
+                }
+            });
+        }
+
+        prediction._highlight = annotation._highlight;
+
+        annotation.type = options.type;
+
+        if (!prediction.to || !prediction.from || prediction.to === prediction.from) {
+            annotation.position = [{ x: prediction.signal[0].delta - options.width, y: options.line * height + 'px' }, { x: prediction.signal[0].delta + options.width, y: options.line * height + 3 + 'px' }];
+        } else {
+            annotation.position = [{ x: prediction.to, y: options.line * height + 'px' }, { x: prediction.from, y: options.line * height + 3 + 'px' }];
+        }
+
+        if (!options.noLabel && prediction.integral) {
+            annotation.label = {
+                text: prediction.integral.toFixed(options.toFixed),
+                size: '11px',
+                anchor: 'middle',
+                color: options.labelColor,
+                position: { x: (annotation.position[0].x + annotation.position[1].x) / 2,
+                    y: (options.line + options.lineLabel) * height + 'px', dy: '5px' }
+            };
+        }
+
+        annotation.strokeColor = options.strokeColor;
+        annotation.strokeWidth = options.strokeWidth;
+        annotation.fillColor = options.fillColor;
+        annotation.info = prediction;
+    }
+    return annotations;
+}
+
+function annotations2D(zones, optionsG) {
+    var options = Object.assign({}, options2D, optionsG);
+    var annotations = [];
+    for (var k = zones.length - 1; k >= 0; k--) {
+        var signal = zones[k];
+        var annotation = {};
+        annotation.type = options.type;
+        annotation._highlight = signal._highlight; //["cosy"+k];
+        if (!annotation._highlight || annotation._highlight.length === 0) {
+            annotation._highlight = [signal.signalID];
+        }
+        signal._highlight = annotation._highlight;
+
+        annotation.position = [{ x: signal.fromTo[0].from - 0.01, y: signal.fromTo[1].from - 0.01, dx: options.width, dy: options.height }, { x: signal.fromTo[0].to + 0.01, y: signal.fromTo[1].to + 0.01 }];
+        annotation.fillColor = options.fillColor;
+        annotation.label = { text: signal.remark,
+            'position': {
+                'x': signal.signal[0].delta[0],
+                'y': signal.signal[0].delta[1] - 0.025 }
+        };
+        if (signal.integral === 1) {
+            annotation.strokeColor = options.strokeColor;
+        } else {
+            annotation.strokeColor = 'rgb(0,128,0)';
+        }
+
+        annotation.strokeWidth = options.strokeWidth;
+        annotation.width = options.width;
+        annotation.height = options.height;
+        annotation.info = signal;
+        annotations.push(annotation);
+    }
+    return annotations;
+}
+
+module.exports = { annotations2D: annotations2D, annotations1D: annotations1D };
+
+/***/ }),
+/* 74 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13792,7 +17533,398 @@ function fromByteArray (uint8) {
 
 
 /***/ }),
-/* 56 */
+/* 75 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(76);
+
+
+/***/ }),
+/* 76 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// Generated by CoffeeScript 1.8.0
+(function() {
+  var Heap, defaultCmp, floor, heapify, heappop, heappush, heappushpop, heapreplace, insort, min, nlargest, nsmallest, updateItem, _siftdown, _siftup;
+
+  floor = Math.floor, min = Math.min;
+
+
+  /*
+  Default comparison function to be used
+   */
+
+  defaultCmp = function(x, y) {
+    if (x < y) {
+      return -1;
+    }
+    if (x > y) {
+      return 1;
+    }
+    return 0;
+  };
+
+
+  /*
+  Insert item x in list a, and keep it sorted assuming a is sorted.
+  
+  If x is already in a, insert it to the right of the rightmost x.
+  
+  Optional args lo (default 0) and hi (default a.length) bound the slice
+  of a to be searched.
+   */
+
+  insort = function(a, x, lo, hi, cmp) {
+    var mid;
+    if (lo == null) {
+      lo = 0;
+    }
+    if (cmp == null) {
+      cmp = defaultCmp;
+    }
+    if (lo < 0) {
+      throw new Error('lo must be non-negative');
+    }
+    if (hi == null) {
+      hi = a.length;
+    }
+    while (lo < hi) {
+      mid = floor((lo + hi) / 2);
+      if (cmp(x, a[mid]) < 0) {
+        hi = mid;
+      } else {
+        lo = mid + 1;
+      }
+    }
+    return ([].splice.apply(a, [lo, lo - lo].concat(x)), x);
+  };
+
+
+  /*
+  Push item onto heap, maintaining the heap invariant.
+   */
+
+  heappush = function(array, item, cmp) {
+    if (cmp == null) {
+      cmp = defaultCmp;
+    }
+    array.push(item);
+    return _siftdown(array, 0, array.length - 1, cmp);
+  };
+
+
+  /*
+  Pop the smallest item off the heap, maintaining the heap invariant.
+   */
+
+  heappop = function(array, cmp) {
+    var lastelt, returnitem;
+    if (cmp == null) {
+      cmp = defaultCmp;
+    }
+    lastelt = array.pop();
+    if (array.length) {
+      returnitem = array[0];
+      array[0] = lastelt;
+      _siftup(array, 0, cmp);
+    } else {
+      returnitem = lastelt;
+    }
+    return returnitem;
+  };
+
+
+  /*
+  Pop and return the current smallest value, and add the new item.
+  
+  This is more efficient than heappop() followed by heappush(), and can be
+  more appropriate when using a fixed size heap. Note that the value
+  returned may be larger than item! That constrains reasonable use of
+  this routine unless written as part of a conditional replacement:
+      if item > array[0]
+        item = heapreplace(array, item)
+   */
+
+  heapreplace = function(array, item, cmp) {
+    var returnitem;
+    if (cmp == null) {
+      cmp = defaultCmp;
+    }
+    returnitem = array[0];
+    array[0] = item;
+    _siftup(array, 0, cmp);
+    return returnitem;
+  };
+
+
+  /*
+  Fast version of a heappush followed by a heappop.
+   */
+
+  heappushpop = function(array, item, cmp) {
+    var _ref;
+    if (cmp == null) {
+      cmp = defaultCmp;
+    }
+    if (array.length && cmp(array[0], item) < 0) {
+      _ref = [array[0], item], item = _ref[0], array[0] = _ref[1];
+      _siftup(array, 0, cmp);
+    }
+    return item;
+  };
+
+
+  /*
+  Transform list into a heap, in-place, in O(array.length) time.
+   */
+
+  heapify = function(array, cmp) {
+    var i, _i, _j, _len, _ref, _ref1, _results, _results1;
+    if (cmp == null) {
+      cmp = defaultCmp;
+    }
+    _ref1 = (function() {
+      _results1 = [];
+      for (var _j = 0, _ref = floor(array.length / 2); 0 <= _ref ? _j < _ref : _j > _ref; 0 <= _ref ? _j++ : _j--){ _results1.push(_j); }
+      return _results1;
+    }).apply(this).reverse();
+    _results = [];
+    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+      i = _ref1[_i];
+      _results.push(_siftup(array, i, cmp));
+    }
+    return _results;
+  };
+
+
+  /*
+  Update the position of the given item in the heap.
+  This function should be called every time the item is being modified.
+   */
+
+  updateItem = function(array, item, cmp) {
+    var pos;
+    if (cmp == null) {
+      cmp = defaultCmp;
+    }
+    pos = array.indexOf(item);
+    if (pos === -1) {
+      return;
+    }
+    _siftdown(array, 0, pos, cmp);
+    return _siftup(array, pos, cmp);
+  };
+
+
+  /*
+  Find the n largest elements in a dataset.
+   */
+
+  nlargest = function(array, n, cmp) {
+    var elem, result, _i, _len, _ref;
+    if (cmp == null) {
+      cmp = defaultCmp;
+    }
+    result = array.slice(0, n);
+    if (!result.length) {
+      return result;
+    }
+    heapify(result, cmp);
+    _ref = array.slice(n);
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      elem = _ref[_i];
+      heappushpop(result, elem, cmp);
+    }
+    return result.sort(cmp).reverse();
+  };
+
+
+  /*
+  Find the n smallest elements in a dataset.
+   */
+
+  nsmallest = function(array, n, cmp) {
+    var elem, i, los, result, _i, _j, _len, _ref, _ref1, _results;
+    if (cmp == null) {
+      cmp = defaultCmp;
+    }
+    if (n * 10 <= array.length) {
+      result = array.slice(0, n).sort(cmp);
+      if (!result.length) {
+        return result;
+      }
+      los = result[result.length - 1];
+      _ref = array.slice(n);
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        elem = _ref[_i];
+        if (cmp(elem, los) < 0) {
+          insort(result, elem, 0, null, cmp);
+          result.pop();
+          los = result[result.length - 1];
+        }
+      }
+      return result;
+    }
+    heapify(array, cmp);
+    _results = [];
+    for (i = _j = 0, _ref1 = min(n, array.length); 0 <= _ref1 ? _j < _ref1 : _j > _ref1; i = 0 <= _ref1 ? ++_j : --_j) {
+      _results.push(heappop(array, cmp));
+    }
+    return _results;
+  };
+
+  _siftdown = function(array, startpos, pos, cmp) {
+    var newitem, parent, parentpos;
+    if (cmp == null) {
+      cmp = defaultCmp;
+    }
+    newitem = array[pos];
+    while (pos > startpos) {
+      parentpos = (pos - 1) >> 1;
+      parent = array[parentpos];
+      if (cmp(newitem, parent) < 0) {
+        array[pos] = parent;
+        pos = parentpos;
+        continue;
+      }
+      break;
+    }
+    return array[pos] = newitem;
+  };
+
+  _siftup = function(array, pos, cmp) {
+    var childpos, endpos, newitem, rightpos, startpos;
+    if (cmp == null) {
+      cmp = defaultCmp;
+    }
+    endpos = array.length;
+    startpos = pos;
+    newitem = array[pos];
+    childpos = 2 * pos + 1;
+    while (childpos < endpos) {
+      rightpos = childpos + 1;
+      if (rightpos < endpos && !(cmp(array[childpos], array[rightpos]) < 0)) {
+        childpos = rightpos;
+      }
+      array[pos] = array[childpos];
+      pos = childpos;
+      childpos = 2 * pos + 1;
+    }
+    array[pos] = newitem;
+    return _siftdown(array, startpos, pos, cmp);
+  };
+
+  Heap = (function() {
+    Heap.push = heappush;
+
+    Heap.pop = heappop;
+
+    Heap.replace = heapreplace;
+
+    Heap.pushpop = heappushpop;
+
+    Heap.heapify = heapify;
+
+    Heap.updateItem = updateItem;
+
+    Heap.nlargest = nlargest;
+
+    Heap.nsmallest = nsmallest;
+
+    function Heap(cmp) {
+      this.cmp = cmp != null ? cmp : defaultCmp;
+      this.nodes = [];
+    }
+
+    Heap.prototype.push = function(x) {
+      return heappush(this.nodes, x, this.cmp);
+    };
+
+    Heap.prototype.pop = function() {
+      return heappop(this.nodes, this.cmp);
+    };
+
+    Heap.prototype.peek = function() {
+      return this.nodes[0];
+    };
+
+    Heap.prototype.contains = function(x) {
+      return this.nodes.indexOf(x) !== -1;
+    };
+
+    Heap.prototype.replace = function(x) {
+      return heapreplace(this.nodes, x, this.cmp);
+    };
+
+    Heap.prototype.pushpop = function(x) {
+      return heappushpop(this.nodes, x, this.cmp);
+    };
+
+    Heap.prototype.heapify = function() {
+      return heapify(this.nodes, this.cmp);
+    };
+
+    Heap.prototype.updateItem = function(x) {
+      return updateItem(this.nodes, x, this.cmp);
+    };
+
+    Heap.prototype.clear = function() {
+      return this.nodes = [];
+    };
+
+    Heap.prototype.empty = function() {
+      return this.nodes.length === 0;
+    };
+
+    Heap.prototype.size = function() {
+      return this.nodes.length;
+    };
+
+    Heap.prototype.clone = function() {
+      var heap;
+      heap = new Heap();
+      heap.nodes = this.nodes.slice(0);
+      return heap;
+    };
+
+    Heap.prototype.toArray = function() {
+      return this.nodes.slice(0);
+    };
+
+    Heap.prototype.insert = Heap.prototype.push;
+
+    Heap.prototype.top = Heap.prototype.peek;
+
+    Heap.prototype.front = Heap.prototype.peek;
+
+    Heap.prototype.has = Heap.prototype.contains;
+
+    Heap.prototype.copy = Heap.prototype.clone;
+
+    return Heap;
+
+  })();
+
+  (function(root, factory) {
+    if (true) {
+      return !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
+				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    } else if (typeof exports === 'object') {
+      return module.exports = factory();
+    } else {
+      return root.Heap = factory();
+    }
+  })(this, function() {
+    return Heap;
+  });
+
+}).call(this);
+
+
+/***/ }),
+/* 77 */
 /***/ (function(module, exports) {
 
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
@@ -13882,7 +18014,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 
 
 /***/ }),
-/* 57 */
+/* 78 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14133,7 +18265,7 @@ module.exports = IOBuffer;
 
 
 /***/ }),
-/* 58 */
+/* 79 */
 /***/ (function(module, exports) {
 
 var toString = {}.toString;
@@ -14144,7 +18276,7 @@ module.exports = Array.isArray || function (arr) {
 
 
 /***/ }),
-/* 59 */
+/* 80 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14295,7 +18427,7 @@ module.exports=function(spectrum, value, result) {
 
 
 /***/ }),
-/* 60 */
+/* 81 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14404,7 +18536,7 @@ module.exports = function crc32(input, crc) {
 
 
 /***/ }),
-/* 61 */
+/* 82 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14516,14 +18648,14 @@ exports.isRegExp = function (object) {
 
 
 /***/ }),
-/* 62 */
+/* 83 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var USE_TYPEDARRAY = (typeof Uint8Array !== 'undefined') && (typeof Uint16Array !== 'undefined') && (typeof Uint32Array !== 'undefined');
 
-var pako = __webpack_require__(118);
+var pako = __webpack_require__(138);
 exports.uncompressInputType = USE_TYPEDARRAY ? "uint8array" : "array";
 exports.compressInputType = USE_TYPEDARRAY ? "uint8array" : "array";
 
@@ -14539,13 +18671,13 @@ exports.uncompress =  function(input) {
 
 
 /***/ }),
-/* 63 */
+/* 84 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var base64 = __webpack_require__(8);
+var base64 = __webpack_require__(10);
 
 /**
 Usage:
@@ -14593,16 +18725,16 @@ function JSZip(data, options) {
         return newObj;
     };
 }
-JSZip.prototype = __webpack_require__(11);
-JSZip.prototype.load = __webpack_require__(64);
+JSZip.prototype = __webpack_require__(13);
+JSZip.prototype.load = __webpack_require__(85);
 JSZip.support = __webpack_require__(5);
-JSZip.defaults = __webpack_require__(27);
+JSZip.defaults = __webpack_require__(33);
 
 /**
  * @deprecated
  * This namespace will be removed in a future version without replacement.
  */
-JSZip.utils = __webpack_require__(61);
+JSZip.utils = __webpack_require__(82);
 
 JSZip.base64 = {
     /**
@@ -14620,20 +18752,20 @@ JSZip.base64 = {
         return base64.decode(input);
     }
 };
-JSZip.compressions = __webpack_require__(9);
+JSZip.compressions = __webpack_require__(11);
 module.exports = JSZip;
 
 
 /***/ }),
-/* 64 */
+/* 85 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var base64 = __webpack_require__(8);
-var utf8 = __webpack_require__(31);
+var base64 = __webpack_require__(10);
+var utf8 = __webpack_require__(37);
 var utils = __webpack_require__(0);
-var ZipEntries = __webpack_require__(68);
+var ZipEntries = __webpack_require__(89);
 module.exports = function(data, options) {
     var files, zipEntries, i, input;
     options = utils.extend(options || {}, {
@@ -14671,12 +18803,12 @@ module.exports = function(data, options) {
 
 
 /***/ }),
-/* 65 */
+/* 86 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var Uint8ArrayReader = __webpack_require__(30);
+var Uint8ArrayReader = __webpack_require__(36);
 
 function NodeBufferReader(data) {
     this.data = data;
@@ -14699,7 +18831,7 @@ module.exports = NodeBufferReader;
 
 
 /***/ }),
-/* 66 */
+/* 87 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14736,7 +18868,7 @@ module.exports = StringWriter;
 
 
 /***/ }),
-/* 67 */
+/* 88 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14779,20 +18911,20 @@ module.exports = Uint8ArrayWriter;
 
 
 /***/ }),
-/* 68 */
+/* 89 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var StringReader = __webpack_require__(29);
-var NodeBufferReader = __webpack_require__(65);
-var Uint8ArrayReader = __webpack_require__(30);
-var ArrayReader = __webpack_require__(24);
+var StringReader = __webpack_require__(35);
+var NodeBufferReader = __webpack_require__(86);
+var Uint8ArrayReader = __webpack_require__(36);
+var ArrayReader = __webpack_require__(30);
 var utils = __webpack_require__(0);
-var sig = __webpack_require__(28);
-var ZipEntry = __webpack_require__(69);
+var sig = __webpack_require__(34);
+var ZipEntry = __webpack_require__(90);
 var support = __webpack_require__(5);
-var jszipProto = __webpack_require__(11);
+var jszipProto = __webpack_require__(13);
 //  class ZipEntries {{{
 /**
  * All the entries in the zip file.
@@ -15066,15 +19198,15 @@ module.exports = ZipEntries;
 
 
 /***/ }),
-/* 69 */
+/* 90 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var StringReader = __webpack_require__(29);
+var StringReader = __webpack_require__(35);
 var utils = __webpack_require__(0);
-var CompressedObject = __webpack_require__(25);
-var jszipProto = __webpack_require__(11);
+var CompressedObject = __webpack_require__(31);
+var jszipProto = __webpack_require__(13);
 var support = __webpack_require__(5);
 
 var MADE_BY_DOS = 0x00;
@@ -15392,13 +19524,13 @@ module.exports = ZipEntry;
 
 
 /***/ }),
-/* 70 */
+/* 91 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const Stat = __webpack_require__(3).array;
+const Stat = __webpack_require__(6).array;
 /**
  * Function that returns an array of points given 1D array as follows:
  *
@@ -15624,7 +19756,7 @@ module.exports = {
 
 
 /***/ }),
-/* 71 */
+/* 92 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15884,25 +20016,14 @@ exports.getEquallySpacedData = getEquallySpacedData;
 exports.integral = integral;
 
 /***/ }),
-/* 72 */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = exports = __webpack_require__(70);
-
-
-exports.getEquallySpacedData = __webpack_require__(71).getEquallySpacedData;
-exports.SNV = __webpack_require__(73).SNV;
-
-
-/***/ }),
-/* 73 */
+/* 93 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 exports.SNV = SNV;
-var Stat = __webpack_require__(3).array;
+var Stat = __webpack_require__(6).array;
 
 /**
  * Function that applies the standard normal variate (SNV) to an array of values.
@@ -15922,40 +20043,7 @@ function SNV(data) {
 
 
 /***/ }),
-/* 74 */
-/***/ (function(module, exports) {
-
-/**
- * Performs a binary search of value in array
- * @param {number[]} array - Array in which value will be searched. It must be sorted.
- * @param {number} value - Value to search in array
- * @return {number} If value is found, returns its index in array. Otherwise, returns a negative number indicating where the value should be inserted: -(index + 1)
- */
-function binarySearch(array, value, options) {
-    options = options || {};
-    var low = options.from || 0;
-    var high = options.to || array.length - 1;
-
-    while (low <= high) {
-        var mid = (low + high) >>> 1;
-        var midValue = array[mid];
-        if (midValue < value) {
-            low = mid + 1;
-        } else if (midValue > value) {
-            high = mid - 1;
-        } else {
-            return mid;
-        }
-    }
-
-    return -(low + 1);
-}
-
-module.exports = binarySearch;
-
-
-/***/ }),
-/* 75 */
+/* 94 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -16043,1874 +20131,52 @@ function DisjointSetNode(value) {
 
 
 /***/ }),
-/* 76 */
+/* 95 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var FFT = __webpack_require__(33);
-
-var FFTUtils= {
-    DEBUG : false,
-
-    /**
-     * Calculates the inverse of a 2D Fourier transform
-     *
-     * @param ft
-     * @param ftRows
-     * @param ftCols
-     * @return
-     */
-    ifft2DArray : function(ft, ftRows, ftCols){
-        var tempTransform = new Array(ftRows * ftCols);
-        var nRows = ftRows / 2;
-        var nCols = (ftCols - 1) * 2;
-        // reverse transform columns
-        FFT.init(nRows);
-        var tmpCols = {re: new Array(nRows), im: new Array(nRows)};
-        for (var iCol = 0; iCol < ftCols; iCol++) {
-            for (var iRow = nRows - 1; iRow >= 0; iRow--) {
-                tmpCols.re[iRow] = ft[(iRow * 2) * ftCols + iCol];
-                tmpCols.im[iRow] = ft[(iRow * 2 + 1) * ftCols + iCol];
-            }
-            //Unnormalized inverse transform
-            FFT.bt(tmpCols.re, tmpCols.im);
-            for (var iRow = nRows - 1; iRow >= 0; iRow--) {
-                tempTransform[(iRow * 2) * ftCols + iCol] = tmpCols.re[iRow];
-                tempTransform[(iRow * 2 + 1) * ftCols + iCol] = tmpCols.im[iRow];
-            }
-        }
-
-        // reverse row transform
-        var finalTransform = new Array(nRows * nCols);
-        FFT.init(nCols);
-        var tmpRows = {re: new Array(nCols), im: new Array(nCols)};
-        var scale = nCols * nRows;
-        for (var iRow = 0; iRow < ftRows; iRow += 2) {
-            tmpRows.re[0] = tempTransform[iRow * ftCols];
-            tmpRows.im[0] = tempTransform[(iRow + 1) * ftCols];
-            for (var iCol = 1; iCol < ftCols; iCol++) {
-                tmpRows.re[iCol] = tempTransform[iRow * ftCols + iCol];
-                tmpRows.im[iCol] = tempTransform[(iRow + 1) * ftCols + iCol];
-                tmpRows.re[nCols - iCol] = tempTransform[iRow * ftCols + iCol];
-                tmpRows.im[nCols - iCol] = -tempTransform[(iRow + 1) * ftCols + iCol];
-            }
-            //Unnormalized inverse transform
-            FFT.bt(tmpRows.re, tmpRows.im);
-
-            var indexB = (iRow / 2) * nCols;
-            for (var iCol = nCols - 1; iCol >= 0; iCol--) {
-                finalTransform[indexB + iCol] = tmpRows.re[iCol] / scale;
-            }
-        }
-        return finalTransform;
-    },
-    /**
-     * Calculates the fourier transform of a matrix of size (nRows,nCols) It is
-     * assumed that both nRows and nCols are a power of two
-     *
-     * On exit the matrix has dimensions (nRows * 2, nCols / 2 + 1) where the
-     * even rows contain the real part and the odd rows the imaginary part of the
-     * transform
-     * @param data
-     * @param nRows
-     * @param nCols
-     * @return
-     */
-    fft2DArray:function(data, nRows, nCols, opt) {
-        var options = Object.assign({},{inplace:true})
-        var ftCols = (nCols / 2 + 1);
-        var ftRows = nRows * 2;
-        var tempTransform = new Array(ftRows * ftCols);
-        FFT.init(nCols);
-        // transform rows
-        var tmpRows = {re: new Array(nCols), im: new Array(nCols)};
-        var row1 = {re: new Array(nCols), im: new Array(nCols)}
-        var row2 = {re: new Array(nCols), im: new Array(nCols)}
-        var index, iRow0, iRow1, iRow2, iRow3;
-        for (var iRow = 0; iRow < nRows / 2; iRow++) {
-            index = (iRow * 2) * nCols;
-            tmpRows.re = data.slice(index, index + nCols);
-
-            index = (iRow * 2 + 1) * nCols;
-            tmpRows.im = data.slice(index, index + nCols);
-
-            FFT.fft1d(tmpRows.re, tmpRows.im);
-
-            this.reconstructTwoRealFFT(tmpRows, row1, row2);
-            //Now lets put back the result into the output array
-            iRow0 = (iRow * 4) * ftCols;
-            iRow1 = (iRow * 4 + 1) * ftCols;
-            iRow2 = (iRow * 4 + 2) * ftCols;
-            iRow3 = (iRow * 4 + 3) * ftCols;
-            for (var k = ftCols - 1; k >= 0; k--) {
-                tempTransform[iRow0 + k] = row1.re[k];
-                tempTransform[iRow1 + k] = row1.im[k];
-                tempTransform[iRow2 + k] = row2.re[k];
-                tempTransform[iRow3 + k] = row2.im[k];
-            }
-        }
-
-        //console.log(tempTransform);
-        row1 = null;
-        row2 = null;
-        // transform columns
-        var finalTransform = new Array(ftRows * ftCols);
-
-        FFT.init(nRows);
-        var tmpCols = {re: new Array(nRows), im: new Array(nRows)};
-        for (var iCol = ftCols - 1; iCol >= 0; iCol--) {
-            for (var iRow = nRows - 1; iRow >= 0; iRow--) {
-                tmpCols.re[iRow] = tempTransform[(iRow * 2) * ftCols + iCol];
-                tmpCols.im[iRow] = tempTransform[(iRow * 2 + 1) * ftCols + iCol];
-                //TODO Chech why this happens
-                if(isNaN(tmpCols.re[iRow])){
-                    tmpCols.re[iRow]=0;
-                }
-                if(isNaN(tmpCols.im[iRow])){
-                    tmpCols.im[iRow]=0;
-                }
-            }
-            FFT.fft1d(tmpCols.re, tmpCols.im);
-            for (var iRow = nRows - 1; iRow >= 0; iRow--) {
-                finalTransform[(iRow * 2) * ftCols + iCol] = tmpCols.re[iRow];
-                finalTransform[(iRow * 2 + 1) * ftCols + iCol] = tmpCols.im[iRow];
-            }
-        }
-
-        //console.log(finalTransform);
-        return finalTransform;
-
-    },
-    /**
-     *
-     * @param fourierTransform
-     * @param realTransform1
-     * @param realTransform2
-     *
-     * Reconstructs the individual Fourier transforms of two simultaneously
-     * transformed series. Based on the Symmetry relationships (the asterisk
-     * denotes the complex conjugate)
-     *
-     * F_{N-n} = F_n^{*} for a purely real f transformed to F
-     *
-     * G_{N-n} = G_n^{*} for a purely imaginary g transformed to G
-     *
-     */
-    reconstructTwoRealFFT:function(fourierTransform, realTransform1, realTransform2) {
-        var length = fourierTransform.re.length;
-
-        // the components n=0 are trivial
-        realTransform1.re[0] = fourierTransform.re[0];
-        realTransform1.im[0] = 0.0;
-        realTransform2.re[0] = fourierTransform.im[0];
-        realTransform2.im[0] = 0.0;
-        var rm, rp, im, ip, j;
-        for (var i = length / 2; i > 0; i--) {
-            j = length - i;
-            rm = 0.5 * (fourierTransform.re[i] - fourierTransform.re[j]);
-            rp = 0.5 * (fourierTransform.re[i] + fourierTransform.re[j]);
-            im = 0.5 * (fourierTransform.im[i] - fourierTransform.im[j]);
-            ip = 0.5 * (fourierTransform.im[i] + fourierTransform.im[j]);
-            realTransform1.re[i] = rp;
-            realTransform1.im[i] = im;
-            realTransform1.re[j] = rp;
-            realTransform1.im[j] = -im;
-            realTransform2.re[i] = ip;
-            realTransform2.im[i] = -rm;
-            realTransform2.re[j] = ip;
-            realTransform2.im[j] = rm;
-        }
-    },
-
-    /**
-     * In place version of convolute 2D
-     *
-     * @param ftSignal
-     * @param ftFilter
-     * @param ftRows
-     * @param ftCols
-     * @return
-     */
-    convolute2DI:function(ftSignal, ftFilter, ftRows, ftCols) {
-        var re, im;
-        for (var iRow = 0; iRow < ftRows / 2; iRow++) {
-            for (var iCol = 0; iCol < ftCols; iCol++) {
-                //
-                re = ftSignal[(iRow * 2) * ftCols + iCol]
-                    * ftFilter[(iRow * 2) * ftCols + iCol]
-                    - ftSignal[(iRow * 2 + 1) * ftCols + iCol]
-                    * ftFilter[(iRow * 2 + 1) * ftCols + iCol];
-                im = ftSignal[(iRow * 2) * ftCols + iCol]
-                    * ftFilter[(iRow * 2 + 1) * ftCols + iCol]
-                    + ftSignal[(iRow * 2 + 1) * ftCols + iCol]
-                    * ftFilter[(iRow * 2) * ftCols + iCol];
-                //
-                ftSignal[(iRow * 2) * ftCols + iCol] = re;
-                ftSignal[(iRow * 2 + 1) * ftCols + iCol] = im;
-            }
-        }
-    },
-    /**
-     *
-     * @param data
-     * @param kernel
-     * @param nRows
-     * @param nCols
-     * @returns {*}
-     */
-    convolute:function(data, kernel, nRows, nCols, opt) {
-        var ftSpectrum = new Array(nCols * nRows);
-        for (var i = 0; i<nRows * nCols; i++) {
-            ftSpectrum[i] = data[i];
-        }
-
-        ftSpectrum = this.fft2DArray(ftSpectrum, nRows, nCols);
-
-
-        var dimR = kernel.length;
-        var dimC = kernel[0].length;
-        var ftFilterData = new Array(nCols * nRows);
-        for(var i = 0; i < nCols * nRows; i++) {
-            ftFilterData[i] = 0;
-        }
-
-        var iRow, iCol;
-        var shiftR = Math.floor((dimR - 1) / 2);
-        var shiftC = Math.floor((dimC - 1) / 2);
-        for (var ir = 0; ir < dimR; ir++) {
-            iRow = (ir - shiftR + nRows) % nRows;
-            for (var ic = 0; ic < dimC; ic++) {
-                iCol = (ic - shiftC + nCols) % nCols;
-                ftFilterData[iRow * nCols + iCol] = kernel[ir][ic];
-            }
-        }
-        ftFilterData = this.fft2DArray(ftFilterData, nRows, nCols);
-
-        var ftRows = nRows * 2;
-        var ftCols = nCols / 2 + 1;
-        this.convolute2DI(ftSpectrum, ftFilterData, ftRows, ftCols);
-
-        return this.ifft2DArray(ftSpectrum, ftRows, ftCols);
-    },
-
-
-    toRadix2:function(data, nRows, nCols) {
-        var i, j, irow, icol;
-        var cols = nCols, rows = nRows, prows=0, pcols=0;
-        if(!(nCols !== 0 && (nCols & (nCols - 1)) === 0)) {
-            //Then we have to make a pading to next radix2
-            cols = 0;
-            while((nCols>>++cols)!=0);
-            cols=1<<cols;
-            pcols = cols-nCols;
-        }
-        if(!(nRows !== 0 && (nRows & (nRows - 1)) === 0)) {
-            //Then we have to make a pading to next radix2
-            rows = 0;
-            while((nRows>>++rows)!=0);
-            rows=1<<rows;
-            prows = (rows-nRows)*cols;
-        }
-        if(rows==nRows&&cols==nCols)//Do nothing. Returns the same input!!! Be careful
-            return {data:data, rows:nRows, cols:nCols};
-
-        var output = new Array(rows*cols);
-        var shiftR = Math.floor((rows-nRows)/2)-nRows;
-        var shiftC = Math.floor((cols-nCols)/2)-nCols;
-
-        for( i = 0; i < rows; i++) {
-            irow = i*cols;
-            icol = ((i-shiftR) % nRows) * nCols;
-            for( j = 0; j < cols; j++) {
-                output[irow+j] = data[(icol+(j-shiftC) % nCols) ];
-            }
-        }
-        return {data:output, rows:rows, cols:cols};
-    },
-
-    /**
-     * Crop the given matrix to fit the corresponding number of rows and columns
-     */
-    crop:function(data, rows, cols, nRows, nCols, opt) {
-
-        if(rows == nRows && cols == nCols)//Do nothing. Returns the same input!!! Be careful
-            return data;
-
-        var options = Object.assign({}, opt);
-
-        var output = new Array(nCols*nRows);
-
-        var shiftR = Math.floor((rows-nRows)/2);
-        var shiftC = Math.floor((cols-nCols)/2);
-        var destinyRow, sourceRow, i, j;
-        for( i = 0; i < nRows; i++) {
-            destinyRow = i*nCols;
-            sourceRow = (i+shiftR)*cols;
-            for( j = 0;j < nCols; j++) {
-                output[destinyRow+j] = data[sourceRow+(j+shiftC)];
-            }
-        }
-
-        return output;
-    }
-}
-
-module.exports = FFTUtils;
-
-
-/***/ }),
-/* 77 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-const extend = __webpack_require__(22);
-const SG = __webpack_require__(101);
-
-const defaultOptions = {
-    sgOptions: {
-        windowSize: 9,
-        polynomial: 3
-    },
-    minMaxRatio: 0.00025,
-    broadRatio: 0.00,
-    maxCriteria: true,
-    smoothY: true,
-    realTopDetection: false,
-    heightFactor: 0,
-    boundaries: false,
-    derivativeThreshold: -1
-};
 
 /**
- * Global spectra deconvolution
- * @param {Array<Number>} x - Independent variable
- * @param {Array<Number>} yIn - Dependent variable
- * @param {Object} [options] - Options object
- * @param {Object} [options.sgOptions] - Options object for Savitzky-Golay filter. See https://github.com/mljs/savitzky-golay-generalized#options
- * @param {Number} [options.sgOptions.windowSize = 9] - points to use in the approximations
- * @param {Number} [options.sgOptions.polynomial = 3] - degree of the polynomial to use in the approximations
- * @param {Number} [options.minMaxRatio = 0.00025] - Threshold to determine if a given peak should be considered as a noise
- * @param {Number} [options.broadRatio = 0.00] - If `broadRatio` is higher than 0, then all the peaks which second derivative
- * smaller than `broadRatio * maxAbsSecondDerivative` will be marked with the soft mask equal to true.
- * @param {Number} [options.noiseLevel = 0] - Noise threshold in spectrum units
- * @param {Boolean} [options.maxCriteria = true] - Peaks are local maximum(true) or minimum(false)
- * @param {Boolean} [options.smoothY = true] - Select the peak intensities from a smoothed version of the independent variables
- * @param {Boolean} [options.realTopDetection = false] - Use a quadratic optimizations with the peak and its 3 closest neighbors
- * to determine the true x,y values of the peak?
- * @param {Number} [options.heightFactor = 0] - Factor to multiply the calculated height (usually 2)
- * @param {Boolean} [options.boundaries = false] - Return also the inflection points of the peaks
- * @param {Number} [options.derivativeThreshold = -1] - Filters based on the amplitude of the first derivative
- * @return {Array<Object>}
+ * Computes a distance/similarity matrix given an array of data and a distance/similarity function.
+ * @param {Array} data An array of data
+ * @param {function} distanceFn  A function that accepts two arguments and computes a distance/similarity between them
+ * @return {Array<Array>} The similarity matrix. The similarity matrix is square and has a size equal to the length of
+ * the data array
  */
-function gsd(x, yIn, options) {
-    options = extend({}, defaultOptions, options);
-    let sgOptions = options.sgOptions;
-    const y = [].concat(yIn);
+function distanceMatrix(data, distanceFn) {
+    const length = data.length;
+    let result = Array.from({length}).map(() => Array.from({length}));
 
-    if (!('noiseLevel' in options)) {
-        // We have to know if x is equally spaced
-        var maxDx = 0,
-            minDx = Number.MAX_VALUE,
-            tmp;
-        for (let i = 0; i < x.length - 1; ++i) {
-            tmp = Math.abs(x[i + 1] - x[i]);
-            if (tmp < minDx) {
-                minDx = tmp;
-            }
-            if (tmp > maxDx) {
-                maxDx = tmp;
-            }
-        }
-
-        if ((maxDx - minDx) / maxDx < 0.05) {
-            options.noiseLevel = getNoiseLevel(y);
-        } else {
-            options.noiseLevel = 0;
-        }
-    }
-    const yCorrection = {m: 1, b: options.noiseLevel};
-    if (!options.maxCriteria) {
-        yCorrection.m = -1;
-        yCorrection.b *= -1;
-    }
-
-    for (let i = 0; i < y.length; i++) {
-        y[i] = yCorrection.m * y[i] - yCorrection.b;
-    }
-
-    for (let i = 0; i < y.length; i++) {
-        if (y[i] < 0) {
-            y[i] = 0;
-        }
-    }
-    // If the max difference between delta x is less than 5%, then, we can assume it to be equally spaced variable
-    let Y = y;
-    let dY, ddY;
-    if ((maxDx - minDx) / maxDx < 0.05) {
-        if (options.smoothY)
-            Y = SG(y, x[1] - x[0], {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 0});
-        dY = SG(y, x[1] - x[0], {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 1});
-        ddY = SG(y, x[1] - x[0], {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 2});
-    } else {
-        if (options.smoothY)
-            Y = SG(y, x, {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 0});
-        dY = SG(y, x, {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 1});
-        ddY = SG(y, x, {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 2});
-    }
-
-    const X = x;
-    const dx = x[1] - x[0];
-    var maxDdy = 0;
-    var maxY = 0;
-    for (let i = 0; i < Y.length; i++) {
-        if (Math.abs(ddY[i]) > maxDdy) {
-            maxDdy = Math.abs(ddY[i]);
-        }
-        if (Math.abs(Y[i]) > maxY) {
-            maxY = Math.abs(Y[i]);
+    // Compute upper distance matrix
+    for (let i = 0; i < length; i++) {
+        for (let j = 0; j <= i; j++) {
+            result[i][j] = distanceFn(data[i], data[j]);
         }
     }
 
-    var lastMax = null;
-    var lastMin = null;
-    var minddY = new Array(Y.length - 2);
-    var intervalL = new Array(Y.length);
-    var intervalR = new Array(Y.length);
-    var broadMask = new Array(Y.length - 2);
-    var minddYLen = 0;
-    var intervalLLen = 0;
-    var intervalRLen = 0;
-    var broadMaskLen = 0;
-    // By the intermediate value theorem We cannot find 2 consecutive maximum or minimum
-    for (let i = 1; i < Y.length - 1; ++i) {
-
-        // filter based on derivativeThreshold
-        if (Math.abs(dY[i]) > options.derivativeThreshold) {
-
-            // Minimum in first derivative
-            if ((dY[i] < dY[i - 1]) && (dY[i] <= dY[i + 1]) ||
-                (dY[i] <= dY[i - 1]) && (dY[i] < dY[i + 1])) {
-                lastMin = {
-                    x: X[i],
-                    index: i
-                };
-                if (dx > 0 && lastMax !== null) {
-                    intervalL[intervalLLen++] = lastMax;
-                    intervalR[intervalRLen++] = lastMin;
-                }
-            }
-
-            // Maximum in first derivative
-            if ((dY[i] >= dY[i - 1]) && (dY[i] > dY[i + 1]) ||
-                (dY[i] > dY[i - 1]) && (dY[i] >= dY[i + 1])) {
-                lastMax = {
-                    x: X[i],
-                    index: i
-                };
-                if (dx < 0 && lastMin !== null) {
-                    intervalL[intervalLLen++] = lastMax;
-                    intervalR[intervalRLen++] = lastMin;
-                }
-            }
-        }
-
-        // Minimum in second derivative
-        if ((ddY[i] < ddY[i - 1]) && (ddY[i] < ddY[i + 1])) {
-            // TODO should we change this to have 3 arrays ? Huge overhead creating arrays
-            minddY[minddYLen++] = i; //( [X[i], Y[i], i] );
-            broadMask[broadMaskLen++] = Math.abs(ddY[i]) <= options.broadRatio * maxDdy;
+    // Copy to lower distance matrix
+    for (let i = 0; i < length; i++) {
+        for (let j = i + 1; j < length; j++) {
+            result[i][j] = result[j][i];
         }
     }
-    minddY.length = minddYLen;
-    intervalL.length = intervalLLen;
-    intervalR.length = intervalRLen;
-    broadMask.length = broadMaskLen;
 
-    let signals = new Array(minddY.length);
-    let signalsLen = 0;
-    let lastK = -1;
-    let possible, frequency, distanceJ, minDistance, gettingCloser;
-    for (let j = 0; j < minddY.length; ++j) {
-        frequency = X[minddY[j]];
-        possible = -1;
-        let k = lastK + 1;
-        minDistance = Number.MAX_VALUE;
-        distanceJ = 0;
-        gettingCloser = true;
-        while (possible === -1 && (k < intervalL.length) && gettingCloser) {
-            distanceJ = Math.abs(frequency - (intervalL[k].x + intervalR[k].x) / 2);
-
-            //Still getting closer?
-            if (distanceJ < minDistance) {
-                minDistance = distanceJ;
-            } else {
-                gettingCloser = false;
-            }
-            if (distanceJ < Math.abs(intervalL[k].x - intervalR[k].x) / 2) {
-                possible = k;
-                lastK = k;
-            }
-            ++k;
-        }
-
-        if (possible !== -1) {
-            if (Math.abs(Y[minddY[j]]) > options.minMaxRatio * maxY) {
-                signals[signalsLen++] = {
-                    index: minddY[j],
-                    x: frequency,
-                    y: (Y[minddY[j]] + yCorrection.b) / yCorrection.m,
-                    width: Math.abs(intervalR[possible].x - intervalL[possible].x), //widthCorrection
-                    soft: broadMask[j]
-                };
-                if (options.boundaries) {
-                    signals[signalsLen - 1].left = intervalL[possible];
-                    signals[signalsLen - 1].right = intervalR[possible];
-                }
-                if (options.heightFactor) {
-                    let yLeft = Y[intervalL[possible].index];
-                    let yRight = Y[intervalR[possible].index];
-                    signals[signalsLen - 1].height = options.heightFactor * (signals[signalsLen - 1].y - ((yLeft + yRight) / 2));
-                }
-            }
-        }
-    }
-    signals.length = signalsLen;
-
-    if (options.realTopDetection)
-        realTopDetection(signals, X, Y);
-
-    //Correct the values to fit the original spectra data
-    for (let j = 0; j < signals.length; j++) {
-        signals[j].base = options.noiseLevel;
-    }
-
-    signals.sort(function (a, b) {
-        return a.x - b.x;
-    });
-
-    return signals;
-
-}
-
-function getNoiseLevel(y) {
-    var mean = 0, stddev = 0;
-    var length = y.length;
-    for (let i = 0; i < length; ++i) {
-        mean += y[i];
-    }
-    mean /= length;
-    var averageDeviations = new Array(length);
-    for (let i = 0; i < length; ++i)
-        averageDeviations[i] = Math.abs(y[i] - mean);
-    averageDeviations.sort();
-    if (length % 2 === 1) {
-        stddev = averageDeviations[(length - 1) / 2] / 0.6745;
-    } else {
-        stddev = 0.5 * (averageDeviations[length / 2] + averageDeviations[length / 2 - 1]) / 0.6745;
-    }
-
-    return stddev;
-}
-
-function realTopDetection(peakList, x, y) {
-    var alpha, beta, gamma, p, currentPoint;
-    for (var j = 0; j < peakList.length; j++) {
-        currentPoint = peakList[j].i;//peakList[j][2];
-        //The detected peak could be moved 1 or 2 unit to left or right.
-        if (y[currentPoint - 1] >= y[currentPoint - 2]
-            && y[currentPoint - 1] >= y[currentPoint]) {
-            currentPoint--;
-        } else {
-            if (y[currentPoint + 1] >= y[currentPoint]
-                && y[currentPoint + 1] >= y[currentPoint + 2]) {
-                currentPoint++;
-            } else {
-                if (y[currentPoint - 2] >= y[currentPoint - 3]
-                    && y[currentPoint - 2] >= y[currentPoint - 1]) {
-                    currentPoint -= 2;
-                } else {
-                    if (y[currentPoint + 2] >= y[currentPoint + 1]
-                        && y[currentPoint + 2] >= y[currentPoint + 3]) {
-                        currentPoint += 2;
-                    }
-                }
-            }
-        }
-        if (y[currentPoint - 1] > 0 && y[currentPoint + 1] > 0
-            && y[currentPoint] >= y[currentPoint - 1]
-            && y[currentPoint] >= y[currentPoint + 1]) {
-            alpha = 20 * Math.log10(y[currentPoint - 1]);
-            beta = 20 * Math.log10(y[currentPoint]);
-            gamma = 20 * Math.log10(y[currentPoint + 1]);
-            p = 0.5 * (alpha - gamma) / (alpha - 2 * beta + gamma);
-            //console.log("p: "+p);
-            //console.log(x[currentPoint]+" "+tmp+" "+currentPoint);
-            peakList[j].x = x[currentPoint] + (x[currentPoint] - x[currentPoint - 1]) * p;
-            peakList[j].y = y[currentPoint] - 0.25 * (y[currentPoint - 1] - y[currentPoint + 1]) * p;
-        }
-    }
-}
-
-module.exports = gsd;
-
-
-/***/ }),
-/* 78 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports.post = __webpack_require__(79);
-module.exports.gsd = __webpack_require__(77);
-
-
-/***/ }),
-/* 79 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/**
- * Created by acastillo on 9/6/15.
- */
-
-
-var Opt = __webpack_require__(98);
-
-function sampleFunction(from, to, x, y, lastIndex) {
-    var nbPoints = x.length;
-    var sampleX = [];
-    var sampleY = [];
-    var direction = Math.sign(x[1] - x[0]);//Direction of the derivative
-    if (direction === -1) {
-        lastIndex[0] = x.length - 1;
-    }
-
-    var delta = Math.abs(to - from) / 2;
-    var mid = (from + to) / 2;
-    var stop = false;
-    var index = lastIndex[0];
-    while (!stop && index < nbPoints && index >= 0) {
-        if (Math.abs(x[index] - mid) <= delta) {
-            sampleX.push(x[index]);
-            sampleY.push(y[index]);
-            index += direction;
-        } else {
-            //It is outside the range.
-            if (Math.sign(mid - x[index]) === 1) {
-                //We'll reach the mid going in the current direction
-                index += direction;
-            } else {
-                //There is not more peaks in the current range
-                stop = true;
-            }
-        }
-        //console.log(sampleX);
-    }
-    lastIndex[0] = index;
-    return [sampleX, sampleY];
-}
-
-function optimizePeaks(peakList, x, y, n, fnType) {
-    var i, j, lastIndex = [0];
-    var groups = groupPeaks(peakList, n);
-    var result = [];
-    var factor = 1;
-    if (fnType === 'gaussian')
-        factor = 1.17741;//From https://en.wikipedia.org/wiki/Gaussian_function#Properties
-    var sampling, error, opts;
-    for (i = 0; i < groups.length; i++) {
-        var peaks = groups[i].group;
-        if (peaks.length > 1) {
-            //Multiple peaks
-            //console.log("Pending group of overlaped peaks "+peaks.length);
-            //console.log("here1");
-            //console.log(groups[i].limits);
-            sampling = sampleFunction(groups[i].limits[0] - groups[i].limits[1], groups[i].limits[0] + groups[i].limits[1], x, y, lastIndex);
-            //console.log(sampling);
-            if (sampling[0].length > 5) {
-                error = peaks[0].width / 1000;
-                opts = [  3,    100, error, error, error, error * 10, error * 10,    11,    9,        1 ];
-                //var gauss = Opt.optimizeSingleGaussian(sampling[0], sampling[1], opts, peaks);
-                var optPeaks = [];
-                if (fnType === 'gaussian')
-                    optPeaks = Opt.optimizeGaussianSum(sampling, peaks, opts);
-                else {
-                    if (fnType === 'lorentzian') {
-                        optPeaks = Opt.optimizeLorentzianSum(sampling, peaks, opts);
-                    }
-                }
-                //console.log(optPeak);
-                for (j = 0; j < optPeaks.length; j++) {
-                    result.push({x: optPeaks[j][0][0], y: optPeaks[j][1][0], width: optPeaks[j][2][0] * factor});
-                }
-            }
-        } else {
-            //Single peak
-            peaks = peaks[0];
-            sampling = sampleFunction(peaks.x - n * peaks.width,
-                peaks.x + n * peaks.width, x, y, lastIndex);
-            //console.log("here2");
-            //console.log(groups[i].limits);
-            if (sampling[0].length > 5) {
-                error = peaks.width / 1000;
-                opts = [3, 100, error, error, error, error * 10, error * 10, 11, 9, 1];
-                //var gauss = Opt.optimizeSingleGaussian(sampling[0], sampling[1], opts, peaks);
-                //var gauss = Opt.optimizeSingleGaussian([sampling[0],sampling[1]], peaks, opts);
-                var optPeak = [];
-                if (fnType === 'gaussian')
-                    optPeak = Opt.optimizeSingleGaussian([sampling[0], sampling[1]], peaks,  opts);
-                else {
-                    if (fnType === 'lorentzian') {
-                        optPeak = Opt.optimizeSingleLorentzian([sampling[0], sampling[1]], peaks,  opts);
-                    }
-                }
-                //console.log(optPeak);
-                result.push({x: optPeak[0][0], y: optPeak[1][0], width: optPeak[2][0] * factor}); // From https://en.wikipedia.org/wiki/Gaussian_function#Properties}
-            }
-        }
-
-    }
     return result;
 }
 
-function groupPeaks(peakList, nL) {
-    var group = [];
-    var groups = [];
-    var i, j;
-    var limits = [peakList[0].x, nL * peakList[0].width];
-    var upperLimit, lowerLimit;
-    //Merge forward
-    for (i = 0; i < peakList.length; i++) {
-        //If the 2 things overlaps
-        if (Math.abs(peakList[i].x - limits[0]) < (nL * peakList[i].width + limits[1])) {
-            //Add the peak to the group
-            group.push(peakList[i]);
-            //Update the group limits
-            upperLimit = limits[0] + limits[1];
-            if (peakList[i].x + nL * peakList[i].width > upperLimit) {
-                upperLimit = peakList[i].x + nL * peakList[i].width;
-            }
-            lowerLimit = limits[0] - limits[1];
-            if (peakList[i].x - nL * peakList[i].width < lowerLimit) {
-                lowerLimit = peakList[i].x - nL * peakList[i].width;
-            }
-            limits = [(upperLimit + lowerLimit) / 2, Math.abs(upperLimit - lowerLimit) / 2];
-
-        } else {
-            groups.push({limits: limits, group: group});
-            //var optmimalPeak = fitSpectrum(group,limits,spectrum);
-            group = [peakList[i]];
-            limits = [peakList[i].x, nL * peakList[i].width];
-        }
-    }
-    groups.push({limits: limits, group: group});
-    //Merge backward
-    for (i = groups.length - 2; i >= 0; i--) {
-        //The groups overlaps
-        if (Math.abs(groups[i].limits[0] - groups[i + 1].limits[0]) <
-            (groups[i].limits[1] + groups[i + 1].limits[1]) / 2) {
-            for (j = 0; j < groups[i + 1].group.length; j++) {
-                groups[i].group.push(groups[i + 1].group[j]);
-            }
-            upperLimit = groups[i].limits[0] + groups[i].limits[1];
-            if (groups[i + 1].limits[0] + groups[i + 1].limits[1] > upperLimit) {
-                upperLimit = groups[i + 1].limits[0] + groups[i + 1].limits[1];
-            }
-            lowerLimit = groups[i].limits[0] - groups[i].limits[1];
-            if (groups[i + 1].limits[0] - groups[i + 1].limits[1] < lowerLimit) {
-                lowerLimit = groups[i + 1].limits[0] - groups[i + 1].limits[1];
-            }
-            //console.log(limits);
-            groups[i].limits = [(upperLimit + lowerLimit) / 2, Math.abs(upperLimit - lowerLimit) / 2];
-
-            groups.splice(i + 1, 1);
-        }
-    }
-    return groups;
-}
-/**
- * This function try to join the peaks that seems to belong to a broad signal in a single broad peak.
- * @param peakList
- * @param options
- */
-function joinBroadPeaks(peakList, options) {
-    var width = options.width;
-    var broadLines = [];
-    //Optimize the possible broad lines
-    var max = 0, maxI = 0, count = 1;
-    for (let i = peakList.length - 1; i >= 0; i--) {
-        if (peakList[i].soft) {
-            broadLines.push(peakList.splice(i, 1)[0]);
-        }
-    }
-    //Push a feak peak
-    broadLines.push({x: Number.MAX_VALUE});
-
-    var candidates = [[broadLines[0].x,
-                        broadLines[0].y]];
-    var indexes = [0];
-
-    for (let i = 1; i < broadLines.length; i++) {
-        //console.log(broadLines[i-1].x+" "+broadLines[i].x);
-        if (Math.abs(broadLines[i - 1].x - broadLines[i].x) < width) {
-            candidates.push([broadLines[i].x, broadLines[i].y]);
-            if (broadLines[i].y > max) {
-                max = broadLines[i].y;
-                maxI = i;
-            }
-            indexes.push(i);
-            count++;
-        } else {
-            if (count > 2) {
-                var fitted = Opt.optimizeSingleLorentzian(candidates,
-                    {x: broadLines[maxI].x, y: max, width: Math.abs(candidates[0][0] - candidates[candidates.length - 1][0])});
-                peakList.push({x: fitted[0][0], y: fitted[1][0], width: fitted[2][0], soft: false});
-
-            } else {
-                //Put back the candidates to the signals list
-                indexes.map(function (index) {
-                    peakList.push(broadLines[index]);
-                });
-            }
-            candidates = [[broadLines[i].x, broadLines[i].y]];
-            indexes = [i];
-            max = broadLines[i].y;
-            maxI = i;
-            count = 1;
-        }
-    }
-
-    peakList.sort(function (a, b) {
-        return a.x - b.x;
-    });
-
-    return peakList;
-
-}
-
-/*
- var isPartOf = true
-if(options.broadRatio>0){
- var broadLines=[[Number.MAX_VALUE,0,0]];
- //Optimize the possible broad lines
- var max=0, maxI=0,count=0;
- var candidates = [],broadLinesS=[];
- var isPartOf = false;
-
- for(var i=broadLines.length-1;i>0;i--){
- //console.log(broadLines[i][0]+" "+rangeX+" "+Math.abs(broadLines[i-1][0]-broadLines[i][0]));
- if(Math.abs(broadLines[i-1][0]-broadLines[i][0])<rangeX){
-
- candidates.push(broadLines[i]);
- if(broadLines[i][1]>max){
- max = broadLines[i][1];
- maxI = i;
- }
- count++;
- }
- else{
- isPartOf = true;
- if(count>30){ // TODO, an options ?
- isPartOf = false;
- //for(var j=0;j<signals.length;j++){
- //    if(Math.abs(broadLines[maxI][0]-signals[j][0])<rangeX)
- //       isPartOf = true;
- //    }
- //console.log("Was part of "+isPartOf);
- }
- if(isPartOf){
- for(var j=0;j<candidates.length;j++){
- signals.push([candidates[j][0], candidates[j][1], dx]);
- }
- }
- else{
- var fitted =  Opt.optimizeSingleLorentzian(candidates,{x:candidates[maxI][0],
- width:Math.abs(candidates[0][0]-candidates[candidates.length-1][0])},
- []);
- //console.log(fitted);
- signals.push([fitted[0][0],fitted[0][1],fitted[0][2]]);
- }
- candidates = [];
- max = 0;
- maxI = 0;
- count = 0;
- }
- }
- }*/
-
-module.exports = {optimizePeaks: optimizePeaks, joinBroadPeaks: joinBroadPeaks};
-
+module.exports = distanceMatrix;
 
 
 /***/ }),
-/* 80 */
+/* 96 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const newArray = __webpack_require__(14);
-
-const primeFinder = __webpack_require__(81);
-const nextPrime = primeFinder.nextPrime;
-const largestPrime = primeFinder.largestPrime;
-
-const FREE = 0;
-const FULL = 1;
-const REMOVED = 2;
-
-const defaultInitialCapacity = 150;
-const defaultMinLoadFactor = 1 / 6;
-const defaultMaxLoadFactor = 2 / 3;
-
-class HashTable {
-    constructor(options = {}) {
-        if (options instanceof HashTable) {
-            this.table = options.table.slice();
-            this.values = options.values.slice();
-            this.state = options.state.slice();
-            this.minLoadFactor = options.minLoadFactor;
-            this.maxLoadFactor = options.maxLoadFactor;
-            this.distinct = options.distinct;
-            this.freeEntries = options.freeEntries;
-            this.lowWaterMark = options.lowWaterMark;
-            this.highWaterMark = options.maxLoadFactor;
-            return;
-        }
-
-        const initialCapacity = options.initialCapacity === undefined ? defaultInitialCapacity : options.initialCapacity;
-        if (initialCapacity < 0) {
-            throw new RangeError(`initial capacity must not be less than zero: ${initialCapacity}`);
-        }
-
-        const minLoadFactor = options.minLoadFactor === undefined ? defaultMinLoadFactor : options.minLoadFactor;
-        const maxLoadFactor = options.maxLoadFactor === undefined ? defaultMaxLoadFactor : options.maxLoadFactor;
-        if (minLoadFactor < 0 || minLoadFactor >= 1) {
-            throw new RangeError(`invalid minLoadFactor: ${minLoadFactor}`);
-        }
-        if (maxLoadFactor <= 0 || maxLoadFactor >= 1) {
-            throw new RangeError(`invalid maxLoadFactor: ${maxLoadFactor}`);
-        }
-        if (minLoadFactor >= maxLoadFactor) {
-            throw new RangeError(`minLoadFactor (${minLoadFactor}) must be smaller than maxLoadFactor (${maxLoadFactor})`);
-        }
-
-        let capacity = initialCapacity;
-        // User wants to put at least capacity elements. We need to choose the size based on the maxLoadFactor to
-        // avoid the need to rehash before this capacity is reached.
-        // actualCapacity * maxLoadFactor >= capacity
-        capacity = (capacity / maxLoadFactor) | 0;
-        capacity = nextPrime(capacity);
-        if (capacity === 0) capacity = 1;
-
-        this.table = newArray(capacity, 0);
-        this.values = newArray(capacity, 0);
-        this.state = newArray(capacity, 0);
-
-        this.minLoadFactor = minLoadFactor;
-        if (capacity === largestPrime) {
-            this.maxLoadFactor = 1;
-        } else {
-            this.maxLoadFactor = maxLoadFactor;
-        }
-
-        this.distinct = 0;
-        this.freeEntries = capacity;
-
-        this.lowWaterMark = 0;
-        this.highWaterMark = chooseHighWaterMark(capacity, this.maxLoadFactor);
-    }
-
-    clone() {
-        return new HashTable(this);
-    }
-
-    get size() {
-        return this.distinct;
-    }
-
-    get(key) {
-        const i = this.indexOfKey(key);
-        if (i < 0) return 0;
-        return this.values[i];
-    }
-
-    set(key, value) {
-        let i = this.indexOfInsertion(key);
-        if (i < 0) {
-            i = -i - 1;
-            this.values[i] = value;
-            return false;
-        }
-
-        if (this.distinct > this.highWaterMark) {
-            const newCapacity = chooseGrowCapacity(this.distinct + 1, this.minLoadFactor, this.maxLoadFactor);
-            this.rehash(newCapacity);
-            return this.set(key, value);
-        }
-
-        this.table[i] = key;
-        this.values[i] = value;
-        if (this.state[i] === FREE) this.freeEntries--;
-        this.state[i] = FULL;
-        this.distinct++;
-
-        if (this.freeEntries < 1) {
-            const newCapacity = chooseGrowCapacity(this.distinct + 1, this.minLoadFactor, this.maxLoadFactor);
-            this.rehash(newCapacity);
-        }
-
-        return true;
-    }
-    
-    remove(key, noRehash) {
-        const i = this.indexOfKey(key);
-        if (i < 0) return false;
-
-        this.state[i] = REMOVED;
-        this.distinct--;
-
-        if (!noRehash) this.maybeShrinkCapacity();
-
-        return true;
-    }
-
-    delete(key, noRehash) {
-        const i = this.indexOfKey(key);
-        if (i < 0) return false;
-
-        this.state[i] = FREE;
-        this.distinct--;
-
-        if (!noRehash) this.maybeShrinkCapacity();
-
-        return true;
-    }
-
-    maybeShrinkCapacity() {
-        if (this.distinct < this.lowWaterMark) {
-            const newCapacity = chooseShrinkCapacity(this.distinct, this.minLoadFactor, this.maxLoadFactor);
-            this.rehash(newCapacity);
-        }
-    }
-
-    containsKey(key) {
-        return this.indexOfKey(key) >= 0;
-    }
-
-    indexOfKey(key) {
-        const table = this.table;
-        const state = this.state;
-        const length = this.table.length;
-
-        const hash = key & 0x7fffffff;
-        let i = hash % length;
-        let decrement = hash % (length - 2);
-        if (decrement === 0) decrement = 1;
-
-        while (state[i] !== FREE && (state[i] === REMOVED || table[i] !== key)) {
-            i -= decrement;
-            if (i < 0) i += length;
-        }
-
-        if (state[i] === FREE) return -1;
-        return i;
-    }
-
-    containsValue(value) {
-        return this.indexOfValue(value) >= 0;
-    }
-
-    indexOfValue(value) {
-        const values = this.values;
-        const state = this.state;
-
-        for (var i = 0; i < state.length; i++) {
-            if (state[i] === FULL && values[i] === value) {
-                return i;
-            }
-        }
-
-        return -1;
-    }
-
-    indexOfInsertion(key) {
-        const table = this.table;
-        const state = this.state;
-        const length = table.length;
-
-
-        const hash = key & 0x7fffffff;
-        let i = hash % length;
-        let decrement = hash % (length - 2);
-        if (decrement === 0) decrement = 1;
-
-        while (state[i] === FULL && table[i] !== key) {
-            i -= decrement;
-            if (i < 0) i += length;
-        }
-
-        if (state[i] === REMOVED) {
-            const j = i;
-            while (state[i] !== FREE && (state[i] === REMOVED || table[i] !== key)) {
-                i -= decrement;
-                if (i < 0) i += length;
-            }
-            if (state[i] === FREE) i = j;
-        }
-
-        if (state[i] === FULL) {
-            return -i - 1;
-        }
-
-        return i;
-    }
-
-    ensureCapacity(minCapacity) {
-        if (this.table.length < minCapacity) {
-            const newCapacity = nextPrime(minCapacity);
-            this.rehash(newCapacity);
-        }
-    }
-
-    rehash(newCapacity) {
-        const oldCapacity = this.table.length;
-
-        if (newCapacity <= this.distinct) throw new Error('Unexpected');
-
-        const oldTable = this.table;
-        const oldValues = this.values;
-        const oldState = this.state;
-
-        const newTable = newArray(newCapacity, 0);
-        const newValues = newArray(newCapacity, 0);
-        const newState = newArray(newCapacity, 0);
-
-        this.lowWaterMark = chooseLowWaterMark(newCapacity, this.minLoadFactor);
-        this.highWaterMark = chooseHighWaterMark(newCapacity, this.maxLoadFactor);
-
-        this.table = newTable;
-        this.values = newValues;
-        this.state = newState;
-        this.freeEntries = newCapacity - this.distinct;
-
-        for (var i = 0; i < oldCapacity; i++) {
-            if (oldState[i] === FULL) {
-                var element = oldTable[i];
-                var index = this.indexOfInsertion(element);
-                newTable[index] = element;
-                newValues[index] = oldValues[i];
-                newState[index] = FULL;
-            }
-        }
-    }
-
-    forEachKey(callback) {
-        for (var i = 0; i < this.state.length; i++) {
-            if (this.state[i] === FULL) {
-                if (!callback(this.table[i])) return false;
-            }
-        }
-        return true;
-    }
-
-    forEachValue(callback) {
-        for (var i = 0; i < this.state.length; i++) {
-            if (this.state[i] === FULL) {
-                if (!callback(this.values[i])) return false;
-            }
-        }
-        return true;
-    }
-
-    forEachPair(callback) {
-        for (var i = 0; i < this.state.length; i++) {
-            if (this.state[i] === FULL) {
-                if (!callback(this.table[i], this.values[i])) return false;
-            }
-        }
-        return true;
-    }
-}
-
-module.exports = HashTable;
-
-function chooseLowWaterMark(capacity, minLoad) {
-    return (capacity * minLoad) | 0;
-}
-
-function chooseHighWaterMark(capacity, maxLoad) {
-    return Math.min(capacity - 2, (capacity * maxLoad) | 0);
-}
-
-function chooseGrowCapacity(size, minLoad, maxLoad) {
-    return nextPrime(Math.max(size + 1, (4 * size / (3 * minLoad + maxLoad)) | 0));
-}
-
-function chooseShrinkCapacity(size, minLoad, maxLoad) {
-    return nextPrime(Math.max(size + 1, (4 * size / (minLoad + 3 * maxLoad)) | 0));
-}
-
-
-/***/ }),
-/* 81 */
-/***/ (function(module, exports, __webpack_require__) {
-
-const binarySearch = __webpack_require__(19);
-const sortAsc = __webpack_require__(43).asc;
-
-const largestPrime = 0x7fffffff;
-
-const primeNumbers = [
-    //chunk #0
-    largestPrime, // 2^31-1
-
-    //chunk #1
-    5, 11, 23, 47, 97, 197, 397, 797, 1597, 3203, 6421, 12853, 25717, 51437, 102877, 205759,
-    411527, 823117, 1646237, 3292489, 6584983, 13169977, 26339969, 52679969, 105359939,
-    210719881, 421439783, 842879579, 1685759167,
-
-    //chunk #2
-    433, 877, 1759, 3527, 7057, 14143, 28289, 56591, 113189, 226379, 452759, 905551, 1811107,
-    3622219, 7244441, 14488931, 28977863, 57955739, 115911563, 231823147, 463646329, 927292699,
-    1854585413,
-
-    //chunk #3
-    953, 1907, 3821, 7643, 15287, 30577, 61169, 122347, 244703, 489407, 978821, 1957651, 3915341,
-    7830701, 15661423, 31322867, 62645741, 125291483, 250582987, 501165979, 1002331963,
-    2004663929,
-
-    //chunk #4
-    1039, 2081, 4177, 8363, 16729, 33461, 66923, 133853, 267713, 535481, 1070981, 2141977, 4283963,
-    8567929, 17135863, 34271747, 68543509, 137087021, 274174111, 548348231, 1096696463,
-
-    //chunk #5
-    31, 67, 137, 277, 557, 1117, 2237, 4481, 8963, 17929, 35863, 71741, 143483, 286973, 573953,
-    1147921, 2295859, 4591721, 9183457, 18366923, 36733847, 73467739, 146935499, 293871013,
-    587742049, 1175484103,
-
-    //chunk #6
-    599, 1201, 2411, 4831, 9677, 19373, 38747, 77509, 155027, 310081, 620171, 1240361, 2480729,
-    4961459, 9922933, 19845871, 39691759, 79383533, 158767069, 317534141, 635068283, 1270136683,
-
-    //chunk #7
-    311, 631, 1277, 2557, 5119, 10243, 20507, 41017, 82037, 164089, 328213, 656429, 1312867,
-    2625761, 5251529, 10503061, 21006137, 42012281, 84024581, 168049163, 336098327, 672196673,
-    1344393353,
-
-    //chunk #8
-    3, 7, 17, 37, 79, 163, 331, 673, 1361, 2729, 5471, 10949, 21911, 43853, 87719, 175447, 350899,
-    701819, 1403641, 2807303, 5614657, 11229331, 22458671, 44917381, 89834777, 179669557,
-    359339171, 718678369, 1437356741,
-
-    //chunk #9
-    43, 89, 179, 359, 719, 1439, 2879, 5779, 11579, 23159, 46327, 92657, 185323, 370661, 741337,
-    1482707, 2965421, 5930887, 11861791, 23723597, 47447201, 94894427, 189788857, 379577741,
-    759155483, 1518310967,
-
-    //chunk #10
-    379, 761, 1523, 3049, 6101, 12203, 24407, 48817, 97649, 195311, 390647, 781301, 1562611,
-    3125257, 6250537, 12501169, 25002389, 50004791, 100009607, 200019221, 400038451, 800076929,
-    1600153859,
-
-    //chunk #11
-    13, 29, 59, 127, 257, 521, 1049, 2099, 4201, 8419, 16843, 33703, 67409, 134837, 269683,
-    539389, 1078787, 2157587, 4315183, 8630387, 17260781, 34521589, 69043189, 138086407,
-    276172823, 552345671, 1104691373,
-
-    //chunk #12
-    19, 41, 83, 167, 337, 677,
-    1361, 2729, 5471, 10949, 21911, 43853, 87719, 175447, 350899,
-    701819, 1403641, 2807303, 5614657, 11229331, 22458671, 44917381, 89834777, 179669557,
-    359339171, 718678369, 1437356741,
-
-    //chunk #13
-    53, 107, 223, 449, 907, 1823, 3659, 7321, 14653, 29311, 58631, 117269,
-    234539, 469099, 938207, 1876417, 3752839, 7505681, 15011389, 30022781,
-    60045577, 120091177, 240182359, 480364727, 960729461, 1921458943
-];
-
-primeNumbers.sort(sortAsc);
-
-function nextPrime(value) {
-    let index = binarySearch(primeNumbers, value, sortAsc);
-    if (index < 0) {
-        index = ~index;
-    }
-    return primeNumbers[index];
-}
-
-exports.nextPrime = nextPrime;
-exports.largestPrime = largestPrime;
-
-
-/***/ }),
-/* 82 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var euclidean = __webpack_require__(32);
-var ClusterLeaf = __webpack_require__(35);
-var Cluster = __webpack_require__(12);
-
-/**
- * @param cluster1
- * @param cluster2
- * @param disFun
- * @returns {number}
- */
-function simpleLink(cluster1, cluster2, disFun) {
-    var m = 10e100;
-    for (var i = 0; i < cluster1.length; i++)
-        for (var j = 0; j < cluster2.length; j++) {
-            var d = disFun[cluster1[i]][ cluster2[j]];
-            m = Math.min(d,m);
-        }
-    return m;
-}
-
-/**
- * @param cluster1
- * @param cluster2
- * @param disFun
- * @returns {number}
- */
-function completeLink(cluster1, cluster2, disFun) {
-    var m = -1;
-    for (var i = 0; i < cluster1.length; i++)
-        for (var j = 0; j < cluster2.length; j++) {
-            var d = disFun[cluster1[i]][ cluster2[j]];
-            m = Math.max(d,m);
-        }
-    return m;
-}
-
-/**
- * @param cluster1
- * @param cluster2
- * @param disFun
- * @returns {number}
- */
-function averageLink(cluster1, cluster2, disFun) {
-    var m = 0;
-    for (var i = 0; i < cluster1.length; i++)
-        for (var j = 0; j < cluster2.length; j++)
-            m += disFun[cluster1[i]][ cluster2[j]];
-    return m / (cluster1.length * cluster2.length);
-}
-
-/**
- * @param cluster1
- * @param cluster2
- * @param disFun
- * @returns {*}
- */
-function centroidLink(cluster1, cluster2, disFun) {
-    var m = -1;
-    var dist = new Array(cluster1.length*cluster2.length);
-    for (var i = 0; i < cluster1.length; i++)
-        for (var j = 0; j < cluster2.length; j++) {
-            dist[i*cluster1.length+j]=(disFun[cluster1[i]][ cluster2[j]]);
-        }
-    return median(dist);
-}
-
-/**
- * @param cluster1
- * @param cluster2
- * @param disFun
- * @returns {number}
- */
-function wardLink(cluster1, cluster2, disFun) {
-    return centroidLink(cluster1, cluster2, disFun)
-        *cluster1.length*cluster2.length / (cluster1.length+cluster2.length);
-}
-
-function compareNumbers(a, b) {
-    return a - b;
-}
-
-function median(values, alreadySorted) {
-    if (alreadySorted === undefined) alreadySorted = false;
-    if (!alreadySorted) {
-        values = [].concat(values).sort(compareNumbers);
-    }
-    var l = values.length;
-    var half = Math.floor(l / 2);
-    if (l % 2 === 0) {
-        return (values[half - 1] + values[half]) * 0.5;
-    } else {
-        return values[half];
-    }
-}
-
-var defaultOptions = {
-    disFunc: euclidean,
-    kind: 'single',
-    isDistanceMatrix:false
-
-};
-
-/**
- * Continuously merge nodes that have the least dissimilarity
- * @param {Array <Array <number>>} distance - Array of points to be clustered
- * @param {json} options
- * @option isDistanceMatrix: Is the input a distance matrix?
- * @constructor
- */
-function agnes(data, options) {
-    options = Object.assign({}, defaultOptions, options);
-    var len = data.length;
-
-    var distance = data;//If source
-    if(!options.isDistanceMatrix) {
-        distance = new Array(len);
-        for(var i = 0;i < len; i++) {
-            distance[i] = new Array(len);
-            for (var j = 0; j < len; j++) {
-                distance[i][j] = options.disFunc(data[i],data[j]);
-            }
-        }
-    }
-
-
-    // allows to use a string or a given function
-    if (typeof options.kind === "string") {
-        switch (options.kind) {
-            case 'single':
-                options.kind = simpleLink;
-                break;
-            case 'complete':
-                options.kind = completeLink;
-                break;
-            case 'average':
-                options.kind = averageLink;
-                break;
-            case 'centroid':
-                options.kind = centroidLink;
-                break;
-            case 'ward':
-                options.kind = wardLink;
-                break;
-            default:
-                throw new RangeError('Unknown kind of similarity');
-        }
-    }
-    else if (typeof options.kind !== "function")
-        throw new TypeError('Undefined kind of similarity');
-
-    var list = new Array(len);
-    for (var i = 0; i < distance.length; i++)
-        list[i] = new ClusterLeaf(i);
-    var min  = 10e5,
-        d = {},
-        dis = 0;
-
-    while (list.length > 1) {
-        // calculates the minimum distance
-        d = {};
-        min = 10e5;
-        for (var j = 0; j < list.length; j++){
-            for (var k = j + 1; k < list.length; k++) {
-                var fdistance, sdistance;
-                if (list[j] instanceof ClusterLeaf)
-                    fdistance = [list[j].index];
-                else {
-                    fdistance = new Array(list[j].index.length);
-                    for (var e = 0; e < fdistance.length; e++)
-                        fdistance[e] = list[j].index[e].index;
-                }
-                if (list[k] instanceof ClusterLeaf)
-                    sdistance = [list[k].index];
-                else {
-                    sdistance = new Array(list[k].index.length);
-                    for (var f = 0; f < sdistance.length; f++)
-                        sdistance[f] = list[k].index[f].index;
-                }
-                dis = options.kind(fdistance, sdistance, distance).toFixed(4);
-                if (dis in d) {
-                    d[dis].push([list[j], list[k]]);
-                }
-                else {
-                    d[dis] = [[list[j], list[k]]];
-                }
-                min = Math.min(dis, min);
-            }
-        }
-        // cluster dots
-        var dmin = d[min.toFixed(4)];
-        var clustered = new Array(dmin.length);
-        var aux,
-            count = 0;
-        while (dmin.length > 0) {
-            aux = dmin.shift();
-            for (var q = 0; q < dmin.length; q++) {
-                var int = dmin[q].filter(function(n) {
-                    //noinspection JSReferencingMutableVariableFromClosure
-                    return aux.indexOf(n) !== -1
-                });
-                if (int.length > 0) {
-                    var diff = dmin[q].filter(function(n) {
-                        //noinspection JSReferencingMutableVariableFromClosure
-                        return aux.indexOf(n) === -1
-                    });
-                    aux = aux.concat(diff);
-                    dmin.splice(q-- ,1);
-                }
-            }
-            clustered[count++] = aux;
-        }
-        clustered.length = count;
-
-        for (var ii = 0; ii < clustered.length; ii++) {
-            var obj = new Cluster();
-            obj.children = clustered[ii].concat();
-            obj.distance = min;
-            obj.index = new Array(len);
-            var indCount = 0;
-            for (var jj = 0; jj < clustered[ii].length; jj++) {
-                if (clustered[ii][jj] instanceof ClusterLeaf)
-                    obj.index[indCount++] = clustered[ii][jj];
-                else {
-                    indCount += clustered[ii][jj].index.length;
-                    obj.index = clustered[ii][jj].index.concat(obj.index);
-                }
-                list.splice((list.indexOf(clustered[ii][jj])), 1);
-            }
-            obj.index.length = indCount;
-            list.push(obj);
-        }
-    }
-    return list[0];
-}
-
-module.exports = agnes;
-
-
-/***/ }),
-/* 83 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var euclidean = __webpack_require__(32);
-var ClusterLeaf = __webpack_require__(35);
-var Cluster = __webpack_require__(12);
-
-/**
- * @param {Array <Array <number>>} cluster1
- * @param {Array <Array <number>>} cluster2
- * @param {function} disFun
- * @returns {number}
- */
-function simpleLink(cluster1, cluster2, disFun) {
-    var m = 10e100;
-    for (var i = 0; i < cluster1.length; i++)
-        for (var j = i; j < cluster2.length; j++) {
-            var d = disFun(cluster1[i], cluster2[j]);
-            m = Math.min(d,m);
-        }
-    return m;
-}
-
-/**
- * @param {Array <Array <number>>} cluster1
- * @param {Array <Array <number>>} cluster2
- * @param {function} disFun
- * @returns {number}
- */
-function completeLink(cluster1, cluster2, disFun) {
-    var m = -1;
-    for (var i = 0; i < cluster1.length; i++)
-        for (var j = i; j < cluster2.length; j++) {
-            var d = disFun(cluster1[i], cluster2[j]);
-            m = Math.max(d,m);
-        }
-    return m;
-}
-
-/**
- * @param {Array <Array <number>>} cluster1
- * @param {Array <Array <number>>} cluster2
- * @param {function} disFun
- * @returns {number}
- */
-function averageLink(cluster1, cluster2, disFun) {
-    var m = 0;
-    for (var i = 0; i < cluster1.length; i++)
-        for (var j = 0; j < cluster2.length; j++)
-            m += disFun(cluster1[i], cluster2[j]);
-    return m / (cluster1.length * cluster2.length);
-}
-
-/**
- * @param {Array <Array <number>>} cluster1
- * @param {Array <Array <number>>} cluster2
- * @param {function} disFun
- * @returns {number}
- */
-function centroidLink(cluster1, cluster2, disFun) {
-    var x1 = 0,
-        y1 = 0,
-        x2 = 0,
-        y2 = 0;
-    for (var i = 0; i < cluster1.length; i++) {
-        x1 += cluster1[i][0];
-        y1 += cluster1[i][1];
-    }
-    for (var j = 0; j < cluster2.length; j++) {
-        x2 += cluster2[j][0];
-        y2 += cluster2[j][1];
-    }
-    x1 /= cluster1.length;
-    y1 /= cluster1.length;
-    x2 /= cluster2.length;
-    y2 /= cluster2.length;
-    return disFun([x1,y1], [x2,y2]);
-}
-
-/**
- * @param {Array <Array <number>>} cluster1
- * @param {Array <Array <number>>} cluster2
- * @param {function} disFun
- * @returns {number}
- */
-function wardLink(cluster1, cluster2, disFun) {
-    var x1 = 0,
-        y1 = 0,
-        x2 = 0,
-        y2 = 0;
-    for (var i = 0; i < cluster1.length; i++) {
-        x1 += cluster1[i][0];
-        y1 += cluster1[i][1];
-    }
-    for (var j = 0; j < cluster2.length; j++) {
-        x2 += cluster2[j][0];
-        y2 += cluster2[j][1];
-    }
-    x1 /= cluster1.length;
-    y1 /= cluster1.length;
-    x2 /= cluster2.length;
-    y2 /= cluster2.length;
-    return disFun([x1,y1], [x2,y2])*cluster1.length*cluster2.length / (cluster1.length+cluster2.length);
-}
-
-/**
- * Returns the most distant point and his distance
- * @param {Array <Array <number>>} splitting - Clusters to split
- * @param {Array <Array <number>>} data - Original data
- * @param {function} disFun - Distance function
- * @returns {{d: number, p: number}} - d: maximum difference between points, p: the point more distant
- */
-function diff(splitting, data, disFun) {
-    var ans = {
-        d:0,
-        p:0
-    };
-
-    var Ci = new Array(splitting[0].length);
-    for (var e = 0; e < splitting[0].length; e++)
-        Ci[e] = data[splitting[0][e]];
-    var Cj = new Array(splitting[1].length);
-    for (var f = 0; f < splitting[1].length; f++)
-        Cj[f] = data[splitting[1][f]];
-
-    var dist, ndist;
-    for (var i = 0; i < Ci.length; i++) {
-        dist = 0;
-        for (var j = 0; j < Ci.length; j++)
-            if (i !== j)
-                dist += disFun(Ci[i], Ci[j]);
-        dist /= (Ci.length - 1);
-        ndist = 0;
-        for (var k = 0; k < Cj.length; k++)
-            ndist += disFun(Ci[i], Cj[k]);
-        ndist /= Cj.length;
-        if ((dist - ndist) > ans.d) {
-            ans.d = (dist - ndist);
-            ans.p = i;
-        }
-    }
-    return ans;
-}
-
-var defaultOptions = {
-    dist: euclidean,
-    kind: 'single'
-};
-
-/**
- * Intra-cluster distance
- * @param {Array} index
- * @param {Array} data
- * @param {function} disFun
- * @returns {number}
- */
-function intrDist(index, data, disFun) {
-    var dist = 0,
-        count = 0;
-    for (var i = 0; i < index.length; i++)
-        for (var j = i; j < index.length; j++) {
-            dist += disFun(data[index[i].index], data[index[j].index]);
-            count++
-        }
-    return dist / count;
-}
-
-/**
- * Splits the higher level clusters
- * @param {Array <Array <number>>} data - Array of points to be clustered
- * @param {json} options
- * @constructor
- */
-function diana(data, options) {
-    options = options || {};
-    for (var o in defaultOptions)
-        if (!(options.hasOwnProperty(o)))
-            options[o] = defaultOptions[o];
-    if (typeof options.kind === "string") {
-        switch (options.kind) {
-            case 'single':
-                options.kind = simpleLink;
-                break;
-            case 'complete':
-                options.kind = completeLink;
-                break;
-            case 'average':
-                options.kind = averageLink;
-                break;
-            case 'centroid':
-                options.kind = centroidLink;
-                break;
-            case 'ward':
-                options.kind = wardLink;
-                break;
-            default:
-                throw new RangeError('Unknown kind of similarity');
-        }
-    }
-    else if (typeof options.kind !== "function")
-        throw new TypeError('Undefined kind of similarity');
-    var tree = new Cluster();
-    tree.children = new Array(data.length);
-    tree.index = new Array(data.length);
-    for (var ind = 0; ind < data.length; ind++) {
-        tree.children[ind] = new ClusterLeaf(ind);
-        tree.index[ind] = new ClusterLeaf(ind);
-    }
-
-    tree.distance = intrDist(tree.index, data, options.dist);
-    var m, M, clId,
-        dist, rebel;
-    var list = [tree];
-    while (list.length > 0) {
-        M = 0;
-        clId = 0;
-        for (var i = 0; i < list.length; i++) {
-            m = 0;
-            for (var j = 0; j < list[i].length; j++) {
-                for (var l = (j + 1); l < list[i].length; l++) {
-                    m = Math.max(options.dist(data[list[i].index[j].index], data[list[i].index[l].index]), m);
-                }
-            }
-            if (m > M) {
-                M = m;
-                clId = i;
-            }
-        }
-        M = 0;
-        if (list[clId].index.length === 2) {
-            list[clId].children = [list[clId].index[0], list[clId].index[1]];
-            list[clId].distance = options.dist(data[list[clId].index[0].index], data[list[clId].index[1].index]);
-        }
-        else if (list[clId].index.length === 3) {
-            list[clId].children = [list[clId].index[0], list[clId].index[1], list[clId].index[2]];
-            var d = [
-                options.dist(data[list[clId].index[0].index], data[list[clId].index[1].index]),
-                options.dist(data[list[clId].index[1].index], data[list[clId].index[2].index])
-            ];
-            list[clId].distance = (d[0] + d[1]) / 2;
-        }
-        else {
-            var C = new Cluster();
-            var sG = new Cluster();
-            var splitting = [new Array(list[clId].index.length), []];
-            for (var spl = 0; spl < splitting[0].length; spl++)
-                splitting[0][spl] = spl;
-            for (var ii = 0; ii < splitting[0].length; ii++) {
-                dist = 0;
-                for (var jj = 0; jj < splitting[0].length; jj++)
-                    if (ii !== jj)
-                        dist += options.dist(data[list[clId].index[splitting[0][jj]].index], data[list[clId].index[splitting[0][ii]].index]);
-                dist /= (splitting[0].length - 1);
-                if (dist > M) {
-                    M = dist;
-                    rebel = ii;
-                }
-            }
-            splitting[1] = [rebel];
-            splitting[0].splice(rebel, 1);
-            dist = diff(splitting, data, options.dist);
-            while (dist.d > 0) {
-                splitting[1].push(splitting[0][dist.p]);
-                splitting[0].splice(dist.p, 1);
-                dist = diff(splitting, data, options.dist);
-            }
-            var fData = new Array(splitting[0].length);
-            C.index = new Array(splitting[0].length);
-            for (var e = 0; e < fData.length; e++) {
-                fData[e] = data[list[clId].index[splitting[0][e]].index];
-                C.index[e] = list[clId].index[splitting[0][e]];
-                C.children[e] = list[clId].index[splitting[0][e]];
-            }
-            var sData = new Array(splitting[1].length);
-            sG.index = new Array(splitting[1].length);
-            for (var f = 0; f < sData.length; f++) {
-                sData[f] = data[list[clId].index[splitting[1][f]].index];
-                sG.index[f] = list[clId].index[splitting[1][f]];
-                sG.children[f] = list[clId].index[splitting[1][f]];
-            }
-            C.distance = intrDist(C.index, data, options.dist);
-            sG.distance = intrDist(sG.index, data, options.dist);
-            list.push(C);
-            list.push(sG);
-            list[clId].children = [C, sG];
-        }
-        list.splice(clId, 1);
-    }
-    return tree;
-}
-
-module.exports = diana;
-
-
-/***/ }),
-/* 84 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports.agnes = __webpack_require__(82);
-exports.diana = __webpack_require__(83);
-//exports.birch = require('./birch');
-//exports.cure = require('./cure');
-//exports.chameleon = require('./chameleon');
-
-
-/***/ }),
-/* 85 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var FFT = __webpack_require__(36);
+var FFT = __webpack_require__(40);
 
 var FFTUtils= {
     DEBUG : false,
@@ -18223,25 +20489,1580 @@ module.exports = FFTUtils;
 
 
 /***/ }),
-/* 86 */
+/* 97 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-exports.FFTUtils = __webpack_require__(85);
-exports.FFT = __webpack_require__(36);
+const extend = __webpack_require__(28);
+const SG = __webpack_require__(119);
+
+const defaultOptions = {
+    sgOptions: {
+        windowSize: 9,
+        polynomial: 3
+    },
+    minMaxRatio: 0.00025,
+    broadRatio: 0.00,
+    maxCriteria: true,
+    smoothY: true,
+    realTopDetection: false,
+    heightFactor: 0,
+    boundaries: false,
+    derivativeThreshold: -1
+};
+
+/**
+ * Global spectra deconvolution
+ * @param {Array<Number>} x - Independent variable
+ * @param {Array<Number>} yIn - Dependent variable
+ * @param {Object} [options] - Options object
+ * @param {Object} [options.sgOptions] - Options object for Savitzky-Golay filter. See https://github.com/mljs/savitzky-golay-generalized#options
+ * @param {Number} [options.sgOptions.windowSize = 9] - points to use in the approximations
+ * @param {Number} [options.sgOptions.polynomial = 3] - degree of the polynomial to use in the approximations
+ * @param {Number} [options.minMaxRatio = 0.00025] - Threshold to determine if a given peak should be considered as a noise
+ * @param {Number} [options.broadRatio = 0.00] - If `broadRatio` is higher than 0, then all the peaks which second derivative
+ * smaller than `broadRatio * maxAbsSecondDerivative` will be marked with the soft mask equal to true.
+ * @param {Number} [options.noiseLevel = 0] - Noise threshold in spectrum units
+ * @param {Boolean} [options.maxCriteria = true] - Peaks are local maximum(true) or minimum(false)
+ * @param {Boolean} [options.smoothY = true] - Select the peak intensities from a smoothed version of the independent variables
+ * @param {Boolean} [options.realTopDetection = false] - Use a quadratic optimizations with the peak and its 3 closest neighbors
+ * to determine the true x,y values of the peak?
+ * @param {Number} [options.heightFactor = 0] - Factor to multiply the calculated height (usually 2)
+ * @param {Boolean} [options.boundaries = false] - Return also the inflection points of the peaks
+ * @param {Number} [options.derivativeThreshold = -1] - Filters based on the amplitude of the first derivative
+ * @return {Array<Object>}
+ */
+function gsd(x, yIn, options) {
+    options = extend({}, defaultOptions, options);
+    let sgOptions = options.sgOptions;
+    const y = [].concat(yIn);
+
+    if (!('noiseLevel' in options)) {
+        // We have to know if x is equally spaced
+        var maxDx = 0,
+            minDx = Number.MAX_VALUE,
+            tmp;
+        for (let i = 0; i < x.length - 1; ++i) {
+            tmp = Math.abs(x[i + 1] - x[i]);
+            if (tmp < minDx) {
+                minDx = tmp;
+            }
+            if (tmp > maxDx) {
+                maxDx = tmp;
+            }
+        }
+
+        if ((maxDx - minDx) / maxDx < 0.05) {
+            options.noiseLevel = getNoiseLevel(y);
+        } else {
+            options.noiseLevel = 0;
+        }
+    }
+    const yCorrection = {m: 1, b: options.noiseLevel};
+    if (!options.maxCriteria) {
+        yCorrection.m = -1;
+        yCorrection.b *= -1;
+    }
+
+    for (let i = 0; i < y.length; i++) {
+        y[i] = yCorrection.m * y[i] - yCorrection.b;
+    }
+
+    for (let i = 0; i < y.length; i++) {
+        if (y[i] < 0) {
+            y[i] = 0;
+        }
+    }
+    // If the max difference between delta x is less than 5%, then, we can assume it to be equally spaced variable
+    let Y = y;
+    let dY, ddY;
+    if ((maxDx - minDx) / maxDx < 0.05) {
+        if (options.smoothY)
+            Y = SG(y, x[1] - x[0], {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 0});
+        dY = SG(y, x[1] - x[0], {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 1});
+        ddY = SG(y, x[1] - x[0], {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 2});
+    } else {
+        if (options.smoothY)
+            Y = SG(y, x, {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 0});
+        dY = SG(y, x, {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 1});
+        ddY = SG(y, x, {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 2});
+    }
+
+    const X = x;
+    const dx = x[1] - x[0];
+    var maxDdy = 0;
+    var maxY = 0;
+    for (let i = 0; i < Y.length; i++) {
+        if (Math.abs(ddY[i]) > maxDdy) {
+            maxDdy = Math.abs(ddY[i]);
+        }
+        if (Math.abs(Y[i]) > maxY) {
+            maxY = Math.abs(Y[i]);
+        }
+    }
+
+    var lastMax = null;
+    var lastMin = null;
+    var minddY = new Array(Y.length - 2);
+    var intervalL = new Array(Y.length);
+    var intervalR = new Array(Y.length);
+    var broadMask = new Array(Y.length - 2);
+    var minddYLen = 0;
+    var intervalLLen = 0;
+    var intervalRLen = 0;
+    var broadMaskLen = 0;
+    // By the intermediate value theorem We cannot find 2 consecutive maximum or minimum
+    for (let i = 1; i < Y.length - 1; ++i) {
+
+        // filter based on derivativeThreshold
+        if (Math.abs(dY[i]) > options.derivativeThreshold) {
+
+            // Minimum in first derivative
+            if ((dY[i] < dY[i - 1]) && (dY[i] <= dY[i + 1]) ||
+                (dY[i] <= dY[i - 1]) && (dY[i] < dY[i + 1])) {
+                lastMin = {
+                    x: X[i],
+                    index: i
+                };
+                if (dx > 0 && lastMax !== null) {
+                    intervalL[intervalLLen++] = lastMax;
+                    intervalR[intervalRLen++] = lastMin;
+                }
+            }
+
+            // Maximum in first derivative
+            if ((dY[i] >= dY[i - 1]) && (dY[i] > dY[i + 1]) ||
+                (dY[i] > dY[i - 1]) && (dY[i] >= dY[i + 1])) {
+                lastMax = {
+                    x: X[i],
+                    index: i
+                };
+                if (dx < 0 && lastMin !== null) {
+                    intervalL[intervalLLen++] = lastMax;
+                    intervalR[intervalRLen++] = lastMin;
+                }
+            }
+        }
+
+        // Minimum in second derivative
+        if ((ddY[i] < ddY[i - 1]) && (ddY[i] < ddY[i + 1])) {
+            // TODO should we change this to have 3 arrays ? Huge overhead creating arrays
+            minddY[minddYLen++] = i; //( [X[i], Y[i], i] );
+            broadMask[broadMaskLen++] = Math.abs(ddY[i]) <= options.broadRatio * maxDdy;
+        }
+    }
+    minddY.length = minddYLen;
+    intervalL.length = intervalLLen;
+    intervalR.length = intervalRLen;
+    broadMask.length = broadMaskLen;
+
+    let signals = new Array(minddY.length);
+    let signalsLen = 0;
+    let lastK = -1;
+    let possible, frequency, distanceJ, minDistance, gettingCloser;
+    for (let j = 0; j < minddY.length; ++j) {
+        frequency = X[minddY[j]];
+        possible = -1;
+        let k = lastK + 1;
+        minDistance = Number.MAX_VALUE;
+        distanceJ = 0;
+        gettingCloser = true;
+        while (possible === -1 && (k < intervalL.length) && gettingCloser) {
+            distanceJ = Math.abs(frequency - (intervalL[k].x + intervalR[k].x) / 2);
+
+            //Still getting closer?
+            if (distanceJ < minDistance) {
+                minDistance = distanceJ;
+            } else {
+                gettingCloser = false;
+            }
+            if (distanceJ < Math.abs(intervalL[k].x - intervalR[k].x) / 2) {
+                possible = k;
+                lastK = k;
+            }
+            ++k;
+        }
+
+        if (possible !== -1) {
+            if (Math.abs(Y[minddY[j]]) > options.minMaxRatio * maxY) {
+                signals[signalsLen++] = {
+                    index: minddY[j],
+                    x: frequency,
+                    y: (Y[minddY[j]] + yCorrection.b) / yCorrection.m,
+                    width: Math.abs(intervalR[possible].x - intervalL[possible].x), //widthCorrection
+                    soft: broadMask[j]
+                };
+                if (options.boundaries) {
+                    signals[signalsLen - 1].left = intervalL[possible];
+                    signals[signalsLen - 1].right = intervalR[possible];
+                }
+                if (options.heightFactor) {
+                    let yLeft = Y[intervalL[possible].index];
+                    let yRight = Y[intervalR[possible].index];
+                    signals[signalsLen - 1].height = options.heightFactor * (signals[signalsLen - 1].y - ((yLeft + yRight) / 2));
+                }
+            }
+        }
+    }
+    signals.length = signalsLen;
+
+    if (options.realTopDetection)
+        realTopDetection(signals, X, Y);
+
+    //Correct the values to fit the original spectra data
+    for (let j = 0; j < signals.length; j++) {
+        signals[j].base = options.noiseLevel;
+    }
+
+    signals.sort(function (a, b) {
+        return a.x - b.x;
+    });
+
+    return signals;
+
+}
+
+function getNoiseLevel(y) {
+    var mean = 0, stddev = 0;
+    var length = y.length;
+    for (let i = 0; i < length; ++i) {
+        mean += y[i];
+    }
+    mean /= length;
+    var averageDeviations = new Array(length);
+    for (let i = 0; i < length; ++i)
+        averageDeviations[i] = Math.abs(y[i] - mean);
+    averageDeviations.sort();
+    if (length % 2 === 1) {
+        stddev = averageDeviations[(length - 1) / 2] / 0.6745;
+    } else {
+        stddev = 0.5 * (averageDeviations[length / 2] + averageDeviations[length / 2 - 1]) / 0.6745;
+    }
+
+    return stddev;
+}
+
+function realTopDetection(peakList, x, y) {
+    var alpha, beta, gamma, p, currentPoint;
+    for (var j = 0; j < peakList.length; j++) {
+        currentPoint = peakList[j].i;//peakList[j][2];
+        //The detected peak could be moved 1 or 2 unit to left or right.
+        if (y[currentPoint - 1] >= y[currentPoint - 2]
+            && y[currentPoint - 1] >= y[currentPoint]) {
+            currentPoint--;
+        } else {
+            if (y[currentPoint + 1] >= y[currentPoint]
+                && y[currentPoint + 1] >= y[currentPoint + 2]) {
+                currentPoint++;
+            } else {
+                if (y[currentPoint - 2] >= y[currentPoint - 3]
+                    && y[currentPoint - 2] >= y[currentPoint - 1]) {
+                    currentPoint -= 2;
+                } else {
+                    if (y[currentPoint + 2] >= y[currentPoint + 1]
+                        && y[currentPoint + 2] >= y[currentPoint + 3]) {
+                        currentPoint += 2;
+                    }
+                }
+            }
+        }
+        if (y[currentPoint - 1] > 0 && y[currentPoint + 1] > 0
+            && y[currentPoint] >= y[currentPoint - 1]
+            && y[currentPoint] >= y[currentPoint + 1]) {
+            alpha = 20 * Math.log10(y[currentPoint - 1]);
+            beta = 20 * Math.log10(y[currentPoint]);
+            gamma = 20 * Math.log10(y[currentPoint + 1]);
+            p = 0.5 * (alpha - gamma) / (alpha - 2 * beta + gamma);
+            //console.log("p: "+p);
+            //console.log(x[currentPoint]+" "+tmp+" "+currentPoint);
+            peakList[j].x = x[currentPoint] + (x[currentPoint] - x[currentPoint - 1]) * p;
+            peakList[j].y = y[currentPoint] - 0.25 * (y[currentPoint - 1] - y[currentPoint + 1]) * p;
+        }
+    }
+}
+
+module.exports = gsd;
 
 
 /***/ }),
-/* 87 */
+/* 98 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports.post = __webpack_require__(99);
+module.exports.gsd = __webpack_require__(97);
+
+
+/***/ }),
+/* 99 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/**
+ * Created by acastillo on 9/6/15.
+ */
+
+
+var Opt = __webpack_require__(116);
+
+function sampleFunction(from, to, x, y, lastIndex) {
+    var nbPoints = x.length;
+    var sampleX = [];
+    var sampleY = [];
+    var direction = Math.sign(x[1] - x[0]);//Direction of the derivative
+    if (direction === -1) {
+        lastIndex[0] = x.length - 1;
+    }
+
+    var delta = Math.abs(to - from) / 2;
+    var mid = (from + to) / 2;
+    var stop = false;
+    var index = lastIndex[0];
+    while (!stop && index < nbPoints && index >= 0) {
+        if (Math.abs(x[index] - mid) <= delta) {
+            sampleX.push(x[index]);
+            sampleY.push(y[index]);
+            index += direction;
+        } else {
+            //It is outside the range.
+            if (Math.sign(mid - x[index]) === 1) {
+                //We'll reach the mid going in the current direction
+                index += direction;
+            } else {
+                //There is not more peaks in the current range
+                stop = true;
+            }
+        }
+        //console.log(sampleX);
+    }
+    lastIndex[0] = index;
+    return [sampleX, sampleY];
+}
+
+function optimizePeaks(peakList, x, y, n, fnType) {
+    var i, j, lastIndex = [0];
+    var groups = groupPeaks(peakList, n);
+    var result = [];
+    var factor = 1;
+    if (fnType === 'gaussian')
+        factor = 1.17741;//From https://en.wikipedia.org/wiki/Gaussian_function#Properties
+    var sampling, error, opts;
+    for (i = 0; i < groups.length; i++) {
+        var peaks = groups[i].group;
+        if (peaks.length > 1) {
+            //Multiple peaks
+            //console.log("Pending group of overlaped peaks "+peaks.length);
+            //console.log("here1");
+            //console.log(groups[i].limits);
+            sampling = sampleFunction(groups[i].limits[0] - groups[i].limits[1], groups[i].limits[0] + groups[i].limits[1], x, y, lastIndex);
+            //console.log(sampling);
+            if (sampling[0].length > 5) {
+                error = peaks[0].width / 1000;
+                opts = [  3,    100, error, error, error, error * 10, error * 10,    11,    9,        1 ];
+                //var gauss = Opt.optimizeSingleGaussian(sampling[0], sampling[1], opts, peaks);
+                var optPeaks = [];
+                if (fnType === 'gaussian')
+                    optPeaks = Opt.optimizeGaussianSum(sampling, peaks, opts);
+                else {
+                    if (fnType === 'lorentzian') {
+                        optPeaks = Opt.optimizeLorentzianSum(sampling, peaks, opts);
+                    }
+                }
+                //console.log(optPeak);
+                for (j = 0; j < optPeaks.length; j++) {
+                    result.push({x: optPeaks[j][0][0], y: optPeaks[j][1][0], width: optPeaks[j][2][0] * factor});
+                }
+            }
+        } else {
+            //Single peak
+            peaks = peaks[0];
+            sampling = sampleFunction(peaks.x - n * peaks.width,
+                peaks.x + n * peaks.width, x, y, lastIndex);
+            //console.log("here2");
+            //console.log(groups[i].limits);
+            if (sampling[0].length > 5) {
+                error = peaks.width / 1000;
+                opts = [3, 100, error, error, error, error * 10, error * 10, 11, 9, 1];
+                //var gauss = Opt.optimizeSingleGaussian(sampling[0], sampling[1], opts, peaks);
+                //var gauss = Opt.optimizeSingleGaussian([sampling[0],sampling[1]], peaks, opts);
+                var optPeak = [];
+                if (fnType === 'gaussian')
+                    optPeak = Opt.optimizeSingleGaussian([sampling[0], sampling[1]], peaks,  opts);
+                else {
+                    if (fnType === 'lorentzian') {
+                        optPeak = Opt.optimizeSingleLorentzian([sampling[0], sampling[1]], peaks,  opts);
+                    }
+                }
+                //console.log(optPeak);
+                result.push({x: optPeak[0][0], y: optPeak[1][0], width: optPeak[2][0] * factor}); // From https://en.wikipedia.org/wiki/Gaussian_function#Properties}
+            }
+        }
+
+    }
+    return result;
+}
+
+function groupPeaks(peakList, nL) {
+    var group = [];
+    var groups = [];
+    var i, j;
+    var limits = [peakList[0].x, nL * peakList[0].width];
+    var upperLimit, lowerLimit;
+    //Merge forward
+    for (i = 0; i < peakList.length; i++) {
+        //If the 2 things overlaps
+        if (Math.abs(peakList[i].x - limits[0]) < (nL * peakList[i].width + limits[1])) {
+            //Add the peak to the group
+            group.push(peakList[i]);
+            //Update the group limits
+            upperLimit = limits[0] + limits[1];
+            if (peakList[i].x + nL * peakList[i].width > upperLimit) {
+                upperLimit = peakList[i].x + nL * peakList[i].width;
+            }
+            lowerLimit = limits[0] - limits[1];
+            if (peakList[i].x - nL * peakList[i].width < lowerLimit) {
+                lowerLimit = peakList[i].x - nL * peakList[i].width;
+            }
+            limits = [(upperLimit + lowerLimit) / 2, Math.abs(upperLimit - lowerLimit) / 2];
+
+        } else {
+            groups.push({limits: limits, group: group});
+            //var optmimalPeak = fitSpectrum(group,limits,spectrum);
+            group = [peakList[i]];
+            limits = [peakList[i].x, nL * peakList[i].width];
+        }
+    }
+    groups.push({limits: limits, group: group});
+    //Merge backward
+    for (i = groups.length - 2; i >= 0; i--) {
+        //The groups overlaps
+        if (Math.abs(groups[i].limits[0] - groups[i + 1].limits[0]) <
+            (groups[i].limits[1] + groups[i + 1].limits[1]) / 2) {
+            for (j = 0; j < groups[i + 1].group.length; j++) {
+                groups[i].group.push(groups[i + 1].group[j]);
+            }
+            upperLimit = groups[i].limits[0] + groups[i].limits[1];
+            if (groups[i + 1].limits[0] + groups[i + 1].limits[1] > upperLimit) {
+                upperLimit = groups[i + 1].limits[0] + groups[i + 1].limits[1];
+            }
+            lowerLimit = groups[i].limits[0] - groups[i].limits[1];
+            if (groups[i + 1].limits[0] - groups[i + 1].limits[1] < lowerLimit) {
+                lowerLimit = groups[i + 1].limits[0] - groups[i + 1].limits[1];
+            }
+            //console.log(limits);
+            groups[i].limits = [(upperLimit + lowerLimit) / 2, Math.abs(upperLimit - lowerLimit) / 2];
+
+            groups.splice(i + 1, 1);
+        }
+    }
+    return groups;
+}
+/**
+ * This function try to join the peaks that seems to belong to a broad signal in a single broad peak.
+ * @param peakList
+ * @param options
+ */
+function joinBroadPeaks(peakList, options) {
+    var width = options.width;
+    var broadLines = [];
+    //Optimize the possible broad lines
+    var max = 0, maxI = 0, count = 1;
+    for (let i = peakList.length - 1; i >= 0; i--) {
+        if (peakList[i].soft) {
+            broadLines.push(peakList.splice(i, 1)[0]);
+        }
+    }
+    //Push a feak peak
+    broadLines.push({x: Number.MAX_VALUE});
+
+    var candidates = [[broadLines[0].x,
+                        broadLines[0].y]];
+    var indexes = [0];
+
+    for (let i = 1; i < broadLines.length; i++) {
+        //console.log(broadLines[i-1].x+" "+broadLines[i].x);
+        if (Math.abs(broadLines[i - 1].x - broadLines[i].x) < width) {
+            candidates.push([broadLines[i].x, broadLines[i].y]);
+            if (broadLines[i].y > max) {
+                max = broadLines[i].y;
+                maxI = i;
+            }
+            indexes.push(i);
+            count++;
+        } else {
+            if (count > 2) {
+                var fitted = Opt.optimizeSingleLorentzian(candidates,
+                    {x: broadLines[maxI].x, y: max, width: Math.abs(candidates[0][0] - candidates[candidates.length - 1][0])});
+                peakList.push({x: fitted[0][0], y: fitted[1][0], width: fitted[2][0], soft: false});
+
+            } else {
+                //Put back the candidates to the signals list
+                indexes.map(function (index) {
+                    peakList.push(broadLines[index]);
+                });
+            }
+            candidates = [[broadLines[i].x, broadLines[i].y]];
+            indexes = [i];
+            max = broadLines[i].y;
+            maxI = i;
+            count = 1;
+        }
+    }
+
+    peakList.sort(function (a, b) {
+        return a.x - b.x;
+    });
+
+    return peakList;
+
+}
+
+/*
+ var isPartOf = true
+if(options.broadRatio>0){
+ var broadLines=[[Number.MAX_VALUE,0,0]];
+ //Optimize the possible broad lines
+ var max=0, maxI=0,count=0;
+ var candidates = [],broadLinesS=[];
+ var isPartOf = false;
+
+ for(var i=broadLines.length-1;i>0;i--){
+ //console.log(broadLines[i][0]+" "+rangeX+" "+Math.abs(broadLines[i-1][0]-broadLines[i][0]));
+ if(Math.abs(broadLines[i-1][0]-broadLines[i][0])<rangeX){
+
+ candidates.push(broadLines[i]);
+ if(broadLines[i][1]>max){
+ max = broadLines[i][1];
+ maxI = i;
+ }
+ count++;
+ }
+ else{
+ isPartOf = true;
+ if(count>30){ // TODO, an options ?
+ isPartOf = false;
+ //for(var j=0;j<signals.length;j++){
+ //    if(Math.abs(broadLines[maxI][0]-signals[j][0])<rangeX)
+ //       isPartOf = true;
+ //    }
+ //console.log("Was part of "+isPartOf);
+ }
+ if(isPartOf){
+ for(var j=0;j<candidates.length;j++){
+ signals.push([candidates[j][0], candidates[j][1], dx]);
+ }
+ }
+ else{
+ var fitted =  Opt.optimizeSingleLorentzian(candidates,{x:candidates[maxI][0],
+ width:Math.abs(candidates[0][0]-candidates[candidates.length-1][0])},
+ []);
+ //console.log(fitted);
+ signals.push([fitted[0][0],fitted[0][1],fitted[0][2]]);
+ }
+ candidates = [];
+ max = 0;
+ maxI = 0;
+ count = 0;
+ }
+ }
+ }*/
+
+module.exports = {optimizePeaks: optimizePeaks, joinBroadPeaks: joinBroadPeaks};
+
+
+
+/***/ }),
+/* 100 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+const newArray = __webpack_require__(17);
+
+const primeFinder = __webpack_require__(101);
+const nextPrime = primeFinder.nextPrime;
+const largestPrime = primeFinder.largestPrime;
+
+const FREE = 0;
+const FULL = 1;
+const REMOVED = 2;
+
+const defaultInitialCapacity = 150;
+const defaultMinLoadFactor = 1 / 6;
+const defaultMaxLoadFactor = 2 / 3;
+
+class HashTable {
+    constructor(options = {}) {
+        if (options instanceof HashTable) {
+            this.table = options.table.slice();
+            this.values = options.values.slice();
+            this.state = options.state.slice();
+            this.minLoadFactor = options.minLoadFactor;
+            this.maxLoadFactor = options.maxLoadFactor;
+            this.distinct = options.distinct;
+            this.freeEntries = options.freeEntries;
+            this.lowWaterMark = options.lowWaterMark;
+            this.highWaterMark = options.maxLoadFactor;
+            return;
+        }
+
+        const initialCapacity = options.initialCapacity === undefined ? defaultInitialCapacity : options.initialCapacity;
+        if (initialCapacity < 0) {
+            throw new RangeError(`initial capacity must not be less than zero: ${initialCapacity}`);
+        }
+
+        const minLoadFactor = options.minLoadFactor === undefined ? defaultMinLoadFactor : options.minLoadFactor;
+        const maxLoadFactor = options.maxLoadFactor === undefined ? defaultMaxLoadFactor : options.maxLoadFactor;
+        if (minLoadFactor < 0 || minLoadFactor >= 1) {
+            throw new RangeError(`invalid minLoadFactor: ${minLoadFactor}`);
+        }
+        if (maxLoadFactor <= 0 || maxLoadFactor >= 1) {
+            throw new RangeError(`invalid maxLoadFactor: ${maxLoadFactor}`);
+        }
+        if (minLoadFactor >= maxLoadFactor) {
+            throw new RangeError(`minLoadFactor (${minLoadFactor}) must be smaller than maxLoadFactor (${maxLoadFactor})`);
+        }
+
+        let capacity = initialCapacity;
+        // User wants to put at least capacity elements. We need to choose the size based on the maxLoadFactor to
+        // avoid the need to rehash before this capacity is reached.
+        // actualCapacity * maxLoadFactor >= capacity
+        capacity = (capacity / maxLoadFactor) | 0;
+        capacity = nextPrime(capacity);
+        if (capacity === 0) capacity = 1;
+
+        this.table = newArray(capacity, 0);
+        this.values = newArray(capacity, 0);
+        this.state = newArray(capacity, 0);
+
+        this.minLoadFactor = minLoadFactor;
+        if (capacity === largestPrime) {
+            this.maxLoadFactor = 1;
+        } else {
+            this.maxLoadFactor = maxLoadFactor;
+        }
+
+        this.distinct = 0;
+        this.freeEntries = capacity;
+
+        this.lowWaterMark = 0;
+        this.highWaterMark = chooseHighWaterMark(capacity, this.maxLoadFactor);
+    }
+
+    clone() {
+        return new HashTable(this);
+    }
+
+    get size() {
+        return this.distinct;
+    }
+
+    get(key) {
+        const i = this.indexOfKey(key);
+        if (i < 0) return 0;
+        return this.values[i];
+    }
+
+    set(key, value) {
+        let i = this.indexOfInsertion(key);
+        if (i < 0) {
+            i = -i - 1;
+            this.values[i] = value;
+            return false;
+        }
+
+        if (this.distinct > this.highWaterMark) {
+            const newCapacity = chooseGrowCapacity(this.distinct + 1, this.minLoadFactor, this.maxLoadFactor);
+            this.rehash(newCapacity);
+            return this.set(key, value);
+        }
+
+        this.table[i] = key;
+        this.values[i] = value;
+        if (this.state[i] === FREE) this.freeEntries--;
+        this.state[i] = FULL;
+        this.distinct++;
+
+        if (this.freeEntries < 1) {
+            const newCapacity = chooseGrowCapacity(this.distinct + 1, this.minLoadFactor, this.maxLoadFactor);
+            this.rehash(newCapacity);
+        }
+
+        return true;
+    }
+    
+    remove(key, noRehash) {
+        const i = this.indexOfKey(key);
+        if (i < 0) return false;
+
+        this.state[i] = REMOVED;
+        this.distinct--;
+
+        if (!noRehash) this.maybeShrinkCapacity();
+
+        return true;
+    }
+
+    delete(key, noRehash) {
+        const i = this.indexOfKey(key);
+        if (i < 0) return false;
+
+        this.state[i] = FREE;
+        this.distinct--;
+
+        if (!noRehash) this.maybeShrinkCapacity();
+
+        return true;
+    }
+
+    maybeShrinkCapacity() {
+        if (this.distinct < this.lowWaterMark) {
+            const newCapacity = chooseShrinkCapacity(this.distinct, this.minLoadFactor, this.maxLoadFactor);
+            this.rehash(newCapacity);
+        }
+    }
+
+    containsKey(key) {
+        return this.indexOfKey(key) >= 0;
+    }
+
+    indexOfKey(key) {
+        const table = this.table;
+        const state = this.state;
+        const length = this.table.length;
+
+        const hash = key & 0x7fffffff;
+        let i = hash % length;
+        let decrement = hash % (length - 2);
+        if (decrement === 0) decrement = 1;
+
+        while (state[i] !== FREE && (state[i] === REMOVED || table[i] !== key)) {
+            i -= decrement;
+            if (i < 0) i += length;
+        }
+
+        if (state[i] === FREE) return -1;
+        return i;
+    }
+
+    containsValue(value) {
+        return this.indexOfValue(value) >= 0;
+    }
+
+    indexOfValue(value) {
+        const values = this.values;
+        const state = this.state;
+
+        for (var i = 0; i < state.length; i++) {
+            if (state[i] === FULL && values[i] === value) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    indexOfInsertion(key) {
+        const table = this.table;
+        const state = this.state;
+        const length = table.length;
+
+
+        const hash = key & 0x7fffffff;
+        let i = hash % length;
+        let decrement = hash % (length - 2);
+        if (decrement === 0) decrement = 1;
+
+        while (state[i] === FULL && table[i] !== key) {
+            i -= decrement;
+            if (i < 0) i += length;
+        }
+
+        if (state[i] === REMOVED) {
+            const j = i;
+            while (state[i] !== FREE && (state[i] === REMOVED || table[i] !== key)) {
+                i -= decrement;
+                if (i < 0) i += length;
+            }
+            if (state[i] === FREE) i = j;
+        }
+
+        if (state[i] === FULL) {
+            return -i - 1;
+        }
+
+        return i;
+    }
+
+    ensureCapacity(minCapacity) {
+        if (this.table.length < minCapacity) {
+            const newCapacity = nextPrime(minCapacity);
+            this.rehash(newCapacity);
+        }
+    }
+
+    rehash(newCapacity) {
+        const oldCapacity = this.table.length;
+
+        if (newCapacity <= this.distinct) throw new Error('Unexpected');
+
+        const oldTable = this.table;
+        const oldValues = this.values;
+        const oldState = this.state;
+
+        const newTable = newArray(newCapacity, 0);
+        const newValues = newArray(newCapacity, 0);
+        const newState = newArray(newCapacity, 0);
+
+        this.lowWaterMark = chooseLowWaterMark(newCapacity, this.minLoadFactor);
+        this.highWaterMark = chooseHighWaterMark(newCapacity, this.maxLoadFactor);
+
+        this.table = newTable;
+        this.values = newValues;
+        this.state = newState;
+        this.freeEntries = newCapacity - this.distinct;
+
+        for (var i = 0; i < oldCapacity; i++) {
+            if (oldState[i] === FULL) {
+                var element = oldTable[i];
+                var index = this.indexOfInsertion(element);
+                newTable[index] = element;
+                newValues[index] = oldValues[i];
+                newState[index] = FULL;
+            }
+        }
+    }
+
+    forEachKey(callback) {
+        for (var i = 0; i < this.state.length; i++) {
+            if (this.state[i] === FULL) {
+                if (!callback(this.table[i])) return false;
+            }
+        }
+        return true;
+    }
+
+    forEachValue(callback) {
+        for (var i = 0; i < this.state.length; i++) {
+            if (this.state[i] === FULL) {
+                if (!callback(this.values[i])) return false;
+            }
+        }
+        return true;
+    }
+
+    forEachPair(callback) {
+        for (var i = 0; i < this.state.length; i++) {
+            if (this.state[i] === FULL) {
+                if (!callback(this.table[i], this.values[i])) return false;
+            }
+        }
+        return true;
+    }
+}
+
+module.exports = HashTable;
+
+function chooseLowWaterMark(capacity, minLoad) {
+    return (capacity * minLoad) | 0;
+}
+
+function chooseHighWaterMark(capacity, maxLoad) {
+    return Math.min(capacity - 2, (capacity * maxLoad) | 0);
+}
+
+function chooseGrowCapacity(size, minLoad, maxLoad) {
+    return nextPrime(Math.max(size + 1, (4 * size / (3 * minLoad + maxLoad)) | 0));
+}
+
+function chooseShrinkCapacity(size, minLoad, maxLoad) {
+    return nextPrime(Math.max(size + 1, (4 * size / (minLoad + 3 * maxLoad)) | 0));
+}
+
+
+/***/ }),
+/* 101 */
+/***/ (function(module, exports, __webpack_require__) {
+
+const binarySearch = __webpack_require__(25);
+const sortAsc = __webpack_require__(51).asc;
+
+const largestPrime = 0x7fffffff;
+
+const primeNumbers = [
+    //chunk #0
+    largestPrime, // 2^31-1
+
+    //chunk #1
+    5, 11, 23, 47, 97, 197, 397, 797, 1597, 3203, 6421, 12853, 25717, 51437, 102877, 205759,
+    411527, 823117, 1646237, 3292489, 6584983, 13169977, 26339969, 52679969, 105359939,
+    210719881, 421439783, 842879579, 1685759167,
+
+    //chunk #2
+    433, 877, 1759, 3527, 7057, 14143, 28289, 56591, 113189, 226379, 452759, 905551, 1811107,
+    3622219, 7244441, 14488931, 28977863, 57955739, 115911563, 231823147, 463646329, 927292699,
+    1854585413,
+
+    //chunk #3
+    953, 1907, 3821, 7643, 15287, 30577, 61169, 122347, 244703, 489407, 978821, 1957651, 3915341,
+    7830701, 15661423, 31322867, 62645741, 125291483, 250582987, 501165979, 1002331963,
+    2004663929,
+
+    //chunk #4
+    1039, 2081, 4177, 8363, 16729, 33461, 66923, 133853, 267713, 535481, 1070981, 2141977, 4283963,
+    8567929, 17135863, 34271747, 68543509, 137087021, 274174111, 548348231, 1096696463,
+
+    //chunk #5
+    31, 67, 137, 277, 557, 1117, 2237, 4481, 8963, 17929, 35863, 71741, 143483, 286973, 573953,
+    1147921, 2295859, 4591721, 9183457, 18366923, 36733847, 73467739, 146935499, 293871013,
+    587742049, 1175484103,
+
+    //chunk #6
+    599, 1201, 2411, 4831, 9677, 19373, 38747, 77509, 155027, 310081, 620171, 1240361, 2480729,
+    4961459, 9922933, 19845871, 39691759, 79383533, 158767069, 317534141, 635068283, 1270136683,
+
+    //chunk #7
+    311, 631, 1277, 2557, 5119, 10243, 20507, 41017, 82037, 164089, 328213, 656429, 1312867,
+    2625761, 5251529, 10503061, 21006137, 42012281, 84024581, 168049163, 336098327, 672196673,
+    1344393353,
+
+    //chunk #8
+    3, 7, 17, 37, 79, 163, 331, 673, 1361, 2729, 5471, 10949, 21911, 43853, 87719, 175447, 350899,
+    701819, 1403641, 2807303, 5614657, 11229331, 22458671, 44917381, 89834777, 179669557,
+    359339171, 718678369, 1437356741,
+
+    //chunk #9
+    43, 89, 179, 359, 719, 1439, 2879, 5779, 11579, 23159, 46327, 92657, 185323, 370661, 741337,
+    1482707, 2965421, 5930887, 11861791, 23723597, 47447201, 94894427, 189788857, 379577741,
+    759155483, 1518310967,
+
+    //chunk #10
+    379, 761, 1523, 3049, 6101, 12203, 24407, 48817, 97649, 195311, 390647, 781301, 1562611,
+    3125257, 6250537, 12501169, 25002389, 50004791, 100009607, 200019221, 400038451, 800076929,
+    1600153859,
+
+    //chunk #11
+    13, 29, 59, 127, 257, 521, 1049, 2099, 4201, 8419, 16843, 33703, 67409, 134837, 269683,
+    539389, 1078787, 2157587, 4315183, 8630387, 17260781, 34521589, 69043189, 138086407,
+    276172823, 552345671, 1104691373,
+
+    //chunk #12
+    19, 41, 83, 167, 337, 677,
+    1361, 2729, 5471, 10949, 21911, 43853, 87719, 175447, 350899,
+    701819, 1403641, 2807303, 5614657, 11229331, 22458671, 44917381, 89834777, 179669557,
+    359339171, 718678369, 1437356741,
+
+    //chunk #13
+    53, 107, 223, 449, 907, 1823, 3659, 7321, 14653, 29311, 58631, 117269,
+    234539, 469099, 938207, 1876417, 3752839, 7505681, 15011389, 30022781,
+    60045577, 120091177, 240182359, 480364727, 960729461, 1921458943
+];
+
+primeNumbers.sort(sortAsc);
+
+function nextPrime(value) {
+    let index = binarySearch(primeNumbers, value, sortAsc);
+    if (index < 0) {
+        index = ~index;
+    }
+    return primeNumbers[index];
+}
+
+exports.nextPrime = nextPrime;
+exports.largestPrime = largestPrime;
+
+
+/***/ }),
+/* 102 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+const euclidean = __webpack_require__(39);
+const ClusterLeaf = __webpack_require__(41);
+const Cluster = __webpack_require__(15);
+const distanceMatrix = __webpack_require__(95);
+
+/**
+ * @private
+ * @param cluster1
+ * @param cluster2
+ * @param disFun
+ * @returns {number}
+ */
+function simpleLink(cluster1, cluster2, disFun) {
+    var m = 10e100;
+    for (var i = 0; i < cluster1.length; i++) {
+        for (var j = 0; j < cluster2.length; j++) {
+            var d = disFun[cluster1[i]][ cluster2[j]];
+            m = Math.min(d, m);
+        }
+    }
+    return m;
+}
+
+/**
+ * @private
+ * @param cluster1
+ * @param cluster2
+ * @param disFun
+ * @returns {number}
+ */
+function completeLink(cluster1, cluster2, disFun) {
+    var m = -1;
+    for (var i = 0; i < cluster1.length; i++) {
+        for (var j = 0; j < cluster2.length; j++) {
+            var d = disFun[cluster1[i]][ cluster2[j]];
+            m = Math.max(d, m);
+        }
+    }
+    return m;
+}
+
+/**
+ * @private
+ * @param cluster1
+ * @param cluster2
+ * @param disFun
+ * @returns {number}
+ */
+function averageLink(cluster1, cluster2, disFun) {
+    var m = 0;
+    for (var i = 0; i < cluster1.length; i++) {
+        for (var j = 0; j < cluster2.length; j++) {
+            m += disFun[cluster1[i]][ cluster2[j]];
+        }
+    }
+    return m / (cluster1.length * cluster2.length);
+}
+
+/**
+ * @private
+ * @param cluster1
+ * @param cluster2
+ * @param disFun
+ * @returns {*}
+ */
+function centroidLink(cluster1, cluster2, disFun) {
+    var dist = new Array(cluster1.length * cluster2.length);
+    for (var i = 0; i < cluster1.length; i++) {
+        for (var j = 0; j < cluster2.length; j++) {
+            dist[i * cluster2.length + j] = (disFun[cluster1[i]][ cluster2[j]]);
+        }
+    }
+    return median(dist);
+}
+
+/**
+ * @private
+ * @param cluster1
+ * @param cluster2
+ * @param disFun
+ * @returns {number}
+ */
+function wardLink(cluster1, cluster2, disFun) {
+    return centroidLink(cluster1, cluster2, disFun)
+        * cluster1.length * cluster2.length / (cluster1.length + cluster2.length);
+}
+
+function compareNumbers(a, b) {
+    return a - b;
+}
+
+function median(values, alreadySorted) {
+    if (alreadySorted === undefined) alreadySorted = false;
+    if (!alreadySorted) {
+        values = [].concat(values).sort(compareNumbers);
+    }
+    var l = values.length;
+    var half = Math.floor(l / 2);
+    if (l % 2 === 0) {
+        return (values[half - 1] + values[half]) * 0.5;
+    } else {
+        return values[half];
+    }
+}
+
+var defaultOptions = {
+    disFunc: euclidean,
+    kind: 'single',
+    isDistanceMatrix: false
+
+};
+
+/**
+ * Continuously merge nodes that have the least dissimilarity
+ * @param {Array <Array <number>>} distance - Array of points to be clustered
+ * @param {json} options
+ * @option isDistanceMatrix: Is the input a distance matrix?
+ * @constructor
+ */
+function agnes(data, options) {
+    options = Object.assign({}, defaultOptions, options);
+    var len = data.length;
+    var distance = data;//If source
+    if (!options.isDistanceMatrix) {
+        distance = distanceMatrix(data, options.disFunc);
+    }
+
+
+    // allows to use a string or a given function
+    if (typeof options.kind === 'string') {
+        switch (options.kind) {
+            case 'single':
+                options.kind = simpleLink;
+                break;
+            case 'complete':
+                options.kind = completeLink;
+                break;
+            case 'average':
+                options.kind = averageLink;
+                break;
+            case 'centroid':
+                options.kind = centroidLink;
+                break;
+            case 'ward':
+                options.kind = wardLink;
+                break;
+            default:
+                throw new RangeError('Unknown kind of similarity');
+        }
+    } else if (typeof options.kind !== 'function') {
+        throw new TypeError('Undefined kind of similarity');
+    }
+
+    var list = new Array(len);
+    for (var i = 0; i < distance.length; i++) {
+        list[i] = new ClusterLeaf(i);
+    }
+    var min = 10e5,
+        d = {},
+        dis = 0;
+
+    while (list.length > 1) {
+        // calculates the minimum distance
+        d = {};
+        min = 10e5;
+        for (var j = 0; j < list.length; j++) {
+            for (var k = j + 1; k < list.length; k++) {
+                var fdistance, sdistance;
+                if (list[j] instanceof ClusterLeaf) {
+                    fdistance = [list[j].index];
+                } else {
+                    fdistance = new Array(list[j].index.length);
+                    for (var e = 0; e < fdistance.length; e++) {
+                        fdistance[e] = list[j].index[e].index;
+                    }
+                }
+                if (list[k] instanceof ClusterLeaf) {
+                    sdistance = [list[k].index];
+                } else {
+                    sdistance = new Array(list[k].index.length);
+                    for (var f = 0; f < sdistance.length; f++) {
+                        sdistance[f] = list[k].index[f].index;
+                    }
+                }
+                dis = options.kind(fdistance, sdistance, distance).toFixed(4);
+                if (dis in d) {
+                    d[dis].push([list[j], list[k]]);
+                } else {
+                    d[dis] = [[list[j], list[k]]];
+                }
+                min = Math.min(dis, min);
+            }
+        }
+        // cluster dots
+        var dmin = d[min.toFixed(4)];
+        var clustered = new Array(dmin.length);
+        var aux,
+            count = 0;
+        while (dmin.length > 0) {
+            aux = dmin.shift();
+            for (var q = 0; q < dmin.length; q++) {
+                var int = dmin[q].filter(function (n) {
+                    //noinspection JSReferencingMutableVariableFromClosure
+                    return aux.indexOf(n) !== -1;
+                });
+                if (int.length > 0) {
+                    var diff = dmin[q].filter(function (n) {
+                        //noinspection JSReferencingMutableVariableFromClosure
+                        return aux.indexOf(n) === -1;
+                    });
+                    aux = aux.concat(diff);
+                    dmin.splice(q--, 1);
+                }
+            }
+            clustered[count++] = aux;
+        }
+        clustered.length = count;
+
+        for (var ii = 0; ii < clustered.length; ii++) {
+            var obj = new Cluster();
+            obj.children = clustered[ii].concat();
+            obj.distance = min;
+            obj.index = new Array(len);
+            var indCount = 0;
+            for (var jj = 0; jj < clustered[ii].length; jj++) {
+                if (clustered[ii][jj] instanceof ClusterLeaf) {
+                    obj.index[indCount++] = clustered[ii][jj];
+                } else {
+                    indCount += clustered[ii][jj].index.length;
+                    obj.index = clustered[ii][jj].index.concat(obj.index);
+                }
+                list.splice((list.indexOf(clustered[ii][jj])), 1);
+            }
+            obj.index.length = indCount;
+            list.push(obj);
+        }
+    }
+    return list[0];
+}
+
+module.exports = agnes;
+
+
+/***/ }),
+/* 103 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+const euclidean = __webpack_require__(39);
+const ClusterLeaf = __webpack_require__(41);
+const Cluster = __webpack_require__(15);
+
+/**
+ * @private
+ * @param {Array <Array <number>>} cluster1
+ * @param {Array <Array <number>>} cluster2
+ * @param {function} disFun
+ * @returns {number}
+ */
+function simpleLink(cluster1, cluster2, disFun) {
+    var m = 10e100;
+    for (var i = 0; i < cluster1.length; i++) {
+        for (var j = i; j < cluster2.length; j++) {
+            var d = disFun(cluster1[i], cluster2[j]);
+            m = Math.min(d, m);
+        }
+    }
+    return m;
+}
+
+/**
+ * @private
+ * @param {Array <Array <number>>} cluster1
+ * @param {Array <Array <number>>} cluster2
+ * @param {function} disFun
+ * @returns {number}
+ */
+function completeLink(cluster1, cluster2, disFun) {
+    var m = -1;
+    for (var i = 0; i < cluster1.length; i++) {
+        for (var j = i; j < cluster2.length; j++) {
+            var d = disFun(cluster1[i], cluster2[j]);
+            m = Math.max(d, m);
+        }
+    }
+    return m;
+}
+
+/**
+ * @private
+ * @param {Array <Array <number>>} cluster1
+ * @param {Array <Array <number>>} cluster2
+ * @param {function} disFun
+ * @returns {number}
+ */
+function averageLink(cluster1, cluster2, disFun) {
+    var m = 0;
+    for (var i = 0; i < cluster1.length; i++) {
+        for (var j = 0; j < cluster2.length; j++) {
+            m += disFun(cluster1[i], cluster2[j]);
+        }
+    }
+    return m / (cluster1.length * cluster2.length);
+}
+
+/**
+ * @private
+ * @param {Array <Array <number>>} cluster1
+ * @param {Array <Array <number>>} cluster2
+ * @param {function} disFun
+ * @returns {number}
+ */
+function centroidLink(cluster1, cluster2, disFun) {
+    var x1 = 0,
+        y1 = 0,
+        x2 = 0,
+        y2 = 0;
+    for (var i = 0; i < cluster1.length; i++) {
+        x1 += cluster1[i][0];
+        y1 += cluster1[i][1];
+    }
+    for (var j = 0; j < cluster2.length; j++) {
+        x2 += cluster2[j][0];
+        y2 += cluster2[j][1];
+    }
+    x1 /= cluster1.length;
+    y1 /= cluster1.length;
+    x2 /= cluster2.length;
+    y2 /= cluster2.length;
+    return disFun([x1, y1], [x2, y2]);
+}
+
+/**
+ * @private
+ * @param {Array <Array <number>>} cluster1
+ * @param {Array <Array <number>>} cluster2
+ * @param {function} disFun
+ * @returns {number}
+ */
+function wardLink(cluster1, cluster2, disFun) {
+    var x1 = 0,
+        y1 = 0,
+        x2 = 0,
+        y2 = 0;
+    for (var i = 0; i < cluster1.length; i++) {
+        x1 += cluster1[i][0];
+        y1 += cluster1[i][1];
+    }
+    for (var j = 0; j < cluster2.length; j++) {
+        x2 += cluster2[j][0];
+        y2 += cluster2[j][1];
+    }
+    x1 /= cluster1.length;
+    y1 /= cluster1.length;
+    x2 /= cluster2.length;
+    y2 /= cluster2.length;
+    return disFun([x1, y1], [x2, y2]) * cluster1.length * cluster2.length / (cluster1.length + cluster2.length);
+}
+
+/**
+ * @private
+ * Returns the most distant point and his distance
+ * @param {Array <Array <number>>} splitting - Clusters to split
+ * @param {Array <Array <number>>} data - Original data
+ * @param {function} disFun - Distance function
+ * @returns {{d: number, p: number}} - d: maximum difference between points, p: the point more distant
+ */
+function diff(splitting, data, disFun) {
+    var ans = {
+        d: 0,
+        p: 0
+    };
+
+    var Ci = new Array(splitting[0].length);
+    for (var e = 0; e < splitting[0].length; e++) {
+        Ci[e] = data[splitting[0][e]];
+    }
+    var Cj = new Array(splitting[1].length);
+    for (var f = 0; f < splitting[1].length; f++) {
+        Cj[f] = data[splitting[1][f]];
+    }
+
+    var dist, ndist;
+    for (var i = 0; i < Ci.length; i++) {
+        dist = 0;
+        for (var j = 0; j < Ci.length; j++) {
+            if (i !== j) {
+                dist += disFun(Ci[i], Ci[j]);
+            }
+        }
+        dist /= (Ci.length - 1);
+        ndist = 0;
+        for (var k = 0; k < Cj.length; k++) {
+            ndist += disFun(Ci[i], Cj[k]);
+        }
+        ndist /= Cj.length;
+        if ((dist - ndist) > ans.d) {
+            ans.d = (dist - ndist);
+            ans.p = i;
+        }
+    }
+    return ans;
+}
+
+var defaultOptions = {
+    dist: euclidean,
+    kind: 'single'
+};
+
+/**
+ * @private
+ * Intra-cluster distance
+ * @param {Array} index
+ * @param {Array} data
+ * @param {function} disFun
+ * @returns {number}
+ */
+function intrDist(index, data, disFun) {
+    var dist = 0,
+        count = 0;
+    for (var i = 0; i < index.length; i++) {
+        for (var j = i; j < index.length; j++) {
+            dist += disFun(data[index[i].index], data[index[j].index]);
+            count++;
+        }
+    }
+    return dist / count;
+}
+
+/**
+ * Splits the higher level clusters
+ * @param {Array <Array <number>>} data - Array of points to be clustered
+ * @param {json} options
+ * @constructor
+ */
+function diana(data, options) {
+    options = Object.assign({}, defaultOptions, options);
+    if (typeof options.kind === 'string') {
+        switch (options.kind) {
+            case 'single':
+                options.kind = simpleLink;
+                break;
+            case 'complete':
+                options.kind = completeLink;
+                break;
+            case 'average':
+                options.kind = averageLink;
+                break;
+            case 'centroid':
+                options.kind = centroidLink;
+                break;
+            case 'ward':
+                options.kind = wardLink;
+                break;
+            default:
+                throw new RangeError('Unknown kind of similarity');
+        }
+    } else if (typeof options.kind !== 'function') {
+        throw new TypeError('Undefined kind of similarity');
+    }
+    var tree = new Cluster();
+    tree.children = new Array(data.length);
+    tree.index = new Array(data.length);
+    for (var ind = 0; ind < data.length; ind++) {
+        tree.children[ind] = new ClusterLeaf(ind);
+        tree.index[ind] = new ClusterLeaf(ind);
+    }
+
+    tree.distance = intrDist(tree.index, data, options.dist);
+    var m, M, clId,
+        dist, rebel;
+    var list = [tree];
+    while (list.length > 0) {
+        M = 0;
+        clId = 0;
+        for (var i = 0; i < list.length; i++) {
+            m = 0;
+            for (var j = 0; j < list[i].length; j++) {
+                for (var l = (j + 1); l < list[i].length; l++) {
+                    m = Math.max(options.dist(data[list[i].index[j].index], data[list[i].index[l].index]), m);
+                }
+            }
+            if (m > M) {
+                M = m;
+                clId = i;
+            }
+        }
+        M = 0;
+        if (list[clId].index.length === 2) {
+            list[clId].children = [list[clId].index[0], list[clId].index[1]];
+            list[clId].distance = options.dist(data[list[clId].index[0].index], data[list[clId].index[1].index]);
+        } else if (list[clId].index.length === 3) {
+            list[clId].children = [list[clId].index[0], list[clId].index[1], list[clId].index[2]];
+            var d = [
+                options.dist(data[list[clId].index[0].index], data[list[clId].index[1].index]),
+                options.dist(data[list[clId].index[1].index], data[list[clId].index[2].index])
+            ];
+            list[clId].distance = (d[0] + d[1]) / 2;
+        } else {
+            var C = new Cluster();
+            var sG = new Cluster();
+            var splitting = [new Array(list[clId].index.length), []];
+            for (var spl = 0; spl < splitting[0].length; spl++) {
+                splitting[0][spl] = spl;
+            }
+            for (var ii = 0; ii < splitting[0].length; ii++) {
+                dist = 0;
+                for (var jj = 0; jj < splitting[0].length; jj++) {
+                    if (ii !== jj) {
+                        dist += options.dist(data[list[clId].index[splitting[0][jj]].index], data[list[clId].index[splitting[0][ii]].index]);
+                    }
+                }
+                dist /= (splitting[0].length - 1);
+                if (dist > M) {
+                    M = dist;
+                    rebel = ii;
+                }
+            }
+            splitting[1] = [rebel];
+            splitting[0].splice(rebel, 1);
+            dist = diff(splitting, data, options.dist);
+            while (dist.d > 0) {
+                splitting[1].push(splitting[0][dist.p]);
+                splitting[0].splice(dist.p, 1);
+                dist = diff(splitting, data, options.dist);
+            }
+            var fData = new Array(splitting[0].length);
+            C.index = new Array(splitting[0].length);
+            for (var e = 0; e < fData.length; e++) {
+                fData[e] = data[list[clId].index[splitting[0][e]].index];
+                C.index[e] = list[clId].index[splitting[0][e]];
+                C.children[e] = list[clId].index[splitting[0][e]];
+            }
+            var sData = new Array(splitting[1].length);
+            sG.index = new Array(splitting[1].length);
+            for (var f = 0; f < sData.length; f++) {
+                sData[f] = data[list[clId].index[splitting[1][f]].index];
+                sG.index[f] = list[clId].index[splitting[1][f]];
+                sG.children[f] = list[clId].index[splitting[1][f]];
+            }
+            C.distance = intrDist(C.index, data, options.dist);
+            sG.distance = intrDist(sG.index, data, options.dist);
+            list.push(C);
+            list.push(sG);
+            list[clId].children = [C, sG];
+        }
+        list.splice(clId, 1);
+    }
+    return tree;
+}
+
+module.exports = diana;
+
+
+/***/ }),
+/* 104 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.agnes = __webpack_require__(102);
+exports.diana = __webpack_require__(103);
+//exports.birch = require('./birch');
+//exports.cure = require('./cure');
+//exports.chameleon = require('./chameleon');
+
+
+/***/ }),
+/* 105 */
 /***/ (function(module, exports, __webpack_require__) {
 
 'use strict;'
 /**
  * Created by acastillo on 7/7/16.
  */
-var FFTUtils = __webpack_require__(86).FFTUtils;
+var FFTUtils = __webpack_require__(14).FFTUtils;
 
 function convolutionFFT(input, kernel, opt) {
     var tmp = matrix2Array(input);
@@ -18395,13 +22216,13 @@ module.exports = {
 };
 
 /***/ }),
-/* 88 */
+/* 106 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const DisjointSet = __webpack_require__(75);
+const DisjointSet = __webpack_require__(94);
 
 const direction4X = [-1, 0];
 const direction4Y = [0, -1];
@@ -18488,7 +22309,7 @@ module.exports = ccLabeling;
 
 
 /***/ }),
-/* 89 */
+/* 107 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18496,9 +22317,9 @@ module.exports = ccLabeling;
 /**
  * Created by acastillo on 7/7/16.
  */
-var StatArray = __webpack_require__(3).array;
-var convolution = __webpack_require__(87);
-var labeling = __webpack_require__(88);
+var StatArray = __webpack_require__(6).array;
+var convolution = __webpack_require__(105);
+var labeling = __webpack_require__(106);
 
 
 const smallFilter = [
@@ -18678,547 +22499,13 @@ module.exports={
 
 
 /***/ }),
-/* 90 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
- * Created by acastillo on 8/5/15.
- */
-var Matrix = __webpack_require__(6);
-var math = __webpack_require__(37);
-
-var DEBUG = false;
-/** Levenberg Marquardt curve-fitting: minimize sum of weighted squared residuals
- ----------  INPUT  VARIABLES  -----------
- func   = function of n independent variables, 't', and m parameters, 'p',
- returning the simulated model: y_hat = func(t,p,c)
- p      = n-vector of initial guess of parameter values
- t      = m-vectors or matrix of independent variables (used as arg to func)
- y_dat  = m-vectors or matrix of data to be fit by func(t,p)
- weight = weighting vector for least squares fit ( weight >= 0 ) ...
- inverse of the standard measurement errors
- Default:  sqrt(d.o.f. / ( y_dat' * y_dat ))
- dp     = fractional increment of 'p' for numerical derivatives
- dp(j)>0 central differences calculated
- dp(j)<0 one sided 'backwards' differences calculated
- dp(j)=0 sets corresponding partials to zero; i.e. holds p(j) fixed
- Default:  0.001;
- p_min  = n-vector of lower bounds for parameter values
- p_max  = n-vector of upper bounds for parameter values
- c      = an optional matrix of values passed to func(t,p,c)
- opts   = vector of algorithmic parameters
- parameter    defaults    meaning
- opts(1)  =  prnt            3        >1 intermediate results; >2 plots
- opts(2)  =  MaxIter      10*Npar     maximum number of iterations
- opts(3)  =  epsilon_1       1e-3     convergence tolerance for gradient
- opts(4)  =  epsilon_2       1e-3     convergence tolerance for parameters
- opts(5)  =  epsilon_3       1e-3     convergence tolerance for Chi-square
- opts(6)  =  epsilon_4       1e-2     determines acceptance of a L-M step
- opts(7)  =  lambda_0        1e-2     initial value of L-M paramter
- opts(8)  =  lambda_UP_fac   11       factor for increasing lambda
- opts(9)  =  lambda_DN_fac    9       factor for decreasing lambda
- opts(10) =  Update_Type      1       1: Levenberg-Marquardt lambda update
- 2: Quadratic update
- 3: Nielsen's lambda update equations
-
- ----------  OUTPUT  VARIABLES  -----------
- p       = least-squares optimal estimate of the parameter values
- X2      = Chi squared criteria
- sigma_p = asymptotic standard error of the parameters
- sigma_y = asymptotic standard error of the curve-fit
- corr    = correlation matrix of the parameters
- R_sq    = R-squared cofficient of multiple determination
- cvg_hst = convergence history
-
- Henri Gavin, Dept. Civil & Environ. Engineering, Duke Univ. 22 Sep 2013
- modified from: http://octave.sourceforge.net/optim/function/leasqr.html
- using references by
- Press, et al., Numerical Recipes, Cambridge Univ. Press, 1992, Chapter 15.
- Sam Roweis       http://www.cs.toronto.edu/~roweis/notes/lm.pdf
- Manolis Lourakis http://www.ics.forth.gr/~lourakis/levmar/levmar.pdf
- Hans Nielson     http://www2.imm.dtu.dk/~hbn/publ/TR9905.ps
- Mathworks        optimization toolbox reference manual
- K. Madsen, H.B., Nielsen, and O. Tingleff
- http://www2.imm.dtu.dk/pubdb/views/edoc_download.php/3215/pdf/imm3215.pdf
- */
-var LM = {
-
-    optimize: function(func,p,t,y_dat,weight,dp,p_min,p_max,c,opts){
-
-        var tensor_parameter = 0;			// set to 1 of parameter is a tensor
-
-        var iteration  = 0;			// iteration counter
-        //func_calls = 0;			// running count of function evaluations
-
-        if((typeof p[0])!="object"){
-            for(var i=0;i< p.length;i++){
-                p[i]=[p[i]];
-            }
-
-        }
-        //p = p(:); y_dat = y_dat(:);		// make column vectors
-        var i,k;
-        var eps = 2^-52;
-        var Npar   = p.length;//length(p); 			// number of parameters
-        var Npnt   = y_dat.length;//length(y_dat);		// number of data points
-        var p_old  = Matrix.zeros(Npar,1);		// previous set of parameters
-        var y_old  = Matrix.zeros(Npnt,1);		// previous model, y_old = y_hat(t;p_old)
-        var X2     = 1e-2/eps;			// a really big initial Chi-sq value
-        var X2_old = 1e-2/eps;			// a really big initial Chi-sq value
-        var J =  Matrix.zeros(Npnt,Npar);
-
-
-        if (t.length != y_dat.length) {
-            console.log('lm.m error: the length of t must equal the length of y_dat');
-
-            length_t = t.length;
-            length_y_dat = y_dat.length;
-            var X2 = 0, corr = 0, sigma_p = 0, sigma_y = 0, R_sq = 0, cvg_hist = 0;
-            if (!tensor_parameter) {
-                return;
-            }
-        }
-
-        weight = weight||Math.sqrt((Npnt-Npar+1)/(math.multiply(math.transpose(y_dat),y_dat)));
-        dp = dp || 0.001;
-        p_min   = p_min || math.multiply(Math.abs(p),-100);
-        p_max   = p_max || math.multiply(Math.abs(p),100);
-        c = c || 1;
-        // Algorithmic Paramters
-        //prnt MaxIter  eps1  eps2  epx3  eps4  lam0  lamUP lamDN UpdateType
-        opts = opts ||[  3,10*Npar, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2, 11, 9, 1 ];
-
-        var prnt          = opts[0];	// >1 intermediate results; >2 plots
-        var MaxIter       = opts[1];	// maximum number of iterations
-        var epsilon_1     = opts[2];	// convergence tolerance for gradient
-        var epsilon_2     = opts[3];	// convergence tolerance for parameter
-        var epsilon_3     = opts[4];	// convergence tolerance for Chi-square
-        var epsilon_4     = opts[5];	// determines acceptance of a L-M step
-        var lambda_0      = opts[6];	// initial value of damping paramter, lambda
-        var lambda_UP_fac = opts[7];	// factor for increasing lambda
-        var lambda_DN_fac = opts[8];	// factor for decreasing lambda
-        var Update_Type   = opts[9];	// 1: Levenberg-Marquardt lambda update
-        // 2: Quadratic update
-        // 3: Nielsen's lambda update equations
-
-        if ( tensor_parameter && prnt == 3 ) prnt = 2;
-
-
-        if(!dp.length || dp.length == 1){
-            var dp_array = new Array(Npar);
-            for(var i=0;i<Npar;i++)
-                dp_array[i]=[dp];
-            dp=dp_array;
-        }
-
-        // indices of the parameters to be fit
-        var idx   = [];
-        for(i=0;i<dp.length;i++){
-            if(dp[i][0]!=0){
-                idx.push(i);
-            }
-        }
-
-        var Nfit = idx.length;			// number of parameters to fit
-        var stop = false;				// termination flag
-
-        var weight_sq = null;
-        //console.log(weight);
-        if ( !weight.length || weight.length < Npnt )	{
-            // squared weighting vector
-            //weight_sq = ( weight(1)*ones(Npnt,1) ).^2;
-            //console.log("weight[0] "+typeof weight[0]);
-            var tmp = math.multiply(Matrix.ones(Npnt,1),weight[0]);
-            weight_sq = math.dotMultiply(tmp,tmp);
-        }
-        else{
-            //weight_sq = (weight(:)).^2;
-            weight_sq = math.dotMultiply(weight,weight);
-        }
-
-
-        // initialize Jacobian with finite difference calculation
-        //console.log("J "+weight_sq);
-        var result = this.lm_matx(func,t,p_old,y_old,1,J,p,y_dat,weight_sq,dp,c);
-        var JtWJ = result.JtWJ,JtWdy=result.JtWdy,X2=result.Chi_sq,y_hat=result.y_hat,J=result.J;
-        //[JtWJ,JtWdy,X2,y_hat,J] = this.lm_matx(func,t,p_old,y_old,1,J,p,y_dat,weight_sq,dp,c);
-        //console.log(JtWJ);
-
-        if ( Math.max(Math.abs(JtWdy)) < epsilon_1 ){
-            console.log(' *** Your Initial Guess is Extremely Close to Optimal ***')
-            console.log(' *** epsilon_1 = ', epsilon_1);
-            stop = true;
-        }
-
-
-        switch(Update_Type){
-            case 1: // Marquardt: init'l lambda
-                lambda  = lambda_0;
-                break;
-            default:    // Quadratic and Nielsen
-                lambda  = lambda_0 * Math.max(math.diag(JtWJ));
-                nu=2;
-        }
-        //console.log(X2);
-        X2_old = X2; // previous value of X2
-        //console.log(MaxIter+" "+Npar);
-        //var cvg_hst = Matrix.ones(MaxIter,Npar+3);		// initialize convergence history
-        var h = null;
-        while ( !stop && iteration <= MaxIter ) {		// --- Main Loop
-            iteration = iteration + 1;
-            // incremental change in parameters
-            switch(Update_Type){
-                case 1:					// Marquardt
-                    //h = ( JtWJ + lambda * math.diag(math.diag(JtWJ)) ) \ JtWdy;
-                    //h = math.multiply(math.inv(JtWdy),math.add(JtWJ,math.multiply(lambda,math.diag(math.diag(Npar)))));
-                    h = math.solve(math.add(JtWJ,math.multiply(math.diag(math.diag(JtWJ)),lambda)),JtWdy);
-                    break;
-                default:					// Quadratic and Nielsen
-                    //h = ( JtWJ + lambda * math.eye(Npar) ) \ JtWdy;
-
-                    h = math.solve(math.add(JtWJ,math.multiply( Matrix.eye(Npar),lambda)),JtWdy);
-            }
-
-            /*for(var k=0;k< h.length;k++){
-             h[k]=[h[k]];
-             }*/
-            //console.log("h "+h);
-            //h=math.matrix(h);
-            //  big = max(abs(h./p)) > 2;
-            //this is a big step
-            // --- Are parameters [p+h] much better than [p] ?
-            var hidx = new Array(idx.length);
-            for(k=0;k<idx.length;k++){
-                hidx[k]=h[idx[k]];
-            }
-            var p_try = math.add(p, hidx);// update the [idx] elements
-
-            for(k=0;k<p_try.length;k++){
-                p_try[k][0]=Math.min(Math.max(p_min[k][0],p_try[k][0]),p_max[k][0]);
-            }
-            // p_try = Math.min(Math.max(p_min,p_try),p_max);           // apply constraints
-
-            var delta_y = math.subtract(y_dat, func(t,p_try,c));       // residual error using p_try
-            //func_calls = func_calls + 1;
-            //X2_try = delta_y' * ( delta_y .* weight_sq );  // Chi-squared error criteria
-
-            var X2_try = math.multiply(math.transpose(delta_y),math.dotMultiply(delta_y,weight_sq));
-
-            if ( Update_Type == 2 ){  			  // Quadratic
-                //    One step of quadratic line update in the h direction for minimum X2
-                //var alpha =  JtWdy'*h / ( (X2_try - X2)/2 + 2*JtWdy'*h ) ;
-                var JtWdy_th = math.multiply(math.transpose(JtWdy),h);
-                var alpha =  math.multiply(JtWdy_th,math.inv(math.add(math.multiply(math.subtract(X2_try - X2),1/2)),math.multiply(JtWdy_th,2)));//JtWdy'*h / ( (X2_try - X2)/2 + 2*JtWdy'*h ) ;
-
-                h = math.multiply(alpha, h);
-                for(var k=0;k<idx.length;k++){
-                    hidx[k]=h[idx[k]];
-                }
-
-                p_try = math.add(p ,hidx);                     // update only [idx] elements
-                p_try = math.min(math.max(p_min,p_try),p_max);          // apply constraints
-
-                delta_y = math.subtract(y_dat, func(t,p_try,c));      // residual error using p_try
-                // func_calls = func_calls + 1;
-                //X2_try = delta_y' * ( delta_y .* weight_sq ); // Chi-squared error criteria
-                X2_try = math.multiply(math.transpose(delta_y), mat.dotMultiply(delta_y, weight_sq));
-            }
-
-            //rho = (X2 - X2_try) / ( 2*h' * (lambda * h + JtWdy) ); // Nielsen
-            var rho = (X2-X2_try)/math.multiply(math.multiply(math.transpose(h),2),math.add(math.multiply(lambda, h),JtWdy));
-            //console.log("rho "+rho);
-            if ( rho > epsilon_4 ) {		// it IS significantly better
-                //console.log("Here");
-                dX2 = X2 - X2_old;
-                X2_old = X2;
-                p_old = p;
-                y_old = y_hat;
-                p = p_try;			// accept p_try
-
-                result = this.lm_matx(func, t, p_old, y_old, dX2, J, p, y_dat, weight_sq, dp, c);
-                JtWJ = result.JtWJ,JtWdy=result.JtWdy,X2=result.Chi_sq,y_hat=result.y_hat,J=result.J;
-                // decrease lambda ==> Gauss-Newton method
-
-                switch (Update_Type) {
-                    case 1:							// Levenberg
-                        lambda = Math.max(lambda / lambda_DN_fac, 1.e-7);
-                        break;
-                    case 2:							// Quadratic
-                        lambda = Math.max(lambda / (1 + alpha), 1.e-7);
-                        break;
-                    case 3:							// Nielsen
-                        lambda = math.multiply(Math.max(1 / 3, 1 - (2 * rho - 1) ^ 3),lambda);
-                        nu = 2;
-                        break;
-                }
-            }
-            else {					// it IS NOT better
-                X2 = X2_old;			// do not accept p_try
-                if (iteration%(2 * Npar)==0) {	// rank-1 update of Jacobian
-                    result = this.lm_matx(func, t, p_old, y_old, -1, J, p, y_dat, weight_sq, dp, c);
-                    JtWJ = result.JtWJ,JtWdy=result.JtWdy,dX2=result.Chi_sq,y_hat=result.y_hat,J=result.J;
-                }
-
-                // increase lambda  ==> gradient descent method
-                switch (Update_Type) {
-                    case 1:							// Levenberg
-                        lambda = Math.min(lambda * lambda_UP_fac, 1.e7);
-                        break;
-                    case 2:							// Quadratic
-                        lambda = lambda + Math.abs((X2_try - X2) / 2 / alpha);
-                        break;
-                    case 3:						// Nielsen
-                        lambda = lambda * nu;
-                        nu = 2 * nu;
-                        break;
-                }
-            }
-        }// --- End of Main Loop
-
-        // --- convergence achieved, find covariance and confidence intervals
-
-        // equal weights for paramter error analysis
-        weight_sq = math.multiply(math.multiply(math.transpose(delta_y),delta_y), Matrix.ones(Npnt,1));
-
-        weight_sq.apply(function(i,j){
-            weight_sq[i][j] = (Npnt-Nfit+1)/weight_sq[i][j];
-        });
-        //console.log(weight_sq);
-        result = this.lm_matx(func,t,p_old,y_old,-1,J,p,y_dat,weight_sq,dp,c);
-        JtWJ = result.JtWJ,JtWdy=result.JtWdy,X2=result.Chi_sq,y_hat=result.y_hat,J=result.J;
-
-        /*if nargout > 2				// standard error of parameters
-         covar = inv(JtWJ);
-         sigma_p = sqrt(diag(covar));
-         end
-
-         if nargout > 3				// standard error of the fit
-         //  sigma_y = sqrt(diag(J * covar * J'));	// slower version of below
-         sigma_y = zeros(Npnt,1);
-         for i=1:Npnt
-         sigma_y(i) = J(i,:) * covar * J(i,:)';
-         end
-         sigma_y = sqrt(sigma_y);
-         end
-
-         if nargout > 4				// parameter correlation matrix
-         corr = covar ./ [sigma_p*sigma_p'];
-         end
-
-         if nargout > 5				// coefficient of multiple determination
-         R_sq = corrcoef([y_dat y_hat]);
-         R_sq = R_sq(1,2).^2;
-         end
-
-         if nargout > 6				// convergence history
-         cvg_hst = cvg_hst(1:iteration,:);
-         end*/
-
-        // endfunction  # ---------------------------------------------------------- LM
-
-        return { p:p, X2:X2};
-    },
-
-    lm_FD_J:function(func,t,p,y,dp,c) {
-        // J = lm_FD_J(func,t,p,y,{dp},{c})
-        //
-        // partial derivatives (Jacobian) dy/dp for use with lm.m
-        // computed via Finite Differences
-        // Requires n or 2n function evaluations, n = number of nonzero values of dp
-        // -------- INPUT VARIABLES ---------
-        // func = function of independent variables, 't', and parameters, 'p',
-        //        returning the simulated model: y_hat = func(t,p,c)
-        // t  = m-vector of independent variables (used as arg to func)
-        // p  = n-vector of current parameter values
-        // y  = func(t,p,c) n-vector initialised by user before each call to lm_FD_J
-        // dp = fractional increment of p for numerical derivatives
-        //      dp(j)>0 central differences calculated
-        //      dp(j)<0 one sided differences calculated
-        //      dp(j)=0 sets corresponding partials to zero; i.e. holds p(j) fixed
-        //      Default:  0.001;
-        // c  = optional vector of constants passed to y_hat = func(t,p,c)
-        //---------- OUTPUT VARIABLES -------
-        // J  = Jacobian Matrix J(i,j)=dy(i)/dp(j)	i=1:n; j=1:m
-
-        //   Henri Gavin, Dept. Civil & Environ. Engineering, Duke Univ. November 2005
-        //   modified from: ftp://fly.cnuce.cnr.it/pub/software/octave/leasqr/
-        //   Press, et al., Numerical Recipes, Cambridge Univ. Press, 1992, Chapter 15.
-
-        var m = y.length;			// number of data points
-        var n = p.length;			// number of parameters
-
-        dp = dp || math.multiply( Matrix.ones(n, 1), 0.001);
-
-        var ps = p.clone();//JSON.parse(JSON.stringify(p));
-        //var ps = $.extend(true, [], p);
-        var J = new Matrix(m,n), del =new Array(n);         // initialize Jacobian to Zero
-
-        for (var j = 0;j < n; j++) {
-            //console.log(j+" "+dp[j]+" "+p[j]+" "+ps[j]+" "+del[j]);
-            del[j] = dp[j]*(1+Math.abs(p[j][0]));  // parameter perturbation
-            p[j] = [ps[j][0]+del[j]];	      // perturb parameter p(j)
-            //console.log(j+" "+dp[j]+" "+p[j]+" "+ps[j]+" "+del[j]);
-
-            if (del[j] != 0){
-                y1 = func(t, p, c);
-                //func_calls = func_calls + 1;
-                if (dp[j][0] < 0) {		// backwards difference
-                    //J(:,j) = math.dotDivide(math.subtract(y1, y),del[j]);//. / del[j];
-                    //console.log(del[j]);
-                    //console.log(y);
-                    var column = math.dotDivide(math.subtract(y1, y),del[j]);
-                    for(var k=0;k< m;k++){
-                        J[k][j]=column[k][0];
-                    }
-                    //console.log(column);
-                }
-                else{
-                    p[j][0] = ps[j][0] - del[j];
-                    //J(:,j) = (y1 - feval(func, t, p, c)). / (2. * del[j]);
-                    var column = math.dotDivide(math.subtract(y1,func(t,p,c)),2*del[j]);
-                    for(var k=0;k< m;k++){
-                        J[k][j]=column[k][0];
-                    }
-
-                }			// central difference, additional func call
-            }
-
-            p[j] = ps[j];		// restore p(j)
-
-        }
-        //console.log("lm_FD_J: "+ JSON.stringify(J));
-        return J;
-
-    },
-
-    // endfunction # -------------------------------------------------- LM_FD_J
-    lm_Broyden_J: function(p_old,y_old,J,p,y){
-        // J = lm_Broyden_J(p_old,y_old,J,p,y)
-        // carry out a rank-1 update to the Jacobian matrix using Broyden's equation
-        //---------- INPUT VARIABLES -------
-        // p_old = previous set of parameters
-        // y_old = model evaluation at previous set of parameters, y_hat(t;p_old)
-        // J  = current version of the Jacobian matrix
-        // p     = current  set of parameters
-        // y     = model evaluation at current  set of parameters, y_hat(t;p)
-        //---------- OUTPUT VARIABLES -------
-        // J = rank-1 update to Jacobian Matrix J(i,j)=dy(i)/dp(j)	i=1:n; j=1:m
-        //console.log(p+" X "+ p_old)
-        var h  = math.subtract(p, p_old);
-
-        //console.log("hhh "+h);
-        var h_t = math.transpose(h);
-        h_t.div(math.multiply(h_t,h));
-
-        //console.log(h_t);
-        //J = J + ( y - y_old - J*h )*h' / (h'*h);	// Broyden rank-1 update eq'n
-        J = math.add(J, math.multiply(math.subtract(y, math.add(y_old,math.multiply(J,h))),h_t));
-        return J;
-        // endfunction # ---------------------------------------------- LM_Broyden_J
-    },
-
-    lm_matx : function (func,t,p_old,y_old,dX2,J,p,y_dat,weight_sq,dp,c,iteration){
-        // [JtWJ,JtWdy,Chi_sq,y_hat,J] = this.lm_matx(func,t,p_old,y_old,dX2,J,p,y_dat,weight_sq,{da},{c})
-        //
-        // Evaluate the linearized fitting matrix, JtWJ, and vector JtWdy,
-        // and calculate the Chi-squared error function, Chi_sq
-        // Used by Levenberg-Marquard algorithm, lm.m
-        // -------- INPUT VARIABLES ---------
-        // func   = function ofpn independent variables, p, and m parameters, p,
-        //         returning the simulated model: y_hat = func(t,p,c)
-        // t      = m-vectors or matrix of independent variables (used as arg to func)
-        // p_old  = n-vector of previous parameter values
-        // y_old  = m-vector of previous model ... y_old = y_hat(t;p_old);
-        // dX2    = previous change in Chi-squared criteria
-        // J   = m-by-n Jacobian of model, y_hat, with respect to parameters, p
-        // p      = n-vector of current  parameter values
-        // y_dat  = n-vector of data to be fit by func(t,p,c)
-        // weight_sq = square of the weighting vector for least squares fit ...
-        //	    inverse of the standard measurement errors
-        // dp     = fractional increment of 'p' for numerical derivatives
-        //          dp(j)>0 central differences calculated
-        //          dp(j)<0 one sided differences calculated
-        //          dp(j)=0 sets corresponding partials to zero; i.e. holds p(j) fixed
-        //          Default:  0.001;
-        // c      = optional vector of constants passed to y_hat = func(t,p,c)
-        //---------- OUTPUT VARIABLES -------
-        // JtWJ	 = linearized Hessian matrix (inverse of covariance matrix)
-        // JtWdy   = linearized fitting vector
-        // Chi_sq = Chi-squared criteria: weighted sum of the squared residuals WSSR
-        // y_hat  = model evaluated with parameters 'p'
-        // J   = m-by-n Jacobian of model, y_hat, with respect to parameters, p
-
-        //   Henri Gavin, Dept. Civil & Environ. Engineering, Duke Univ. November 2005
-        //   modified from: ftp://fly.cnuce.cnr.it/pub/software/octave/leasqr/
-        //   Press, et al., Numerical Recipes, Cambridge Univ. Press, 1992, Chapter 15.
-
-
-        var Npnt = y_dat.length;		// number of data points
-        var Npar = p.length;		// number of parameters
-
-        dp = dp || 0.001;
-
-
-        //var JtWJ = new Matrix.zeros(Npar);
-        //var JtWdy  = new Matrix.zeros(Npar,1);
-
-        var y_hat = func(t,p,c);	// evaluate model using parameters 'p'
-        //func_calls = func_calls + 1;
-        //console.log(J);
-        if ( (iteration%(2*Npar))==0 || dX2 > 0 ) {
-            //console.log("Par");
-            J = this.lm_FD_J(func, t, p, y_hat, dp, c);		// finite difference
-        }
-        else{
-            //console.log("ImPar");
-            J = this.lm_Broyden_J(p_old, y_old, J, p, y_hat); // rank-1 update
-        }
-        var delta_y = math.subtract(y_dat, y_hat);	// residual error between model and data
-        //console.log(delta_y[0][0]);
-        //console.log(delta_y.rows+" "+delta_y.columns+" "+JSON.stringify(weight_sq));
-        //var Chi_sq = delta_y' * ( delta_y .* weight_sq ); 	// Chi-squared error criteria
-        var Chi_sq = math.multiply(math.transpose(delta_y),math.dotMultiply(delta_y,weight_sq));
-        //JtWJ  = J' * ( J .* ( weight_sq * ones(1,Npar) ) );
-        var Jt = math.transpose(J);
-
-        //console.log(weight_sq);
-
-        var JtWJ = math.multiply(Jt, math.dotMultiply(J,math.multiply(weight_sq, Matrix.ones(1,Npar))));
-
-        //JtWdy = J' * ( weight_sq .* delta_y );
-        var JtWdy = math.multiply(Jt, math.dotMultiply(weight_sq,delta_y));
-
-
-        return {JtWJ:JtWJ,JtWdy:JtWdy,Chi_sq:Chi_sq,y_hat:y_hat,J:J};
-        // endfunction  # ------------------------------------------------------ LM_MATX
-    }
-
-
-
-};
-
-module.exports = LM;
-
-/***/ }),
-/* 91 */
+/* 108 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-module.exports = __webpack_require__(90);
-module.exports.Matrix = __webpack_require__(6);
-module.exports.Matrix.algebra = __webpack_require__(37);
-
-
-/***/ }),
-/* 92 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var Matrix = __webpack_require__(2);
+var Matrix = __webpack_require__(3);
 
 // https://github.com/lutzroeder/Mapack/blob/master/Source/CholeskyDecomposition.cs
 function CholeskyDecomposition(value) {
@@ -19308,14 +22595,14 @@ module.exports = CholeskyDecomposition;
 
 
 /***/ }),
-/* 93 */
+/* 109 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Matrix = __webpack_require__(2);
-var hypotenuse = __webpack_require__(13).hypotenuse;
+var Matrix = __webpack_require__(3);
+var hypotenuse = __webpack_require__(16).hypotenuse;
 
 // https://github.com/lutzroeder/Mapack/blob/master/Source/EigenvalueDecomposition.cs
 function EigenvalueDecomposition(matrix) {
@@ -20081,13 +23368,13 @@ module.exports = EigenvalueDecomposition;
 
 
 /***/ }),
-/* 94 */
+/* 110 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Matrix = __webpack_require__(2);
+var Matrix = __webpack_require__(3);
 
 // https://github.com/lutzroeder/Mapack/blob/master/Source/LuDecomposition.cs
 function LuDecomposition(matrix) {
@@ -20257,14 +23544,14 @@ module.exports = LuDecomposition;
 
 
 /***/ }),
-/* 95 */
+/* 111 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Matrix = __webpack_require__(2);
-var hypotenuse = __webpack_require__(13).hypotenuse;
+var Matrix = __webpack_require__(3);
+var hypotenuse = __webpack_require__(16).hypotenuse;
 
 //https://github.com/lutzroeder/Mapack/blob/master/Source/QrDecomposition.cs
 function QrDecomposition(value) {
@@ -20414,14 +23701,14 @@ module.exports = QrDecomposition;
 
 
 /***/ }),
-/* 96 */
+/* 112 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Matrix = __webpack_require__(2);
-var hypotenuse = __webpack_require__(13).hypotenuse;
+var Matrix = __webpack_require__(3);
+var hypotenuse = __webpack_require__(16).hypotenuse;
 
 // https://github.com/lutzroeder/Mapack/blob/master/Source/SingularValueDecomposition.cs
 function SingularValueDecomposition(value, options) {
@@ -20918,19 +24205,19 @@ module.exports = SingularValueDecomposition;
 
 
 /***/ }),
-/* 97 */
+/* 113 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Matrix = __webpack_require__(2);
+var Matrix = __webpack_require__(3);
 
-var SingularValueDecomposition = __webpack_require__(96);
-var EigenvalueDecomposition = __webpack_require__(93);
-var LuDecomposition = __webpack_require__(94);
-var QrDecomposition = __webpack_require__(95);
-var CholeskyDecomposition = __webpack_require__(92);
+var SingularValueDecomposition = __webpack_require__(112);
+var EigenvalueDecomposition = __webpack_require__(109);
+var LuDecomposition = __webpack_require__(110);
+var QrDecomposition = __webpack_require__(111);
+var CholeskyDecomposition = __webpack_require__(108);
 
 function inverse(matrix) {
     return solve(matrix, Matrix.eye(matrix.rows));
@@ -20965,15 +24252,549 @@ module.exports = {
 
 
 /***/ }),
-/* 98 */
+/* 114 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
+ * Created by acastillo on 8/5/15.
+ */
+var Matrix = __webpack_require__(7);
+var math = __webpack_require__(42);
+
+var DEBUG = false;
+/** Levenberg Marquardt curve-fitting: minimize sum of weighted squared residuals
+ ----------  INPUT  VARIABLES  -----------
+ func   = function of n independent variables, 't', and m parameters, 'p',
+ returning the simulated model: y_hat = func(t,p,c)
+ p      = n-vector of initial guess of parameter values
+ t      = m-vectors or matrix of independent variables (used as arg to func)
+ y_dat  = m-vectors or matrix of data to be fit by func(t,p)
+ weight = weighting vector for least squares fit ( weight >= 0 ) ...
+ inverse of the standard measurement errors
+ Default:  sqrt(d.o.f. / ( y_dat' * y_dat ))
+ dp     = fractional increment of 'p' for numerical derivatives
+ dp(j)>0 central differences calculated
+ dp(j)<0 one sided 'backwards' differences calculated
+ dp(j)=0 sets corresponding partials to zero; i.e. holds p(j) fixed
+ Default:  0.001;
+ p_min  = n-vector of lower bounds for parameter values
+ p_max  = n-vector of upper bounds for parameter values
+ c      = an optional matrix of values passed to func(t,p,c)
+ opts   = vector of algorithmic parameters
+ parameter    defaults    meaning
+ opts(1)  =  prnt            3        >1 intermediate results; >2 plots
+ opts(2)  =  MaxIter      10*Npar     maximum number of iterations
+ opts(3)  =  epsilon_1       1e-3     convergence tolerance for gradient
+ opts(4)  =  epsilon_2       1e-3     convergence tolerance for parameters
+ opts(5)  =  epsilon_3       1e-3     convergence tolerance for Chi-square
+ opts(6)  =  epsilon_4       1e-2     determines acceptance of a L-M step
+ opts(7)  =  lambda_0        1e-2     initial value of L-M paramter
+ opts(8)  =  lambda_UP_fac   11       factor for increasing lambda
+ opts(9)  =  lambda_DN_fac    9       factor for decreasing lambda
+ opts(10) =  Update_Type      1       1: Levenberg-Marquardt lambda update
+ 2: Quadratic update
+ 3: Nielsen's lambda update equations
+
+ ----------  OUTPUT  VARIABLES  -----------
+ p       = least-squares optimal estimate of the parameter values
+ X2      = Chi squared criteria
+ sigma_p = asymptotic standard error of the parameters
+ sigma_y = asymptotic standard error of the curve-fit
+ corr    = correlation matrix of the parameters
+ R_sq    = R-squared cofficient of multiple determination
+ cvg_hst = convergence history
+
+ Henri Gavin, Dept. Civil & Environ. Engineering, Duke Univ. 22 Sep 2013
+ modified from: http://octave.sourceforge.net/optim/function/leasqr.html
+ using references by
+ Press, et al., Numerical Recipes, Cambridge Univ. Press, 1992, Chapter 15.
+ Sam Roweis       http://www.cs.toronto.edu/~roweis/notes/lm.pdf
+ Manolis Lourakis http://www.ics.forth.gr/~lourakis/levmar/levmar.pdf
+ Hans Nielson     http://www2.imm.dtu.dk/~hbn/publ/TR9905.ps
+ Mathworks        optimization toolbox reference manual
+ K. Madsen, H.B., Nielsen, and O. Tingleff
+ http://www2.imm.dtu.dk/pubdb/views/edoc_download.php/3215/pdf/imm3215.pdf
+ */
+var LM = {
+
+    optimize: function(func,p,t,y_dat,weight,dp,p_min,p_max,c,opts){
+
+        var tensor_parameter = 0;			// set to 1 of parameter is a tensor
+
+        var iteration  = 0;			// iteration counter
+        //func_calls = 0;			// running count of function evaluations
+
+        if((typeof p[0])!="object"){
+            for(var i=0;i< p.length;i++){
+                p[i]=[p[i]];
+            }
+
+        }
+        //p = p(:); y_dat = y_dat(:);		// make column vectors
+        var i,k;
+        var eps = 2^-52;
+        var Npar   = p.length;//length(p); 			// number of parameters
+        var Npnt   = y_dat.length;//length(y_dat);		// number of data points
+        var p_old  = Matrix.zeros(Npar,1);		// previous set of parameters
+        var y_old  = Matrix.zeros(Npnt,1);		// previous model, y_old = y_hat(t;p_old)
+        var X2     = 1e-2/eps;			// a really big initial Chi-sq value
+        var X2_old = 1e-2/eps;			// a really big initial Chi-sq value
+        var J =  Matrix.zeros(Npnt,Npar);
+
+
+        if (t.length != y_dat.length) {
+            console.log('lm.m error: the length of t must equal the length of y_dat');
+
+            length_t = t.length;
+            length_y_dat = y_dat.length;
+            var X2 = 0, corr = 0, sigma_p = 0, sigma_y = 0, R_sq = 0, cvg_hist = 0;
+            if (!tensor_parameter) {
+                return;
+            }
+        }
+
+        weight = weight||Math.sqrt((Npnt-Npar+1)/(math.multiply(math.transpose(y_dat),y_dat)));
+        dp = dp || 0.001;
+        p_min   = p_min || math.multiply(Math.abs(p),-100);
+        p_max   = p_max || math.multiply(Math.abs(p),100);
+        c = c || 1;
+        // Algorithmic Paramters
+        //prnt MaxIter  eps1  eps2  epx3  eps4  lam0  lamUP lamDN UpdateType
+        opts = opts ||[  3,10*Npar, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2, 11, 9, 1 ];
+
+        var prnt          = opts[0];	// >1 intermediate results; >2 plots
+        var MaxIter       = opts[1];	// maximum number of iterations
+        var epsilon_1     = opts[2];	// convergence tolerance for gradient
+        var epsilon_2     = opts[3];	// convergence tolerance for parameter
+        var epsilon_3     = opts[4];	// convergence tolerance for Chi-square
+        var epsilon_4     = opts[5];	// determines acceptance of a L-M step
+        var lambda_0      = opts[6];	// initial value of damping paramter, lambda
+        var lambda_UP_fac = opts[7];	// factor for increasing lambda
+        var lambda_DN_fac = opts[8];	// factor for decreasing lambda
+        var Update_Type   = opts[9];	// 1: Levenberg-Marquardt lambda update
+        // 2: Quadratic update
+        // 3: Nielsen's lambda update equations
+
+        if ( tensor_parameter && prnt == 3 ) prnt = 2;
+
+
+        if(!dp.length || dp.length == 1){
+            var dp_array = new Array(Npar);
+            for(var i=0;i<Npar;i++)
+                dp_array[i]=[dp];
+            dp=dp_array;
+        }
+
+        // indices of the parameters to be fit
+        var idx   = [];
+        for(i=0;i<dp.length;i++){
+            if(dp[i][0]!=0){
+                idx.push(i);
+            }
+        }
+
+        var Nfit = idx.length;			// number of parameters to fit
+        var stop = false;				// termination flag
+
+        var weight_sq = null;
+        //console.log(weight);
+        if ( !weight.length || weight.length < Npnt )	{
+            // squared weighting vector
+            //weight_sq = ( weight(1)*ones(Npnt,1) ).^2;
+            //console.log("weight[0] "+typeof weight[0]);
+            var tmp = math.multiply(Matrix.ones(Npnt,1),weight[0]);
+            weight_sq = math.dotMultiply(tmp,tmp);
+        }
+        else{
+            //weight_sq = (weight(:)).^2;
+            weight_sq = math.dotMultiply(weight,weight);
+        }
+
+
+        // initialize Jacobian with finite difference calculation
+        //console.log("J "+weight_sq);
+        var result = this.lm_matx(func,t,p_old,y_old,1,J,p,y_dat,weight_sq,dp,c);
+        var JtWJ = result.JtWJ,JtWdy=result.JtWdy,X2=result.Chi_sq,y_hat=result.y_hat,J=result.J;
+        //[JtWJ,JtWdy,X2,y_hat,J] = this.lm_matx(func,t,p_old,y_old,1,J,p,y_dat,weight_sq,dp,c);
+        //console.log(JtWJ);
+
+        if ( Math.max(Math.abs(JtWdy)) < epsilon_1 ){
+            console.log(' *** Your Initial Guess is Extremely Close to Optimal ***')
+            console.log(' *** epsilon_1 = ', epsilon_1);
+            stop = true;
+        }
+
+
+        switch(Update_Type){
+            case 1: // Marquardt: init'l lambda
+                lambda  = lambda_0;
+                break;
+            default:    // Quadratic and Nielsen
+                lambda  = lambda_0 * Math.max(math.diag(JtWJ));
+                nu=2;
+        }
+        //console.log(X2);
+        X2_old = X2; // previous value of X2
+        //console.log(MaxIter+" "+Npar);
+        //var cvg_hst = Matrix.ones(MaxIter,Npar+3);		// initialize convergence history
+        var h = null;
+        while ( !stop && iteration <= MaxIter ) {		// --- Main Loop
+            iteration = iteration + 1;
+            // incremental change in parameters
+            switch(Update_Type){
+                case 1:					// Marquardt
+                    //h = ( JtWJ + lambda * math.diag(math.diag(JtWJ)) ) \ JtWdy;
+                    //h = math.multiply(math.inv(JtWdy),math.add(JtWJ,math.multiply(lambda,math.diag(math.diag(Npar)))));
+                    h = math.solve(math.add(JtWJ,math.multiply(math.diag(math.diag(JtWJ)),lambda)),JtWdy);
+                    break;
+                default:					// Quadratic and Nielsen
+                    //h = ( JtWJ + lambda * math.eye(Npar) ) \ JtWdy;
+
+                    h = math.solve(math.add(JtWJ,math.multiply( Matrix.eye(Npar),lambda)),JtWdy);
+            }
+
+            /*for(var k=0;k< h.length;k++){
+             h[k]=[h[k]];
+             }*/
+            //console.log("h "+h);
+            //h=math.matrix(h);
+            //  big = max(abs(h./p)) > 2;
+            //this is a big step
+            // --- Are parameters [p+h] much better than [p] ?
+            var hidx = new Array(idx.length);
+            for(k=0;k<idx.length;k++){
+                hidx[k]=h[idx[k]];
+            }
+            var p_try = math.add(p, hidx);// update the [idx] elements
+
+            for(k=0;k<p_try.length;k++){
+                p_try[k][0]=Math.min(Math.max(p_min[k][0],p_try[k][0]),p_max[k][0]);
+            }
+            // p_try = Math.min(Math.max(p_min,p_try),p_max);           // apply constraints
+
+            var delta_y = math.subtract(y_dat, func(t,p_try,c));       // residual error using p_try
+            //func_calls = func_calls + 1;
+            //X2_try = delta_y' * ( delta_y .* weight_sq );  // Chi-squared error criteria
+
+            var X2_try = math.multiply(math.transpose(delta_y),math.dotMultiply(delta_y,weight_sq));
+
+            if ( Update_Type == 2 ){  			  // Quadratic
+                //    One step of quadratic line update in the h direction for minimum X2
+                //var alpha =  JtWdy'*h / ( (X2_try - X2)/2 + 2*JtWdy'*h ) ;
+                var JtWdy_th = math.multiply(math.transpose(JtWdy),h);
+                var alpha =  math.multiply(JtWdy_th,math.inv(math.add(math.multiply(math.subtract(X2_try - X2),1/2)),math.multiply(JtWdy_th,2)));//JtWdy'*h / ( (X2_try - X2)/2 + 2*JtWdy'*h ) ;
+
+                h = math.multiply(alpha, h);
+                for(var k=0;k<idx.length;k++){
+                    hidx[k]=h[idx[k]];
+                }
+
+                p_try = math.add(p ,hidx);                     // update only [idx] elements
+                p_try = math.min(math.max(p_min,p_try),p_max);          // apply constraints
+
+                delta_y = math.subtract(y_dat, func(t,p_try,c));      // residual error using p_try
+                // func_calls = func_calls + 1;
+                //X2_try = delta_y' * ( delta_y .* weight_sq ); // Chi-squared error criteria
+                X2_try = math.multiply(math.transpose(delta_y), mat.dotMultiply(delta_y, weight_sq));
+            }
+
+            //rho = (X2 - X2_try) / ( 2*h' * (lambda * h + JtWdy) ); // Nielsen
+            var rho = (X2-X2_try)/math.multiply(math.multiply(math.transpose(h),2),math.add(math.multiply(lambda, h),JtWdy));
+            //console.log("rho "+rho);
+            if ( rho > epsilon_4 ) {		// it IS significantly better
+                //console.log("Here");
+                dX2 = X2 - X2_old;
+                X2_old = X2;
+                p_old = p;
+                y_old = y_hat;
+                p = p_try;			// accept p_try
+
+                result = this.lm_matx(func, t, p_old, y_old, dX2, J, p, y_dat, weight_sq, dp, c);
+                JtWJ = result.JtWJ,JtWdy=result.JtWdy,X2=result.Chi_sq,y_hat=result.y_hat,J=result.J;
+                // decrease lambda ==> Gauss-Newton method
+
+                switch (Update_Type) {
+                    case 1:							// Levenberg
+                        lambda = Math.max(lambda / lambda_DN_fac, 1.e-7);
+                        break;
+                    case 2:							// Quadratic
+                        lambda = Math.max(lambda / (1 + alpha), 1.e-7);
+                        break;
+                    case 3:							// Nielsen
+                        lambda = math.multiply(Math.max(1 / 3, 1 - (2 * rho - 1) ^ 3),lambda);
+                        nu = 2;
+                        break;
+                }
+            }
+            else {					// it IS NOT better
+                X2 = X2_old;			// do not accept p_try
+                if (iteration%(2 * Npar)==0) {	// rank-1 update of Jacobian
+                    result = this.lm_matx(func, t, p_old, y_old, -1, J, p, y_dat, weight_sq, dp, c);
+                    JtWJ = result.JtWJ,JtWdy=result.JtWdy,dX2=result.Chi_sq,y_hat=result.y_hat,J=result.J;
+                }
+
+                // increase lambda  ==> gradient descent method
+                switch (Update_Type) {
+                    case 1:							// Levenberg
+                        lambda = Math.min(lambda * lambda_UP_fac, 1.e7);
+                        break;
+                    case 2:							// Quadratic
+                        lambda = lambda + Math.abs((X2_try - X2) / 2 / alpha);
+                        break;
+                    case 3:						// Nielsen
+                        lambda = lambda * nu;
+                        nu = 2 * nu;
+                        break;
+                }
+            }
+        }// --- End of Main Loop
+
+        // --- convergence achieved, find covariance and confidence intervals
+
+        // equal weights for paramter error analysis
+        weight_sq = math.multiply(math.multiply(math.transpose(delta_y),delta_y), Matrix.ones(Npnt,1));
+
+        weight_sq.apply(function(i,j){
+            weight_sq[i][j] = (Npnt-Nfit+1)/weight_sq[i][j];
+        });
+        //console.log(weight_sq);
+        result = this.lm_matx(func,t,p_old,y_old,-1,J,p,y_dat,weight_sq,dp,c);
+        JtWJ = result.JtWJ,JtWdy=result.JtWdy,X2=result.Chi_sq,y_hat=result.y_hat,J=result.J;
+
+        /*if nargout > 2				// standard error of parameters
+         covar = inv(JtWJ);
+         sigma_p = sqrt(diag(covar));
+         end
+
+         if nargout > 3				// standard error of the fit
+         //  sigma_y = sqrt(diag(J * covar * J'));	// slower version of below
+         sigma_y = zeros(Npnt,1);
+         for i=1:Npnt
+         sigma_y(i) = J(i,:) * covar * J(i,:)';
+         end
+         sigma_y = sqrt(sigma_y);
+         end
+
+         if nargout > 4				// parameter correlation matrix
+         corr = covar ./ [sigma_p*sigma_p'];
+         end
+
+         if nargout > 5				// coefficient of multiple determination
+         R_sq = corrcoef([y_dat y_hat]);
+         R_sq = R_sq(1,2).^2;
+         end
+
+         if nargout > 6				// convergence history
+         cvg_hst = cvg_hst(1:iteration,:);
+         end*/
+
+        // endfunction  # ---------------------------------------------------------- LM
+
+        return { p:p, X2:X2};
+    },
+
+    lm_FD_J:function(func,t,p,y,dp,c) {
+        // J = lm_FD_J(func,t,p,y,{dp},{c})
+        //
+        // partial derivatives (Jacobian) dy/dp for use with lm.m
+        // computed via Finite Differences
+        // Requires n or 2n function evaluations, n = number of nonzero values of dp
+        // -------- INPUT VARIABLES ---------
+        // func = function of independent variables, 't', and parameters, 'p',
+        //        returning the simulated model: y_hat = func(t,p,c)
+        // t  = m-vector of independent variables (used as arg to func)
+        // p  = n-vector of current parameter values
+        // y  = func(t,p,c) n-vector initialised by user before each call to lm_FD_J
+        // dp = fractional increment of p for numerical derivatives
+        //      dp(j)>0 central differences calculated
+        //      dp(j)<0 one sided differences calculated
+        //      dp(j)=0 sets corresponding partials to zero; i.e. holds p(j) fixed
+        //      Default:  0.001;
+        // c  = optional vector of constants passed to y_hat = func(t,p,c)
+        //---------- OUTPUT VARIABLES -------
+        // J  = Jacobian Matrix J(i,j)=dy(i)/dp(j)	i=1:n; j=1:m
+
+        //   Henri Gavin, Dept. Civil & Environ. Engineering, Duke Univ. November 2005
+        //   modified from: ftp://fly.cnuce.cnr.it/pub/software/octave/leasqr/
+        //   Press, et al., Numerical Recipes, Cambridge Univ. Press, 1992, Chapter 15.
+
+        var m = y.length;			// number of data points
+        var n = p.length;			// number of parameters
+
+        dp = dp || math.multiply( Matrix.ones(n, 1), 0.001);
+
+        var ps = p.clone();//JSON.parse(JSON.stringify(p));
+        //var ps = $.extend(true, [], p);
+        var J = new Matrix(m,n), del =new Array(n);         // initialize Jacobian to Zero
+
+        for (var j = 0;j < n; j++) {
+            //console.log(j+" "+dp[j]+" "+p[j]+" "+ps[j]+" "+del[j]);
+            del[j] = dp[j]*(1+Math.abs(p[j][0]));  // parameter perturbation
+            p[j] = [ps[j][0]+del[j]];	      // perturb parameter p(j)
+            //console.log(j+" "+dp[j]+" "+p[j]+" "+ps[j]+" "+del[j]);
+
+            if (del[j] != 0){
+                y1 = func(t, p, c);
+                //func_calls = func_calls + 1;
+                if (dp[j][0] < 0) {		// backwards difference
+                    //J(:,j) = math.dotDivide(math.subtract(y1, y),del[j]);//. / del[j];
+                    //console.log(del[j]);
+                    //console.log(y);
+                    var column = math.dotDivide(math.subtract(y1, y),del[j]);
+                    for(var k=0;k< m;k++){
+                        J[k][j]=column[k][0];
+                    }
+                    //console.log(column);
+                }
+                else{
+                    p[j][0] = ps[j][0] - del[j];
+                    //J(:,j) = (y1 - feval(func, t, p, c)). / (2. * del[j]);
+                    var column = math.dotDivide(math.subtract(y1,func(t,p,c)),2*del[j]);
+                    for(var k=0;k< m;k++){
+                        J[k][j]=column[k][0];
+                    }
+
+                }			// central difference, additional func call
+            }
+
+            p[j] = ps[j];		// restore p(j)
+
+        }
+        //console.log("lm_FD_J: "+ JSON.stringify(J));
+        return J;
+
+    },
+
+    // endfunction # -------------------------------------------------- LM_FD_J
+    lm_Broyden_J: function(p_old,y_old,J,p,y){
+        // J = lm_Broyden_J(p_old,y_old,J,p,y)
+        // carry out a rank-1 update to the Jacobian matrix using Broyden's equation
+        //---------- INPUT VARIABLES -------
+        // p_old = previous set of parameters
+        // y_old = model evaluation at previous set of parameters, y_hat(t;p_old)
+        // J  = current version of the Jacobian matrix
+        // p     = current  set of parameters
+        // y     = model evaluation at current  set of parameters, y_hat(t;p)
+        //---------- OUTPUT VARIABLES -------
+        // J = rank-1 update to Jacobian Matrix J(i,j)=dy(i)/dp(j)	i=1:n; j=1:m
+        //console.log(p+" X "+ p_old)
+        var h  = math.subtract(p, p_old);
+
+        //console.log("hhh "+h);
+        var h_t = math.transpose(h);
+        h_t.div(math.multiply(h_t,h));
+
+        //console.log(h_t);
+        //J = J + ( y - y_old - J*h )*h' / (h'*h);	// Broyden rank-1 update eq'n
+        J = math.add(J, math.multiply(math.subtract(y, math.add(y_old,math.multiply(J,h))),h_t));
+        return J;
+        // endfunction # ---------------------------------------------- LM_Broyden_J
+    },
+
+    lm_matx : function (func,t,p_old,y_old,dX2,J,p,y_dat,weight_sq,dp,c,iteration){
+        // [JtWJ,JtWdy,Chi_sq,y_hat,J] = this.lm_matx(func,t,p_old,y_old,dX2,J,p,y_dat,weight_sq,{da},{c})
+        //
+        // Evaluate the linearized fitting matrix, JtWJ, and vector JtWdy,
+        // and calculate the Chi-squared error function, Chi_sq
+        // Used by Levenberg-Marquard algorithm, lm.m
+        // -------- INPUT VARIABLES ---------
+        // func   = function ofpn independent variables, p, and m parameters, p,
+        //         returning the simulated model: y_hat = func(t,p,c)
+        // t      = m-vectors or matrix of independent variables (used as arg to func)
+        // p_old  = n-vector of previous parameter values
+        // y_old  = m-vector of previous model ... y_old = y_hat(t;p_old);
+        // dX2    = previous change in Chi-squared criteria
+        // J   = m-by-n Jacobian of model, y_hat, with respect to parameters, p
+        // p      = n-vector of current  parameter values
+        // y_dat  = n-vector of data to be fit by func(t,p,c)
+        // weight_sq = square of the weighting vector for least squares fit ...
+        //	    inverse of the standard measurement errors
+        // dp     = fractional increment of 'p' for numerical derivatives
+        //          dp(j)>0 central differences calculated
+        //          dp(j)<0 one sided differences calculated
+        //          dp(j)=0 sets corresponding partials to zero; i.e. holds p(j) fixed
+        //          Default:  0.001;
+        // c      = optional vector of constants passed to y_hat = func(t,p,c)
+        //---------- OUTPUT VARIABLES -------
+        // JtWJ	 = linearized Hessian matrix (inverse of covariance matrix)
+        // JtWdy   = linearized fitting vector
+        // Chi_sq = Chi-squared criteria: weighted sum of the squared residuals WSSR
+        // y_hat  = model evaluated with parameters 'p'
+        // J   = m-by-n Jacobian of model, y_hat, with respect to parameters, p
+
+        //   Henri Gavin, Dept. Civil & Environ. Engineering, Duke Univ. November 2005
+        //   modified from: ftp://fly.cnuce.cnr.it/pub/software/octave/leasqr/
+        //   Press, et al., Numerical Recipes, Cambridge Univ. Press, 1992, Chapter 15.
+
+
+        var Npnt = y_dat.length;		// number of data points
+        var Npar = p.length;		// number of parameters
+
+        dp = dp || 0.001;
+
+
+        //var JtWJ = new Matrix.zeros(Npar);
+        //var JtWdy  = new Matrix.zeros(Npar,1);
+
+        var y_hat = func(t,p,c);	// evaluate model using parameters 'p'
+        //func_calls = func_calls + 1;
+        //console.log(J);
+        if ( (iteration%(2*Npar))==0 || dX2 > 0 ) {
+            //console.log("Par");
+            J = this.lm_FD_J(func, t, p, y_hat, dp, c);		// finite difference
+        }
+        else{
+            //console.log("ImPar");
+            J = this.lm_Broyden_J(p_old, y_old, J, p, y_hat); // rank-1 update
+        }
+        var delta_y = math.subtract(y_dat, y_hat);	// residual error between model and data
+        //console.log(delta_y[0][0]);
+        //console.log(delta_y.rows+" "+delta_y.columns+" "+JSON.stringify(weight_sq));
+        //var Chi_sq = delta_y' * ( delta_y .* weight_sq ); 	// Chi-squared error criteria
+        var Chi_sq = math.multiply(math.transpose(delta_y),math.dotMultiply(delta_y,weight_sq));
+        //JtWJ  = J' * ( J .* ( weight_sq * ones(1,Npar) ) );
+        var Jt = math.transpose(J);
+
+        //console.log(weight_sq);
+
+        var JtWJ = math.multiply(Jt, math.dotMultiply(J,math.multiply(weight_sq, Matrix.ones(1,Npar))));
+
+        //JtWdy = J' * ( weight_sq .* delta_y );
+        var JtWdy = math.multiply(Jt, math.dotMultiply(weight_sq,delta_y));
+
+
+        return {JtWJ:JtWJ,JtWdy:JtWdy,Chi_sq:Chi_sq,y_hat:y_hat,J:J};
+        // endfunction  # ------------------------------------------------------ LM_MATX
+    }
+
+
+
+};
+
+module.exports = LM;
+
+/***/ }),
+/* 115 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var LM = __webpack_require__(91);
+module.exports = __webpack_require__(114);
+module.exports.Matrix = __webpack_require__(7);
+module.exports.Matrix.algebra = __webpack_require__(42);
+
+
+/***/ }),
+/* 116 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var LM = __webpack_require__(115);
 var math = LM.Matrix.algebra;
-var Matrix = __webpack_require__(6);
+var Matrix = __webpack_require__(7);
 
 /**
  * This function calculates the spectrum as a sum of lorentzian functions. The Lorentzian
@@ -21429,23 +25250,23 @@ module.exports.optimizeGaussianTrain = optimizeGaussianTrain;
 module.exports.optimizeLorentzianTrain = optimizeLorentzianTrain;
 
 /***/ }),
-/* 99 */
+/* 117 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-exports.array = __webpack_require__(38);
-exports.matrix = __webpack_require__(100);
+exports.array = __webpack_require__(43);
+exports.matrix = __webpack_require__(118);
 
 
 /***/ }),
-/* 100 */
+/* 118 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var arrayStat = __webpack_require__(38);
+var arrayStat = __webpack_require__(43);
 
 // https://github.com/accord-net/framework/blob/development/Sources/Accord.Statistics/Tools.cs
 
@@ -21967,12 +25788,12 @@ module.exports = {
 
 
 /***/ }),
-/* 101 */
+/* 119 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //Code translate from Pascal source in http://pubs.acs.org/doi/pdf/10.1021/ac00205a007
-var extend = __webpack_require__(22);
-var stat = __webpack_require__(99);
+var extend = __webpack_require__(28);
+var stat = __webpack_require__(117);
 
 var defaultOptions = {
     windowSize: 9,
@@ -22142,13 +25963,13 @@ module.exports = SavitzkyGolay;
 
 
 /***/ }),
-/* 102 */
+/* 120 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var arrayStat = __webpack_require__(41);
+var arrayStat = __webpack_require__(46);
 
 function compareNumbers(a, b) {
     return a - b;
@@ -22760,542 +26581,13 @@ exports.weightedScatter = function weightedScatter(matrix, weights, means, facto
 
 
 /***/ }),
-/* 103 */
+/* 121 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const Stat = __webpack_require__(3).array;
-/**
- * Function that returns an array of points given 1D array as follows:
- *
- * [x1, y1, .. , x2, y2, ..]
- *
- * And receive the number of dimensions of each point.
- * @param array
- * @param dimensions
- * @returns {Array} - Array of points.
- */
-function coordArrayToPoints(array, dimensions) {
-    if(array.length % dimensions !== 0) {
-        throw new RangeError('Dimensions number must be accordance with the size of the array.');
-    }
-
-    var length = array.length / dimensions;
-    var pointsArr = new Array(length);
-
-    var k = 0;
-    for(var i = 0; i < array.length; i += dimensions) {
-        var point = new Array(dimensions);
-        for(var j = 0; j < dimensions; ++j) {
-            point[j] = array[i + j];
-        }
-
-        pointsArr[k] = point;
-        k++;
-    }
-
-    return pointsArr;
-}
-
-
-/**
- * Function that given an array as follows:
- * [x1, y1, .. , x2, y2, ..]
- *
- * Returns an array as follows:
- * [[x1, x2, ..], [y1, y2, ..], [ .. ]]
- *
- * And receives the number of dimensions of each coordinate.
- * @param array
- * @param dimensions
- * @returns {Array} - Matrix of coordinates
- */
-function coordArrayToCoordMatrix(array, dimensions) {
-    if(array.length % dimensions !== 0) {
-        throw new RangeError('Dimensions number must be accordance with the size of the array.');
-    }
-
-    var coordinatesArray = new Array(dimensions);
-    var points = array.length / dimensions;
-    for (var i = 0; i < coordinatesArray.length; i++) {
-        coordinatesArray[i] = new Array(points);
-    }
-
-    for(i = 0; i < array.length; i += dimensions) {
-        for(var j = 0; j < dimensions; ++j) {
-            var currentPoint = Math.floor(i / dimensions);
-            coordinatesArray[j][currentPoint] = array[i + j];
-        }
-    }
-
-    return coordinatesArray;
-}
-
-/**
- * Function that receives a coordinate matrix as follows:
- * [[x1, x2, ..], [y1, y2, ..], [ .. ]]
- *
- * Returns an array of coordinates as follows:
- * [x1, y1, .. , x2, y2, ..]
- *
- * @param coordMatrix
- * @returns {Array}
- */
-function coordMatrixToCoordArray(coordMatrix) {
-    var coodinatesArray = new Array(coordMatrix.length * coordMatrix[0].length);
-    var k = 0;
-    for(var i = 0; i < coordMatrix[0].length; ++i) {
-        for(var j = 0; j < coordMatrix.length; ++j) {
-            coodinatesArray[k] = coordMatrix[j][i];
-            ++k;
-        }
-    }
-
-    return coodinatesArray;
-}
-
-/**
- * Tranpose a matrix, this method is for coordMatrixToPoints and
- * pointsToCoordMatrix, that because only transposing the matrix
- * you can change your representation.
- *
- * @param matrix
- * @returns {Array}
- */
-function transpose(matrix) {
-    var resultMatrix = new Array(matrix[0].length);
-    for(var i = 0; i < resultMatrix.length; ++i) {
-        resultMatrix[i] = new Array(matrix.length);
-    }
-
-    for (i = 0; i < matrix.length; ++i) {
-        for(var j = 0; j < matrix[0].length; ++j) {
-            resultMatrix[j][i] = matrix[i][j];
-        }
-    }
-
-    return resultMatrix;
-}
-
-/**
- * Function that transform an array of points into a coordinates array
- * as follows:
- * [x1, y1, .. , x2, y2, ..]
- *
- * @param points
- * @returns {Array}
- */
-function pointsToCoordArray(points) {
-    var coodinatesArray = new Array(points.length * points[0].length);
-    var k = 0;
-    for(var i = 0; i < points.length; ++i) {
-        for(var j = 0; j < points[0].length; ++j) {
-            coodinatesArray[k] = points[i][j];
-            ++k;
-        }
-    }
-
-    return coodinatesArray;
-}
-
-/**
- * Apply the dot product between the smaller vector and a subsets of the
- * largest one.
- *
- * @param firstVector
- * @param secondVector
- * @returns {Array} each dot product of size of the difference between the
- *                  larger and the smallest one.
- */
-function applyDotProduct(firstVector, secondVector) {
-    var largestVector, smallestVector;
-    if(firstVector.length <= secondVector.length) {
-        smallestVector = firstVector;
-        largestVector = secondVector;
-    } else {
-        smallestVector = secondVector;
-        largestVector = firstVector;
-    }
-
-    var difference = largestVector.length - smallestVector.length + 1;
-    var dotProductApplied = new Array(difference);
-
-    for (var i = 0; i < difference; ++i) {
-        var sum = 0;
-        for (var j = 0; j < smallestVector.length; ++j) {
-            sum += smallestVector[j] * largestVector[i + j];
-        }
-        dotProductApplied[i] = sum;
-    }
-
-    return dotProductApplied;
-}
-/**
- * To scale the input array between the specified min and max values. The operation is performed inplace
- * if the options.inplace is specified. If only one of the min or max parameters is specified, then the scaling
- * will multiply the input array by min/min(input) or max/max(input)
- * @param input
- * @param options
- * @returns {*}
- */
-function scale(input, options){
-    var y;
-    if(options.inPlace){
-        y = input;
-    }
-    else{
-        y = new Array(input.length);
-    }
-    const max = options.max;
-    const min = options.min;
-    if(typeof max === "number"){
-        if(typeof min === "number"){
-            var minMax = Stat.minMax(input);
-            var factor = (max - min)/(minMax.max-minMax.min);
-            for(var i=0;i< y.length;i++){
-                y[i]=(input[i]-minMax.min)*factor+min;
-            }
-        }
-        else{
-            var currentMin = Stat.max(input);
-            var factor = max/currentMin;
-            for(var i=0;i< y.length;i++){
-                y[i] = input[i]*factor;
-            }
-        }
-    }
-    else{
-        if(typeof min === "number"){
-            var currentMin = Stat.min(input);
-            var factor = min/currentMin;
-            for(var i=0;i< y.length;i++){
-                y[i] = input[i]*factor;
-            }
-        }
-    }
-    return y;
-}
-
-module.exports = {
-    coordArrayToPoints: coordArrayToPoints,
-    coordArrayToCoordMatrix: coordArrayToCoordMatrix,
-    coordMatrixToCoordArray: coordMatrixToCoordArray,
-    coordMatrixToPoints: transpose,
-    pointsToCoordArray: pointsToCoordArray,
-    pointsToCoordMatrix: transpose,
-    applyDotProduct: applyDotProduct,
-    scale:scale
-};
-
-
-
-/***/ }),
-/* 104 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/**
- *
- * Function that returns a Number array of equally spaced numberOfPoints
- * containing a representation of intensities of the spectra arguments x
- * and y.
- *
- * The options parameter contains an object in the following form:
- * from: starting point
- * to: last point
- * numberOfPoints: number of points between from and to
- * variant: "slot" or "smooth" - smooth is the default option
- *
- * The slot variant consist that each point in the new array is calculated
- * averaging the existing points between the slot that belongs to the current
- * value. The smooth variant is the same but takes the integral of the range
- * of the slot and divide by the step size between two points in the new array.
- *
- * @param x - sorted increasing x values
- * @param y
- * @param options
- * @returns {Array} new array with the equally spaced data.
- *
- */
-function getEquallySpacedData(x, y, options) {
-    if (x.length>1 && x[0]>x[1]) {
-        x=x.slice().reverse();
-        y=y.slice().reverse();
-    }
-
-    var xLength = x.length;
-    if(xLength !== y.length)
-        throw new RangeError("the x and y vector doesn't have the same size.");
-
-    if (options === undefined) options = {};
-
-    var from = options.from === undefined ? x[0] : options.from
-    if (isNaN(from) || !isFinite(from)) {
-        throw new RangeError("'From' value must be a number");
-    }
-    var to = options.to === undefined ? x[x.length - 1] : options.to;
-    if (isNaN(to) || !isFinite(to)) {
-        throw new RangeError("'To' value must be a number");
-    }
-
-    var reverse = from > to;
-    if(reverse) {
-        var temp = from;
-        from = to;
-        to = temp;
-    }
-
-    var numberOfPoints = options.numberOfPoints === undefined ? 100 : options.numberOfPoints;
-    if (isNaN(numberOfPoints) || !isFinite(numberOfPoints)) {
-        throw new RangeError("'Number of points' value must be a number");
-    }
-    if(numberOfPoints < 1)
-        throw new RangeError("the number of point must be higher than 1");
-
-    var algorithm = options.variant === "slot" ? "slot" : "smooth"; // default value: smooth
-
-    var output = algorithm === "slot" ? getEquallySpacedSlot(x, y, from, to, numberOfPoints) : getEquallySpacedSmooth(x, y, from, to, numberOfPoints);
-
-    return reverse ? output.reverse() : output;
-}
-
-/**
- * function that retrieves the getEquallySpacedData with the variant "smooth"
- *
- * @param x
- * @param y
- * @param from - Initial point
- * @param to - Final point
- * @param numberOfPoints
- * @returns {Array} - Array of y's equally spaced with the variant "smooth"
- */
-function getEquallySpacedSmooth(x, y, from, to, numberOfPoints) {
-    var xLength = x.length;
-
-    var step = (to - from) / (numberOfPoints - 1);
-    var halfStep = step / 2;
-
-    var start = from - halfStep;
-    var output = new Array(numberOfPoints);
-
-    var initialOriginalStep = x[1] - x[0];
-    var lastOriginalStep = x[x.length - 1] - x[x.length - 2];
-
-    // Init main variables
-    var min = start;
-    var max = start + step;
-
-    var previousX = Number.MIN_VALUE;
-    var previousY = 0;
-    var nextX = x[0] - initialOriginalStep;
-    var nextY = 0;
-
-    var currentValue = 0;
-    var slope = 0;
-    var intercept = 0;
-    var sumAtMin = 0;
-    var sumAtMax = 0;
-
-    var i = 0; // index of input
-    var j = 0; // index of output
-
-    function getSlope(x0, y0, x1, y1) {
-        return (y1 - y0) / (x1 - x0);
-    }
-
-    main: while(true) {
-        while (nextX - max >= 0) {
-            // no overlap with original point, just consume current value
-            var add = integral(0, max - previousX, slope, previousY);
-            sumAtMax = currentValue + add;
-
-            output[j] = (sumAtMax - sumAtMin) / step;
-            j++;
-
-            if (j === numberOfPoints)
-                break main;
-
-            min = max;
-            max += step;
-            sumAtMin = sumAtMax;
-        }
-
-        if(previousX <= min && min <= nextX) {
-            add = integral(0, min - previousX, slope, previousY);
-            sumAtMin = currentValue + add;
-        }
-
-        currentValue += integral(previousX, nextX, slope, intercept);
-
-        previousX = nextX;
-        previousY = nextY;
-
-        if (i < xLength) {
-            nextX = x[i];
-            nextY = y[i];
-            i++;
-        } else if (i === xLength) {
-            nextX += lastOriginalStep;
-            nextY = 0;
-        }
-        // updating parameters
-        slope = getSlope(previousX, previousY, nextX, nextY);
-        intercept = -slope*previousX + previousY;
-    }
-
-    return output;
-}
-
-/**
- * function that retrieves the getEquallySpacedData with the variant "slot"
- *
- * @param x
- * @param y
- * @param from - Initial point
- * @param to - Final point
- * @param numberOfPoints
- * @returns {Array} - Array of y's equally spaced with the variant "slot"
- */
-function getEquallySpacedSlot(x, y, from, to, numberOfPoints) {
-    var xLength = x.length;
-
-    var step = (to - from) / (numberOfPoints - 1);
-    var halfStep = step / 2;
-    var lastStep = x[x.length - 1] - x[x.length - 2];
-
-    var start = from - halfStep;
-    var output = new Array(numberOfPoints);
-
-    // Init main variables
-    var min = start;
-    var max = start + step;
-
-    var previousX = -Number.MAX_VALUE;
-    var previousY = 0;
-    var nextX = x[0];
-    var nextY = y[0];
-    var frontOutsideSpectra = 0;
-    var backOutsideSpectra = true;
-
-    var currentValue = 0;
-
-    // for slot algorithm
-    var currentPoints = 0;
-
-    var i = 1; // index of input
-    var j = 0; // index of output
-
-    main: while(true) {
-        if (previousX>=nextX) throw (new Error('x must be an increasing serie'));
-        while (previousX - max > 0) {
-            // no overlap with original point, just consume current value
-            if(backOutsideSpectra) {
-                currentPoints++;
-                backOutsideSpectra = false;
-            }
-
-            output[j] = currentPoints <= 0 ? 0 : currentValue / currentPoints;
-            j++;
-
-            if (j === numberOfPoints)
-                break main;
-
-            min = max;
-            max += step;
-            currentValue = 0;
-            currentPoints = 0;
-        }
-
-        if(previousX > min) {
-            currentValue += previousY;
-            currentPoints++;
-        }
-
-        if(previousX === -Number.MAX_VALUE || frontOutsideSpectra > 1)
-            currentPoints--;
-
-        previousX = nextX;
-        previousY = nextY;
-
-        if (i < xLength) {
-            nextX = x[i];
-            nextY = y[i];
-            i++;
-        } else {
-            nextX += lastStep;
-            nextY = 0;
-            frontOutsideSpectra++;
-        }
-    }
-
-    return output;
-}
-/**
- * Function that calculates the integral of the line between two
- * x-coordinates, given the slope and intercept of the line.
- *
- * @param x0
- * @param x1
- * @param slope
- * @param intercept
- * @returns {number} integral value.
- */
-function integral(x0, x1, slope, intercept) {
-    return (0.5 * slope * x1 * x1 + intercept * x1) - (0.5 * slope * x0 * x0 + intercept * x0);
-}
-
-exports.getEquallySpacedData = getEquallySpacedData;
-exports.integral = integral;
-
-/***/ }),
-/* 105 */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = exports = __webpack_require__(103);
-exports.getEquallySpacedData = __webpack_require__(104).getEquallySpacedData;
-exports.SNV = __webpack_require__(106).SNV;
-exports.binarySearch = __webpack_require__(74);
-
-
-/***/ }),
-/* 106 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.SNV = SNV;
-var Stat = __webpack_require__(3).array;
-
-/**
- * Function that applies the standard normal variate (SNV) to an array of values.
- *
- * @param data - Array of values.
- * @returns {Array} - applied the SNV.
- */
-function SNV(data) {
-    var mean = Stat.mean(data);
-    var std = Stat.standardDeviation(data);
-    var result = data.slice();
-    for (var i = 0; i < data.length; i++) {
-        result[i] = (result[i] - mean) / std;
-    }
-    return result;
-}
-
-
-/***/ }),
-/* 107 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var Matrix = __webpack_require__(4);
+var Matrix = __webpack_require__(1).Matrix;
 
 // https://github.com/lutzroeder/Mapack/blob/master/Source/CholeskyDecomposition.cs
 function CholeskyDecomposition(value) {
@@ -23303,8 +26595,9 @@ function CholeskyDecomposition(value) {
         return new CholeskyDecomposition(value);
     }
     value = Matrix.checkMatrix(value);
-    if (!value.isSymmetric())
+    if (!value.isSymmetric()) {
         throw new Error('Matrix is not symmetric');
+    }
 
     var a = value,
         dimension = a.rows,
@@ -23385,14 +26678,14 @@ module.exports = CholeskyDecomposition;
 
 
 /***/ }),
-/* 108 */
+/* 122 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const Matrix = __webpack_require__(4);
-const util = __webpack_require__(15);
+const Matrix = __webpack_require__(1).Matrix;
+const util = __webpack_require__(18);
 const hypotenuse = util.hypotenuse;
 const getFilled2DArray = util.getFilled2DArray;
 
@@ -23433,8 +26726,7 @@ function EigenvalueDecomposition(matrix, options) {
         }
         tred2(n, e, d, V);
         tql2(n, e, d, V);
-    }
-    else {
+    } else {
         var H = getFilled2DArray(n, n, 0),
             ort = new Array(n);
         for (j = 0; j < n; j++) {
@@ -23478,8 +26770,7 @@ EigenvalueDecomposition.prototype = {
             X[i][i] = d[i];
             if (e[i] > 0) {
                 X[i][i + 1] = e[i];
-            }
-            else if (e[i] < 0) {
+            } else if (e[i] < 0) {
                 X[i][i - 1] = e[i];
             }
         }
@@ -24163,8 +27454,7 @@ function cdiv(xr, xi, yr, yi) {
         r = yi / yr;
         d = yr + r * yi;
         return [(xr + r * xi) / d, (xi - r * xr) / d];
-    }
-    else {
+    } else {
         r = yr / yi;
         d = yi + r * yr;
         return [(r * xr + xi) / d, (r * xi - xr) / d];
@@ -24175,190 +27465,14 @@ module.exports = EigenvalueDecomposition;
 
 
 /***/ }),
-/* 109 */
+/* 123 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Matrix = __webpack_require__(4);
-
-// https://github.com/lutzroeder/Mapack/blob/master/Source/LuDecomposition.cs
-function LuDecomposition(matrix) {
-    if (!(this instanceof LuDecomposition)) {
-        return new LuDecomposition(matrix);
-    }
-    matrix = Matrix.checkMatrix(matrix);
-
-    var lu = matrix.clone(),
-        rows = lu.rows,
-        columns = lu.columns,
-        pivotVector = new Array(rows),
-        pivotSign = 1,
-        i, j, k, p, s, t, v,
-        LUrowi, LUcolj, kmax;
-
-    for (i = 0; i < rows; i++) {
-        pivotVector[i] = i;
-    }
-
-    LUcolj = new Array(rows);
-
-    for (j = 0; j < columns; j++) {
-
-        for (i = 0; i < rows; i++) {
-            LUcolj[i] = lu[i][j];
-        }
-
-        for (i = 0; i < rows; i++) {
-            LUrowi = lu[i];
-            kmax = Math.min(i, j);
-            s = 0;
-            for (k = 0; k < kmax; k++) {
-                s += LUrowi[k] * LUcolj[k];
-            }
-            LUrowi[j] = LUcolj[i] -= s;
-        }
-
-        p = j;
-        for (i = j + 1; i < rows; i++) {
-            if (Math.abs(LUcolj[i]) > Math.abs(LUcolj[p])) {
-                p = i;
-            }
-        }
-
-        if (p !== j) {
-            for (k = 0; k < columns; k++) {
-                t = lu[p][k];
-                lu[p][k] = lu[j][k];
-                lu[j][k] = t;
-            }
-
-            v = pivotVector[p];
-            pivotVector[p] = pivotVector[j];
-            pivotVector[j] = v;
-
-            pivotSign = -pivotSign;
-        }
-
-        if (j < rows && lu[j][j] !== 0) {
-            for (i = j + 1; i < rows; i++) {
-                lu[i][j] /= lu[j][j];
-            }
-        }
-    }
-
-    this.LU = lu;
-    this.pivotVector = pivotVector;
-    this.pivotSign = pivotSign;
-}
-
-LuDecomposition.prototype = {
-    isSingular: function () {
-        var data = this.LU,
-            col = data.columns;
-        for (var j = 0; j < col; j++) {
-            if (data[j][j] === 0) {
-                return true;
-            }
-        }
-        return false;
-    },
-    get determinant() {
-        var data = this.LU;
-        if (!data.isSquare())
-            throw new Error('Matrix must be square');
-        var determinant = this.pivotSign, col = data.columns;
-        for (var j = 0; j < col; j++)
-            determinant *= data[j][j];
-        return determinant;
-    },
-    get lowerTriangularMatrix() {
-        var data = this.LU,
-            rows = data.rows,
-            columns = data.columns,
-            X = new Matrix(rows, columns);
-        for (var i = 0; i < rows; i++) {
-            for (var j = 0; j < columns; j++) {
-                if (i > j) {
-                    X[i][j] = data[i][j];
-                } else if (i === j) {
-                    X[i][j] = 1;
-                } else {
-                    X[i][j] = 0;
-                }
-            }
-        }
-        return X;
-    },
-    get upperTriangularMatrix() {
-        var data = this.LU,
-            rows = data.rows,
-            columns = data.columns,
-            X = new Matrix(rows, columns);
-        for (var i = 0; i < rows; i++) {
-            for (var j = 0; j < columns; j++) {
-                if (i <= j) {
-                    X[i][j] = data[i][j];
-                } else {
-                    X[i][j] = 0;
-                }
-            }
-        }
-        return X;
-    },
-    get pivotPermutationVector() {
-        return this.pivotVector.slice();
-    },
-    solve: function (value) {
-        value = Matrix.checkMatrix(value);
-
-        var lu = this.LU,
-            rows = lu.rows;
-
-        if (rows !== value.rows)
-            throw new Error('Invalid matrix dimensions');
-        if (this.isSingular())
-            throw new Error('LU matrix is singular');
-
-        var count = value.columns,
-            X = value.subMatrixRow(this.pivotVector, 0, count - 1),
-            columns = lu.columns,
-            i, j, k;
-
-        for (k = 0; k < columns; k++) {
-            for (i = k + 1; i < columns; i++) {
-                for (j = 0; j < count; j++) {
-                    X[i][j] -= X[k][j] * lu[i][k];
-                }
-            }
-        }
-        for (k = columns - 1; k >= 0; k--) {
-            for (j = 0; j < count; j++) {
-                X[k][j] /= lu[k][k];
-            }
-            for (i = 0; i < k; i++) {
-                for (j = 0; j < count; j++) {
-                    X[i][j] -= X[k][j] * lu[i][k];
-                }
-            }
-        }
-        return X;
-    }
-};
-
-module.exports = LuDecomposition;
-
-
-/***/ }),
-/* 110 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var Matrix = __webpack_require__(4);
-var hypotenuse = __webpack_require__(15).hypotenuse;
+var Matrix = __webpack_require__(1).Matrix;
+var hypotenuse = __webpack_require__(18).hypotenuse;
 
 //https://github.com/lutzroeder/Mapack/blob/master/Source/QrDecomposition.cs
 function QrDecomposition(value) {
@@ -24411,15 +27525,17 @@ QrDecomposition.prototype = {
         var qr = this.QR,
             m = qr.rows;
 
-        if (value.rows !== m)
+        if (value.rows !== m) {
             throw new Error('Matrix row dimensions must agree');
-        if (!this.isFullRank())
+        }
+        if (!this.isFullRank()) {
             throw new Error('Matrix is rank deficient');
+        }
 
-        var count = value.columns,
-            X = value.clone(),
-            n = qr.columns,
-            i, j, k, s;
+        var count = value.columns;
+        var X = value.clone();
+        var n = qr.columns;
+        var i, j, k, s;
 
         for (k = 0; k < n; k++) {
             for (j = 0; j < count; j++) {
@@ -24508,546 +27624,43 @@ module.exports = QrDecomposition;
 
 
 /***/ }),
-/* 111 */
+/* 124 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Matrix = __webpack_require__(4);
-var util = __webpack_require__(15);
-var hypotenuse = util.hypotenuse;
-var getFilled2DArray = util.getFilled2DArray;
+var Matrix = __webpack_require__(1).Matrix;
 
-// https://github.com/lutzroeder/Mapack/blob/master/Source/SingularValueDecomposition.cs
-function SingularValueDecomposition(value, options) {
-    if (!(this instanceof SingularValueDecomposition)) {
-        return new SingularValueDecomposition(value, options);
-    }
-    value = Matrix.checkMatrix(value);
-
-    options = options || {};
-
-    var m = value.rows,
-        n = value.columns,
-        nu = Math.min(m, n);
-
-    var wantu = true, wantv = true;
-    if (options.computeLeftSingularVectors === false)
-        wantu = false;
-    if (options.computeRightSingularVectors === false)
-        wantv = false;
-    var autoTranspose = options.autoTranspose === true;
-
-    var swapped = false;
-    var a;
-    if (m < n) {
-        if (!autoTranspose) {
-            a = value.clone();
-            console.warn('Computing SVD on a matrix with more columns than rows. Consider enabling autoTranspose');
-        } else {
-            a = value.transpose();
-            m = a.rows;
-            n = a.columns;
-            swapped = true;
-            var aux = wantu;
-            wantu = wantv;
-            wantv = aux;
-        }
-    } else {
-        a = value.clone();
-    }
-
-    var s = new Array(Math.min(m + 1, n)),
-        U = getFilled2DArray(m, nu, 0),
-        V = getFilled2DArray(n, n, 0),
-        e = new Array(n),
-        work = new Array(m);
-
-    var nct = Math.min(m - 1, n);
-    var nrt = Math.max(0, Math.min(n - 2, m));
-
-    var i, j, k, p, t, ks, f, cs, sn, max, kase,
-        scale, sp, spm1, epm1, sk, ek, b, c, shift, g;
-
-    for (k = 0, max = Math.max(nct, nrt); k < max; k++) {
-        if (k < nct) {
-            s[k] = 0;
-            for (i = k; i < m; i++) {
-                s[k] = hypotenuse(s[k], a[i][k]);
-            }
-            if (s[k] !== 0) {
-                if (a[k][k] < 0) {
-                    s[k] = -s[k];
-                }
-                for (i = k; i < m; i++) {
-                    a[i][k] /= s[k];
-                }
-                a[k][k] += 1;
-            }
-            s[k] = -s[k];
-        }
-
-        for (j = k + 1; j < n; j++) {
-            if ((k < nct) && (s[k] !== 0)) {
-                t = 0;
-                for (i = k; i < m; i++) {
-                    t += a[i][k] * a[i][j];
-                }
-                t = -t / a[k][k];
-                for (i = k; i < m; i++) {
-                    a[i][j] += t * a[i][k];
-                }
-            }
-            e[j] = a[k][j];
-        }
-
-        if (wantu && (k < nct)) {
-            for (i = k; i < m; i++) {
-                U[i][k] = a[i][k];
-            }
-        }
-
-        if (k < nrt) {
-            e[k] = 0;
-            for (i = k + 1; i < n; i++) {
-                e[k] = hypotenuse(e[k], e[i]);
-            }
-            if (e[k] !== 0) {
-                if (e[k + 1] < 0)
-                    e[k] = -e[k];
-                for (i = k + 1; i < n; i++) {
-                    e[i] /= e[k];
-                }
-                e[k + 1] += 1;
-            }
-            e[k] = -e[k];
-            if ((k + 1 < m) && (e[k] !== 0)) {
-                for (i = k + 1; i < m; i++) {
-                    work[i] = 0;
-                }
-                for (j = k + 1; j < n; j++) {
-                    for (i = k + 1; i < m; i++) {
-                        work[i] += e[j] * a[i][j];
-                    }
-                }
-                for (j = k + 1; j < n; j++) {
-                    t = -e[j] / e[k + 1];
-                    for (i = k + 1; i < m; i++) {
-                        a[i][j] += t * work[i];
-                    }
-                }
-            }
-            if (wantv) {
-                for (i = k + 1; i < n; i++) {
-                    V[i][k] = e[i];
-                }
-            }
-        }
-    }
-
-    p = Math.min(n, m + 1);
-    if (nct < n) {
-        s[nct] = a[nct][nct];
-    }
-    if (m < p) {
-        s[p - 1] = 0;
-    }
-    if (nrt + 1 < p) {
-        e[nrt] = a[nrt][p - 1];
-    }
-    e[p - 1] = 0;
-
-    if (wantu) {
-        for (j = nct; j < nu; j++) {
-            for (i = 0; i < m; i++) {
-                U[i][j] = 0;
-            }
-            U[j][j] = 1;
-        }
-        for (k = nct - 1; k >= 0; k--) {
-            if (s[k] !== 0) {
-                for (j = k + 1; j < nu; j++) {
-                    t = 0;
-                    for (i = k; i < m; i++) {
-                        t += U[i][k] * U[i][j];
-                    }
-                    t = -t / U[k][k];
-                    for (i = k; i < m; i++) {
-                        U[i][j] += t * U[i][k];
-                    }
-                }
-                for (i = k; i < m; i++) {
-                    U[i][k] = -U[i][k];
-                }
-                U[k][k] = 1 + U[k][k];
-                for (i = 0; i < k - 1; i++) {
-                    U[i][k] = 0;
-                }
-            } else {
-                for (i = 0; i < m; i++) {
-                    U[i][k] = 0;
-                }
-                U[k][k] = 1;
-            }
-        }
-    }
-
-    if (wantv) {
-        for (k = n - 1; k >= 0; k--) {
-            if ((k < nrt) && (e[k] !== 0)) {
-                for (j = k + 1; j < n; j++) {
-                    t = 0;
-                    for (i = k + 1; i < n; i++) {
-                        t += V[i][k] * V[i][j];
-                    }
-                    t = -t / V[k + 1][k];
-                    for (i = k + 1; i < n; i++) {
-                        V[i][j] += t * V[i][k];
-                    }
-                }
-            }
-            for (i = 0; i < n; i++) {
-                V[i][k] = 0;
-            }
-            V[k][k] = 1;
-        }
-    }
-
-    var pp = p - 1,
-        iter = 0,
-        eps = Math.pow(2, -52);
-    while (p > 0) {
-        for (k = p - 2; k >= -1; k--) {
-            if (k === -1) {
-                break;
-            }
-            if (Math.abs(e[k]) <= eps * (Math.abs(s[k]) + Math.abs(s[k + 1]))) {
-                e[k] = 0;
-                break;
-            }
-        }
-        if (k === p - 2) {
-            kase = 4;
-        } else {
-            for (ks = p - 1; ks >= k; ks--) {
-                if (ks === k) {
-                    break;
-                }
-                t = (ks !== p ? Math.abs(e[ks]) : 0) + (ks !== k + 1 ? Math.abs(e[ks - 1]) : 0);
-                if (Math.abs(s[ks]) <= eps * t) {
-                    s[ks] = 0;
-                    break;
-                }
-            }
-            if (ks === k) {
-                kase = 3;
-            } else if (ks === p - 1) {
-                kase = 1;
-            } else {
-                kase = 2;
-                k = ks;
-            }
-        }
-
-        k++;
-
-        switch (kase) {
-            case 1: {
-                f = e[p - 2];
-                e[p - 2] = 0;
-                for (j = p - 2; j >= k; j--) {
-                    t = hypotenuse(s[j], f);
-                    cs = s[j] / t;
-                    sn = f / t;
-                    s[j] = t;
-                    if (j !== k) {
-                        f = -sn * e[j - 1];
-                        e[j - 1] = cs * e[j - 1];
-                    }
-                    if (wantv) {
-                        for (i = 0; i < n; i++) {
-                            t = cs * V[i][j] + sn * V[i][p - 1];
-                            V[i][p - 1] = -sn * V[i][j] + cs * V[i][p - 1];
-                            V[i][j] = t;
-                        }
-                    }
-                }
-                break;
-            }
-            case 2 : {
-                f = e[k - 1];
-                e[k - 1] = 0;
-                for (j = k; j < p; j++) {
-                    t = hypotenuse(s[j], f);
-                    cs = s[j] / t;
-                    sn = f / t;
-                    s[j] = t;
-                    f = -sn * e[j];
-                    e[j] = cs * e[j];
-                    if (wantu) {
-                        for (i = 0; i < m; i++) {
-                            t = cs * U[i][j] + sn * U[i][k - 1];
-                            U[i][k - 1] = -sn * U[i][j] + cs * U[i][k - 1];
-                            U[i][j] = t;
-                        }
-                    }
-                }
-                break;
-            }
-            case 3 : {
-                scale = Math.max(Math.max(Math.max(Math.max(Math.abs(s[p - 1]), Math.abs(s[p - 2])), Math.abs(e[p - 2])), Math.abs(s[k])), Math.abs(e[k]));
-                sp = s[p - 1] / scale;
-                spm1 = s[p - 2] / scale;
-                epm1 = e[p - 2] / scale;
-                sk = s[k] / scale;
-                ek = e[k] / scale;
-                b = ((spm1 + sp) * (spm1 - sp) + epm1 * epm1) / 2;
-                c = (sp * epm1) * (sp * epm1);
-                shift = 0;
-                if ((b !== 0) || (c !== 0)) {
-                    shift = Math.sqrt(b * b + c);
-                    if (b < 0) {
-                        shift = -shift;
-                    }
-                    shift = c / (b + shift);
-                }
-                f = (sk + sp) * (sk - sp) + shift;
-                g = sk * ek;
-                for (j = k; j < p - 1; j++) {
-                    t = hypotenuse(f, g);
-                    cs = f / t;
-                    sn = g / t;
-                    if (j !== k) {
-                        e[j - 1] = t;
-                    }
-                    f = cs * s[j] + sn * e[j];
-                    e[j] = cs * e[j] - sn * s[j];
-                    g = sn * s[j + 1];
-                    s[j + 1] = cs * s[j + 1];
-                    if (wantv) {
-                        for (i = 0; i < n; i++) {
-                            t = cs * V[i][j] + sn * V[i][j + 1];
-                            V[i][j + 1] = -sn * V[i][j] + cs * V[i][j + 1];
-                            V[i][j] = t;
-                        }
-                    }
-                    t = hypotenuse(f, g);
-                    cs = f / t;
-                    sn = g / t;
-                    s[j] = t;
-                    f = cs * e[j] + sn * s[j + 1];
-                    s[j + 1] = -sn * e[j] + cs * s[j + 1];
-                    g = sn * e[j + 1];
-                    e[j + 1] = cs * e[j + 1];
-                    if (wantu && (j < m - 1)) {
-                        for (i = 0; i < m; i++) {
-                            t = cs * U[i][j] + sn * U[i][j + 1];
-                            U[i][j + 1] = -sn * U[i][j] + cs * U[i][j + 1];
-                            U[i][j] = t;
-                        }
-                    }
-                }
-                e[p - 2] = f;
-                iter = iter + 1;
-                break;
-            }
-            case 4: {
-                if (s[k] <= 0) {
-                    s[k] = (s[k] < 0 ? -s[k] : 0);
-                    if (wantv) {
-                        for (i = 0; i <= pp; i++) {
-                            V[i][k] = -V[i][k];
-                        }
-                    }
-                }
-                while (k < pp) {
-                    if (s[k] >= s[k + 1]) {
-                        break;
-                    }
-                    t = s[k];
-                    s[k] = s[k + 1];
-                    s[k + 1] = t;
-                    if (wantv && (k < n - 1)) {
-                        for (i = 0; i < n; i++) {
-                            t = V[i][k + 1];
-                            V[i][k + 1] = V[i][k];
-                            V[i][k] = t;
-                        }
-                    }
-                    if (wantu && (k < m - 1)) {
-                        for (i = 0; i < m; i++) {
-                            t = U[i][k + 1];
-                            U[i][k + 1] = U[i][k];
-                            U[i][k] = t;
-                        }
-                    }
-                    k++;
-                }
-                iter = 0;
-                p--;
-                break;
-            }
-        }
-    }
-
-    if (swapped) {
-        var tmp = V;
-        V = U;
-        U = tmp;
-    }
-
-    this.m = m;
-    this.n = n;
-    this.s = s;
-    this.U = U;
-    this.V = V;
-}
-
-SingularValueDecomposition.prototype = {
-    get condition() {
-        return this.s[0] / this.s[Math.min(this.m, this.n) - 1];
-    },
-    get norm2() {
-        return this.s[0];
-    },
-    get rank() {
-        var eps = Math.pow(2, -52),
-            tol = Math.max(this.m, this.n) * this.s[0] * eps,
-            r = 0,
-            s = this.s;
-        for (var i = 0, ii = s.length; i < ii; i++) {
-            if (s[i] > tol) {
-                r++;
-            }
-        }
-        return r;
-    },
-    get diagonal() {
-        return this.s;
-    },
-    // https://github.com/accord-net/framework/blob/development/Sources/Accord.Math/Decompositions/SingularValueDecomposition.cs
-    get threshold() {
-        return (Math.pow(2, -52) / 2) * Math.max(this.m, this.n) * this.s[0];
-    },
-    get leftSingularVectors() {
-        if (!Matrix.isMatrix(this.U)) {
-            this.U = new Matrix(this.U);
-        }
-        return this.U;
-    },
-    get rightSingularVectors() {
-        if (!Matrix.isMatrix(this.V)) {
-            this.V = new Matrix(this.V);
-        }
-        return this.V;
-    },
-    get diagonalMatrix() {
-        return Matrix.diag(this.s);
-    },
-    solve: function (value) {
-
-        var Y = value,
-            e = this.threshold,
-            scols = this.s.length,
-            Ls = Matrix.zeros(scols, scols),
-            i;
-
-        for (i = 0; i < scols; i++) {
-            if (Math.abs(this.s[i]) <= e) {
-                Ls[i][i] = 0;
-            } else {
-                Ls[i][i] = 1 / this.s[i];
-            }
-        }
-
-        var U = this.U;
-        var V = this.rightSingularVectors;
-
-        var VL = V.mmul(Ls),
-            vrows = V.rows,
-            urows = U.length,
-            VLU = Matrix.zeros(vrows, urows),
-            j, k, sum;
-
-        for (i = 0; i < vrows; i++) {
-            for (j = 0; j < urows; j++) {
-                sum = 0;
-                for (k = 0; k < scols; k++) {
-                    sum += VL[i][k] * U[j][k];
-                }
-                VLU[i][j] = sum;
-            }
-        }
-
-        return VLU.mmul(Y);
-    },
-    solveForDiagonal: function (value) {
-        return this.solve(Matrix.diag(value));
-    },
-    inverse: function () {
-        var V = this.V;
-        var e = this.threshold,
-            vrows = V.length,
-            vcols = V[0].length,
-            X = new Matrix(vrows, this.s.length),
-            i, j;
-
-        for (i = 0; i < vrows; i++) {
-            for (j = 0; j < vcols; j++) {
-                if (Math.abs(this.s[j]) > e) {
-                    X[i][j] = V[i][j] / this.s[j];
-                } else {
-                    X[i][j] = 0;
-                }
-            }
-        }
-
-        var U = this.U;
-
-        var urows = U.length,
-            ucols = U[0].length,
-            Y = new Matrix(vrows, urows),
-            k, sum;
-
-        for (i = 0; i < vrows; i++) {
-            for (j = 0; j < urows; j++) {
-                sum = 0;
-                for (k = 0; k < ucols; k++) {
-                    sum += X[i][k] * U[j][k];
-                }
-                Y[i][j] = sum;
-            }
-        }
-
-        return Y;
-    }
-};
-
-module.exports = SingularValueDecomposition;
-
-
-/***/ }),
-/* 112 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var Matrix = __webpack_require__(4);
-
-var SingularValueDecomposition = __webpack_require__(111);
-var EigenvalueDecomposition = __webpack_require__(108);
-var LuDecomposition = __webpack_require__(109);
-var QrDecomposition = __webpack_require__(110);
-var CholeskyDecomposition = __webpack_require__(107);
+var SingularValueDecomposition = __webpack_require__(49);
+var EigenvalueDecomposition = __webpack_require__(122);
+var LuDecomposition = __webpack_require__(48);
+var QrDecomposition = __webpack_require__(123);
+var CholeskyDecomposition = __webpack_require__(121);
 
 function inverse(matrix) {
     matrix = Matrix.checkMatrix(matrix);
     return solve(matrix, Matrix.eye(matrix.rows));
 }
 
+/**
+ * Returns the inverse
+ * @memberOf Matrix
+ * @static
+ * @param {Matrix} matrix
+ * @return {Matrix} matrix
+ * @alias inv
+ */
 Matrix.inverse = Matrix.inv = inverse;
+
+/**
+ * Returns the inverse
+ * @memberOf Matrix
+ * @static
+ * @param {Matrix} matrix
+ * @return {Matrix} matrix
+ * @alias inv
+ */
 Matrix.prototype.inverse = Matrix.prototype.inv = function () {
     return inverse(this);
 };
@@ -25080,17 +27693,227 @@ module.exports = {
 
 
 /***/ }),
-/* 113 */
+/* 125 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const Matrix = __webpack_require__(16);
-const newArray = __webpack_require__(14);
-const simpleClustering = __webpack_require__(39);
-const hlClust = __webpack_require__(84);
-const DEBUG = false;
+if (!Symbol.species) {
+    Symbol.species = Symbol.for('@@species');
+}
+
+
+/***/ }),
+/* 126 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var BaseView = __webpack_require__(4);
+
+class MatrixColumnView extends BaseView {
+    constructor(matrix, column) {
+        super(matrix, matrix.rows, 1);
+        this.column = column;
+    }
+
+    set(rowIndex, columnIndex, value) {
+        this.matrix.set(rowIndex, this.column, value);
+        return this;
+    }
+
+    get(rowIndex) {
+        return this.matrix.get(rowIndex, this.column);
+    }
+}
+
+module.exports = MatrixColumnView;
+
+
+/***/ }),
+/* 127 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var BaseView = __webpack_require__(4);
+
+class MatrixFlipColumnView extends BaseView {
+    constructor(matrix) {
+        super(matrix, matrix.rows, matrix.columns);
+    }
+
+    set(rowIndex, columnIndex, value) {
+        this.matrix.set(rowIndex, this.columns - columnIndex - 1, value);
+        return this;
+    }
+
+    get(rowIndex, columnIndex) {
+        return this.matrix.get(rowIndex, this.columns - columnIndex - 1);
+    }
+}
+
+module.exports = MatrixFlipColumnView;
+
+
+/***/ }),
+/* 128 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var BaseView = __webpack_require__(4);
+
+class MatrixFlipRowView extends BaseView {
+    constructor(matrix) {
+        super(matrix, matrix.rows, matrix.columns);
+    }
+
+    set(rowIndex, columnIndex, value) {
+        this.matrix.set(this.rows - rowIndex - 1, columnIndex, value);
+        return this;
+    }
+
+    get(rowIndex, columnIndex) {
+        return this.matrix.get(this.rows - rowIndex - 1, columnIndex);
+    }
+}
+
+module.exports = MatrixFlipRowView;
+
+
+/***/ }),
+/* 129 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var BaseView = __webpack_require__(4);
+
+class MatrixRowView extends BaseView {
+    constructor(matrix, row) {
+        super(matrix, 1, matrix.columns);
+        this.row = row;
+    }
+
+    set(rowIndex, columnIndex, value) {
+        this.matrix.set(this.row, columnIndex, value);
+        return this;
+    }
+
+    get(rowIndex, columnIndex) {
+        return this.matrix.get(this.row, columnIndex);
+    }
+}
+
+module.exports = MatrixRowView;
+
+
+/***/ }),
+/* 130 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var BaseView = __webpack_require__(4);
+var util = __webpack_require__(8);
+
+class MatrixSelectionView extends BaseView {
+    constructor(matrix, rowIndices, columnIndices) {
+        var indices = util.checkIndices(matrix, rowIndices, columnIndices);
+        super(matrix, indices.row.length, indices.column.length);
+        this.rowIndices = indices.row;
+        this.columnIndices = indices.column;
+    }
+
+    set(rowIndex, columnIndex, value) {
+        this.matrix.set(this.rowIndices[rowIndex], this.columnIndices[columnIndex], value);
+        return this;
+    }
+
+    get(rowIndex, columnIndex) {
+        return this.matrix.get(this.rowIndices[rowIndex], this.columnIndices[columnIndex]);
+    }
+}
+
+module.exports = MatrixSelectionView;
+
+
+/***/ }),
+/* 131 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var BaseView = __webpack_require__(4);
+var util = __webpack_require__(8);
+
+class MatrixSubView extends BaseView {
+    constructor(matrix, startRow, endRow, startColumn, endColumn) {
+        util.checkRange(matrix, startRow, endRow, startColumn, endColumn);
+        super(matrix, endRow - startRow + 1, endColumn - startColumn + 1);
+        this.startRow = startRow;
+        this.startColumn = startColumn;
+    }
+
+    set(rowIndex, columnIndex, value) {
+        this.matrix.set(this.startRow + rowIndex, this.startColumn + columnIndex, value);
+        return this;
+    }
+
+    get(rowIndex, columnIndex) {
+        return this.matrix.get(this.startRow + rowIndex, this.startColumn + columnIndex);
+    }
+}
+
+module.exports = MatrixSubView;
+
+
+/***/ }),
+/* 132 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var BaseView = __webpack_require__(4);
+
+class MatrixTransposeView extends BaseView {
+    constructor(matrix) {
+        super(matrix, matrix.columns, matrix.rows);
+    }
+
+    set(rowIndex, columnIndex, value) {
+        this.matrix.set(columnIndex, rowIndex, value);
+        return this;
+    }
+
+    get(rowIndex, columnIndex) {
+        return this.matrix.get(columnIndex, rowIndex);
+    }
+}
+
+module.exports = MatrixTransposeView;
+
+
+/***/ }),
+/* 133 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+const Matrix = __webpack_require__(19);
+const newArray = __webpack_require__(17);
+const simpleClustering = __webpack_require__(44);
+const hlClust = __webpack_require__(104);
 
 class SpinSystem {
     constructor(chemicalShifts, couplingConstants, multiplicity) {
@@ -25134,37 +27957,37 @@ class SpinSystem {
     }
 
     static fromPrediction(input) {
-        let predictions = SpinSystem._ungroupAtoms(input);
+        let predictions = SpinSystem.ungroupAtoms(input);
         const nSpins = predictions.length;
         const cs = new Array(nSpins);
         const jc = Matrix.zeros(nSpins, nSpins);
         const multiplicity = new Array(nSpins);
         const ids = {};
-        var i,k,j;
-        for(i=0;i<nSpins;i++) {
+        var i, k, j;
+        for (i = 0; i < nSpins; i++) {
             cs[i] = predictions[i].delta;
             ids[predictions[i].atomIDs[0]] = i;
         }
-        for( i = 0; i < nSpins; i++) {
+        for (i = 0; i < nSpins; i++) {
             cs[i] = predictions[i].delta;
             j = predictions[i].j;
-            for( k = 0; k < j.length; k++) {
+            for (k = 0; k < j.length; k++) {
                 //console.log(ids[result[i].atomIDs[0]],ids[j[k].assignment]);
                 jc[ids[predictions[i].atomIDs[0]]][ids[j[k].assignment]] = j[k].coupling;
                 jc[ids[j[k].assignment]][ids[predictions[i].atomIDs[0]]] = j[k].coupling;
             }
-            multiplicity[i] = predictions[i].integral+1;
+            multiplicity[i] = predictions[i].integral + 1;
         }
 
         return new SpinSystem(cs, jc, multiplicity);
     }
 
 
-    static _ungroupAtoms(prediction) {
+    static ungroupAtoms(prediction) {
         let result = [];
         prediction.forEach(pred => {
-            let atomIDs = pred['atomIDs'];
-            for(let i = 0; i < atomIDs.length; i++) {
+            let atomIDs = pred.atomIDs;
+            for (let i = 0; i < atomIDs.length; i++) {
                 let tempPred = JSON.parse(JSON.stringify(pred));
                 tempPred.atomIDs = [atomIDs[i]];
                 tempPred.integral = 1;
@@ -25177,7 +28000,7 @@ class SpinSystem {
 
 
     _initClusters() {
-        this.clusters = simpleClustering(this.connectivity, {out:"indexes"});
+        this.clusters = simpleClustering(this.connectivity, {out: 'indexes'});
     }
 
     _initConnectivity() {
@@ -25195,50 +28018,45 @@ class SpinSystem {
     }
 
 
-    _calculateBetas(J, frequency){
+    _calculateBetas(J, frequency) {
         var betas = Matrix.zeros(J.length, J.length);
         //Before clustering, we must add hidden J, we could use molecular information if available
-        var i,j;
-        for( i=0;i<J.rows;i++){
-            for( j=i;j<J.columns;j++){
-                if((this.chemicalShifts[i]-this.chemicalShifts[j])!=0){
-                    betas[i][j] = 1 - Math.abs(J[i][j]/((this.chemicalShifts[i]-this.chemicalShifts[j])*frequency));
+        var i, j;
+        for (i = 0; i < J.rows; i++) {
+            for (j = i; j < J.columns; j++) {
+                if ((this.chemicalShifts[i] - this.chemicalShifts[j]) !== 0) {
+                    betas[i][j] = 1 - Math.abs(J[i][j] / ((this.chemicalShifts[i] - this.chemicalShifts[j]) * frequency));
                     betas[j][i] = betas[i][j];
+                } else if (!(i === j || J[i][j] !== 0)) {
+                    betas[i][j] = 1;
+                    betas[j][i] = 1;
                 }
-                else if( !(i == j || J[i][j] !== 0) ){
-                        betas[i][j] = 1;
-                        betas[j][i] = 1;
-                    }
             }
         }
         return betas;
     }
 
-    ensureClusterSize(options){
-        var betas = this._calculateBetas(this.couplingConstants, options.frequency||400);
-        var cluster = hlClust.agnes(betas, {isDistanceMatrix:true});
+    ensureClusterSize(options) {
+        var betas = this._calculateBetas(this.couplingConstants, options.frequency || 400);
+        var cluster = hlClust.agnes(betas, {isDistanceMatrix: true});
         var list = [];
-        this._splitCluster(cluster, list, options.maxClusterSize||8, false);
+        this._splitCluster(cluster, list, options.maxClusterSize || 8, false);
         var clusters = this._mergeClusters(list);
         this.nClusters = clusters.length;
         //console.log(clusters);
-        this.clusters  = new Array(clusters.length);
+        this.clusters = new Array(clusters.length);
         //System.out.println(this.conmatrix);
-        for(var j=0;j<this.nClusters;j++) {
+        for (var j = 0; j < this.nClusters; j++) {
             this.clusters[j] = [];
-            for(var i = 0; i < this.nSpins; i++) {
-                if(clusters[j][i] !== 0) {
-                    if (clusters[j][i] < 0)
+            for (var i = 0; i < this.nSpins; i++) {
+                if (clusters[j][i] !== 0) {
+                    if (clusters[j][i] < 0) {
                         this.clusters[j].push(-(i + 1));
-                    else
+                    } else {
                         this.clusters[j].push(i);
+                    }
                 }
             }
-        }
-        if(DEBUG){
-            console.log("Cluster list");
-            console.log(this.clusters);
-
         }
     }
 
@@ -25248,20 +28066,19 @@ class SpinSystem {
      * @param clusterList
      */
     _splitCluster(cluster, clusterList, maxClusterSize, force) {
-        if(!force && cluster.index.length <= maxClusterSize) {
+        if (!force && cluster.index.length <= maxClusterSize) {
             clusterList.push(this._getMembers(cluster));
-        }
-        else{
-            for(var child of cluster.children){
+        } else {
+            for (var child of cluster.children) {
                 if (!isNaN(child.index) || child.index.length <= maxClusterSize) {
                     var members = this._getMembers(child);
                     //Add the neighbors that shares at least 1 coupling with the given cluster
                     var count = 0;
                     for (var i = 0; i < this.nSpins; i++) {
-                        if (members[i] == 1) {
+                        if (members[i] === 1) {
                             count++;
                             for (var j = 0; j < this.nSpins; j++) {
-                                if (this.connectivity[i][j] == 1 && members[j] == 0) {
+                                if (this.connectivity[i][j] === 1 && members[j] === 0) {
                                     members[j] = -1;
                                     count++;
                                 }
@@ -25269,19 +28086,18 @@ class SpinSystem {
                         }
                     }
 
-                    if (count <= maxClusterSize)
+                    if (count <= maxClusterSize) {
                         clusterList.push(members);
-                    else {
-                        if (isNaN(child.index))
+                    } else {
+                        if (isNaN(child.index)) {
                             this._splitCluster(child, clusterList, maxClusterSize, true);
-                        else {
+                        } else {
                             //We have to threat this spin alone and use the resurrection algorithm instead of the simulation
                             members[child.index] = 2;
                             clusterList.push(members);
                         }
                     }
-                }
-                else{
+                } else {
                     this._splitCluster(child, clusterList, maxClusterSize, false);
                 }
             }
@@ -25295,15 +28111,14 @@ class SpinSystem {
 
     _getMembers(cluster) {
         var members = new Array(this.nSpins);
-        for(var i = 0; i < this.nSpins; i++) {
-            members[i]=0;
+        for (var i = 0; i < this.nSpins; i++) {
+            members[i] = 0;
         }
-        if(!isNaN(cluster.index)) {
-            members[cluster.index*1] = 1;
-        }
-        else{
-            for(var index of cluster.index) {
-                members[index.index*1] = 1;
+        if (!isNaN(cluster.index)) {
+            members[cluster.index * 1] = 1;
+        } else {
+            for (var index of cluster.index) {
+                members[index.index * 1] = 1;
             }
         }
         return members;
@@ -25312,47 +28127,46 @@ class SpinSystem {
     _mergeClusters(list) {
         var nElements = 0;
         var clusterA, clusterB, i, j, index, common, count;
-        for(i = list.length-1; i >=0 ; i--) {
+        for (i = list.length - 1; i >= 0; i--) {
             clusterA = list[i];
             nElements = clusterA.length;
-            index=0;
+            index = 0;
 
             //Is it a candidate to be merged?
-            while(index < nElements && clusterA[index++] != -1);
+            while (index < nElements && clusterA[index++] !== -1);
 
-            if(index < nElements) {
-                for(j = list.length-1; j>= i+1; j--) {
+            if (index < nElements) {
+                for (j = list.length - 1; j >= i + 1; j--) {
                     clusterB = list[j];
                     //Do they have common elements?
                     index = 0;
                     common = 0;
                     count = 0;
-                    while(index < nElements) {
-                        if(clusterA[index]*clusterB[index] === -1) {
+                    while (index < nElements) {
+                        if (clusterA[index] * clusterB[index] === -1) {
                             common++;
                         }
-                        if(clusterA[index] !==0 || clusterB[index] !== 0) {
+                        if (clusterA[index] !== 0 || clusterB[index] !== 0) {
                             count++;
                         }
                         index++;
                     }
 
-                    if(common > 0 && count <= this.maxClusterSize) {
+                    if (common > 0 && count <= this.maxClusterSize) {
                         //Then we can merge those 2 clusters
                         index = 0;
-                        while(index<nElements) {
-                            if(clusterB[index] === 1) {
-                                clusterA[index]=1;
-                            }
-                            else{
-                                if(clusterB[index] === -1 && clusterA[index] !== 1) {
-                                    clusterA[index]=-1;
+                        while (index < nElements) {
+                            if (clusterB[index] === 1) {
+                                clusterA[index] = 1;
+                            } else {
+                                if (clusterB[index] === -1 && clusterA[index] !== 1) {
+                                    clusterA[index] = -1;
                                 }
                             }
                             index++;
                         }
                         //list.remove(clusterB);
-                        list.splice(j,1);
+                        list.splice(j, 1);
                         j++;
                     }
                 }
@@ -25367,13 +28181,13 @@ module.exports = SpinSystem;
 
 
 /***/ }),
-/* 114 */
+/* 134 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const SparseMatrix = __webpack_require__(40);
+const SparseMatrix = __webpack_require__(45);
 
 function createPauli(mult) {
     const spin = (mult - 1) / 2;
@@ -25415,19 +28229,19 @@ module.exports = getPauli;
 
 
 /***/ }),
-/* 115 */
+/* 135 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const Matrix = __webpack_require__(16);
-const SparseMatrix = __webpack_require__(40);
-const binarySearch = __webpack_require__(19);
-const sortAsc = __webpack_require__(43).asc;
-const newArray = __webpack_require__(14);
+const Matrix = __webpack_require__(19);
+const SparseMatrix = __webpack_require__(45);
+const binarySearch = __webpack_require__(25);
+const sortAsc = __webpack_require__(51).asc;
+const newArray = __webpack_require__(17);
 
-const getPauli = __webpack_require__(114);
+const getPauli = __webpack_require__(134);
 
 const smallValue = 1e-2;
 
@@ -25439,7 +28253,7 @@ function simulate1d(spinSystem, options) {
     const lineWidth = options.lineWidth || 1;
     const nbPoints = options.nbPoints || 1024;
     const maxClusterSize = options.maxClusterSize || 10;
-    const output = options.output || "y";
+    const output = options.output || 'y';
 
     const chemicalShifts = spinSystem.chemicalShifts.slice();
     for (i = 0; i < chemicalShifts.length; i++) {
@@ -25465,7 +28279,7 @@ function simulate1d(spinSystem, options) {
 
         var clusterFake = new Array(cluster.length);
         for (i = 0; i < cluster.length; i++) {
-            clusterFake[i] = cluster[i]<0?-cluster[i]-1:cluster[i];
+            clusterFake[i] = cluster[i] < 0 ? -cluster[i] - 1 : cluster[i];
         }
 
         var weight = 1;
@@ -25476,16 +28290,16 @@ function simulate1d(spinSystem, options) {
             //This is a single spin, but the cluster exceeds the maxClusterSize criteria
             //we use the simple multiplicity algorithm
             //Add the central peak. It will be split with every single J coupling.
-            var index  = 0;
-            while (cluster[index++]<0);
-            index = cluster[index-1];
+            var index = 0;
+            while (cluster[index++] < 0);
+            index = cluster[index - 1];
             var currentSize, jc;
             frequencies.push(-chemicalShifts[index]);
-            for (i = 0;i < cluster.length; i++) {
+            for (i = 0; i < cluster.length; i++) {
                 if (cluster[i] < 0) {
                     jc = spinSystem.couplingConstants[index][clusterFake[i]] / 2;
                     currentSize = frequencies.length;
-                    for ( j=0 ; j < currentSize; j++) {
+                    for (j = 0; j < currentSize; j++) {
                         frequencies.push(frequencies[j] + jc);
                         frequencies[j] -= jc;
                     }
@@ -25493,10 +28307,10 @@ function simulate1d(spinSystem, options) {
             }
 
             frequencies.sort(sortAsc);
-            sumI=frequencies.length;
-            weight=1;
+            sumI = frequencies.length;
+            weight = 1;
 
-            for (i=0;i<sumI;i++){
+            for (i = 0; i < sumI; i++) {
                 intensities.push(1);
             }
 
@@ -25590,7 +28404,6 @@ function simulate1d(spinSystem, options) {
             });
         }
         const numFreq = frequencies.length;
-        //console.log("New Spin");
         if (numFreq > 0) {
             weight = weight / sumI;
             const diff = lineWidth / 32;
@@ -25612,15 +28425,17 @@ function simulate1d(spinSystem, options) {
             addPeak(result, valFreq / count, inte * weight, from, to, nbPoints, gaussian);
         }
     }
-    if(output==="xy")
-        return {x:_getX(options.from, options.to, nbPoints),y:result};
-    if(output == "y")
+    if (output === 'xy') {
+        return {x: _getX(options.from, options.to, nbPoints), y: result};
+    }
+    if (output === 'y') {
         return result;
+    }
+    throw new RangeError('wrong output option');
 }
 
 function addPeak(result, freq, height, from, to, nbPoints, gaussian) {
-    //console.log(freq, height)
-    const center = (nbPoints * (-freq-from) / (to - from)) | 0;
+    const center = (nbPoints * (-freq - from) / (to - from)) | 0;
     const lnPoints = gaussian.length;
     var index = 0;
     var indexLorentz = 0;
@@ -25701,11 +28516,11 @@ function getHamiltonian(chemicalShifts, couplingConstants, multiplicity, conMatr
     return clusterHam;
 }
 
-function _getX(from, to, nbPoints){
+function _getX(from, to, nbPoints) {
     const x = new Array(nbPoints);
-    const dx = (to-from)/(nbPoints-1);
-    for (var i = 0 ; i < nbPoints; i++) {
-        x[i]=from+i*dx;
+    const dx = (to - from) / (nbPoints - 1);
+    for (var i = 0; i < nbPoints; i++) {
+        x[i] = from + i * dx;
     }
     return x;
 }
@@ -25714,24 +28529,24 @@ module.exports = simulate1d;
 
 
 /***/ }),
-/* 116 */
+/* 136 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const Matrix = __webpack_require__(16);
+const Matrix = __webpack_require__(19);
 
-let defOptions = {'H': {frequency: 400, lineWidth: 10}, 'C': {frequency: 100, lineWidth: 10}}
+let defOptions = {'H': {frequency: 400, lineWidth: 10}, 'C': {frequency: 100, lineWidth: 10}};
 
 function simule2DNmrSpectrum(table, options) {
-    var i, j;
+    var i;
     const fromLabel = table[0].fromAtomLabel;
     const toLabel = table[0].toLabel;
     const frequencyX = options.frequencyX || defOptions[fromLabel].frequency;
     const frequencyY = options.frequencyY || defOptions[toLabel].frequency;
-    var lineWidthX = options.lineWidthX  || defOptions[fromLabel].lineWidth;
-    var lineWidthY = options.lineWidthY  || defOptions[toLabel].lineWidth;
+    var lineWidthX = options.lineWidthX || defOptions[fromLabel].lineWidth;
+    var lineWidthY = options.lineWidthY || defOptions[toLabel].lineWidth;
 
     var sigmaX = lineWidthX / frequencyX;
     var sigmaY = lineWidthY / frequencyY;
@@ -25741,7 +28556,7 @@ function simule2DNmrSpectrum(table, options) {
     var minY = table[0].toChemicalShift;
     var maxY = table[0].toChemicalShift;
     i = 1;
-    while(i < table.length) {
+    while (i < table.length) {
         minX = Math.min(minX, table[i].fromChemicalShift);
         maxX = Math.max(maxX, table[i].fromChemicalShift);
         minY = Math.min(minY, table[i].toChemicalShift);
@@ -25749,21 +28564,25 @@ function simule2DNmrSpectrum(table, options) {
         i++;
     }
 
-    if(options.firstX !== null && !isNaN(options.firstX))
+    if (options.firstX !== null && !isNaN(options.firstX)) {
         minX = options.firstX;
-    if(options.firstY !== null && !isNaN(options.firstY))
+    }
+    if (options.firstY !== null && !isNaN(options.firstY)) {
         minY = options.firstY;
-    if(options.lastX !== null && !isNaN(options.lastX))
-        maxX = options.lastX
-    if(options.lastY !== null && !isNaN(options.lastY))
+    }
+    if (options.lastX !== null && !isNaN(options.lastX)) {
+        maxX = options.lastX;
+    }
+    if (options.lastY !== null && !isNaN(options.lastY)) {
         maxY = options.lastY;
+    }
 
     var nbPointsX = options.nbPointsX || 512;
     var nbPointsY = options.nbPointsY || 512;
 
     var spectraMatrix = new Matrix(nbPointsY, nbPointsX).fill(0);
     i = 0;
-    while(i < table.length) {
+    while (i < table.length) {
         //parameters.couplingConstant = table[i].j;
         //parameters.pathLength = table[i].pathLength;
         let peak = {
@@ -25771,8 +28590,8 @@ function simule2DNmrSpectrum(table, options) {
             y: unitsToArrayPoints(table[i].toChemicalShift, minY, maxY, nbPointsY),
             z: table[i].fromAtoms.length + table[i].toAtoms.length,
             widthX: unitsToArrayPoints(sigmaX + minX, minX, maxX, nbPointsX),
-            widthY: unitsToArrayPoints(sigmaY+ minY, minY, maxY, nbPointsY)
-        }
+            widthY: unitsToArrayPoints(sigmaY + minY, minY, maxY, nbPointsY)
+        };
         addPeak(spectraMatrix, peak);
         i++;
     }
@@ -25787,7 +28606,7 @@ function addPeak(matrix, peak) {
     var nSigma = 4;
     var fromX = Math.max(0, Math.round(peak.x - peak.widthX * nSigma));
     var toX = Math.min(matrix[0].length - 1, Math.round(peak.x + peak.widthX * nSigma));
-    var fromY =  Math.max(0, Math.round(peak.y - peak.widthY * nSigma));
+    var fromY = Math.max(0, Math.round(peak.y - peak.widthY * nSigma));
     var toY = Math.min(matrix.length - 1, Math.round(peak.y + peak.widthY * nSigma));
 
     var squareSigmaX = peak.widthX * peak.widthX;
@@ -25796,7 +28615,7 @@ function addPeak(matrix, peak) {
         for (var i = fromX; i < toX; i++) {
             var exponent = Math.pow(peak.x - i, 2) / squareSigmaX +
                 Math.pow(peak.y - j, 2) / squareSigmaY;
-            var result = 10000 * peak.z * Math.exp( - exponent);
+            var result = 10000 * peak.z * Math.exp(-exponent);
             matrix[j][i] += result;
         }
     }
@@ -25805,8 +28624,9 @@ function addPeak(matrix, peak) {
 
 module.exports = simule2DNmrSpectrum;
 
+
 /***/ }),
-/* 117 */
+/* 137 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -25817,18 +28637,18 @@ module.exports = Number.isNaN || function (x) {
 
 
 /***/ }),
-/* 118 */
+/* 138 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 // Top level file is just a mixin of submodules & constants
 
 
-var assign    = __webpack_require__(1).assign;
+var assign    = __webpack_require__(2).assign;
 
-var deflate   = __webpack_require__(119);
-var inflate   = __webpack_require__(120);
-var constants = __webpack_require__(46);
+var deflate   = __webpack_require__(139);
+var inflate   = __webpack_require__(140);
+var constants = __webpack_require__(54);
 
 var pako = {};
 
@@ -25838,18 +28658,18 @@ module.exports = pako;
 
 
 /***/ }),
-/* 119 */
+/* 139 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 
-var zlib_deflate = __webpack_require__(121);
-var utils        = __webpack_require__(1);
-var strings      = __webpack_require__(44);
-var msg          = __webpack_require__(17);
-var ZStream      = __webpack_require__(48);
+var zlib_deflate = __webpack_require__(141);
+var utils        = __webpack_require__(2);
+var strings      = __webpack_require__(52);
+var msg          = __webpack_require__(20);
+var ZStream      = __webpack_require__(56);
 
 var toString = Object.prototype.toString;
 
@@ -26245,20 +29065,20 @@ exports.gzip = gzip;
 
 
 /***/ }),
-/* 120 */
+/* 140 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 
-var zlib_inflate = __webpack_require__(124);
-var utils        = __webpack_require__(1);
-var strings      = __webpack_require__(44);
-var c            = __webpack_require__(46);
-var msg          = __webpack_require__(17);
-var ZStream      = __webpack_require__(48);
-var GZheader     = __webpack_require__(122);
+var zlib_inflate = __webpack_require__(144);
+var utils        = __webpack_require__(2);
+var strings      = __webpack_require__(52);
+var c            = __webpack_require__(54);
+var msg          = __webpack_require__(20);
+var ZStream      = __webpack_require__(56);
+var GZheader     = __webpack_require__(142);
 
 var toString = Object.prototype.toString;
 
@@ -26670,17 +29490,17 @@ exports.ungzip  = inflate;
 
 
 /***/ }),
-/* 121 */
+/* 141 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var utils   = __webpack_require__(1);
-var trees   = __webpack_require__(126);
-var adler32 = __webpack_require__(45);
-var crc32   = __webpack_require__(47);
-var msg     = __webpack_require__(17);
+var utils   = __webpack_require__(2);
+var trees   = __webpack_require__(146);
+var adler32 = __webpack_require__(53);
+var crc32   = __webpack_require__(55);
+var msg     = __webpack_require__(20);
 
 /* Public constants ==========================================================*/
 /* ===========================================================================*/
@@ -28532,7 +31352,7 @@ exports.deflateTune = deflateTune;
 
 
 /***/ }),
-/* 122 */
+/* 142 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28579,7 +31399,7 @@ module.exports = GZheader;
 
 
 /***/ }),
-/* 123 */
+/* 143 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28912,18 +31732,18 @@ module.exports = function inflate_fast(strm, start) {
 
 
 /***/ }),
-/* 124 */
+/* 144 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 
-var utils         = __webpack_require__(1);
-var adler32       = __webpack_require__(45);
-var crc32         = __webpack_require__(47);
-var inflate_fast  = __webpack_require__(123);
-var inflate_table = __webpack_require__(125);
+var utils         = __webpack_require__(2);
+var adler32       = __webpack_require__(53);
+var crc32         = __webpack_require__(55);
+var inflate_fast  = __webpack_require__(143);
+var inflate_table = __webpack_require__(145);
 
 var CODES = 0;
 var LENS = 1;
@@ -30457,14 +33277,14 @@ exports.inflateUndermine = inflateUndermine;
 
 
 /***/ }),
-/* 125 */
+/* 145 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 
-var utils = __webpack_require__(1);
+var utils = __webpack_require__(2);
 
 var MAXBITS = 15;
 var ENOUGH_LENS = 852;
@@ -30789,14 +33609,14 @@ module.exports = function inflate_table(type, lens, lens_index, codes, table, ta
 
 
 /***/ }),
-/* 126 */
+/* 146 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 
-var utils = __webpack_require__(1);
+var utils = __webpack_require__(2);
 
 /* Public constants ==========================================================*/
 /* ===========================================================================*/
@@ -31998,7 +34818,7 @@ exports._tr_align = _tr_align;
 
 
 /***/ }),
-/* 127 */
+/* 147 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -32184,7 +35004,7 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 128 */
+/* 148 */
 /***/ (function(module, exports) {
 
 if (typeof Object.create === 'function') {
@@ -32213,7 +35033,7 @@ if (typeof Object.create === 'function') {
 
 
 /***/ }),
-/* 129 */
+/* 149 */
 /***/ (function(module, exports) {
 
 module.exports = function isBuffer(arg) {
@@ -32224,7 +35044,7 @@ module.exports = function isBuffer(arg) {
 }
 
 /***/ }),
-/* 130 */
+/* 150 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global, process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -32752,7 +35572,7 @@ function isPrimitive(arg) {
 }
 exports.isPrimitive = isPrimitive;
 
-exports.isBuffer = __webpack_require__(129);
+exports.isBuffer = __webpack_require__(149);
 
 function objectToString(o) {
   return Object.prototype.toString.call(o);
@@ -32796,7 +35616,7 @@ exports.log = function() {
  *     prototype.
  * @param {function} superCtor Constructor function to inherit prototype from.
  */
-exports.inherits = __webpack_require__(128);
+exports.inherits = __webpack_require__(148);
 
 exports._extend = function(origin, add) {
   // Don't do anything if add isn't an object
@@ -32814,15 +35634,15 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(49), __webpack_require__(127)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(57), __webpack_require__(147)))
 
 /***/ }),
-/* 131 */
+/* 151 */
 /***/ (function(module, exports) {
 
 module.exports = {
 	"name": "spectra-data",
-	"version": "3.0.3",
+	"version": "3.0.4",
 	"description": "spectra-data project - manipulate spectra",
 	"keywords": [
 		"spectra-data",
@@ -32844,19 +35664,10 @@ module.exports = {
 		"eslint": "eslint src test --cache",
 		"eslint-fix": "npm run eslint -- --fix",
 		"test": "npm run test-mocha",
-		"test-mocha": "mocha --compilers js:babel-register --require should --reporter mocha-better-spec-reporter --recursive src/**/__tests__/**/*.js",
-		"test-cov": "istanbul cover _mocha -- --compilers js:babel-register --require should --reporter dot --recursive src/**/__tests__/**/*.js",
-		"test-travis": "istanbul cover _mocha --report lcovonly -- --compilers js:babel-register --require should --reporter mocha-better-spec-reporter --recursive src/**/__tests__/**/*.js && npm run eslint",
+		"test-mocha": "mocha --require should --reporter mocha-better-spec-reporter --recursive src/**/__tests__/**/*.js",
 		"build": "cheminfo build"
 	},
 	"devDependencies": {
-		"babel-cli": "^6.2.0",
-		"babel-core": "^6.2.1",
-		"babel-plugin-transform-es2015-block-scoping": "^6.1.18",
-		"babel-preset-es2015-node4": "^2.0.1",
-		"babel-register": "^6.2.0",
-		"babelify": "^7.2.0",
-		"babili": "0.0.8",
 		"cheminfo-tools": "^1.13.0",
 		"eslint": "^3.9.1",
 		"eslint-config-cheminfo": "^1.5.2",
@@ -32867,2747 +35678,28 @@ module.exports = {
 	},
 	"dependencies": {
 		"brukerconverter": "^1.0.1",
-		"extend": "^3.0.0",
 		"jcampconverter": "^2.4.5",
 		"ml-array-utils": "^0.3.0",
 		"ml-curve-fitting": "0.0.7",
-		"ml-fft": "^1.3.5",
 		"ml-gsd": "^2.0.1",
-		"ml-matrix": "^2.1.0",
 		"ml-matrix-peaks-finder": "^0.2.1",
 		"ml-simple-clustering": "0.1.0",
 		"ml-stat": "^1.3.0",
-		"nmr-auto-assignment": "0.1.3",
-		"nmr-predictor": "0.5.3",
-		"nmr-simulation": "0.2.2"
+		"nmr-simulation": "^1.0.0"
 	}
 };
 
 /***/ }),
-/* 132 */
+/* 152 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-function apodization(spectraData, parameters) {
-    let params = Object.assign({}, parameters);
-    if (!params) {
-        return spectraData;
-    }
-    return spectraData;
-    //org.cheminfo.hook.nemo.filters.ApodizationFilter
-
-    /*public String toString() {
-     switch (this) {
-     case NONE:
-     return "None";
-     case EXPONENTIAL:
-     return "Exponential";
-     case GAUSSIAN:
-     return "Gaussian";
-     case TRAF:
-     return "TRAF";
-     case SINE_BELL:
-     return "Sine Bell";
-     case SINE_BELL_SQUARED:
-     return "Sine Bell Squared";
-     default:
-     return "";
-     }
-     }*/
-}
-
-module.exports = apodization;
-
-
-/***/ }),
-/* 133 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var rotate = __webpack_require__(136);
-
-function digitalFilter(spectraData, options) {
-    let activeElement = spectraData.activeElement;
-    var nbPoints = 0;
-    if (options.nbPoints) {
-        nbPoints = options.nbPoints;
-    } else {
-        if (options.brukerFilter) {
-            //TODO Determine the number of points to shift, or the ph1 correction
-            //based on DECIM and DSPSVF parameters
-            nbPoints = 0;
-        }
-    }
-
-    var nbSubSpectra = spectraData.getNbSubSpectra();
-    if (nbPoints !== 0) {
-        for (var iSubSpectra = 0; iSubSpectra < nbSubSpectra; iSubSpectra++) {
-            spectraData.setActiveElement(iSubSpectra);
-            rotate(spectraData.getYData(), nbPoints);
-            if (options.rotateX) {
-                rotate(spectraData.getXData(), nbPoints);
-                spectraData.setFirstX(spectraData.getX(0));
-                spectraData.setLastX(spectraData.getX(spectraData.getNbPoints() - 1));
-            }
-        }
-    }
-    spectraData.setActiveElement(activeElement);
-    return spectraData;
-}
-
-module.exports = digitalFilter;
-
-
-/***/ }),
-/* 134 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-const fft = __webpack_require__(34);
-
-/**
- * This function make a fourier transformation to each FID withing a SD instance
- * @param {SD} spectraData - SD instance
- * @returns {SD} return SD with spectrum and FID
- */
-
-function fourierTransform(spectraData) {
-
-    var nbPoints = spectraData.getNbPoints();
-    var nSubSpectra = spectraData.getNbSubSpectra() / 2;
-    var spectraType = 'NMR SPECTRUM';//spectraData.TYPE_NMR_SPECTRUM;
-    var FFT = fft.FFT;
-    if (nSubSpectra > 1) {
-        spectraType = 'nD NMR SPECTRUM';
-    }//spectraData.TYPE_2DNMR_SPECTRUM;
-
-    FFT.init(nbPoints);
-
-    var fcor = spectraData.getParamDouble('$FCOR', 0.0);
-    //var tempArray = new Array(nbPoints / 2);
-    for (var iSubSpectra = 0; iSubSpectra < nSubSpectra; iSubSpectra++) {
-        var re = spectraData.getYData(2 * iSubSpectra);
-        var im = spectraData.getYData(2 * iSubSpectra + 1);
-
-        re[0] *= fcor;
-        im[0] *= fcor;
-
-        FFT.fft(re, im);
-        re = re.concat(re.slice(0, (nbPoints + 1) / 2));
-        re.splice(0, (nbPoints + 1) / 2);
-        im = im.concat(im.slice(0, (nbPoints + 1) / 2));
-        im.splice(0, (nbPoints + 1) / 2);
-
-        spectraData.setActiveElement(2 * iSubSpectra);
-        updateSpectra(spectraData, spectraType);
-
-        spectraData.setActiveElement(2 * iSubSpectra + 1);
-        updateSpectra(spectraData, spectraType);
-    }
-    //TODO For Alejandro
-    //Now we can try to apply the FFt on the second dimension
-    if (spectraData.is2D()) {
-        //var mode = spectraData.getParam('.ACQUISITION SCHEME');
-        /*switch (mode) {
-            case 1://"State-TPP"
-                break;
-            case 2://State
-                break;
-            case 3://Echo-Antiecho
-                break;
-                //QF
-                //Does not transform in the indirect dimension
-        }*/
-    }
-    spectraData.setActiveElement(0);
-    return spectraData;
-}
-
-function updateSpectra(spectraData, spectraType) {
-    var baseFrequency = spectraData.getParamDouble('$BF1', NaN);
-    var spectralFrequency = spectraData.getParamDouble('$SFO1', NaN);
-    var spectralWidth = spectraData.getParamDouble('$SW', NaN);
-    var xMiddle = ((spectralFrequency - baseFrequency) / baseFrequency) * 1e6;
-    var dx = 0.5 * spectralWidth * spectralFrequency / baseFrequency;
-
-    spectraData.setDataType(spectraType);
-    spectraData.setFirstX(xMiddle + dx);
-    spectraData.setLastX(xMiddle - dx);
-    spectraData.setXUnits('PPM');
-
-    var x = spectraData.getXData();
-    var tmp = xMiddle + dx;
-    dx = -2 * dx / (x.length - 1);
-
-    for (var i = 0; i < x.length; i++) {
-        x[i] = tmp;
-        tmp += dx;
-    }
-
-    //TODO update minmax in Y axis
-}
-
-module.exports = fourierTransform;
-
-
-/***/ }),
-/* 135 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/**
- * Phase correction filter
- * @param {SD} spectraData - SD instance
- * @param {number} [phi0 = 0] - value
- * @param {number} [phi1 = 0] - value
- * @return {SD} returns the modified spectraData
- */
-function phaseCorrection(spectraData, phi0, phi1) {
-
-    phi0 = Number.isFinite(phi0) ? phi0 : 0
-    phi1 = Number.isFinite(phi1) ? phi1 : 0
-
-    var nbPoints = spectraData.getNbPoints();
-    var reData = spectraData.getYData(0);
-    var imData = spectraData.getYData(1);
-    //var corrections = spectraData.getParam("corrections");
-
-    //for(var k=0;k<corrections.length;k++){
-    //    Point2D phi = corrections.elementAt(k);
-
-        //double phi0 = phi.getX();
-        //double phi1 = phi.getY();
-
-    var delta = phi1 / nbPoints;
-    var alpha = 2 * Math.pow(Math.sin(delta / 2), 2);
-    var beta = Math.sin(delta);
-    var cosTheta = Math.cos(phi0);
-    var sinTheta = Math.sin(phi0);
-    var cosThetaNew, sinThetaNew;
-
-    var reTmp, imTmp;
-    var index;
-    for (var i = 0; i < nbPoints; i++) {
-        index = nbPoints - i - 1;
-        index = i;
-        reTmp = reData[index] * cosTheta - imData[index] * sinTheta;
-        imTmp = reData[index] * sinTheta + imData[index] * cosTheta;
-        reData[index] = reTmp;
-        imData[index] = imTmp;
-            // calculate angles i+1 from i
-        cosThetaNew = cosTheta - (alpha * cosTheta + beta * sinTheta);
-        sinThetaNew = sinTheta - (alpha * sinTheta - beta * cosTheta);
-        cosTheta = cosThetaNew;
-        sinTheta = sinThetaNew;
-    }
-        //toApply--;
-    //}
-
-    spectraData.resetMinMax();
-    //spectraData.updateDefaults();
-    //spectraData.updateY();
-    spectraData.putParam('PHC0', phi0);
-    spectraData.putParam('PHC1', phi1);
-
-    return spectraData;
-}
-
-module.exports = phaseCorrection;
-
-
-/***/ }),
-/* 136 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/**
- * This function performs a circular shift of the input object without realocating memory.
- * Positive values of shifts will shift to the right and negative values will do to the left
- * @example rotate([1,2,3,4],1) -> [4,1,2,3]
- * @example rotate([1,2,3,4],-1) -> [2,3,4,1]
- * @param {Array} array - the array that will be rotated
- * @param {number} shift
- */
-function rotate(array, shift) {
-    var nbPoints = array.length;
-    //Lets calculate the lest amount of points to shift.
-    //It decreases the amount of validations in the loop
-    shift = shift % nbPoints;
-
-    if (Math.abs(shift) > nbPoints / 2) {
-        shift = shift > 0 ? shift - nbPoints : shift + nbPoints;
-    }
-
-    if (shift !== 0) {
-        var currentIndex = 0, nextIndex = shift;
-        var toMove = nbPoints;
-        var current = array[currentIndex], next;
-        var lastFirstIndex = shift;
-        var direction = shift > 0 ? 1 : -1;
-
-        while (toMove > 0) {
-            nextIndex = putInRange(nextIndex, nbPoints);
-            next = array[nextIndex];
-            array[nextIndex] = current;
-            nextIndex += shift;
-            current = next;
-            toMove--;
-
-            if (nextIndex === lastFirstIndex) {
-                nextIndex = putInRange(nextIndex + direction, nbPoints);
-                lastFirstIndex = nextIndex;
-                currentIndex = putInRange(nextIndex - shift, nbPoints);
-                current = array[currentIndex];
-            }
-        }
-    }
-}
-/**
- * @private
- */
-function putInRange(value, nbPoints) {
-    if (value < 0) {
-        value += nbPoints;
-    }
-    if (value >= nbPoints) {
-        value -= nbPoints;
-    }
-    return value;
-}
-
-module.exports = rotate;
-
-
-/***/ }),
-/* 137 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-/**
- * This function make a zero filling to each Active element in a SD instance.
- * @param {SD} spectra-data instance.
- * @param {number} zeroFillingX - number of points that FID will have, if is it lower
- * than initial number of points, the FID will be spliced
- */
-
-
-function zeroFilling(spectraData, zeroFillingX) {
-    var nbSubSpectra = spectraData.getNbSubSpectra();
-    //var zeroPadding = spectraData.getParamDouble("$$ZEROPADDING", 0);
-    var nbXPoints, lastX, deltaX, k, x, y;
-    if (zeroFillingX !== 0) {
-        for (var iSubSpectra = 0; iSubSpectra < nbSubSpectra; iSubSpectra++) {
-            spectraData.setActiveElement(iSubSpectra);
-            nbXPoints = spectraData.getNbPoints();
-            y = spectraData.getYData();
-            x = spectraData.getXData();
-            lastX = spectraData.getLastX();
-            deltaX = (lastX - x[0]) / (nbXPoints - 1);
-            for (k = nbXPoints; k < zeroFillingX; k++) {
-                y.push(0);
-                x.push(lastX + deltaX);
-            }
-            if (zeroFillingX < nbXPoints) {
-                y.splice(zeroFillingX, y.length - 1);
-                x.splice(zeroFillingX, x.length - 1);
-            }
-            spectraData.setFirstX(x[0]);
-            spectraData.setLastX(x[x.length - 1]);
-        }
-    }
-
-    spectraData.setActiveElement(0);
-    return spectraData;
-    // @TODO implement zeroFillingY for 2D spectra
-}
-module.exports = zeroFilling;
-
-
-/***/ }),
-/* 138 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-const Encoder = __webpack_require__(139);
-const Integer = {MAX_VALUE: Number.MAX_SAFE_INTEGER, MIN_VALUE: Number.MIN_SAFE_INTEGER};
-const CRLF = '\r\n';
-const version = 'Cheminfo tools ' + __webpack_require__(131).version;
-const defaultParameters = {'encode': 'DIFDUP', 'yFactor': 1, 'type': 'SIMPLE', 'keep': []};
-/**
- * This class converts a SpectraData object into a String that can be stored as a jcamp file.
- * The string reflects the current state of the object and not the raw data from where this
- * spectrum was initially loaded.
- * @author acastillo
- *
- */
-class JcampCreator {
-
-    /**
-     * This function creates a String that represents the given spectraData, in the format JCAM-DX 5.0
-     * The X,Y data can be compressed using one of the methods described in:
-     * "JCAMP-DX. A STANDARD FORMAT FOR THE EXCHANGE OF ION MOBILITY SPECTROMETRY DATA",
-     *  http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
-     * @param {SD} spectraData
-     * @param {object} options - Optional paramteres
-     * @param {string} [options.encode = 'DIFDUP']
-     * @param {number} [options.yFactor = 1]
-     * @param {string} [options.type = 'SIMPLE']
-     * @param {array} [options.keep = [] ]
-     * @return {string}
-     */
-    convert(spectraData, options) {
-        // encodeFormat: ('FIX','SQZ','DIF','DIFDUP','CVS','PAC')
-        options = Object.assign({}, defaultParameters, options);
-        const encodeFormat = options.encode.toUpperCase().trim();
-        const factorY = options.yFactor || 1;
-        let type = options.type;
-        const userDefinedParams = options.keep;
-
-        if (type === null || type.length === 0) {
-            type = 'SIMPLE';
-        }
-
-        var outString = '';
-        spectraData.setActiveElement(0);
-
-        var scale = factorY / spectraData.getParamDouble('YFACTOR', 1);
-        let minMax = {};
-
-        if(!spectraData.is2D()) {
-            minMax = spectraData.getMinMaxY();
-        }
-        else{
-            minMax = {min: spectraData.getMinZ(), max: spectraData.getMaxZ()}
-        }
-
-        if (minMax.max * scale >= Integer.MAX_VALUE / 2) {
-            scale = Integer.MAX_VALUE / (minMax.max * 2);
-        }
-        if (Math.abs(minMax.max - minMax.min) * scale < 16) {
-            scale = 16 / (Math.abs(minMax.max - minMax.min));
-        }
-
-        var scaleX = Math.abs(1.0 / spectraData.getDeltaX());
-
-        outString += '##TITLE= ' + spectraData.getTitle() + CRLF;
-        outString += '##JCAMP-DX= 5.00\t$$' + version + CRLF;
-        outString += '##OWNER= ' + spectraData.getParamString('##OWNER=', '') + CRLF;
-        outString += '##DATA TYPE= ' + spectraData.getDataType() + CRLF;
-
-        if (type === 'NTUPLES') {
-            outString += ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams);
-        }
-
-        if (type === 'SIMPLE') {
-            outString += simpleHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams);
-        }
-
-        return outString;
-    }
-}
-
-function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams) {
-    var outString = '';
-    var variableX = spectraData.getSpectraVariable(0);
-    var variableY = spectraData.getSpectraVariable(1);
-    var variableZ = spectraData.getSpectraVariable(2);
-
-    outString += '##DATA CLASS= NTUPLES' + CRLF;
-    outString += '##NUM DIM= 2' + CRLF;
-    var nTuplesName = spectraData.getDataType().trim();
-    // we set the VarName parameter to the most common ones.
-    // These tables contain the number of occurences of each one
-    var abscVar = {};
-    var sub;
-    for (sub = 0; sub < spectraData.getNbSubSpectra(); sub++) {
-        spectraData.setActiveElement(sub);
-        if (abscVar[spectraData.getXUnits()]) {
-            abscVar[spectraData.getXUnits()].value++;
-        } else {
-            abscVar[spectraData.getXUnits()] = {value: 1, index: sub};
-        }
-    }
-
-    var keys = Object.keys(abscVar);
-    var mostCommon = keys[0], defaultSub = 0;
-
-    for (sub = 1; sub < keys.length; sub++) {
-        if (abscVar[keys[sub]].value > abscVar[mostCommon].value) {
-            mostCommon = keys[sub];
-            defaultSub = abscVar[keys[sub]].index;
-        }
-    }
-    var isComplex = false;
-    spectraData.setActiveElement(defaultSub);
-    var isNMR = spectraData.getDataType().indexOf('NMR') >= 0;
-    //If it is a NMR spectrum
-    if (isNMR) {
-        outString += '##.OBSERVE FREQUENCY= ' + spectraData.getParamDouble('observefrequency', 0) + CRLF;
-        outString += '##.OBSERVE NUCLEUS= ^' + spectraData.getNucleus() + CRLF;
-        outString += '##$DECIM= ' + spectraData.getParamDouble('$DECIM', 0) + CRLF;
-        outString += '##$DSPFVS= ' + spectraData.getParamDouble('$DSPFVS', 0) + CRLF;
-        outString += '##$FCOR= ' + (Math.floor(spectraData.getParamDouble('$FCOR', 0))) + CRLF;
-        if (spectraData.containsParam('$SW_h')) {
-            outString += '##$SW_h= ' + spectraData.getParamDouble('$SW_h', 0) + CRLF;
-        } else if (spectraData.containsParam('$SW_p')) {
-            outString += '##$SW_p= ' + spectraData.getParamDouble('$SW_p', 0) + CRLF;
-        }
-        outString += '##$SW= ' + spectraData.getParamDouble('$SW', 0) + CRLF;
-        outString += '##$TD= ' + (Math.floor(spectraData.getParamDouble('$TD', 0))) + CRLF;
-        outString += '##$BF1= ' + spectraData.getParamDouble('$BF1', 0) + CRLF;
-        outString += '##$GRPDLY= ' + spectraData.getParamDouble('$GRPDLY', 0) + CRLF;
-        outString += '##.DIGITISER RES= ' + spectraData.getParamInt('.DIGITISER RES', 0) + CRLF;
-        outString += '##.PULSE SEQUENCE= ' + spectraData.getParamString('.PULSE SEQUENCE', '') + CRLF;
-        outString += '##.SOLVENT NAME= ' + spectraData.getSolventName() + CRLF;
-        outString += '##$NUC1= <' + spectraData.getNucleus() + '>' + CRLF;
-        if (spectraData.containsParam('2D_X_FREQUENCY')) {
-            outString += '##$SFO1= ' + spectraData.getParamDouble('2D_X_FREQUENCY', 0) + CRLF;
-        } else {
-            outString += '##$SFO1= ' + spectraData.getParamDouble('$SFO1', 0) + CRLF;
-        }
-
-        if (spectraData.containsParam('2D_X_OFFSET')) {
-            outString += '##$OFFSET= ' + spectraData.getParamDouble('2D_X_OFFSET', 0) + CRLF;
-        }
-
-        if (spectraData.is2D()) {
-            outString += '$$Parameters for 2D NMR Spectrum' + CRLF;
-            outString += '##$NUC1= <' + spectraData.getNucleus(2) + '>' + CRLF;
-            if (spectraData.containsParam('2D_Y_FREQUENCY')) {
-                outString += '##$SFO1= ' + spectraData.getParamDouble('2D_Y_FREQUENCY', 0) + CRLF;
-                outString += '##$SFO2= ' + spectraData.getParamDouble('2D_Y_FREQUENCY', 0) + CRLF;
-                outString += '##$BF2= ' + spectraData.getParamDouble('2D_Y_FREQUENCY', 0) + CRLF;
-            }
-            if (spectraData.containsParam('2D_Y_OFFSET')) {
-                outString += '##$OFFSET= ' + spectraData.getParamDouble('2D_Y_OFFSET', 0) + CRLF;
-            }
-
-            outString += '$$End of Parameters for 2D NMR Spectrum' + CRLF;
-        }
-    }
-    outString += '##NTUPLES=\t' + nTuplesName + CRLF;
-    var freq1 = 1, freq2 = 1;//spectraData.getParamDouble("2D_Y_FREQUENCY", 0);
-    if (!spectraData.is2D() && spectraData.getNbSubSpectra() > 1 && isNMR) {
-        isComplex = true;
-    }
-    if (isComplex) {
-        outString += '##VAR_NAME=\t' + spectraData.getXUnits() + ',\t' + nTuplesName.substring(4) + '/REAL,\t' + nTuplesName.substring(4) + '/IMAG' + CRLF;
-        outString += '##SYMBOL=\tX,\tR,\tI' + CRLF;
-        outString += '##VAR_TYPE=\tINDEPENDENT,\tDEPENDENT,\tDEPENDENT' + CRLF;
-        if (encodeFormat !== 'CSV' || encodeFormat !== 'PAC') {
-            outString += '##VAR_FORM=\tAFFN,\tASDF,\tASDF' + CRLF;
-        } else {
-            outString += '##VAR_FORM=\tAFFN,\tAFFN,\tAFFN' + CRLF;
-        }
-        outString += '##VAR_DIM=\t' + spectraData.getNbPoints() + ',\t' + spectraData.getNbPoints() + ',\t' + spectraData.getNbPoints() + CRLF;
-        outString += '##UNITS=\tHZ' + ',\t' + spectraData.getYUnits() + ',\t' + variableZ.units + CRLF;
-        outString += '##FACTOR=\t' + 1.0 / scaleX + ',\t' + 1.0 / scale + ',\t' + 1.0 / scale + CRLF;
-
-        if (spectraData.getXUnits() === 'PPM') {
-            freq1 = spectraData.observeFrequencyX();
-        }
-
-        outString += '##FIRST=\t' + spectraData.getFirstX() * freq1 + ',\t' + spectraData.getY(0) + ',\t0' + CRLF;
-        outString += '##LAST=\t' + spectraData.getLastX() * freq1 + ',\t' + spectraData.getLastY() + ',\t0' + CRLF;
-    } else {
-        freq1 = 1;
-        if (spectraData.is2D()) {
-            outString += '##VAR_NAME=\tFREQUENCY1,\tFREQUENCY2,\tSPECTRUM' + CRLF;
-            outString += '##SYMBOL=\tF1,\tF2,\tY' + CRLF;
-            outString += '##.NUCLEUS=\t' + spectraData.getNucleus(2) + ',\t' + spectraData.getNucleus(1) + CRLF;
-            outString += '##VAR_TYPE=\tINDEPENDENT,\tINDEPENDENT,\tDEPENDENT' + CRLF;
-            if (encodeFormat !== 'CSV' || encodeFormat !== 'PAC') {
-                outString += '##VAR_FORM=\tAFFN,\tAFFN,\tASDF' + CRLF;
-            } else {
-                outString += '##VAR_FORM=\tAFFN,\tAFFN,\tASDF' + CRLF;
-            }
-            outString += '##VAR_DIM=\t' + spectraData.getNbSubSpectra() + ',\t' + spectraData.getNbPoints() + ',\t' + spectraData.getNbPoints() + CRLF;
-            //We had to change this, for Mestre compatibility
-            //outString+=("##UNITS=\tHZ,\t"+ spectraData.getXUnits() + ",\t" + spectraData.getYUnits()+CRLF);
-            outString += '##UNITS=\tHZ,\tHZ,\t' + spectraData.getZUnits() + CRLF;
-            if (spectraData.getXUnits() === 'PPM') {
-                freq1 = spectraData.getParamDouble('2D_Y_FREQUENCY', 1);
-            }
-            if (spectraData.getYUnits() === 'PPM') {
-                freq2 = spectraData.getParamDouble('2D_X_FREQUENCY', 1);
-            }
-            outString += '##FACTOR=\t1,\t' + freq2 / scaleX + ',\t' + 1.0 / scale + CRLF;
-            outString += '##FIRST=\t' + spectraData.getParamDouble('firstY', 0) * freq1 + ',\t' + spectraData.getFirstX() * freq2 + ',\t' + spectraData.getY(0) + CRLF;
-            outString += '##LAST=\t' + spectraData.getParamDouble('lastY', 0) * freq1 + ',\t' + spectraData.getLastX() * freq2
-            + ',\t' + spectraData.getY(spectraData.getNbPoints() - 1) + CRLF;
-        } else {
-            outString += '##VAR_NAME=\t' + variableX.varname + ',\t' + variableY.varname + ',\t' + variableX.varname + CRLF;
-            outString += '##SYMBOL=\t' + variableX.symbol + ',\t' + variableY.symbol + ',\t' + variableZ.symbol + CRLF;
-            outString += '##VAR_TYPE=\t' + variableX.vartype + ',\t' + variableY.vartype + ',\t' + variableZ.vartype + CRLF;
-            if (encodeFormat !== 'CSV' || encodeFormat !== 'PAC') {
-                outString += '##VAR_FORM=\tAFFN,\tASDF,\tASDF' + CRLF;
-            } else {
-                outString += '##VAR_FORM=\tAFFN,\tAFFN,\tAFFN' + CRLF;
-            }
-            outString += '##VAR_DIM=\t' + variableX.vardim + ',\t' + variableY.vardim + ',\t' + variableZ.vardim + CRLF;
-            outString += '##UNITS=\tHZ' + ',\t' + spectraData.getYUnits() + ',\t' + variableZ.units + CRLF;
-            if (spectraData.getXUnits() === 'PPM') {
-                freq1 = spectraData.observeFrequencyX();
-            }
-            outString += '##FACTOR=\t' + 1.0 / scaleX + ',\t' + 1.0 / scale + CRLF;
-            outString += '##FIRST=\t' + variableX.first * freq1 + ',\t' + variableY.first + ',\t' + variableZ.first + CRLF;
-            outString += '##LAST=\t' + variableX.last * freq1 + ',\t' + variableY.last + ',\t' + variableZ.last + CRLF;
-
-        }
-    }
-
-    //Set the user defined parameters
-    if (userDefinedParams !== null) {
-        for (var i = userDefinedParams.length - 1; i >= 0; i--) {
-            if (spectraData.containsParam(userDefinedParams[i])) {
-                outString += '##' + userDefinedParams[i] + '= '
-                + spectraData.getParam(userDefinedParams[i], '') + CRLF;
-            }
-        }
-    }
-    //Ordinate of the second dimension in case of 2D NMR spectra
-    var yUnits = 0, lastY = 0, dy = 1;
-
-    if (spectraData.is2D() && isNMR) {
-        yUnits = spectraData.getParamDouble('firstY', 0) * freq1;
-        lastY = spectraData.getParamDouble('lastY', 0) * freq1;
-        dy = (lastY - yUnits) / (spectraData.getNbSubSpectra() - 1);
-    }
-
-    for (sub = 0; sub < spectraData.getNbSubSpectra(); sub++) {
-        spectraData.setActiveElement(sub);
-        yUnits = spectraData.getParamDouble('firstY', 0) * freq1 + dy*sub;
-        outString += '##PAGE= ' + yUnits + CRLF;
-
-        if (spectraData.is2D() && isNMR) {
-            outString += '##FIRST=\t' + spectraData.getParamDouble('firstY', 0) * freq1 + ',\t'
-            + spectraData.getFirstX() * freq2 + ',\t' + spectraData.getY(0) + CRLF;
-        }
-
-        outString += '##DATA TABLE= ';
-        if (spectraData.isDataClassPeak()) {
-            outString += '(XY..XY), PEAKS' + CRLF;
-            for (let point = 0; point < spectraData.getNbPoints(); point++) {
-                outString += spectraData.getX(point) + ', ' + spectraData.getY(point) + CRLF;
-            }
-
-        } else if (spectraData.isDataClassXY()) {
-            if (isNMR) {
-                if (spectraData.is2D()) {
-                    outString += '(F2++(Y..Y)), PROFILE' + CRLF;
-                } else {
-                    if (sub % 2 === 0) {
-                        outString += '(X++(R..R)), XYDATA' + CRLF;
-                    } else {
-                        outString += '(X++(I..I)), XYDATA' + CRLF;
-                    }
-                }
-            } else {
-                outString += '(X++(Y..Y)), XYDATA' + CRLF;
-            }
-
-            var tempString = '';
-            var data = new Array(spectraData.getNbPoints());
-            for (let point = data.length - 1; point >= 0; point--) {
-                data[point] = Math.round((spectraData.getY(point) * scale));
-            }
-
-            tempString += Encoder.encode(data,
-                spectraData.getFirstX() * scaleX, spectraData.getDeltaX() * scaleX, encodeFormat);
-            outString += tempString + CRLF;
-        }
-    }
-    outString += '##END NTUPLES= ' + nTuplesName + CRLF;
-    outString += '##END= ';
-
-    spectraData.setActiveElement(0);
-
-    return outString;
-}
-
-function simpleHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams) {
-    //var variableX = spectraData.getSpectraVariable(0);
-    //var variableY = spectraData.getSpectraVariable(1);
-    var outString = '';
-    if (spectraData.isDataClassPeak()) {
-        outString += '##DATA CLASS= PEAK TABLE' + CRLF;
-    }
-    if (spectraData.isDataClassXY()) {
-        outString += '##DATA CLASS= XYDATA' + CRLF;
-    }
-
-    spectraData.setActiveElement(0);
-    //If it is a NMR spectrum
-    if (spectraData.getDataType().indexOf('NMR') >= 0) {
-        outString += '##.OBSERVE FREQUENCY= ' + spectraData.getParamDouble('observefrequency', 0) + CRLF;
-        outString += '##.OBSERVE NUCLEUS= ^' + spectraData.getNucleus() + CRLF;
-        outString += '##$DECIM= ' + (Math.round(spectraData.getParamDouble('$DECIM', 0))) + CRLF;
-        outString += '##$DSPFVS= ' + (Math.round(spectraData.getParamDouble('$DSPFVS', 0))) + CRLF;
-        outString += '##$FCOR= ' + (Math.round(spectraData.getParamDouble('$FCOR', 0))) + CRLF;
-        outString += '##$SW_h= ' + spectraData.getParamDouble('$SW_h', 0) + CRLF;
-        outString += '##$SW= ' + spectraData.getParamDouble('$SW', 0) + CRLF;
-        outString += '##$TD= ' + (Math.round(spectraData.getParamDouble('$TD', 0))) + CRLF;
-        outString += '##$GRPDLY= ' + spectraData.getParamDouble('$GRPDLY', 0) + CRLF;
-        outString += '##$BF1= ' + spectraData.getParamDouble('$BF1', 0) + CRLF;
-        outString += '##$SFO1= ' + spectraData.getParamDouble('$SFO1', 0) + CRLF;
-        outString += '##$NUC1= <' + spectraData.getNucleus() + '>' + CRLF;
-        outString += '##.SOLVENT NAME= ' + spectraData.getSolventName() + CRLF;
-
-    }
-    outString += '##XUNITS=\t' + spectraData.getXUnits() + CRLF;
-    outString += '##YUNITS=\t' + spectraData.getYUnits() + CRLF;
-    outString += '##NPOINTS=\t' + spectraData.getNbPoints() + CRLF;
-    outString += '##FIRSTX=\t' + spectraData.getFirstX() + CRLF;
-    outString += '##LASTX=\t' + spectraData.getLastX() + CRLF;
-    outString += '##FIRSTY=\t' + spectraData.getFirstY() + CRLF;
-    outString += '##LASTY=\t' + spectraData.getLastY() + CRLF;
-    if (spectraData.isDataClassPeak()) {
-        outString += '##XFACTOR=1' + CRLF;
-        outString += '##YFACTOR=1' + CRLF;
-    } else if (spectraData.isDataClassXY()) {
-        outString += '##XFACTOR= ' + 1.0 / scaleX + CRLF;
-        outString += '##YFACTOR= ' + 1.0 / scale + CRLF;
-    }
-    outString += '##MAXY= ' + spectraData.getMaxY() + CRLF;
-    outString += '##MINY= ' + spectraData.getMinY() + CRLF;
-
-    //Set the user defined parameters
-    if (userDefinedParams !== null) {
-        for (var i = userDefinedParams.length - 1; i >= 0; i--) {
-            if (spectraData.containsParam(userDefinedParams[i])) {
-                outString += '##' + userDefinedParams[i] + '= '
-                + spectraData.getParam(userDefinedParams[i], '') + CRLF;
-            }
-        }
-    }
-
-
-    if (spectraData.isDataClassPeak()) {
-        outString += '##PEAK TABLE= (XY..XY)' + CRLF;
-        for (var point = 0; point < spectraData.getNbPoints(); point++) {
-            outString += spectraData.getX(point) + ', ' + spectraData.getY(point) + CRLF;
-        }
-        outString += '##END ';
-
-    } else if (spectraData.isDataClassXY()) {
-        outString += '##DELTAX= ' + spectraData.getDeltaX() + CRLF;
-        outString += '##XYDATA=(X++(Y..Y))' + CRLF;
-        var tempString = '';
-        var data = new Array(spectraData.getNbPoints());
-        for (let point = data.length - 1; point >= 0; point--) {
-            data[point] = Math.round(spectraData.getY(point) * scale);
-        }
-
-        tempString += Encoder.encode(data, spectraData.getFirstX() * scaleX, spectraData.getDeltaX() * scaleX, encodeFormat);
-
-        outString += tempString + CRLF;
-        outString += '##END= ';
-    }
-
-    spectraData.setActiveElement(0);
-    return outString;
-}
-
-module.exports = JcampCreator;
-
-
-
-/***/ }),
-/* 139 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/**
-* class encodes a integer vector as a String in order to store it in a text file.
-* The algorithms used to encode the data are describe in:
-*            http://www.iupac.org/publications/pac/pdf/2001/pdf/7311x1765.pdf
-* Created by acastillo on 3/2/16.
-*/
-const newLine = '\r\n';
-
-const pseudoDigits = [['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-              ['@', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'],
-              ['@', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'],
-              ['%', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'],
-              ['%', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r'],
-              [' ', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 's']];
-
-const SQZ_P = 1, SQZ_N = 2, DIF_P = 3, DIF_N = 4, DUP = 5, MaxLinelength = 100;
-
-/**
- * This function encodes the given vector. The encoding format is specified by the
- * encoding option
- * @param {Array} data
- * @param {number} firstX
- * @param {number} intervalX
- * @param {string} encoding: ('FIX','SQZ','DIF','DIFDUP','CVS','PAC') Default 'DIFDUP'
- * @return {string}
- */
-function encode(data, firstX, intervalX, encoding) {
-    switch (encoding) {
-        case 'FIX':
-            return fixEncoding(data, firstX, intervalX);
-        case 'SQZ':
-            return squeezedEncoding(data, firstX, intervalX);
-        case 'DIF':
-            return differenceEncoding(data, firstX, intervalX);
-        case 'DIFDUP':
-            return differenceDuplicateEncoding(data, firstX, intervalX);
-        case 'CSV':
-            return commaSeparatedValuesEncoding(data, firstX, intervalX);
-        case 'PAC':
-            return packedEncoding(data, firstX, intervalX);
-        default:
-            return differenceEncoding(data, firstX, intervalX);
-    }
-}
-
-/**
- * @private
- * No data compression used. The data is separated by a comma(',').
- * @param {Array} data
- * @param {number} firstX
- * @param {number} intervalX
- * @return {string}
- */
-function commaSeparatedValuesEncoding(data, firstX, intervalX) {
-    return fixEncoding(data, firstX, intervalX, ',');
-}
-
-/**
- * @private
- * No data compression used. The data is separated by the specified separator.
- * @param {Array} data
- * @param {number} firstX
- * @param {number} intervalX
- * @param {string} separator, The separator character
- * @return {string}
- */
-function fixEncoding(data, firstX, intervalX, separator) {
-    if (!separator) {
-        separator = ' ';
-    }
-    var outputData = '';
-    var j = 0, TD = data.length, i;
-    while (j < TD - 7) {
-        outputData += Math.ceil(firstX + j * intervalX);
-        for (i = 0; i < 8; i++) {
-            outputData += separator + data[j++];
-        }
-        outputData += newLine;
-    }
-    if (j < TD) {
-        //We add last numbers
-        outputData += Math.ceil(firstX + j * intervalX);
-        for (i = j; i < TD; i++) {
-            outputData += separator + data[i];
-        }
-    }
-    return outputData;
-}
-/**
- * @private
- * No data compression used. The data is separated by the sign of the number.
- * @param {Array} data
- * @param {number} firstX
- * @param {number} intervalX
- * @return {string}
- */
-function packedEncoding(data, firstX, intervalX) {
-    var outputData = '';
-    var j = 0, TD = data.length, i;
-
-    while (j < TD - 7) {
-        outputData += Math.ceil(firstX + j * intervalX);
-        for (i = 0; i < 8; i++) {
-            if (data[j] < 0) {
-                outputData += '-' + data[j++];
-            } else {
-                outputData += '+' + data[j++];
-            }
-        }
-        outputData += newLine;
-    }
-    if (j < TD) {
-        //We add last numbers
-        outputData += Math.ceil(firstX + j * intervalX);
-        for (i = j; i < TD; i++) {
-            if (data[i] < 0) {
-                outputData += '-' + data[i];
-            } else {
-                outputData += '+' + data[i];
-            }
-        }
-    }
-    return outputData;
-}
-/**
- * @private
- * Data compression is possible using the squeezed form (SQZ) in which the delimiter, the leading digit,
- * and sign are replaced by a pseudo-digit from Table 1. For example, the Y-values 30, 32 would be
- * represented as C0C2.
- * @param {Array} data
- * @param {number} firstX
- * @param {number} intervalX
- * @return {string}
- */
-function squeezedEncoding(data, firstX, intervalX) {
-    var outputData = '';
-    //String outputData = new String();
-    var j = 0, TD = data.length, i;
-
-    while (j < TD - 10) {
-        outputData += Math.ceil(firstX + j * intervalX);
-        for (i = 0; i < 10; i++) {
-            outputData += squeezedDigit(data[j++].toString());
-        }
-        outputData += newLine;
-    }
-    if (j < TD) {
-        //We add last numbers
-        outputData += Math.ceil(firstX + j * intervalX);
-        for (i = j; i < TD; i++) {
-            outputData += squeezedDigit(data[i].toString());
-        }
-    }
-
-    return outputData;
-}
-
-/**
- * @private
- * Duplicate suppression encoding
- * @param {Array} data
- * @param {number} firstX
- * @param {number} intervalX
- * @return {string}
- */
-function differenceDuplicateEncoding(data, firstX, intervalX) {
-    var mult = 0, index = 0, charCount = 0, i;
-    //We built a string where we store the encoded data.
-    var encodData = '', encodNumber = '', temp = '';
-
-    //We calculate the differences vector
-    var diffData = new Array(data.length - 1);
-    for (i = 0; i < diffData.length; i++) {
-        diffData[i] = data[i + 1] - data[i];
-    }
-
-    //We simulate a line carry
-    var numDiff = diffData.length;
-    while (index < numDiff) {
-        if (charCount === 0) {//Start line
-            encodNumber = Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString()) + differenceDigit(diffData[index].toString());
-            encodData += encodNumber;
-            charCount += encodNumber.length;
-        } else {
-            //Try to insert next difference
-            if (diffData[index - 1] === diffData[index]) {
-                mult++;
-            } else {
-                if (mult > 0) {//Now we know that it can be in line
-                    mult++;
-                    encodNumber = duplicateDigit(mult.toString());
-                    encodData += encodNumber;
-                    charCount += encodNumber.length;
-                    mult = 0;
-                    index--;
-                } else {
-                    //Mirar si cabe, en caso contrario iniciar una nueva linea
-                    encodNumber = differenceDigit(diffData[index].toString());
-                    if (encodNumber.length + charCount < MaxLinelength) {
-                        encodData += encodNumber;
-                        charCount += encodNumber.length;
-                    } else {//Iniciar nueva linea
-                        encodData += newLine;
-                        temp = Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString()) + encodNumber;
-                        encodData += temp;//Each line start with first index number.
-                        charCount = temp.length;
-                    }
-                }
-            }
-        }
-        index++;
-    }
-    if (mult > 0) {
-        encodData += duplicateDigit((mult + 1).toString());
-    }
-    //We insert the last data from fid. It is done to control of data
-    //The last line start with the number of datas in the fid.
-    encodData += newLine + Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString());
-
-    return encodData;
-}
-
-/**
- * @private
- * Differential encoding
- * @param {Array} data
- * @param {number} firstX
- * @param {number} intervalX
- * @return {string}
- */
-function differenceEncoding(data, firstX, intervalX) {
-    var index = 0, charCount = 0, i;
-
-    var encodData = '';
-    //String encodData = new String();
-    var encodNumber = '', temp = '';
-
-    //We calculate the differences vector
-    var diffData = new Array(data.length - 1);
-    for (i = 0; i < diffData.length; i++) {
-        diffData[i] = data[i + 1] - data[i];
-    }
-
-    index = 0;
-    var numDiff = diffData.length;
-    while (index < numDiff) {
-        if (charCount === 0) {//Iniciar linea
-            //We convert the first number.
-            encodNumber = Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString()) + differenceDigit(diffData[index].toString());
-            encodData += encodNumber;
-            charCount += encodNumber.length;
-        } else {
-            //Mirar si cabe, en caso contrario iniciar una nueva linea
-            encodNumber = differenceDigit(diffData[index].toString());
-            if (encodNumber.length + charCount < MaxLinelength) {
-                encodData += encodNumber;
-                charCount += encodNumber.length;
-            } else {//Iniciar nueva linea
-                encodData += newLine;
-                temp = Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString()) + encodNumber;
-                encodData += temp;//Each line start with first index number.
-                charCount = temp.length;
-            }
-        }
-        index++;
-    }
-    //We insert the last number from data. It is done to control of data
-    encodData += newLine + Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString());
-
-    return encodData;
-}
-
-/**
- * @private
- * Convert number to the ZQZ format, using pseudo digits.
- * @param {number} num
- * @return {string}
- */
-function squeezedDigit(num) {
-    //console.log(num+" "+num.length);
-    var SQZdigit = '';
-    if (num.charAt(0) === '-') {
-        SQZdigit += pseudoDigits[SQZ_N][num.charAt(1)];
-        if (num.length > 2) {
-            SQZdigit += num.substring(2);
-        }
-    } else {
-        SQZdigit += pseudoDigits[SQZ_P][num.charAt(0)];
-        if (num.length > 1) {
-            SQZdigit += num.substring(1);
-        }
-    }
-
-    return SQZdigit;
-}
-/**
- * @private
- * Convert number to the DIF format, using pseudo digits.
- * @param {number} num
- * @return {string}
- */
-function differenceDigit(num) {
-    var DIFFdigit = '';
-
-    if (num.charAt(0) === '-') {
-        DIFFdigit += pseudoDigits[DIF_N][num.charAt(1)];
-        if (num.length > 2) {
-            DIFFdigit += num.substring(2);
-        }
-
-    } else {
-        DIFFdigit += pseudoDigits[DIF_P][num.charAt(0)];
-        if (num.length > 1) {
-            DIFFdigit += num.substring(1);
-        }
-
-    }
-
-    return DIFFdigit;
-}
-/**
- * @private
- * Convert number to the DUP format, using pseudo digits.
- * @param {number} num
- * @return {string}
- */
-    function duplicateDigit(num) {
-    var DUPdigit = '';
-    DUPdigit += pseudoDigits[DUP][num.charAt(0)];
-    if (num.length > 1) {
-        DUPdigit += num.substring(1);
-    }
-
-    return DUPdigit;
-}
-
-module.exports = {
-    encode,
-    fixEncoding,
-    commaSeparatedValuesEncoding,
-    packedEncoding,
-    squeezedEncoding,
-    differenceDuplicateEncoding,
-    differenceEncoding
-};
-
-
-/***/ }),
-/* 140 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/*
- * This library implements the J analyser described by Cobas et al in the paper:
- * A two-stage approach to automatic determination of 1H NMR coupling constants
- */
-
-
-const patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
-var symRatio = 1.5;
-var maxErrorIter1 = 2.5;//Hz
-var maxErrorIter2 = 1;//Hz
-
-module.exports = {
-    /**
-     * The compilation process implements at the first stage a normalization procedure described by Golotvin et al.
-     * embedding in peak-component-counting method described by Hoyes et al.
-     * @param {object} signal
-     * @private
-     */
-    compilePattern: function (signal) {
-        //if (DEBUG) console.log('Debugin...');
-
-        signal.multiplicity = 'm';//By default the multiplicity is massive
-        // 1.1 symmetrize
-        // It will add a set of peaks(signal.peaksComp) to the signal that will be used during
-        // the compilation process. The unit of those peaks will be in Hz
-        signal.symRank = symmetrizeChoiseBest(signal, maxErrorIter1, 1);
-        signal.asymmetric = true;
-       // console.log(signal.delta1+" "+signal.symRank);
-        //Is the signal symmetric?
-        if (signal.symRank >= 0.95 && signal.peaksComp.length < 32) {
-            //if (DEBUG)console.log(signal.delta1 + ' nbPeaks ' + signal.peaksComp.length);
-            signal.asymmetric = false;
-            var i, j, n, k = 1, P1, Jc = [], n2, maxFlagged;
-            //Loop over the possible number of coupling contributing to the multiplet
-            for (n = 0; n < 9; n++) {
-                //if (DEBUG)console.log('Trying ' + n + ' couplings');
-                //1.2 Normalize. It makes a deep copy of the peaks before to modify them.
-                var peaks = normalize(signal, n);
-                //signal.peaksCompX = peaks;
-                var validPattern = false;//It will change to true, when we find the good patter
-                //Lets check if the signal could be a singulet.
-                if (peaks.length === 1 && n === 0) {
-                    validPattern = true;
-                } else {
-                    if (peaks.length <= 1) {
-                        continue;
-                    }
-                }
-                // 1.3 Establish a range for the Heights Hi [peaks.intensity*0.85,peaks.intensity*1.15];
-                var ranges = getRanges(peaks);
-                n2 = Math.pow(2, n);
-
-                /*if (DEBUG) {
-                    console.log('ranges: ' + JSON.stringify(ranges));
-                    console.log('Target sum: ' + n2);
-                }*/
-
-                // 1.4 Find a combination of integer heights Hi, one from each Si, that sums to 2^n.
-                var heights = null;
-                while (!validPattern && (heights = getNextCombination(ranges, n2)) !== null) {
-
-                    /*if (DEBUG) {
-                        console.log('Possible pattern found with ' + n + ' couplings!!!');
-                        console.log(heights);
-                    }*/
-                    // 2.1 Number the components of the multiplet consecutively from 1 to 2n,
-                    //starting at peak 1
-                    var numbering = new Array(heights.length);
-                    k = 1;
-                    for (i = 0; i < heights.length; i++) {
-                        numbering[i] = new Array(heights[i]);
-                        for (j = 0; j < heights[i]; j++) {
-                            numbering[i][j] = k++;
-                        }
-                    }
-
-                    //if (DEBUG) console.log('Numbering: ' + JSON.stringify(numbering));
-
-                    Jc = []; //The array to store the detected j-coupling
-                    // 2.2 Set j = 1; J1 = P2 - P1. Flag components 1 and 2 as accounted for.
-                    j = 1;
-                    Jc.push(peaks[1].x - peaks[0].x);
-                    P1 = peaks[0].x;
-                    numbering[0].splice(0, 1);//Flagged
-                    numbering[1].splice(0, 1);//Flagged
-                    k = 1;
-                    var nFlagged = 2;
-                    maxFlagged = Math.pow(2, n) - 1;
-                    while (Jc.length < n && nFlagged < maxFlagged && k < peaks.length) {
-                        /*if (DEBUG) {
-                            console.log('New Jc' + JSON.stringify(Jc));
-                            console.log('Aval. numbering ' + JSON.stringify(numbering));
-                        }*/
-                        // 4.1. Increment j. Set k to the number of the first unflagged component.
-                        j++;
-                        while (k < peaks.length && numbering[k].length === 0) {
-                            k++;
-                        }
-                        if (k < peaks.length) {
-                            // 4.2 Jj = Pk - P1.
-                            Jc.push(peaks[k].x - peaks[0].x);
-                            //Flag component k and, for each sum of the...
-                            numbering[k].splice(0, 1);//Flageed
-                            nFlagged++;
-                            //Flag the other components of the multiplet
-                            for (var u = 2; u <= j; u++) {
-                                //TODO improve those loops
-                                var jSum = 0;
-                                for (i = 0; i < u; i++) {
-                                    jSum += Jc[i];
-                                }
-                                for (i = 1; i < numbering.length; i++) {
-                                    //Maybe 0.25 Hz is too much?
-                                    if (Math.abs(peaks[i].x - (P1 + jSum)) < 0.25) {
-                                        numbering[i].splice(0, 1);//Flageed
-                                        nFlagged++;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    //Calculate the ideal patter by using the extracted j-couplings
-                    var pattern = idealPattern(Jc);
-                    //Compare the ideal pattern with the proposed intensities.
-                    // All the intensities have to match to accept the multiplet
-                    validPattern = true;
-                    for (i = 0; i < pattern.length; i++) {
-                        if (pattern[i].intensity !== heights[i]) {
-                            validPattern = false;
-                        }
-                    }
-                    //More verbosity of the process
-                    /*if (DEBUG) {
-                        console.log('Jc ' + JSON.stringify(Jc));
-                        console.log('Heights ' + JSON.stringify(heights));
-                        console.log('pattern ' + JSON.stringify(pattern));
-                        console.log('Valid? ' + validPattern);
-                    }*/
-                }
-                //If we found a valid pattern we should inform about the pattern.
-                if (validPattern) {
-                    updateSignal(signal, Jc);
-                }
-            }
-        }
-
-        //Before to return, change the units of peaksComp from Hz to PPM again
-        for (i = 0; i < signal.peaksComp.length; i++) {
-            signal.peaksComp[i].x /= signal.observe;
-        }
-    }
-};
-
-function updateSignal(signal, Jc) {
-    //Update the limits of the signal
-    var peaks = signal.peaksComp;//Always in Hz
-    var nbPeaks = peaks.length;
-    signal.startX = peaks[0].x / signal.observe - peaks[0].width;
-    signal.stopX = peaks[nbPeaks - 1].x / signal.observe + peaks[nbPeaks - 1].width;
-
-    signal.integralData.from = peaks[0].x / signal.observe - peaks[0].width * 3;
-    signal.integralData.to = peaks[nbPeaks - 1].x / signal.observe + peaks[nbPeaks - 1].width * 3;
-
-    //Compile the pattern and format the constant couplings
-    signal.maskPattern = signal.mask2;
-    signal.multiplicity = abstractPattern(signal, Jc);
-    signal.pattern = signal.multiplicity;//Our library depends on this parameter, but it is old
-    //console.log(signal);
-    /*if (DEBUG)        {
-        console.log('Final j-couplings: ' + JSON.stringify(Jc));
-    }*/
-}
-
-/**
- * Returns the multiplet in the compact format
- * @param {object} signal
- * @param {object} Jc
- * @return {string}
- * @private
- */
-function abstractPattern(signal, Jc) {
-    var tol = 0.05,
-        i,
-        pattern = '',
-        cont = 1,
-        newNmrJs = [];
-
-    if (Jc && Jc.length > 0) {
-        Jc.sort(function (a, b) {
-            return a - b;
-        });
-
-        for (i = 0; i < Jc.length - 1; i++) {
-
-            if (Math.abs(Jc[i] - Jc[i + 1]) < tol) {
-                cont++;
-            } else {
-                newNmrJs.push({'coupling': Math.abs(Jc[i]), 'multiplicity': patterns[cont]});
-                pattern += patterns[cont];
-                cont = 1;
-            }
-        }
-        newNmrJs.push({'coupling': Math.abs(Jc[i]), 'multiplicity': patterns[cont]});
-        pattern += patterns[cont];
-        signal.nmrJs = newNmrJs;
-    } else {
-        pattern = 's';
-        if (Math.abs(signal.startX - signal.stopX) * signal.observe > 16) {
-            pattern = 'br s';
-        }
-    }
-    return pattern;
-}
-
-/**
- * This function creates an ideal pattern from the given J-couplings
- * @private
- * @param {Array} Jc
- * @return {*[]}
- * @private
- */
-function idealPattern(Jc) {
-    var hsum = Math.pow(2, Jc.length), i, j;
-    var pattern = [{x: 0, intensity: hsum}];
-    //To split the initial height
-    for (i = 0; i < Jc.length; i++) {
-        for (j = pattern.length - 1; j >= 0; j--) {
-            pattern.push({x: pattern[j].x + Jc[i] / 2,
-                intensity: pattern[j].intensity / 2});
-            pattern[j].x = pattern[j].x - Jc[i] / 2;
-            pattern[j].intensity = pattern[j].intensity / 2;
-        }
-    }
-    //To sum the heights in the same positions
-    pattern.sort(function compare(a, b) {
-        return a.x - b.x;
-    });
-    for (j = pattern.length - 2; j >= 0; j--) {
-        if (Math.abs(pattern[j].x - pattern[j + 1].x) < 0.1) {
-            pattern[j].intensity += pattern[j + 1].intensity;
-            pattern.splice(j + 1, 1);
-        }
-    }
-    return pattern;
-}
-
-/**
- * Find a combination of integer heights Hi, one from each Si, that sums to 2n.
- * @param {object} ranges
- * @param {number} value
- * @return {*}
- * @private
- */
-function getNextCombination(ranges, value) {
-    var half = Math.ceil(ranges.values.length / 2), lng = ranges.values.length;
-    var sum = 0, i, ok;
-    while (sum !== value) {
-        //Update the indexes to point at the next possible combination
-        ok = false;
-        while (!ok) {
-            ok = true;
-            ranges.currentIndex[ranges.active]++;
-            if (ranges.currentIndex[ranges.active] >= ranges.values[ranges.active].length) {
-                //In this case, there is no more possible combinations
-                if (ranges.active + 1 === half) {
-                    return null;
-                } else {
-                    //If this happens we need to try the next active peak
-                    ranges.currentIndex[ranges.active] = 0;
-                    ok = false;
-                    ranges.active++;
-                }
-            } else {
-                ranges.active = 0;
-            }
-        }
-        // Sum the heights for this combination
-        sum = 0;
-        for (i = 0; i < half; i++) {
-            sum += ranges.values[i][ranges.currentIndex[i]] * 2;
-        }
-        if (ranges.values.length % 2 !== 0) {
-            sum -= ranges.values[half - 1][ranges.currentIndex[half - 1]];
-        }
-        /*if (DEBUG) {
-            console.log(ranges.currentIndex);
-            console.log(sum + ' ' + value);
-        }*/
-    }
-    //If the sum is equal to the expected value, fill the array to return
-    if (sum === value) {
-        var heights = new Array(lng);
-        for (i = 0; i < half; i++) {
-            heights[i] = ranges.values[i][ranges.currentIndex[i]];
-            heights[lng - i - 1] = ranges.values[i][ranges.currentIndex[i]];
-        }
-        return heights;
-    }
-    return null;
-}
-
-/**
- * This function generates the possible values that each peak can contribute
- * to the multiplet.
- * @param {Array} Array of objects with peaks information {intensity}
- * @return {{values: Array, currentIndex: Array, active: number}}
- */
-function getRanges(peaks) {
-    var ranges = new Array(peaks.length);
-    var currentIndex = new Array(peaks.length);
-    var min, max;
-    ranges[0] = [1];
-    ranges[peaks.length - 1] = [1];
-    currentIndex[0] = -1;
-    currentIndex[peaks.length - 1] = 0;
-    for (var i = 1; i < peaks.length - 1; i++) {
-        min = Math.round(peaks[i].intensity * 0.85);
-        max = Math.round(peaks[i].intensity * 1.15);
-        ranges[i] = [];
-        for (var j = min; j <= max; j++) {
-            ranges[i].push(j);
-        }
-        currentIndex[i] = 0;
-    }
-    return {values: ranges, currentIndex: currentIndex, active: 0};
-}
-/**
- * Performs a symmetrization of the signal by using different aproximations to the center.
- * It will return the result of the symmetrization that removes less peaks from the signal
- * @param {object} signal
- * @param {number} maxError
- * @param {number} iteration
- * @return {*}
- * @private
- */
-function symmetrizeChoiseBest(signal, maxError, iteration) {
-    var symRank1 = symmetrize(signal, maxError, iteration);
-    var tmpPeaks = signal.peaksComp;
-    var tmpMask = signal.mask;
-    var cs = signal.delta1;
-    signal.delta1 = (signal.peaks[0].x + signal.peaks[signal.peaks.length - 1].x) / 2;
-    var symRank2 = symmetrize(signal, maxError, iteration);
-    if (signal.peaksComp.length > tmpPeaks.length) {
-        return symRank2;
-    } else {
-        signal.delta1 = cs;
-        signal.peaksComp = tmpPeaks;
-        signal.mask = tmpMask;
-        return symRank1;
-    }
-
-}
-
-/**
- * This function will return a set of symmetric peaks that will
- * be the enter point for the patter compilation process.
- * @param {object} signal
- * @param {number} maxError
- * @param {number} iteration
- * @return {number}
- * @private
- */
-function symmetrize(signal, maxError, iteration) {
-    //Before to symmetrize we need to keep only the peaks that possibly conforms the multiplete
-    var max, min, avg, ratio, avgWidth, j;
-    var peaks = new Array(signal.peaks.length);
-    //Make a deep copy of the peaks and convert PPM ot HZ
-    for (j = 0; j < peaks.length; j++) {
-        peaks[j] = {x: signal.peaks[j].x * signal.observe,
-            intensity: signal.peaks[j].intensity,
-            width: signal.peaks[j].width};
-    }
-    //Join the peaks that are closer than 0.25 Hz
-    for (j = peaks.length - 2; j >= 0; j--) {
-        if (Math.abs(peaks[j].x - peaks[j + 1].x) < 0.25) {
-            peaks[j].x = (peaks[j].x * peaks[j].intensity + peaks[j + 1].x * peaks[j + 1].intensity);
-            peaks[j].intensity = peaks[j].intensity + peaks[j + 1].intensity;
-            peaks[j].x /= peaks[j].intensity;
-            peaks[j].intensity /= 2;
-            peaks[j].width += peaks[j + 1].width;
-            peaks.splice(j + 1, 1);
-        }
-    }
-    signal.peaksComp = peaks;
-    var nbPeaks = peaks.length;
-    var mask = new Array(nbPeaks);
-    signal.mask = mask;
-    var left = 0, right = peaks.length - 1, cs = signal.delta1 * signal.observe, middle = [(peaks[0].x + peaks[nbPeaks - 1].x) / 2, 1];
-    maxError = error(Math.abs(cs - middle[0]));
-    var heightSum = 0;
-    //We try to symmetrize the extreme peaks. We consider as candidates for symmetricing those which have
-    //ratio smaller than 3
-    for (var i = 0; i < nbPeaks; i++) {
-        mask[i] = true;
-        heightSum += signal.peaks[i].intensity;
-    }
-
-    while (left <= right) {
-        mask[left] = true;
-        mask[right] = true;
-        if (left === right) {
-            if (nbPeaks > 2 && Math.abs(peaks[left].x - cs) > maxError) {
-                mask[left] = false;
-            }
-        } else {
-            max = Math.max(peaks[left].intensity, peaks[right].intensity);
-            min = Math.min(peaks[left].intensity, peaks[right].intensity);
-            ratio = max / min;
-            if (ratio > symRatio) {
-                if (peaks[left].intensity === min) {
-                    mask[left] = false;
-                    right++;
-                } else {
-                    mask[right] = false;
-                    left--;
-                }
-            } else {
-                var diffL = Math.abs(peaks[left].x - cs);
-                var diffR = Math.abs(peaks[right].x - cs);
-
-                if (Math.abs(diffL - diffR) < maxError) {
-                    //avg = (peaks[left].intensity+peaks[right].intensity)/2;
-                    avg = Math.min(peaks[left].intensity, peaks[right].intensity);
-                    avgWidth = Math.min(peaks[left].width, peaks[right].width);
-                    peaks[left].intensity = peaks[right].intensity = avg;
-                    peaks[left].width = peaks[right].width = avgWidth;
-                    middle = [middle[0] + ((peaks[right].x + peaks[left].x) / 2), middle[1] + 1];
-                } else {
-                    if (Math.max(diffL, diffR) === diffR) {
-                        mask[right] = false;
-                        left--;
-                    } else {
-                        mask[left] = false;
-                        right++;
-                    }
-                }
-                /*if (DEBUG) {
-                    console.log('MaxError: ' + maxError + ' ' + middle[0] + ' ' + middle[1]);
-                    console.log(iteration + ' CS: ' + cs + ' Hz ' + cs / signal.observe + ' PPM');
-                    console.log('Middle: ' + (middle[0] / middle[1]) + ' Hz ' + (middle[0] / middle[1]) / signal.observe + ' PPM');
-                    console.log(diffL + ' ' + diffR);
-                    console.log(Math.abs(diffL - diffR));
-                    console.log(JSON.stringify(peaks));
-                    console.log(JSON.stringify(mask));
-                }*/
-            }
-        }
-        left++;
-        right--;
-        //Only alter cs if it is the first iteration of the sym process.
-        if (iteration === 1) {
-            cs = chemicalShift(peaks, mask);
-            //There is not more available peaks
-            if (isNaN(cs)) {
-                return 0;
-            }
-        }
-        maxError = error(Math.abs(cs - middle[0] / middle[1]));
-    }
-    //To remove the weak peaks and recalculate the cs
-    for (i = nbPeaks - 1; i >= 0; i--) {
-        if (mask[i] === false) {
-            peaks.splice(i, 1);
-        }
-    }
-    cs = chemicalShift(peaks);
-    if (isNaN(cs)) {
-        return 0;
-    }
-    signal.delta1 = cs / signal.observe;
-    //Now, the peak should be symmetric in heights, but we need to know if it is symmetric in x
-    let symFactor = 0, weight = 0;
-    if (peaks.length > 1) {
-        for (i = Math.ceil(peaks.length / 2) - 1; i >= 0; i--) {
-            symFactor += (3 + Math.min(Math.abs(peaks[i].x - cs), Math.abs(peaks[peaks.length - 1 - i].x - cs)))
-                / (3 + Math.max(Math.abs(peaks[i].x - cs), Math.abs(peaks[peaks.length - 1 - i].x - cs))) * peaks[i].intensity;
-            weight += peaks[i].intensity;
-        }
-        symFactor /= weight;
-    } else {
-        if (peaks.length === 1) {
-            symFactor = 1;
-        }
-    }
-    var newSumHeights = 0;
-    for (i = 0; i < peaks.length; i++) {
-        newSumHeights += peaks[i].intensity;
-    }
-    symFactor -= (heightSum - newSumHeights) / heightSum * 0.12; //Removed peaks penalty
-    /*if (DEBUG) {
-        console.log('Penalty ' + (heightSum - newSumHeights) / heightSum * 0.12);
-        console.log('cs: ' + (cs / signal.observe) + ' symFactor: ' + symFactor);
-    }*/
-    //Sometimes we need a second opinion after the first symmetrization.
-    if (symFactor > 0.8 && symFactor < 0.97 && iteration < 2) {
-        return symmetrize(signal, maxErrorIter2, 2);
-    } else {
-        //Center the given pattern at cs and symmetrize x
-        if (peaks.length > 1) {
-            let dxi;
-            for (i = Math.ceil(peaks.length / 2) - 1; i >= 0; i--) {
-                dxi = (peaks[i].x - peaks[peaks.length - 1 - i].x) / 2.0;
-                peaks[i].x = cs + dxi;
-                peaks[peaks.length - 1 - i].x = cs - dxi;
-            }
-        }
-    }
-    return symFactor;
-}
-/**
- * Error validator
- * @param {number} value
- * @return {number}
- * @private
- */
-function error(value) {
-    var maxError = value * 2.5;
-    if (maxError < 0.75) {
-        maxError = 0.75;
-    }
-    if (maxError > 3) {
-        maxError = 3;
-    }
-    return maxError;
-}
-/**
- * 2 stages normalizarion of the peaks heights to Math.pow(2,n).
- * Creates a new mask with the peaks that could contribute to the multiplete
- * @param {object} signal
- * @param {number} n
- * @return {*}
- */
-function normalize(signal, n) {
-    //Perhaps this is slow
-    var peaks = JSON.parse(JSON.stringify(signal.peaksComp));
-    var norm = 0, norm2 = 0, i;//Math.pow(2,n);
-    for (i = 0; i < peaks.length; i++) {
-        norm += peaks[i].intensity;
-    }
-    norm = Math.pow(2, n) / norm;
-    signal.mask2 = JSON.parse(JSON.stringify(signal.mask));
-    //console.log("Mask0 "+JSON.stringify(signal.mask2));
-    var index = signal.mask2.length - 1;
-    for (i = peaks.length - 1; i >= 0; i--) {
-        peaks[i].intensity *= norm;
-        while (index >= 0 && signal.mask2[index] === false) {
-            index--;
-        }
-        if (peaks[i].intensity < 0.75) {
-            //if (DEBUG) console.log('Peak ' + i + ' does not seem to belong to this multiplet ' + peaks[i].intensity);
-            peaks.splice(i, 1);
-            signal.mask2[index] = false;
-        } else {
-            norm2 += peaks[i].intensity;
-        }
-        index--;
-    }
-    norm2 = Math.pow(2, n) / norm2;
-    for (i = peaks.length - 1; i >= 0; i--) {
-        peaks[i].intensity *= norm2;
-    }
-    //console.log("Mask1 "+JSON.stringify(signal.mask2));
-    //if (DEBUG) console.log(JSON.stringify(peaks));
-    return peaks;
-}
-
-/**
- * Calculates the chemical shift as the weighted sum of the peaks
- * @param {Array} peaks
- * @param {Array} mask
- * @return {number}
- */
-function chemicalShift(peaks, mask) {
-    var sum = 0, cs = 0, i, area;
-    if (mask) {
-        for (i = 0; i < peaks.length; i++) {
-            //console.log(mask[i]);
-            if (mask[i] === true) {
-                area = getArea(peaks[i]);
-                sum += area;
-                cs += area * peaks[i].x;
-            }
-        }
-    } else {
-        for (i = 0; i < peaks.length; i++) {
-            area = getArea(peaks[i]);
-            sum += area;
-            cs += area * peaks[i].x;
-        }
-    }
-    return cs / sum;
-}
-
-/**
- * Return the area of a Lorentzian function
- * @param {object} peak - object with peak information
- * @return {number}
- * @private
- */
-function getArea(peak) {
-    return Math.abs(peak.intensity * peak.width * 1.57);//1.772453851);
-}
-
-
-/***/ }),
-/* 141 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var PeakOptimizer = __webpack_require__(51);
-var simpleClustering = __webpack_require__(39);
-var matrixPeakFinders = __webpack_require__(89);
-var FFTUtils = __webpack_require__(34).FFTUtils;
-
-const smallFilter = [
-    [0, 0, 1, 2, 2, 2, 1, 0, 0],
-    [0, 1, 4, 7, 7, 7, 4, 1, 0],
-    [1, 4, 5, 3, 0, 3, 5, 4, 1],
-    [2, 7, 3, -12, -23, -12, 3, 7, 2],
-    [2, 7, 0, -23, -40, -23, 0, 7, 2],
-    [2, 7, 3, -12, -23, -12, 3, 7, 2],
-    [1, 4, 5, 3, 0, 3, 5, 4, 1],
-    [0, 1, 3, 7, 7, 7, 3, 1, 0],
-    [0, 0, 1, 2, 2, 2, 1, 0, 0]];
-
-function getZones(spectraData, thresholdFactor) {
-    if (thresholdFactor === 0) {
-        thresholdFactor = 1;
-    }
-    if (thresholdFactor < 0) {
-        thresholdFactor = -thresholdFactor;
-    }
-    var nbPoints = spectraData.getNbPoints();
-    var nbSubSpectra = spectraData.getNbSubSpectra();
-
-    var data = new Array(nbPoints * nbSubSpectra);
-    var isHomonuclear = spectraData.isHomoNuclear();
-
-    for (var iSubSpectra = 0; iSubSpectra < nbSubSpectra; iSubSpectra++) {
-        var spectrum = spectraData.getYData(iSubSpectra);
-        for (var iCol = 0; iCol < nbPoints; iCol++) {
-            if (isHomonuclear) {
-                data[iSubSpectra * nbPoints + iCol] = (spectrum[iCol] > 0 ? spectrum[iCol] : 0);
-            } else {
-                data[iSubSpectra * nbPoints + iCol] = Math.abs(spectrum[iCol]);
-            }
-        }
-    }
-
-    var nStdDev = getLoGnStdDevNMR(spectraData);
-    if (isHomonuclear) {
-        let convolutedSpectrum = FFTUtils.convolute(data, smallFilter, nbSubSpectra, nbPoints);
-        let peaksMC1 = matrixPeakFinders.findPeaks2DRegion(data, {filteredData: convolutedSpectrum, rows: nbSubSpectra, cols: nbPoints, nStdDev: nStdDev * thresholdFactor});//)1.5);
-        var peaksMax1 = matrixPeakFinders.findPeaks2DMax(data, {filteredData: convolutedSpectrum, rows: nbSubSpectra, cols: nbPoints, nStdDev: (nStdDev + 0.5) * thresholdFactor});//2.0);
-        for (var i = 0; i < peaksMC1.length; i++) {
-            peaksMax1.push(peaksMC1[i]);
-        }
-        return PeakOptimizer.enhanceSymmetry(createSignals2D(peaksMax1, spectraData, 24));
-
-    } else {
-        let convolutedSpectrum = FFTUtils.convolute(data, smallFilter, nbSubSpectra, nbPoints);
-        let peaksMC1 = matrixPeakFinders.findPeaks2DRegion(data, {filteredData: convolutedSpectrum, rows: nbSubSpectra, cols: nbPoints, nStdDev: nStdDev * thresholdFactor});
-        //Peak2D[] peaksMC1 = matrixPeakFinders.findPeaks2DMax(data, nbSubSpectra, nbPoints, (nStdDev+0.5)*thresholdFactor);
-        //Remove peaks with less than 3% of the intensity of the highest peak
-        return createSignals2D(PeakOptimizer.clean(peaksMC1, 0.05), spectraData, 24);
-    }
-
-}
-
-
-//How noisy is the spectrum depending on the kind of experiment.
-function getLoGnStdDevNMR(spectraData) {
-    if (spectraData.isHomoNuclear()) {
-        return 1.5;
-    } else {
-        return 3;
-    }
-}
-
-/**
- * This function converts a set of 2D-peaks in 2D-signals. Each signal could be composed
- * of many 2D-peaks, and it has some additional information related to the NMR spectrum.
- * @param {Array} peaks 
- * @param {NMR} spectraData
- * @param {number} tolerance
- * @return {Array} 
- * @private
- */
-function createSignals2D(peaks, spectraData, tolerance) {
-
-    var bf1 = spectraData.observeFrequencyX();
-    var bf2 = spectraData.observeFrequencyY();
-
-    var firstY = spectraData.getFirstY();
-    var dy = spectraData.getDeltaY();
-    var i;
-    for (i = peaks.length - 1; i >= 0; i--) {
-        peaks[i].x = (spectraData.arrayPointToUnits(peaks[i].x));
-        peaks[i].y = (firstY + dy * (peaks[i].y));
-
-        //Still having problems to correctly detect peaks on those areas. So I'm removing everything there.
-        if (peaks[i].y < -1 || peaks[i].y >= 210) {
-            peaks.splice(i, 1);
-        }
-    }
-    //The connectivity matrix is an square and symmetric matrix, so we'll only store the upper diagonal in an
-    //array like form
-    var connectivity = [];
-    var tmp = 0;
-    tolerance *= tolerance;
-    //console.log(tolerance);
-    for (i = 0; i < peaks.length; i++) {
-        for (var j = i; j < peaks.length; j++) {
-            tmp = Math.pow((peaks[i].x - peaks[j].x) * bf1, 2) + Math.pow((peaks[i].y - peaks[j].y) * bf2, 2);
-            if (tmp < tolerance) {//30*30Hz We cannot distinguish peaks with less than 20 Hz of separation
-                connectivity.push(1);
-            } else {
-                connectivity.push(0);
-            }
-        }
-    }
-
-    var clusters = simpleClustering(connectivity);
-
-    var signals = [];
-    if (peaks != null) {
-        for (var iCluster = 0; iCluster < clusters.length; iCluster++) {
-            var signal = {nucleusX: spectraData.getNucleus(1), nucleusY: spectraData.getNucleus(2)};
-            signal.resolutionX = (spectraData.getLastX() - spectraData.getFirstX()) / spectraData.getNbPoints();
-            signal.resolutionY = dy;
-            var peaks2D = [];
-            signal.shiftX = 0;
-            signal.shiftY = 0;
-            var minMax1 = [Number.MAX_VALUE, 0];
-            var minMax2 = [Number.MAX_VALUE, 0];
-            var sumZ = 0;
-            for (var jPeak = clusters[iCluster].length - 1; jPeak >= 0; jPeak--) {
-                if (clusters[iCluster][jPeak] === 1) {
-                    peaks2D.push({
-                        x: peaks[jPeak].x,
-                        y: peaks[jPeak].y,
-                        z: peaks[jPeak].z
-
-                    });
-                    signal.shiftX += peaks[jPeak].x * peaks[jPeak].z;
-                    signal.shiftY += peaks[jPeak].y * peaks[jPeak].z;
-                    sumZ += peaks[jPeak].z;
-                    if (peaks[jPeak].x < minMax1[0]) {
-                        minMax1[0] = peaks[jPeak].x;
-                    }
-                    if (peaks[jPeak].x > minMax1[1]) {
-                        minMax1[1] = peaks[jPeak].x;
-                    }
-                    if (peaks[jPeak].y < minMax2[0]) {
-                        minMax2[0] = peaks[jPeak].y;
-                    }
-                    if (peaks[jPeak].y > minMax2[1]) {
-                        minMax2[1] = peaks[jPeak].y;
-                    }
-
-                }
-            }
-            signal.fromTo = [{from: minMax1[0], to: minMax1[1]},
-                {from: minMax2[0], to: minMax2[1]}];
-            signal.shiftX /= sumZ;
-            signal.shiftY /= sumZ;
-            signal.peaks = peaks2D;
-            signals.push(signal);
-        }
-    }
-    return signals;
-}
-
-module.exports = getZones;
-
-
-/***/ }),
-/* 142 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-const JAnalyzer = __webpack_require__(140);
-const Ranges = __webpack_require__(18);
-//var extend = require("extend");
-//var removeImpurities = require('./ImpurityRemover');
-
-const defaultOptions = {
-    nH: 99,
-    clean: true,
-    compile: true,
-    integralType: 'sum',
-    idPrefix: '',
-    frequencyCluster: 16
-};
-/**
- * This function clustering peaks and calculate the integral value for each range from the peak list returned from extractPeaks function.
- * @param {SD} spectrum - SD instance
- * @param {Object} peakList - nmr signals
- * @param {Object} options - options object with some parameter for GSD, detectSignal functions.
- * @param {number} [options.nH = 99] - Number of hydrogens or some number to normalize the integral data. If it's zero return the absolute integral value
- * @param {string} [options.integralType = 'sum'] - option to chose between approx area with peaks or the sum of the points of given range ('sum', 'peaks')
- * @param {number} [options.frequencyCluster = 16] - distance limit to clustering peaks.
- * @param {boolean} [options.clean = true] - If true remove all the signals with integral < 0.5
- * @param {boolean} [options.compile = true] - If true, the Janalyzer function is run over signals to compile the patterns.
- * @param {string} [options.idPrefix = ''] - prefix for signal ID
- * @returns {Array}
- */
-
-function createRanges(spectrum, peakList, options) {
-    options = Object.assign({}, defaultOptions, options);
-    var i,
-        j,
-        nHi,
-        sum;
-
-    var signals = detectSignals(peakList, spectrum, options.nH, options.integralType, options.frequencyCluster);
-
-    //Remove all the signals with small integral
-    if (options.clean || false) {
-        for (i = signals.length - 1; i >= 0; i--) {
-            if (signals[i].integralData.value < 0.5) {
-                signals.splice(i, 1);
-            }
-        }
-    }
-
-    if (options.compile || false) {
-        for (i = 0; i < signals.length; i++) {
-            //console.log("Sum "+signals[i].integralData.value);
-            JAnalyzer.compilePattern(signals[i]);
-
-            if (signals[i].maskPattern && signals[i].multiplicity !== 'm'
-                && signals[i].multiplicity !== '') {
-                //Create a new signal with the removed peaks
-                nHi = 0;
-                sum = 0;
-                var peaksO = [];
-                for (j = signals[i].maskPattern.length - 1; j >= 0; j--) {
-                    sum += area(signals[i].peaks[j]);
-
-                    if (signals[i].maskPattern[j] === false) {
-                        var peakR = signals[i].peaks.splice(j, 1)[0];
-                        peaksO.push({x: peakR.x, y: peakR.intensity, width: peakR.width});
-                        //peaksO.push(peakR);
-                        signals[i].mask.splice(j, 1);
-                        signals[i].mask2.splice(j, 1);
-                        signals[i].maskPattern.splice(j, 1);
-                        signals[i].nbPeaks--;
-                        nHi += area(peakR);
-                    }
-                }
-                if (peaksO.length > 0) {
-                    nHi = nHi * signals[i].integralData.value / sum;
-                    signals[i].integralData.value -= nHi;
-                    var peaks1 = [];
-                    for (j = peaksO.length - 1; j >= 0; j--) {
-                        peaks1.push(peaksO[j]);
-                    }
-                    let ranges = detectSignals(peaks1, spectrum, nHi, options.integralType, options.frequencyCluster);
-
-                    for (j = 0; j < ranges.length; j++) {
-                        signals.push(ranges[j]);
-                    }
-                }
-            }
-        }
-        // it was a updateIntegrals function.
-        var sumIntegral = 0, sumObserved = 0;
-        for (i = 0; i < signals.length; i++) {
-            sumObserved += Math.round(signals[i].integralData.value);
-        }
-        if (sumObserved !== options.nH) {
-            sumIntegral = options.nH / sumObserved;
-            for (i = 0; i < signals.length; i++) {
-                signals[i].integralData.value *= sumIntegral;
-            }
-        }
-    }
-    
-    signals.sort(function (a, b) {
-        return b.delta1 - a.delta1;
-    });
-
-    if (options.clean || false) {
-        for (i = signals.length - 1; i >= 0; i--) {
-            //console.log(signals[i]);
-            if (signals[i].integralData.value < 0.5) {
-                signals.splice(i, 1);
-            }
-        }
-    }
-
-    for (i = 0; i < signals.length; i++) {
-        if (options.idPrefix && options.idPrefix.length > 0) {
-            signals[i].signalID = options.idPrefix + '_' + (i + 1);
-        } else {
-            signals[i].signalID = (i + 1) + '';
-        }
-        signals[i]._highlight = [signals[i].signalID];
-    }
-
-
-    let ranges = new Array(signals.length);
-    for (i = 0; i < signals.length; i++) {
-        var signal = signals[i];
-        ranges[i] = {
-            from: signal.integralData.from,
-            to: signal.integralData.to,
-            integral: signal.integralData.value,
-            signal: [{
-                nbAtoms: 0,
-                diaID: [],
-                multiplicity: signal.multiplicity,
-                peak: signal.peaks,
-                kind: '',
-                remark: ''
-            }],
-            signalID: signal.signalID,
-            _highlight: signal._highlight
-
-        };
-        if (signal.nmrJs) {
-            ranges[i].signal[0].j = signal.nmrJs;
-        }
-        if (!signal.asymmetric || signal.multiplicity === 'm') {
-            ranges[i].signal[0].delta = signal.delta1;
-        }
-    }
-    signals = new Ranges(ranges);
-
-
-    return signals;
-}
-
-
-/**
- * Extract the signals from the peakList and the given spectrum.
- * @param {object} peakList - nmr signals
- * @param {object} spectrum - spectra data
- * @param {number} nH - Number of hydrogens or some number to normalize the integral data, If it's zero return the absolute integral value
- * @param {string} integralType - option to chose between approx area with peaks or the sum of the points of given range
- * @param {number} frequencyCluster - distance limit to clustering the peaks.
- * range = frequencyCluster / observeFrequency -> Peaks withing this range are considered to belongs to the same signal1D
- * @return {Array} nmr signals
- * @private
- */
-function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
-    const frequency = spectrum.observeFrequencyX();
-    var  cs,
-        sum,
-        i,
-        j,
-        signals = [],
-        signal1D = {},
-        peaks = null,
-        prevPeak = {x: 100000, y: 0, width: 0},
-        spectrumIntegral = 0;
-
-    var frequencyCluster = Number.isFinite(frequencyCluster) ? frequencyCluster : 16;
-    var integralType = (integralType === 'sum' || integralType === 'peaks') ? integralType : 'sum';
-
-    const rangeX = frequencyCluster / frequency;
-
-    for (i = 0; i < peakList.length; i++) {
-        if (Math.abs(peakList[i].x - prevPeak.x) > rangeX) {
-            signal1D = {nbPeaks: 1, units: 'PPM',
-                'startX': peakList[i].x - peakList[i].width,
-                'stopX': peakList[i].x + peakList[i].width,
-                'multiplicity': '', 'pattern': '',
-                'observe': frequency, 'nucleus': '1H',
-                'integralData': {'from': peakList[i].x - peakList[i].width * 3,
-                    'to': peakList[i].x + peakList[i].width * 3
-                     //"value":area(peakList[i])
-                },
-                'peaks': []};
-            signal1D.peaks.push({x: peakList[i].x, 'intensity': peakList[i].y, width: peakList[i].width});
-            signals.push(signal1D);
-            //spectrumIntegral+=area(peakList[i]);
-        } else {
-            var tmp = peakList[i].x + peakList[i].width;
-            signal1D.stopX = Math.max(signal1D.stopX, tmp);
-            tmp = peakList[i].x - peakList[i].width;
-            signal1D.startX = Math.min(signal1D.startX, tmp);
-            signal1D.nbPeaks++;
-            signal1D.peaks.push({x: peakList[i].x, 'intensity': peakList[i].y, width: peakList[i].width});
-            //signal1D.integralData.value+=area(peakList[i]);
-            signal1D.integralData.from = Math.min(signal1D.integralData.from, peakList[i].x - peakList[i].width * 3);
-            signal1D.integralData.to = Math.max(signal1D.integralData.to, peakList[i].x + peakList[i].width * 3);
-            //spectrumIntegral+=area(peakList[i]);
-        }
-        prevPeak = peakList[i];
-    }
-    //Normalize the integral to the normalization parameter and calculate cs
-    for (i = 0; i < signals.length; i++) {
-        peaks = signals[i].peaks;
-        let integral = signals[i].integralData;
-        cs = 0;
-        sum = 0;
-
-        for (j = 0; j < peaks.length; j++) {
-            cs += peaks[j].x * area(peaks[j]);//.intensity;
-            sum += area(peaks[j]);
-        }
-        signals[i].delta1 = cs / sum;
-
-        if (integralType === 'sum') {
-            integral.value = spectrum.getArea(integral.from, integral.to);
-        } else {
-            integral.value = sum;
-        }
-        spectrumIntegral += integral.value;
-
-    }
-    if (nH !== 0) {
-        for (i = 0; i < signals.length; i++) {
-            //console.log(integral.value);
-            let integral = signals[i].integralData;
-            integral.value *= nH / spectrumIntegral;
-        }
-    }
-
-    return signals;
-}
-
-/**
- * Updates the score that a given impurity is present in the current spectrum. In this part I would expect
- * to have into account the multiplicity of the signal. Also the relative intensity of the signals.
- * THIS IS the KEY part of the algorithm!!!!!!!!!
- * @param candidates
- * @param peakList
- * @param maxIntensity
- * @param frequency
- * @return {number}
- */
-/*function updateScore(candidates, peakList, maxIntensity, frequency) {
- //You may do it to avoid this part.
- //Check the multiplicity
- var mul, index, k;
- var j = 0;
- var min = 0;
- var indexMin = 0;
- var score = 0;
- for (var i = candidates.length - 1; i >= 0; i--) {
- mul = candidates[i][1];
- j = candidates[i][2];
- index = candidates[i][4][0];
- //I guess we should try to identify the pattern in the nearby.
- if (mul.indexOf('sep') >= 0) {
- if (peakList[index][1] > maxIntensity * 0.33) {
- candidates.splice(i, 1);//Not a candidate anymore.
- }
- } else {
- if (mul.indexOf('s') >= 0 || mul.indexOf('X') >= 0) {
- k = index - 1;
- min = peakList[index][1];
- indexMin = index;
- while (k >= 0 && Math.abs(peakList[index][0] - peakList[k][0]) < 0.025) {
- if (peakList[k][1] < min) {
- min = peakList[k][1];
- indexMin = k;
- }
- k--;
- }
- k = index + 1;
- while (k < peakList.length && Math.abs(peakList[index][0] - peakList[k][0]) < 0.025) {
- if (peakList[k][1] < min) {
- min = peakList[k][1];
- indexMin = k;
- }
- k++;
- }
- candidates[i][4][0] = indexMin;
- score += 1;
- }
- }
- if (mul.indexOf('d') >= 0) {
- if (index > 0 && index < peakList.length - 1) {
- let thisJ1 = Math.abs(Math.abs(peakList[index - 1][0] - peakList[index][0]) * frequency - j);
- let thisJ2 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index][0]) * frequency - j);
- let thisJ3 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index - 1][0]) * frequency - j);
- if (thisJ1 < 2 || thisJ2 < 2 || thisJ3 < 2) {
- if (thisJ1 < thisJ2) {
- if (thisJ1 < thisJ3) {
- candidates[i][4] = [index - 1, index];
- score += 1;
- }                        else {
- candidates[i][4] = [index - 1, index + 1];
- score += 1;
- }
- }                    else {
- if (thisJ2 < thisJ3) {
- candidates[i][4] = [index, index + 1];
- score += 1;
- }                        else {
- candidates[i][4] = [index - 1, index + 1];
- score += 1;
- }
- }
- }
- }
- }
- if (mul.indexOf('t') >= 0) {
- if (index > 0 && index < peakList.length - 1) {
- let thisJ1 = Math.abs(Math.abs(peakList[index - 1][0] - peakList[index][0]) * frequency - j);
- let thisJ2 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index][0]) * frequency - j);
- let thisJ3 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index + 2][0]) * frequency - j);
- //console.log("XX "+thisJ1+" "+thisJ2);
- if (thisJ1 < 2) {
- candidates[i][4] = [index - 1, index];
- score += 0.5;
- }
- if (thisJ2 < 2) {
- candidates[i][4].push(index + 1);
- score += 0.5;
- }
- if (thisJ3 < 2) {
- candidates[i][4].push(index + 2);
- score += 0.5;
- }
-
- }
- }
- if (mul.indexOf('q') >= 0) {
- if (index > 1 && index < peakList.length - 2) {
- var thisJ1 = Math.abs(Math.abs(peakList[index - 2][0] - peakList[index - 1][0]) * frequency - j);
- var thisJ2 = Math.abs(Math.abs(peakList[index - 1][0] - peakList[index][0]) * frequency - j);
- var thisJ3 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index][0]) * frequency - j);
- var thisJ4 = Math.abs(Math.abs(peakList[index + 2][0] - peakList[index + 1][0]) * frequency - j);
- if (thisJ1 < 2) {
- candidates[i][4].push(index - 2);
- score += 0.25;
- }
- if (thisJ2 < 2) {
- candidates[i][4].push(index - 1);
- score += 0.25;
- }
- if (thisJ3 < 2) {
- candidates[i][4].push(index + 1);
- score += 0.25;
- }
- if (thisJ4 < 2) {
- candidates[i][4].push(index + 2);
- score += 0.25;
- }
- }
- }
- }
- //Lets remove the candidates to be impurities.
- //It would be equivalent to mark the peaks as valid again
- if (score / candidates.length < 0.5) {
- for (var i = candidates.length - 1; i >= 0; i--) {
- candidates.splice(i, 1);
- }
- return 0;
- }
- //Check the relative intensity
- return 1;
- }
- */
-/**
- * Return the area of a Lorentzian function
- * @param {object} peak - object with peak information
- * @return {number}
- * @private
- */
-function area(peak) {
-    return Math.abs(peak.intensity * peak.width * 1.57);//1.772453851);
-}
-
-module.exports = createRanges;
-
-
-/***/ }),
-/* 143 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-
-var acsString = '';
-var parenthesis = '';
-var rangeForMultiplet = false;
-
-
-function toAcs(rangesIn, opt) {
-    let options = Object.assign({}, {nucleus: '1H'}, opt);
-
-    var ranges = JSON.parse(JSON.stringify(rangesIn));
-
-    if (ranges[0].delta1) {//Old signals format
-        throw new Error( 'Old unsupported format');
-    }
-    if (ranges.updateMultiplicity) {
-        ranges = ranges.updateMultiplicity();
-    }
-
-    acsString = '';
-    parenthesis = '';
-    var solvent = null;
-    if (options && options.solvent) {
-        solvent = options.solvent;
-    }
-    if (options && options.rangeForMultiplet !== undefined) {
-        rangeForMultiplet = options.rangeForMultiplet;
-    }
-
-    if (options && options.ascending) {
-        ranges.sort(function (a, b) {
-            return b.from - a.from;
-        });
-    } else {
-        ranges.sort(function (a, b) {
-            return a.from - b.from;
-        });
-    }
-
-    ranges.type = 'NMR SPEC';
-    if (options && options.nucleus === '1H') {
-        formatAcsDefault(ranges, false, 2, 1, solvent, options);
-    }
-    if (options && options.nucleus === '13C') {
-        formatAcsDefault(ranges, false, 1, 0, solvent, options);
-    }
-
-    if (acsString.length > 0) acsString += '.';
-
-    return acsString;
-}
-
-function formatAcsDefault(ranges, ascending, decimalValue, decimalJ, solvent, options) {
-    appendSeparator();
-    appendSpectroInformation(ranges, solvent, options);
-    var numberSmartPeakLabels = ranges.length;
-    var signal;
-    for (var i = 0; i < numberSmartPeakLabels; i++) {
-        if (ascending) {
-            signal = ranges[i];
-        } else {
-            signal = ranges[numberSmartPeakLabels - i - 1];
-        }
-        if (signal) {
-            appendSeparator();
-            appendDelta(signal, decimalValue);
-            appendParenthesis(signal, decimalJ);
-        }
-    }
-}
-
-function appendSpectroInformation(range, solvent, options) {
-    if (range.type === 'NMR SPEC') {
-        if (options.nucleus) {
-            acsString += formatNucleus(options.nucleus);
-        }
-        acsString += ' NMR';
-        if ((solvent) || (options.observe)) {
-            acsString += ' (';
-            if (options.observe) {
-                acsString += (options.observe * 1).toFixed(0) + ' MHz';
-                if (solvent) acsString += ', ';
-            }
-            if (solvent) {
-                acsString += formatMF(solvent);
-            }
-            acsString += ')';
-        }
-        acsString += ' δ ';
-    } else if (range.type === 'IR') {
-        acsString += ' IR ';
-    } else if (range.type === 'MASS') {
-        acsString += ' MASS ';
-    }
-}
-
-function appendDelta(line, nbDecimal) {
-    var startX = 0, stopX = 0, delta1 = 0, asymmetric;
-    if (line.from) {
-        if ((typeof line.from) === 'string') {
-            startX = parseFloat(line.from);
-        } else {
-            startX = line.from;
-        }
-    }
-    if (line.to) {
-        if ((typeof line.to) === 'string') {
-            stopX = parseFloat(line.to);
-        } else {
-            stopX = line.to;
-        }
-    }
-    if (line.signal[0].delta) {
-        if ((typeof line.signal[0].delta) === 'string') {
-            delta1 = parseFloat(line.signal[0].delta);
-        } else {
-            delta1 = line.signal[0].delta;
-        }
-    } else {
-        asymmetric = true;
-    }
-
-    if (asymmetric === true || (line.signal[0].multiplicity === 'm' && rangeForMultiplet === true)) {//Is it massive??
-        if (line.from && line.to) {
-            if (startX < stopX) {
-                acsString += startX.toFixed(nbDecimal) + '-' + stopX.toFixed(nbDecimal);
-            } else {
-                acsString += stopX.toFixed(nbDecimal) + '-' + startX.toFixed(nbDecimal);
-            }
-        } else if (line.signal[0].delta) {
-            acsString += '?';
-        }
-    } else if (line.signal[0].delta) {
-        acsString += delta1.toFixed(nbDecimal);
-    } else if (line.from && line.to) {
-        acsString += ((startX + stopX) / 2).toFixed(nbDecimal);
-    }
-}
-
-/*
- function appendValue(line, nbDecimal) {
- if (line.xPosition) {
- acsString += line.xPosition.toFixed(nbDecimal);
- }
- }
- */
-function appendParenthesis(line, nbDecimal) {
-    parenthesis = '';
-    appendMultiplicity(line);
-    appendIntegration(line);
-    appendCoupling(line, nbDecimal);
-    appendAssignment(line);
-
-    if (parenthesis.length > 0) {
-        acsString += ' (' + parenthesis + ')';
-    }
-}
-
-function appendIntegration(line) {
-    if (line.pubIntegral) {
-        appendParenthesisSeparator();
-        parenthesis += line.pubIntegral;
-    } else if (line.integral) {
-        appendParenthesisSeparator();
-        parenthesis += line.integral.toFixed(0) + ' H';
-    }
-}
-
-function appendAssignment(line) {
-    if (line.signal[0].pubAssignment) {
-        appendParenthesisSeparator();
-        parenthesis += formatAssignment(line.signal[0].pubAssignment);
-    } else if (line.signal[0].assignment) {
-        appendParenthesisSeparator();
-        parenthesis += formatAssignment(line.signal[0].assignment);
-    }
-}
-
-function appendMultiplicity(line) {
-    if (line.signal[0].pubMultiplicity) {
-        appendParenthesisSeparator();
-        parenthesis += line.pubMultiplicity;
-    } else if (line.signal[0].multiplicity) {
-        appendParenthesisSeparator();
-        parenthesis += line.signal[0].multiplicity;
-    }
-}
-
-function appendCoupling(line, nbDecimal) {
-    if ('sm'.indexOf(line.signal[0].multiplicity) < 0
-        && line.signal[0].j && line.signal[0].j.length > 0) {
-        var Js = line.signal[0].j;
-        var j = '<i>J</i> = ';
-        for (var i = 0; i < Js.length; i++) {
-            var coupling = Js[i].coupling || 0;
-            if (j.length > 11) {
-                j += ', ';
-            }
-            j += coupling.toFixed(nbDecimal);
-        }
-        appendParenthesisSeparator();
-        parenthesis += j + ' Hz';
-    }
-}
-
-function formatAssignment(assignment) {
-    assignment = assignment.replace(/([0-9])/g, '<sub>$1</sub>');
-    assignment = assignment.replace(/\"([^\"]*)\"/g, '<i>$1</i>');
-    return assignment;
-}
-
-function formatMF(mf) {
-    mf = mf.replace(/([0-9])/g, '<sub>$1</sub>');
-    return mf;
-}
-
-function formatNucleus(nucleus) {
-    nucleus = nucleus.replace(/([0-9])/g, '<sup>$1</sup>');
-    return nucleus;
-}
-
-function appendSeparator() {
-    if ((acsString.length > 0) && (!acsString.match(/ $/))) {
-        acsString += ', ';
-    }
-}
-
-function appendParenthesisSeparator() {
-    if ((parenthesis.length > 0) && (!parenthesis.match(', $'))) parenthesis += ', ';
-}
-
-module.exports = toAcs;
-
-
-/***/ }),
-/* 144 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-/**
- * This function converts an array of peaks [{x, y, width}] in a vector equally x,y vector from a given window
- * TODO: This function is very general and should be placed somewhere else
- * @param {Array} peaks - List of the peaks
- * @param {object} options - it has some options to
- * @param {number} [options.from] - one limit of given window
- * @param {number} [options.to] - one limit of given window
- * @param {string} [options.fnName] - function name to generate the signals form
- * @param {number} [options.nWidth] - width factor of signal form
- * @param {number} [options.nbPoints] - number of points that the vector will have
- * @return {{x: Array, y: Array}}
- */
-function peak2Vector(peaks, options) {
-    var options = options || {};
-    var from = options.from;
-    var to = options.to;
-    var nbPoints = options.nbPoints || 16 * 1024;
-    var fnName = options.fnName || 'gaussian';
-    var nWidth = options.nWidth || 4;
-
-    if (!from) {
-        from = Number.MAX_VALUE;
-        for (let i = 0; i < peaks.length; i++) {
-            if (peaks[i].x - peaks[i].width * nWidth < from) {
-                from = peaks[i].x - peaks[i].width * nWidth;
-            }
-        }
-    }
-
-    if (!to) {
-        to = Number.MIN_VALUE;
-        for (let i = 0; i < peaks.length; i++) {
-            if (peaks[i].x + peaks[i].width * nWidth > to) {
-                to = peaks[i].x + peaks[i].width * nWidth;
-            }
-        }
-    }
-
-
-    var x = new Array(nbPoints);
-    var y = new Array(nbPoints);
-    var dx = (to - from) / (nbPoints - 1);
-    for (let i = 0; i < nbPoints; i++) {
-        x[i] = from + i * dx;
-        y[i] = 0;
-    }
-
-    var intensity = 'intensity';
-    if (peaks[0].y) {
-        intensity = 'y';
-    }
-
-    for (let i = 0; i < peaks.length; i++) {
-        var peak = peaks[i];
-        if (peak.x > from && peak.x < to) {
-            var index = Math.round((peak.x - from) / dx);
-            var w = Math.round(peak.width * nWidth / dx);
-            if (fnName === 'gaussian') {
-                for (var j = index - w; j < index + w; j++) {
-                    if (j >= 0 && j < nbPoints) {
-                        y[j] += peak[intensity] * Math.exp(-0.5 * Math.pow((peak.x - x[j]) / (peak.width / 2), 2));
-                    }
-                }
-            } else {
-                var factor = peak[intensity] * Math.pow(peak.width, 2) / 4;
-                for (let j = index - w; j < index + w; j++) {
-                    if (j >= 0 && j < nbPoints) {
-                        y[j] += factor / (Math.pow(peak.x - x[j], 2) + Math.pow(peak.width / 2, 2));
-
-                    }
-                }
-            }
-
-        }
-    }
-
-    return {x: x, y: y};
-}
-
-module.exports = peak2Vector;
-
-
-
-/***/ }),
-/* 145 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/**
- * Created by acastillo on 5/25/16.
- */
-
-var options1D = {type: 'rect', line: 0, lineLabel: 1, labelColor: 'red', strokeColor: 'red', strokeWidth: '1px', fillColor: 'green', width: 0.05, height: 10, toFixed: 1};
-var options2D = {type: 'rect', labelColor: 'red', strokeColor: 'red', strokeWidth: '1px', fillColor: 'green', width: '6px', height: '6px'};
-
-function annotations1D(ranges, optionsG) {
-    var options = Object.assign({}, options1D, optionsG);
-    var height = options.height;
-    var annotations = [];
-    for (var i = 0; i < ranges.length; i++) {
-        var prediction = ranges[i];
-        var annotation = {};
-
-        annotations.push(annotation);
-        annotation.line = options.line;
-        annotation._highlight = prediction._highlight;
-        if (!annotation._highlight || annotation._highlight.length === 0) {
-            annotation._highlight = [prediction.signalID];
-            prediction.signal.forEach(function (signal) {
-                for (let j = 0; j < signal.diaID.length; j++) {
-                    annotation._highlight.push(signal.diaID[j]);
-                }
-            });
-        }
-
-        prediction._highlight = annotation._highlight;
-
-        annotation.type = options.type;
-
-        if (!prediction.to || !prediction.from || prediction.to === prediction.from) {
-            annotation.position = [{x: prediction.signal[0].delta - options.width, y: (options.line * height) + 'px'},
-                {x: prediction.signal[0].delta + options.width, y: (options.line * height + 3) + 'px'}];
-        } else {
-            annotation.position = [{x: prediction.to, y: (options.line * height) + 'px'},
-                {x: prediction.from, y: (options.line * height + 3) + 'px'}];
-        }
-
-        if (!options.noLabel && prediction.integral) {
-            annotation.label = {
-                text: prediction.integral.toFixed(options.toFixed),
-                size: '11px',
-                anchor: 'middle',
-                color: options.labelColor,
-                position: {x: (annotation.position[0].x + annotation.position[1].x) / 2,
-                    y: ((options.line + options.lineLabel) * height) + 'px', dy: '5px'}
-            };
-        }
-
-
-        annotation.strokeColor = options.strokeColor;
-        annotation.strokeWidth = options.strokeWidth;
-        annotation.fillColor = options.fillColor;
-        annotation.info = prediction;
-    }
-    return annotations;
-}
-
-function annotations2D(zones, optionsG) {
-    var options = Object.assign({}, options2D, optionsG);
-    var annotations = [];
-    for (var k = zones.length - 1; k >= 0; k--) {
-        var signal = zones[k];
-        var annotation = {};
-        annotation.type = options.type;
-        annotation._highlight = signal._highlight;//["cosy"+k];
-        if (!annotation._highlight || annotation._highlight.length === 0) {
-            annotation._highlight = [signal.signalID];
-        }
-        signal._highlight = annotation._highlight;
-
-        annotation.position = [{x: signal.fromTo[0].from - 0.01, y: signal.fromTo[1].from - 0.01, dx: options.width, dy: options.height},
-            {x: signal.fromTo[0].to + 0.01, y: signal.fromTo[1].to + 0.01}];
-        annotation.fillColor = options.fillColor;
-        annotation.label = {text: signal.remark,
-            'position': {
-                'x': signal.signal[0].delta[0],
-                'y': signal.signal[0].delta[1] - 0.025}
-        };
-        if (signal.integral === 1) {
-            annotation.strokeColor = options.strokeColor;
-        } else {
-            annotation.strokeColor = 'rgb(0,128,0)';
-        }
-
-        annotation.strokeWidth = options.strokeWidth;
-        annotation.width = options.width;
-        annotation.height = options.height;
-        annotation.info = signal;
-        annotations.push(annotation);
-    }
-    return annotations;
-}
-
-module.exports = {annotations2D: annotations2D, annotations1D: annotations1D};
-
-
-
-/***/ }),
-/* 146 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.SD = __webpack_require__(7);
-exports.NMR = __webpack_require__(53);
-exports.NMR2D = __webpack_require__(54);
-exports.Ranges = __webpack_require__(18);
-
+exports.SD = __webpack_require__(9);
+exports.NMR = __webpack_require__(58);
+exports.NMR2D = __webpack_require__(59);
+exports.Ranges = __webpack_require__(21);
 
 /***/ })
 /******/ ]);
