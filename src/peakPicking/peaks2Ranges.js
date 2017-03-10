@@ -97,7 +97,7 @@ function createRanges(spectrum, peakList, options) {
             }
         }
     }
-    
+
     signals.sort(function (a, b) {
         return b.delta1 - a.delta1;
     });
@@ -167,7 +167,7 @@ function createRanges(spectrum, peakList, options) {
  */
 function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
     const frequency = spectrum.observeFrequencyX();
-    var  cs,
+    var cs,
         sum,
         i,
         j,

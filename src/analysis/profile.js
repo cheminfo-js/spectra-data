@@ -36,7 +36,7 @@ function profile(pdata, signals, maxShiftDiference) {
                 ini = false;
             }
         }
-        if (ini) Data[i] = [profileData,shiftData];
+        if (ini) Data[i] = [profileData, shiftData];
     }
 
     for (i = 1; i < pdata.length; i++) {

@@ -9,8 +9,8 @@
  */
 function phaseCorrection(spectraData, phi0, phi1) {
 
-    phi0 = Number.isFinite(phi0) ? phi0 : 0
-    phi1 = Number.isFinite(phi1) ? phi1 : 0
+    phi0 = Number.isFinite(phi0) ? phi0 : 0;
+    phi1 = Number.isFinite(phi1) ? phi1 : 0;
 
     var nbPoints = spectraData.getNbPoints();
     var reData = spectraData.getYData(0);

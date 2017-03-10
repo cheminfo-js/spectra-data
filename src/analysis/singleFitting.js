@@ -21,7 +21,7 @@ function singleFitting(data, pInit, opts) {
 
     for (i = 0; i < xDat.length; i++) {
         xDat[i][0] = x[i];
-        yDat[i][0] = y[i]/max;
+        yDat[i][0] = y[i] / max;
     }
     //calcule z position
     xDat = zGenerator(xDat, 6.811384250474384, 4258);
@@ -55,11 +55,11 @@ function singleFitting(data, pInit, opts) {
 
     var yFit = [], xFit = [];
 
-    for (i=0; i < 100; i++) {
+    for (i = 0; i < 100; i++) {
         xFit.push(t[i][0]);
         yFit.push(yFitting[i][0]);
     }
-    return {dataProfile:{title: "", data: {x: x, y: y}}, fittingProfile: {title: "", data: {x: xFit, y: yFit}}, pFit: pFit};
+    return {dataProfile: {title: '', data: {x: x, y: y}}, fittingProfile: {title: '', data: {x: xFit, y: yFit}}, pFit: pFit};
 }
 
 function errFunc(z, p) {
@@ -70,7 +70,7 @@ function errFunc(z, p) {
     for (var i = 0; i < x.length; i++) {
         if (x[i][0] === 0) {
             signOfX[i][0] = 0;
-        } else if(x[i][0] > 0) {
+        } else if (x[i][0] > 0) {
             signOfX[i][0] = 1;
         } else {
             signOfX[i][0] = -1;
@@ -89,6 +89,6 @@ function errFunc(z, p) {
 }
 
 function zGenerator(x, g, gamma) {
-    var z = math.multiply(x, math.inv(g*gamma));
+    var z = math.multiply(x, math.inv(g * gamma));
     return z;
 }

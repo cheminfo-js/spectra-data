@@ -30,7 +30,9 @@ singleRangePublication[0].signal = [{nbAtoms: 0,
 
 describe('ACS tests: formating and parsing', function () {
     it('format ACS', function () {
-        (function ()  {ACS(peakPicking, {rangeForMultiplet: true});} ).should.throw('Old unsupported format');
+        (function () {
+            ACS(peakPicking, {rangeForMultiplet: true});
+        }).should.throw('Old unsupported format');
     });
 
     it('format ACS new input format', function () {
