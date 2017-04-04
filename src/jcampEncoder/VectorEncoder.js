@@ -326,7 +326,7 @@ function differenceDigit(num) {
  * @param {number} num
  * @return {string}
  */
-    function duplicateDigit(num) {
+function duplicateDigit(num) {
     var DUPdigit = '';
     DUPdigit += pseudoDigits[DUP][num.charAt(0)];
     if (num.length > 1) {

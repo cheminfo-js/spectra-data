@@ -1,9 +1,9 @@
-'use strict'
+'use strict';
 
 
 function getSignals(data, maxShiftDiference) {
     var signals = [];
-    var signalsTemp =[];
+    var signalsTemp = [];
     if (maxShiftDiference === undefined) var maxShiftDiference = 0.06;
 
     for (var k = 0; k < pdata[0].peakPicking.length; k++) {
@@ -11,7 +11,7 @@ function getSignals(data, maxShiftDiference) {
         signalsTemp.push(pdata[0].peakPicking[k].signal[0].delta);
     }
 
-    for(var i = 0; i < pdata.length; i++){
+    for (var i = 0; i < pdata.length; i++) {
         //console.log("i: "+i)
         var peaks = pdata[i].peakPicking;
         for (var k = 0; k < peaks.length; k++) {

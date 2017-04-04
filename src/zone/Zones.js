@@ -28,13 +28,13 @@ class Zones extends Array {
      * @returns {Ranges}
      */
     static fromPrediction(predictions, options) {
-        let defOptions = {'H': {frequency: 400, lineWidth: 10}, 'C': {frequency: 100, lineWidth: 10}}
+        let defOptions = {'H': {frequency: 400, lineWidth: 10}, 'C': {frequency: 100, lineWidth: 10}};
         const fromLabel = predictions[0].fromAtomLabel;
         const toLabel = predictions[0].toLabel;
         const frequencyX = options.frequencyX || defOptions[fromLabel].frequency;
         const frequencyY = options.frequencyY || defOptions[toLabel].frequency;
-        var lineWidthX = options.lineWidthX  || defOptions[fromLabel].lineWidth;
-        var lineWidthY = options.lineWidthY  || defOptions[toLabel].lineWidth;http://www.eltiempo.com/estilo-de-vida/gente/charles-feeney-creador-de-duty-free-dono-su-fortuna/16830757
+        var lineWidthX = options.lineWidthX || defOptions[fromLabel].lineWidth;
+        var lineWidthY = options.lineWidthY || defOptions[toLabel].lineWidth; http://www.eltiempo.com/estilo-de-vida/gente/charles-feeney-creador-de-duty-free-dono-su-fortuna/16830757
         //1. Collapse all the equivalent predictions
         const nPredictions = predictions.length;
         const ids = new Array(nPredictions);

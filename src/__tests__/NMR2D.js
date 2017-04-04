@@ -91,16 +91,16 @@ describe('spectra-data examples indometacin/hmbc.dx', function () {
 describe('spectra-data examples indometacin/hmbc.dx', function () {
     let nPoints = 1024;
     var data = new Array(nPoints);
-    for(var i = 0; i < nPoints; i++ ) {
+    for (var i = 0; i < nPoints; i++) {
         data[i] = new Array(nPoints);
-        for(var j = 0; j < nPoints; j++ ) {
+        for (var j = 0; j < nPoints; j++) {
             data[i][j] = 0;
         }
     }
 
-    for(var i = 412; i < 612; i++ ) {
-        for(var j = 412; j < 612; j++ ) {
-            data[i][j] = -Math.abs(- i + 512) + 200 - Math.abs(- j + 512);
+    for (var i = 412; i < 612; i++) {
+        for (var j = 412; j < 612; j++) {
+            data[i][j] = -Math.abs(-i + 512) + 200 - Math.abs(-j + 512);
         }
     }
 
@@ -116,8 +116,6 @@ describe('spectra-data examples indometacin/hmbc.dx', function () {
         frequencyX: 400,
         frequencyY: 100
     });
-
-    FS.writeFileSync('daSpectrum.jdx', spectrum.toJcamp({type: 'NTUPLES'}));
 
     it('getNucleus', function () {
         spectrum.getNucleus(1).should.equal('1H');

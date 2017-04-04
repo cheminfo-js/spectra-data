@@ -45,11 +45,10 @@ class JcampCreator {
         var scale = factorY / spectraData.getParamDouble('YFACTOR', 1);
         let minMax = {};
 
-        if(!spectraData.is2D()) {
+        if (!spectraData.is2D()) {
             minMax = spectraData.getMinMaxY();
-        }
-        else{
-            minMax = {min: spectraData.getMinZ(), max: spectraData.getMaxZ()}
+        } else {
+            minMax = {min: spectraData.getMinZ(), max: spectraData.getMaxZ()};
         }
 
         if (minMax.max * scale >= Integer.MAX_VALUE / 2) {
@@ -248,7 +247,7 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
 
     for (sub = 0; sub < spectraData.getNbSubSpectra(); sub++) {
         spectraData.setActiveElement(sub);
-        yUnits = spectraData.getParamDouble('firstY', 0) * freq1 + dy*sub;
+        yUnits = spectraData.getParamDouble('firstY', 0) * freq1 + dy * sub;
         outString += '##PAGE= ' + yUnits + CRLF;
 
         if (spectraData.is2D() && isNMR) {

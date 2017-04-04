@@ -23,7 +23,7 @@ class NMR2D extends SD {
     static fromPrediction(prediction, options) {
         var data = simule2DNmrSpectrum(prediction, options);
         var spectrum = NMR2D.fromMatrix(data, options);
-        var jcamp = spectrum.toJcamp({type:'NTUPLES'});
+        var jcamp = spectrum.toJcamp({type: 'NTUPLES'});
         return NMR2D.fromJcamp(jcamp);
     }
 
@@ -77,9 +77,9 @@ class NMR2D extends SD {
         let lastX = options.lastX || nbPoints - 1;
         let deltaX = (lastY - firstY) / (nbPoints - 1);
         let x = options.x;
-        if(!x) {
+        if (!x) {
             x = new Array(nbPoints);
-            for(let i = 0; i < nbPoints; i++) {
+            for (let i = 0; i < nbPoints; i++) {
                 x[i] = firstX + deltaX * i;
             }
         }
@@ -116,14 +116,14 @@ class NMR2D extends SD {
         result.ntuples = [{units: options.xUnit || 'PPM'}, {units: options.yUnit || 'PPM'}, {units: options.zUnit || 'Intensity'}];
         result.info['2D_Y_FREQUENCY'] = options.frequencyY || 400;
         result.info['2D_X_FREQUENCY'] = options.frequencyX || 400;
-        result.info['observefrequency'] = result.info['2D_X_FREQUENCY'];
-        result.info['$BF1'] = result.info['observefrequency'];
+        result.info.observefrequency = result.info['2D_X_FREQUENCY'];
+        result.info.$BF1 = result.info.observefrequency;
         result.info['.SOLVENTNAME'] = options.solvent || 'none';
-        result.info['$SW_h'] = Math.abs(lastX - firstX) * observeFrequency;
-        result.info['$SW'] = Math.abs(lastX - firstX);
-        result.info['$TD'] = nbPoints;
-        result.info['firstY'] = firstY;
-        result.info['lastY'] = lastY;
+        result.info.$SW_h = Math.abs(lastX - firstX) * observeFrequency;
+        result.info.$SW = Math.abs(lastX - firstX);
+        result.info.$TD = nbPoints;
+        result.info.firstY = firstY;
+        result.info.lastY = lastY;
         result.minMax = {
             minY: firstY,
             maxY: lastY,
@@ -131,7 +131,7 @@ class NMR2D extends SD {
             maxX: lastX,
             minZ: minZ,
             maxZ: maxZ
-        }
+        };
 
         result.yType = options.yType || options.nucleusY || '1H';
         result.twoD = true;
@@ -196,8 +196,8 @@ class NMR2D extends SD {
     getLastY() {
         return this.sd.minMax.maxY;
     }
-    
-    
+
+
     /**
      * Return the min value in the indirect dimension.
      * @return {sd.minMax.minY}

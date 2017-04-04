@@ -26,7 +26,7 @@ class NMR extends SD {
     static fromPrediction(prediction, options) {
         const spinSystem = simulator.SpinSystem.fromPrediction(prediction);
         let opt = Object.assign({}, options, {
-            nbPoints: 16*1024,
+            nbPoints: 16 * 1024,
             maxClusterSize: 8,
             output: 'xy'
         });
@@ -66,9 +66,9 @@ class NMR extends SD {
         spectrum.observeFrequency = options.frequency || 400;
         result.info.observefrequency = spectrum.observeFrequency;
         result.info['.SOLVENTNAME'] = options.solvent || 'none';
-        result.info['$SW_h'] = Math.abs(spectrum.lastX - spectrum.firstX) * spectrum.observeFrequency;
-        result.info['$SW'] = Math.abs(spectrum.lastX - spectrum.firstX);
-        result.info['$TD'] = spectrum.nbPoints;
+        result.info.$SW_h = Math.abs(spectrum.lastX - spectrum.firstX) * spectrum.observeFrequency;
+        result.info.$SW = Math.abs(spectrum.lastX - spectrum.firstX);
+        result.info.$TD = spectrum.nbPoints;
         result.xType = options.nucleus || '1H';
         spectrum.data = [{x: x, y: y}];
         result.twoD = false;
