@@ -32,6 +32,7 @@
     "eslint-plugin-no-only-tests": "^1.1.0",
     "mocha": "^3.1.2",
     "mocha-better-spec-reporter": "^3.0.1",
+    "nmr-predictor": "https://github.com/cheminfo-js/nmr-predictor/",
     "should": "^11.1.1"
   },
   "dependencies": {
