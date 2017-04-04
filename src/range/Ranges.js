@@ -5,6 +5,7 @@ const peakPicking = require('./../peakPicking/peakPicking');
 const acs = require('./acs/acs');
 const peak2Vector = require('./peak2Vector');
 const GUI = require('./visualizer/index');
+const patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
 
 class Ranges extends Array {
 
@@ -204,6 +205,77 @@ class Ranges extends Array {
     getAnnotations(options) {
         return GUI.annotations1D(this, options);
     }
+
+    /**
+     * Returns the multiplet in the compact format
+     * @param {object} signal
+     * @param {object} Jc
+     * @return {string}
+     * @private
+     */
+    compactPatterns() {
+        this.forEach( range => {
+            range.signals.forEach(signal => {signal.multiplicity = compactPattern(signal)});
+        });
+    }
+
 }
 
 module.exports = Ranges;
+
+function compactPattern(signal) {
+    var Jc = signal.j;
+    var tol = 0.05, i, cont = 1;
+    var pattern = '';
+    var newNmrJs = [], diaIDs = [], atoms = [];
+    if (Jc && Jc.length > 0) {
+        Jc.sort(function (a, b) { return a.coupling - b.coupling;});
+        if(Jc[0].diaID)
+            diaIDs = [Jc[0].diaID];
+        if(Jc[0].assignment)
+            atoms = [Jc[0].assignment];
+        for (i = 0; i < Jc.length - 1; i++) {
+            if (Math.abs(Jc[i].coupling - Jc[i + 1].coupling) < tol) {
+                cont++;
+                diaIDs.push(Jc[i].diaID);
+                atoms.push(Jc[i].assignment);
+            } else {
+                let jTemp = {
+                    'coupling': Math.abs(Jc[i]),
+                    'multiplicity': patterns[cont]
+                };
+                if(diaIDs.length > 0)
+                    jTemp.diaID = diaIDs;
+                if(atoms.length > 0)
+                    jTemp.assignment = atoms;
+                newNmrJs.push(jTemp);
+
+                pattern += patterns[cont];
+                cont = 1;
+                if(Jc[0].diaID)
+                    diaIDs = [Jc[i].diaID];
+                if(Jc[0].assignment)
+                    atoms = [Jc[i].assignment];
+            }
+        }
+        let jTemp = {
+            'coupling': Math.abs(Jc[i]),
+            'multiplicity': patterns[cont]
+        };
+        if(diaIDs.length > 0)
+            jTemp.diaID = diaIDs;
+        if(atoms.length > 0)
+            jTemp.assignment = atoms;
+        newNmrJs.push(jTemp);
+
+        pattern += patterns[cont];
+        signal.j = newNmrJs;
+
+    } else {
+        pattern = 's';
+        if (Math.abs(signal.startX - signal.stopX) * signal.observe > 16) {
+            pattern = 's br';
+        }
+    }
+    return pattern;
+}
