@@ -1,7 +1,8 @@
 'use strict';
 
 //const JAnalyzer = require('./../peakPicking/JAnalyzer');
-const peakPicking = require('./../peakPicking/peakPicking');
+// const peakPicking = require('../peakPicking/peakPicking');
+// const peaks2Ranges = require('../peakPicking/peaks2Ranges');
 const acs = require('./acs/acs');
 const peak2Vector = require('./peak2Vector');
 const GUI = require('./visualizer/index');
@@ -70,9 +71,21 @@ class Ranges extends Array {
                 to: prediction.delta + width,
                 integral: 1,
                 signal: [predictions[diaIDs[0]]]};
-            for (j = 1; j < diaIDs.length; j++) {
-                result[i].signal.push(predictions[diaIDs[j]]);
+
+            var multiplicity = ""
+            for(var kk = 0; kk < predictions[diaIDs[0]].j.length; kk++) multiplicity += predictions[diaIDs[0]].j[kk].multiplicity;
+
+            for (var k = 1; k < diaIDs.length; k++) {
+                result[i].signal.push(predictions[diaIDs[k]]);
+                for(var kk = 0; kk < predictions[diaIDs[k]].j.length; kk++) {
+                    multiplicity += predictions[diaIDs[k]].j[kk].multiplicity;
+                }
                 result[i].integral++;
+            }
+            if (multiplicity == "") {
+                result[i].multiplicity = 's'
+            } else {
+                result[i].multiplicity = multiplicity;
             }
         }
         //2. Merge the overlaping ranges
@@ -84,6 +97,7 @@ class Ranges extends Array {
                 //Does it overlap?
                 if (Math.abs(center - (result[j].from + result[j].to) / 2)
                     <= Math.abs(width + Math.abs(result[j].from - result[j].to)) / 2) {
+                    result[i].multiplicity = 'm';
                     result[i].from = Math.min(result[i].from, result[j].from);
                     result[i].to = Math.max(result[i].to, result[j].to);
                     result[i].integral = result[i].integral + result[j].integral;
@@ -119,7 +133,7 @@ class Ranges extends Array {
             frequencyCluster: 16,
         }, opt);
 
-        return new Ranges(peakPicking(spectrum, this.options));
+        return spectrum.getRanges(this.options);
     }
 
     /**
@@ -203,6 +217,30 @@ class Ranges extends Array {
 
     getAnnotations(options) {
         return GUI.annotations1D(this, options);
+    }
+
+    //this work with a spectrum as source
+    // toIndex() {
+    //     var ranges = this.getRanges(parameters);
+    //     var toc = new Array(ranges.length);
+    //     for(var i = 0; i < ranges.length; i++) {
+    //         toc[i] = {
+    //             multiplicity: ranges[i].signal[0].multiplicity,
+    //             delta: ranges[i].to - (ranges[i].to - ranges[i].from) / 2
+    //         }
+    //     }
+    //     return toc;
+    // }
+
+    toIndex() {
+        var index = new Array(this.length);
+        for(var i = 0; i < this.length; i++) {
+            index[i] = {
+                multiplicity: this[i].signal[0].multiplicity,
+                delta: this[i].to - (this[i].to - this[i].from) / 2
+            }
+        }
+        return index;
     }
 }
 
