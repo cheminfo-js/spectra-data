@@ -48,7 +48,7 @@ describe('Range tests: formating and parsing', function () {
 });
 
 describe('Prediction to ranges', function () {
-    it.only('10 spines with 4 ranges', function () {
+    it('10 spines with 4 ranges', function () {
         var ranges = Ranges.fromPrediction(prediction, {lineWidth: 1});
         ranges.length.should.eql(4);
     });
