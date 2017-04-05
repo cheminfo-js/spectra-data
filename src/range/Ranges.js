@@ -67,17 +67,19 @@ class Ranges extends Array {
 
             width /= options.frequency;
 
-            result[i] = {from: prediction.delta - width,
+            result[i] = {
+                from: prediction.delta - width,
                 to: prediction.delta + width,
                 integral: 1,
-                signal: [predictions[diaIDs[0]]]};
+                signal: [predictions[diaIDs[0]]]
+            };
 
             var multiplicity = ""
-            for(var kk = 0; kk < predictions[diaIDs[0]].j.length; kk++) multiplicity += predictions[diaIDs[0]].j[kk].multiplicity;
+            for (var kk = 0; kk < predictions[diaIDs[0]].j.length; kk++) multiplicity += predictions[diaIDs[0]].j[kk].multiplicity;
 
             for (var k = 1; k < diaIDs.length; k++) {
                 result[i].signal.push(predictions[diaIDs[k]]);
-                for(var kk = 0; kk < predictions[diaIDs[k]].j.length; kk++) {
+                for (var kk = 0; kk < predictions[diaIDs[k]].j.length; kk++) {
                     multiplicity += predictions[diaIDs[k]].j[kk].multiplicity;
                 }
                 result[i].integral++;
@@ -218,25 +220,15 @@ class Ranges extends Array {
     getAnnotations(options) {
         return GUI.annotations1D(this, options);
     }
-
-    //this work with a spectrum as source
-    // toIndex() {
-    //     var ranges = this.getRanges(parameters);
-    //     var toc = new Array(ranges.length);
-    //     for(var i = 0; i < ranges.length; i++) {
-    //         toc[i] = {
-    //             multiplicity: ranges[i].signal[0].multiplicity,
-    //             delta: ranges[i].to - (ranges[i].to - ranges[i].from) / 2
-    //         }
-    //     }
-    //     return toc;
-    // }
-
+    /**
+    * Return an array of deltas and multiplicity for an index database
+    * @returns {Array} [{delta, multiplicity},...]
+     */
     toIndex() {
         var index = new Array(this.length);
-        for(var i = 0; i < this.length; i++) {
+        for (var i = 0; i < this.length; i++) {
             index[i] = {
-                multiplicity: this[i].signal[0].multiplicity,
+                multiplicity: this[i].multiplicity,
                 delta: this[i].to - (this[i].to - this[i].from) / 2
             }
         }
