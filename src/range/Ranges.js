@@ -216,22 +216,26 @@ class Ranges extends Array {
     }
     /**
      * Return an array of deltas and multiplicity for an index database
+     * @options {array} options
      * @returns {Array} [{delta, multiplicity},...]
      */
-    toIndex() {
+    toIndex(options) {
         var index = [];
-        this.compactPatterns();
+        var tolerance = options.tolerance;
+
+        // if(options.compactPattern || false) this.compactPatterns();
+
         for(var range of this) {
-            if (range.signal == undefined || range.signal == []) {
+            if (range.signal === undefined || range.signal === []) {
                 index.push({
-                    delta: (range.to - range.from) / 2,
+                    delta: (range.to + range.from) / 2,
                     multiplicity: 'm'
                 })
             } else {
                 range.signal.forEach(s => {
                     index.push({
                         delta:s.delta,
-                        multiplicity: s.multiplicity
+                        multiplicity: s.multiplicity ? s.multiplicity : joinMultiplicityOfJ(s)
                     })
                 })
             }
@@ -246,10 +250,10 @@ class Ranges extends Array {
      * @return {string}
      * @private
      */
-    compactPatterns() {
+    compactPatterns(tolerance) {
         this.forEach(range => {
             range.signal.forEach(signal => {
-                signal.multiplicity = compactPattern(signal);
+                signal.multiplicity = compactPattern(signal, tolerance);
             });
         });
     }
@@ -257,26 +261,25 @@ class Ranges extends Array {
 
 module.exports = Ranges;
 
-function compactPattern(signal) {
-    var Jc = signal.j;
-    var tol = 0.05,
-        cont = 1;
+function compactPattern(signal, tolerance) {
+    var jc = signal.j;
+    var cont = 1;
     var pattern = '';
     var newNmrJs = [], diaIDs = [], atoms = [];
-    if (Jc && Jc.length > 0) {
-        Jc.sort(function (a, b) { return a.coupling - b.coupling;});
-        if(Jc[0].diaID)
-            diaIDs = [Jc[0].diaID];
-        if(Jc[0].assignment)
-            atoms = [Jc[0].assignment];
-        for (var i = 0; i < Jc.length - 1; i++) {
-            if (Math.abs(Jc[i].coupling - Jc[i + 1].coupling) < tol) {
+    if (jc && jc.length > 0) {
+        jc.sort(function (a, b) {return a.coupling - b.coupling;});
+        if(jc[0].diaID)
+            diaIDs = [jc[0].diaID];
+        if(jc[0].assignment)
+            atoms = [jc[0].assignment];
+        for (var i = 0; i < jc.length - 1; i++) {
+            if (Math.abs(jc[i].coupling - jc[i + 1].coupling) < tolerance) {
                 cont++;
-                diaIDs.push(Jc[i].diaID);
-                atoms.push(Jc[i].assignment);
+                diaIDs.push(jc[i].diaID);
+                atoms.push(jc[i].assignment);
             } else {
                 let jTemp = {
-                    'coupling': Math.abs(Jc[i]),
+                    'coupling': Math.abs(jc[i]),
                     'multiplicity': patterns[cont]
                 };
                 if(diaIDs.length > 0)
@@ -287,14 +290,14 @@ function compactPattern(signal) {
 
                 pattern += patterns[cont];
                 cont = 1;
-                if(Jc[0].diaID)
-                    diaIDs = [Jc[i].diaID];
-                if(Jc[0].assignment)
-                    atoms = [Jc[i].assignment];
+                if(jc[0].diaID)
+                    diaIDs = [jc[i].diaID];
+                if(jc[0].assignment)
+                    atoms = [jc[i].assignment];
             }
         }
         let jTemp = {
-            'coupling': Math.abs(Jc[i]),
+            'coupling': Math.abs(jc[i]),
             'multiplicity': patterns[cont]
         };
         if(diaIDs.length > 0)
@@ -320,3 +323,11 @@ const patterns = [
     'd',
     't',
     'q'];
+
+function joinMultiplicityOfJ(signal) {
+    var jc = signal.j,
+        i,
+        multiplicity = '';
+    for(coupling of jc) multiplicity += coupling.multiplicity;
+    return multiplicity;
+}
