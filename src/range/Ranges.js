@@ -74,8 +74,7 @@ class Ranges extends Array {
                 signal: [predictions[diaIDs[0]]]
             };
 
-            var multiplicity = ""
-            for (var kk = 0; kk < predictions[diaIDs[0]].j.length; kk++) multiplicity += predictions[diaIDs[0]].j[kk].multiplicity;
+            var multiplicity = '';
 
             for (var k = 1; k < diaIDs.length; k++) {
                 result[i].signal.push(predictions[diaIDs[k]]);
@@ -83,11 +82,6 @@ class Ranges extends Array {
                     multiplicity += predictions[diaIDs[k]].j[kk].multiplicity;
                 }
                 result[i].integral++;
-            }
-            if (multiplicity == "") {
-                result[i].multiplicity = 's'
-            } else {
-                result[i].multiplicity = multiplicity;
             }
         }
         //2. Merge the overlaping ranges
@@ -221,19 +215,122 @@ class Ranges extends Array {
         return GUI.annotations1D(this, options);
     }
     /**
-    * Return an array of deltas and multiplicity for an index database
-    * @returns {Array} [{delta, multiplicity},...]
+     * Return an array of deltas and multiplicity for an index database
+     * @returns {Array} [{delta, multiplicity},...]
      */
     toIndex() {
-        var index = new Array(this.length);
-        for (var i = 0; i < this.length; i++) {
-            index[i] = {
-                multiplicity: this[i].multiplicity,
-                delta: this[i].to - (this[i].to - this[i].from) / 2
+        var ranges = this;
+        ranges.compactPatterns();
+        var index = new Array(ranges.length);
+        for (var i = 0; i < ranges.length; i++) {
+            var multiplicity = ''
+            var signals = ranges[i].signal;
+            if (signals.length > 1) {
+                for (var j = 1; j < signals.length; j++) {
+                    if (signals[j - 1].multiplicity !== signals[j].multiplicity) {
+                        multiplicity = 'm';
+                        j = signals.length;
+                    }
+                }
+                if(multiplicity == '') multiplicity = signals[0].multiplicity;
+            } else {
+                multiplicity = signals[0].multiplicity;
             }
+            index[i] = {
+                multiplicity: multiplicity,
+                delta: ranges[i].to - (ranges[i].to - ranges[i].from) / 2
+            };
         }
         return index;
+    }
+    /**
+     * Returns the multiplet in the compact format
+     * @param {object} signal
+     * @param {object} Jc
+     * @return {string}
+     * @private
+     */
+    compactPatterns() {
+        this.forEach(range => {
+            range.signal.forEach(signal => {
+                signal.multiplicity = compactPattern(signal);
+            });
+        });
     }
 }
 
 module.exports = Ranges;
+
+function compactPattern(signal, options) {
+    var Jc = Object.assign({}, signal.j)
+    var tol = 0.5,
+        cont = 1;
+    var pattern = '';
+    var newNmrJs = [], diaIDs = [], atoms = [];
+    if (Jc && Jc.length > 0) {
+        Jc.sort(function (a, b) {
+            return a.coupling - b.coupling;
+        });
+        if (Jc[0].diaID) {
+            diaIDs = [Jc[0].diaID];
+        }
+        if (Jc[0].assignment) {
+            atoms = [Jc[0].assignment];
+        }
+        for (var i = 0; i < Jc.length - 1; i++) {
+            if (Math.abs(Jc[i].coupling - Jc[i + 1].coupling) < tol) {
+                cont++;
+                diaIDs.push(Jc[i].diaID);
+                atoms.push(Jc[i].assignment);
+            } else {
+                let jTemp = {
+                    'coupling': Math.abs(Jc[i]),
+                    'multiplicity': patterns[cont]
+                };
+                if (diaIDs.length > 0) {
+                    jTemp.diaID = diaIDs;
+                }
+                if (atoms.length > 0) {
+                    jTemp.assignment = atoms;
+                }
+                newNmrJs.push(jTemp);
+
+                pattern += patterns[cont];
+                cont = 1;
+                if (Jc[0].diaID) {
+                    diaIDs = [Jc[i].diaID];
+                }
+                if (Jc[0].assignment) {
+                    atoms = [Jc[i].assignment];
+                }
+            }
+        }
+        let jTemp = {
+            'coupling': Math.abs(Jc[i]),
+            'multiplicity': patterns[cont]
+        };
+        if (diaIDs.length > 0) {
+            jTemp.diaID = diaIDs;
+        }
+        if (atoms.length > 0) {
+            jTemp.assignment = atoms;
+        }
+        newNmrJs.push(jTemp);
+
+        pattern += patterns[cont];
+        signal.j = newNmrJs;
+
+    } else {
+        pattern = 's';
+        if (Math.abs(signal.startX - signal.stopX) * signal.observe > 16) {
+            pattern = 's br';
+        }
+    }
+    return pattern;
+}
+
+const patterns = [
+    's',
+    'd',
+    't',
+    'q'];
