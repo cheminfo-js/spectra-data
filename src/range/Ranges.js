@@ -319,6 +319,8 @@ function compactPattern(signal, options) {
     } else {
         pattern = 's'; // inside of signal don't exist a startX stopX properties
         if (Math.abs(signal.startX - signal.stopX) * signal.observe > normalLineWidth) {
+            //TODO this hsould never happen based on the speicifications. startX and stopX does not exists
+            throw Error('Should not happen')
             pattern = 's br';
         }
     }
