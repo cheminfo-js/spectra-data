@@ -1,7 +1,8 @@
 'use strict';
 
 //const JAnalyzer = require('./../peakPicking/JAnalyzer');
-const peakPicking = require('./../peakPicking/peakPicking');
+// const peakPicking = require('../peakPicking/peakPicking');
+// const peaks2Ranges = require('../peakPicking/peaks2Ranges');
 const acs = require('./acs/acs');
 const peak2Vector = require('./peak2Vector');
 const GUI = require('./visualizer/index');
@@ -67,12 +68,20 @@ class Ranges extends Array {
 
             width /= options.frequency;
 
-            result[i] = {from: prediction.delta - width,
+            result[i] = {
+                from: prediction.delta - width,
                 to: prediction.delta + width,
                 integral: 1,
-                signal: [predictions[diaIDs[0]]]};
-            for (j = 1; j < diaIDs.length; j++) {
-                result[i].signal.push(predictions[diaIDs[j]]);
+                signal: [predictions[diaIDs[0]]]
+            };
+
+            var multiplicity = '';
+
+            for (var k = 1; k < diaIDs.length; k++) {
+                result[i].signal.push(predictions[diaIDs[k]]);
+                for (var kk = 0; kk < predictions[diaIDs[k]].j.length; kk++) {
+                    multiplicity += predictions[diaIDs[k]].j[kk].multiplicity;
+                }
                 result[i].integral++;
             }
         }
@@ -85,6 +94,7 @@ class Ranges extends Array {
                 //Does it overlap?
                 if (Math.abs(center - (result[j].from + result[j].to) / 2)
                     <= Math.abs(width + Math.abs(result[j].from - result[j].to)) / 2) {
+                    result[i].multiplicity = 'm';
                     result[i].from = Math.min(result[i].from, result[j].from);
                     result[i].to = Math.max(result[i].to, result[j].to);
                     result[i].integral = result[i].integral + result[j].integral;
@@ -120,7 +130,7 @@ class Ranges extends Array {
             frequencyCluster: 16,
         }, opt);
 
-        return new Ranges(peakPicking(spectrum, this.options));
+        return spectrum.getRanges(this.options);
     }
 
     /**
@@ -207,64 +217,99 @@ class Ranges extends Array {
     }
 
     /**
+     * Return an array of deltas and multiplicity for an index database
+     * @options {array} options
+     * @returns {Array} [{delta, multiplicity},...]
+     */
+    toIndex(options) {
+        var index = [];
+
+        if (options.compactPattern || false) this.compactPatterns(options);
+
+        for (var range of this) {
+            if (Array.isArray(range.signal) && range.signal.length > 0) {
+                range.signal.forEach(s => {
+                    index.push({
+                        multiplicity: s.multiplicity || joinMultiplicityOfJ(s)
+                    })
+                })
+            } else {
+                index.push({
+                    delta: (range.to + range.from) / 2,
+                    multiplicity: 'm'
+                })
+            }
+        }
+        return index;
+    }
+
+
+    /**
      * Returns the multiplet in the compact format
      * @param {object} signal
      * @param {object} Jc
      * @return {string}
      * @private
      */
-    compactPatterns() {
-        this.forEach( range => {
-            range.signals.forEach(signal => {signal.multiplicity = compactPattern(signal)});
+    compactPatterns(options) {
+        this.forEach(range => {
+            range.signal.forEach(signal => {
+                signal.multiplicity = compactPattern(signal, options);
+            });
         });
     }
-
 }
 
 module.exports = Ranges;
 
-function compactPattern(signal) {
-    var Jc = signal.j;
-    var tol = 0.05, i, cont = 1;
+
+function compactPattern(signal, options) {
+    var jc = signal.j;
+    var cont = 1;
     var pattern = '';
+    var tolerance = options.tolerance || 0.05;
+    var normalLineWidth = options.normalLineWidth || 0.2
     var newNmrJs = [], diaIDs = [], atoms = [];
-    if (Jc && Jc.length > 0) {
-        Jc.sort(function (a, b) { return a.coupling - b.coupling;});
-        if(Jc[0].diaID)
-            diaIDs = [Jc[0].diaID];
-        if(Jc[0].assignment)
-            atoms = [Jc[0].assignment];
-        for (i = 0; i < Jc.length - 1; i++) {
-            if (Math.abs(Jc[i].coupling - Jc[i + 1].coupling) < tol) {
+    if (jc && jc.length > 0) {
+        jc.sort(function (a, b) {
+            return a.coupling - b.coupling;
+        });
+        if (jc[0].diaID)
+            diaIDs = [jc[0].diaID];
+        if (jc[0].assignment)
+            atoms = [jc[0].assignment];
+        for (var i = 0; i < jc.length - 1; i++) {
+            if (Math.abs(jc[i].coupling - jc[i + 1].coupling) < tolerance) {
                 cont++;
-                diaIDs.push(Jc[i].diaID);
-                atoms.push(Jc[i].assignment);
+                diaIDs.push(jc[i].diaID);
+                atoms.push(jc[i].assignment);
             } else {
                 let jTemp = {
-                    'coupling': Math.abs(Jc[i]),
+                    'coupling': Math.abs(jc[i].coupling),
                     'multiplicity': patterns[cont]
                 };
-                if(diaIDs.length > 0)
+                if (diaIDs.length > 0)
                     jTemp.diaID = diaIDs;
-                if(atoms.length > 0)
+                if (atoms.length > 0)
                     jTemp.assignment = atoms;
                 newNmrJs.push(jTemp);
 
                 pattern += patterns[cont];
                 cont = 1;
-                if(Jc[0].diaID)
-                    diaIDs = [Jc[i].diaID];
-                if(Jc[0].assignment)
-                    atoms = [Jc[i].assignment];
+                if (jc[0].diaID)
+                    diaIDs = [jc[i].diaID];
+                if (jc[0].assignment)
+                    atoms = [jc[i].assignment];
             }
         }
         let jTemp = {
-            'coupling': Math.abs(Jc[i]),
+            'coupling': Math.abs(jc[i].coupling),
+
             'multiplicity': patterns[cont]
         };
-        if(diaIDs.length > 0)
+        if (diaIDs.length > 0)
             jTemp.diaID = diaIDs;
-        if(atoms.length > 0)
+        if (atoms.length > 0)
             jTemp.assignment = atoms;
         newNmrJs.push(jTemp);
 
@@ -272,10 +317,19 @@ function compactPattern(signal) {
         signal.j = newNmrJs;
 
     } else {
-        pattern = 's';
-        if (Math.abs(signal.startX - signal.stopX) * signal.observe > 16) {
+        pattern = 's'; // inside of signal don't exist a startX stopX properties
+        if (Math.abs(signal.startX - signal.stopX) * signal.observe > normalLineWidth) {
             pattern = 's br';
         }
     }
     return pattern;
+}
+
+// this function is not a fine way to join multiplicity
+function joinMultiplicityOfJ(signal) {
+    var jc = signal.j,
+        i,
+        multiplicity = '';
+    for (coupling of jc) multiplicity += coupling.multiplicity;
+    return multiplicity;
 }
