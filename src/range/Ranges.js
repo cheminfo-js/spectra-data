@@ -225,17 +225,17 @@ class Ranges extends Array {
         if(options.compactPattern || false) this.compactPatterns(options);
 
         for(var range of this) {
-            if (range.signal === undefined || range.signal === []) {
-                index.push({
-                    delta: (range.to + range.from) / 2,
-                    multiplicity: 'm'
-                })
-            } else {
+            if (Array.isArray(range.signal) && range.signal.length > 0) {
                 range.signal.forEach(s => {
                     index.push({
                         delta:s.delta,
                         multiplicity: s.multiplicity || joinMultiplicityOfJ(s)
                     })
+                })
+            } else {
+                index.push({
+                    delta: (range.to + range.from) / 2,
+                    multiplicity: 'm'
                 })
             }
         }
@@ -265,6 +265,7 @@ function compactPattern(signal, options) {
     var cont = 1;
     var pattern = '';
     var tolerance = options.tolerance || 0.05;
+    var normalLineWidth = options.normalLineWidth || 0.2
     var newNmrJs = [], diaIDs = [], atoms = [];
     if (jc && jc.length > 0) {
         jc.sort(function (a, b) {return a.coupling - b.coupling;});
@@ -279,7 +280,7 @@ function compactPattern(signal, options) {
                 atoms.push(jc[i].assignment);
             } else {
                 let jTemp = {
-                    'coupling': Math.abs(jc[i]),
+                    'coupling': Math.abs(jc[i].coupling),
                     'multiplicity': patterns[cont]
                 };
                 if(diaIDs.length > 0)
@@ -297,7 +298,7 @@ function compactPattern(signal, options) {
             }
         }
         let jTemp = {
-            'coupling': Math.abs(jc[i]),
+            'coupling': Math.abs(jc[i].coupling),
             'multiplicity': patterns[cont]
         };
         if(diaIDs.length > 0)
@@ -310,8 +311,8 @@ function compactPattern(signal, options) {
         signal.j = newNmrJs;
 
     } else {
-        pattern = 's';
-        if (Math.abs(signal.startX - signal.stopX) * signal.observe > 16) {
+        pattern = 's'; // inside of signal don't exist a startX stopX properties
+        if (Math.abs(signal.startX - signal.stopX) * signal.observe > normalLineWidth) {
             pattern = 's br';
         }
     }
