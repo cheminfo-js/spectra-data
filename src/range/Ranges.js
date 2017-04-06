@@ -221,9 +221,8 @@ class Ranges extends Array {
      */
     toIndex(options) {
         var index = [];
-        var tolerance = options.tolerance;
 
-        // if(options.compactPattern || false) this.compactPatterns();
+        if(options.compactPattern || false) this.compactPatterns(options);
 
         for(var range of this) {
             if (range.signal === undefined || range.signal === []) {
@@ -235,7 +234,7 @@ class Ranges extends Array {
                 range.signal.forEach(s => {
                     index.push({
                         delta:s.delta,
-                        multiplicity: s.multiplicity ? s.multiplicity : joinMultiplicityOfJ(s)
+                        multiplicity: s.multiplicity || joinMultiplicityOfJ(s)
                     })
                 })
             }
@@ -250,10 +249,10 @@ class Ranges extends Array {
      * @return {string}
      * @private
      */
-    compactPatterns(tolerance) {
+    compactPatterns(options) {
         this.forEach(range => {
             range.signal.forEach(signal => {
-                signal.multiplicity = compactPattern(signal, tolerance);
+                signal.multiplicity = compactPattern(signal, options);
             });
         });
     }
@@ -261,10 +260,11 @@ class Ranges extends Array {
 
 module.exports = Ranges;
 
-function compactPattern(signal, tolerance) {
+function compactPattern(signal, options) {
     var jc = signal.j;
     var cont = 1;
     var pattern = '';
+    var tolerance = options.tolerance || 0.05;
     var newNmrJs = [], diaIDs = [], atoms = [];
     if (jc && jc.length > 0) {
         jc.sort(function (a, b) {return a.coupling - b.coupling;});
@@ -324,6 +324,7 @@ const patterns = [
     't',
     'q'];
 
+// this function is not a fine way to join multiplicity
 function joinMultiplicityOfJ(signal) {
     var jc = signal.j,
         i,

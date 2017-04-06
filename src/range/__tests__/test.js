@@ -83,8 +83,9 @@ describe('toIndex Test Case from differents sources', function () {
 
     it('from ranges', function () {
         var range = new Ranges(peakPicking2);
-        var index = range.toIndex();
+        var index = range.toIndex({tolerance: 0.05});
         index[0].delta.should.greaterThan(7.2);
+        index[0].multiplicity.should.equal('m');
     });
 
     it('from Spectrum', function () {
@@ -106,15 +107,21 @@ describe('toIndex Test Case from differents sources', function () {
         var spectrum = spectraData.NMR.fromXY(x, line, {});
 
         var range = Ranges.fromSpectrum(spectrum, {});
-        var index = range.toIndex();
-
+        var index = range.toIndex({tolerance: 0.05, compactPattern: false});
         index[0].delta.should.greaterThan(7.5);
+        index[0].multiplicity.should.equal('br s');
+        var index = range.toIndex({tolerance: 0.05, compactPattern: true});
+        index[0].multiplicity.should.equal('s'); // because inside of peakPicking information don't exist a j array for this signal. It shows us that compactPattern function need to be modified
     });
 
     it('from Prediction', function () {
         var range = Ranges.fromPrediction(prediction, {lineWidth: 1});
-        var index = range.toIndex();
-        index.length.should.equal(4);
+        var index = range.toIndex({});
+        index.length.should.equal(10);
+        index[0].delta.should.equal(6.853);
+        index[0].multiplicity.should.equal('t')
+        var index = range.toIndex({tolerance: 0.05, compactPattern: true});
+        index[0].multiplicity.should.equal('t') // at the moment I don't know where is the problem
     })
 });
 
