@@ -1,34 +1,29 @@
 'use strict';
 
+var getMultiplicityFromSignal=require('../getMultiplicityFromSignal')
 
 var acsString = '';
 var parenthesis = '';
 var rangeForMultiplet = false;
 
 
-function toAcs(rangesIn, opt) {
-    let options = Object.assign({}, {nucleus: '1H'}, opt);
+function toAcs(rangesIn, options = {}) {
+    let {
+        nucleus = '1H',
+        solvent,
+        rangeForMultiplet,
+        ascending
+    } = options;
 
-    var ranges = JSON.parse(JSON.stringify(rangesIn));
 
-    if (ranges[0].delta1) {//Old signals format
-        throw new Error('Old unsupported format');
-    }
-    if (ranges.updateMultiplicity) {
-        ranges = ranges.updateMultiplicity();
-    }
+    let ranges = new Ranges(JSON.parse(JSON.stringify(rangesIn)));
+    ranges.updateMultiplicity();
+
 
     acsString = '';
     parenthesis = '';
-    var solvent = null;
-    if (options && options.solvent) {
-        solvent = options.solvent;
-    }
-    if (options && options.rangeForMultiplet !== undefined) {
-        rangeForMultiplet = options.rangeForMultiplet;
-    }
 
-    if (options && options.ascending) {
+    if (ascending) {
         ranges.sort(function (a, b) {
             return b.from - a.from;
         });
@@ -39,12 +34,13 @@ function toAcs(rangesIn, opt) {
     }
 
     ranges.type = 'NMR SPEC';
-    if (options && options.nucleus === '1H') {
-        formatAcsDefault(ranges, false, 2, 1, solvent, options);
-    }
-    if (options && options.nucleus === '13C') {
-        formatAcsDefault(ranges, false, 1, 0, solvent, options);
-    }
+    switch (nucleus) {
+        case '1H':
+            formatAcsDefault(ranges, false, 2, 1, solvent, options);
+            break;
+        case '13C':
+            formatAcsDefault(ranges, false, 1, 0, solvent, options);
+            break;
 
     if (acsString.length > 0) acsString += '.';
 
@@ -54,13 +50,12 @@ function toAcs(rangesIn, opt) {
 function formatAcsDefault(ranges, ascending, decimalValue, decimalJ, solvent, options) {
     appendSeparator();
     appendSpectroInformation(ranges, solvent, options);
-    var numberSmartPeakLabels = ranges.length;
     var signal;
-    for (var i = 0; i < numberSmartPeakLabels; i++) {
+    for (var i = 0; i < ranges.length; i++) {
         if (ascending) {
             signal = ranges[i];
         } else {
-            signal = ranges[numberSmartPeakLabels - i - 1];
+            signal = ranges[ranges.length - i - 1];
         }
         if (signal) {
             appendSeparator();
@@ -177,20 +172,22 @@ function appendAssignment(line) {
     }
 }
 
-function appendMultiplicity(line) {
-    if (line.signal[0].pubMultiplicity) {
+function appendMultiplicity(range) {
+    if (!Array.isArray(range.signal) {
         appendParenthesisSeparator();
-        parenthesis += line.pubMultiplicity;
-    } else if (line.signal[0].multiplicity) {
+        parenthesis += 'm';
+    })
+    var multiplicity = getMultiplicityFromSignal(range.signal[0]);
+    if (multiplicity) 8
         appendParenthesisSeparator();
-        parenthesis += line.signal[0].multiplicity;
+        parenthesis += multiplicity;
     }
 }
 
-function appendCoupling(line, nbDecimal) {
-    if ('sm'.indexOf(line.signal[0].multiplicity) < 0
-        && line.signal[0].j && line.signal[0].j.length > 0) {
-        var Js = line.signal[0].j;
+function appendCoupling(range, nbDecimal) {
+    if ('sm'.indexOf(range.signal[0].multiplicity) < 0
+        && range.signal[0].j && range.signal[0].j.length > 0) {
+        var Js = range.signal[0].j;
         var j = '<i>J</i> = ';
         for (var i = 0; i < Js.length; i++) {
             var coupling = Js[i].coupling || 0;

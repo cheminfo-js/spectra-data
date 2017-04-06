@@ -327,11 +327,3 @@ function compactPattern(signal, options) {
     return pattern;
 }
 
-// this function is not a fine way to join multiplicity
-function joinMultiplicityOfJ(signal) {
-    var jc = signal.j,
-        i,
-        multiplicity = '';
-    for (coupling of jc) multiplicity += coupling.multiplicity;
-    return multiplicity;
-}
