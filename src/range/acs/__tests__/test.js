@@ -1,9 +1,13 @@
 'use strict';
 
 
-// `<sup>1</sup>H NMR (CDCl3, 400MHz) δ: 1.50 (CH<sub>3CO, 2H, dd quint hex d hex, <i>J</i>= 7.0,6.0,5.0,4.0,3.0,2.0), 3.50 (1'H, s), 4.00-5.00 (1H, m), 6.00-7.00 (3H, m), 8.00-9.00 (m, 3H, 8.1 (s br), 8.4 (dt, <i>J</i> 7.0,3.0))`
-
-
+// `<sup>1</sup>H NMR (CDCl3, 400MHz) δ: 1.50 (CH<sub>3CO, 2H, dd quint hex d hex, <i>J</i>= 7.0,6.0,5.0,4.0,3.0,2.0), 3.50 (1'H, s), 4.00-5.00 (1H, m), 6.00-7.00 (3H, m), 8.00-9.00 (m, 3H, 8.1 (s br), 8.4 (dt, <i>J</i> 7.0,3.0)).`
+/**
+ *
+ * `$sampleName: <sup>1</sup>H NMR ($solvent, $frequencyObserved MHz) δ: 1.50 (s, 1H), 0.72 (d, 1H, J = 4.0 Hz), `  It is a example when 2D data is not collected
+ * `$options.sampleName : <sup>1</sup>H NMR ($options.solvent, $options.frequencyObserved MHz) δ: 1.50 (1H, <i>s</i>, H1"), 0.72 (1H, d, J = 4.0 Hz, H4"), 2.90 (3H, s, OCH<sub>3</sub>).`  It is a example when 2D data is collected
+ *
+*/
 
 var ACS = require('../acs');
 

@@ -3,7 +3,18 @@
 //const JAnalyzer = require('./../peakPicking/JAnalyzer');
 // const peakPicking = require('../peakPicking/peakPicking');
 // const peaks2Ranges = require('../peakPicking/peaks2Ranges');
-const acs = require('./acs/acs');
+
+
+
+
+
+
+
+// const acs = require('./acs/acs');
+
+
+
+
 const peak2Vector = require('./peak2Vector');
 const GUI = require('./visualizer/index');
 const patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
@@ -258,6 +269,11 @@ class Ranges extends Array {
             });
         });
     }
+
+    clone() {
+        let newRanges = JSON.parse(JSON.stringify(this));
+        return new Ranges(newRanges);
+    }
 }
 
 module.exports = Ranges;
@@ -269,7 +285,7 @@ function compactPattern(signal, options) {
     var pattern = '';
     var tolerance = options.tolerance || 0.05;
     var normalLineWidth = options.normalLineWidth || 0.2
-    var newNmrJs = [], diaIDs = [], atoms = [];
+    var newNmrJs = [], diaIDs = [], atoms = [];atoms
     if (jc && jc.length > 0) {
         jc.sort(function (a, b) {
             return a.coupling - b.coupling;

@@ -1,24 +1,29 @@
 'use strict';
 
-var getMultiplicityFromSignal = require('../getMultiplicityFromSignal');
+// var getMultiplicityFromSignal = require('../getMultiplicityFromSignal');
 
 /**
  * nbDecimalsDelta : default depends nucleus H, F: 2 otherwise 1
  * nbDecimalsJ : default depends nucleus H, F: 1, otherwise 0
  * ascending : true / false
- * format : default "AIMJ"
+ * format : default "AIMJ" or when 2D data is collected the default format may be "IMJA"
  * deltaSeparator : ', '
  * detailSeparator : ', '
  */
 
+
+/**
+ * some test case, with and without ascending option
+ *
+ */
 const defaultOptions = {
-    nucleus: '1H'
+    nucleus: '1H',
 };
 
 function toAcs(ranges, options) {
     options = Object.assign(defaultOptions, options);
 
-    ranges = ranges.clone();
+    ranges = ranges.clone();  // define it in Ranges file
     ranges.updateMultiplicity();
 
     if (options.ascending) {
@@ -39,77 +44,132 @@ function toAcs(ranges, options) {
 }
 
 function formatAcs(ranges, options) {
-    var acs = appendSpectroInformation(ranges, options);
+    var acsString = '';
+    // I will include the sampleName in the begining
+    var acs = appendSpectroInformation(acsString, options);
     var acsRanges = [];
-    for (var range of ranges) {
-        appendDelta(range, acsRanges, options);
+    for (let range of ranges) {
+        appendDelta(range, acs, options);
     }
     return acs + acsRanges.join(', ');
 }
 
-function appendSpectroInformation(range, solvent, options) {
-    if (range.type === 'NMR SPEC') {
-        if (options.nucleus) {
-            acsString += formatNucleus(options.nucleus);
-        }
-        acsString += ' NMR';
-        if ((solvent) || (options.observe)) {
-            acsString += ' (';
-            if (options.observe) {
-                acsString += (options.observe * 1).toFixed(0) + ' MHz';
-                if (solvent) acsString += ', ';
-            }
-            if (solvent) {
-                acsString += formatMF(solvent);
+
+// It is ok, included the private functions
+function appendSpectroInformation(acsString, options) {
+    if (options.nucleus) {
+        acsString += formatNucleus(options.nucleus);
+    }
+    acsString += ' (';
+    if (options.solvent || options.frequencyObserved) {
+        if (options.solvent) {
+            acsString += formatMF(options.solvent);
+            if (options.frequencyObserved) {
+                acsString += ', ' + (options.frequencyObserved * 1).toFixed(0) + ' MHz';
+            } else if (options.frequencyObserved) {
+                acsString += (options.frequencyObserved * 1).toFixed(0) + ' MHz';
             }
             acsString += ')';
         }
         acsString += ' δ ';
     }
+    return acsString;
 }
 
-function appendDelta(line, nbDecimal) {
-    var startX = 0, stopX = 0, delta1 = 0, asymmetric;
-    if (line.from) {
-        if ((typeof line.from) === 'string') {
-            startX = parseFloat(line.from);
+
+// function appendSpectroInformation(range, solvent, options) {
+//     if (range.type === 'NMR SPEC') {
+//         if (options.nucleus) {
+//             acsString += formatNucleus(options.nucleus);
+//         }
+//         acsString += ' NMR';
+//         if ((solvent) || (options.observe)) {
+//             acsString += ' (';
+//             if (options.observe) {
+//                 acsString += (options.observe * 1).toFixed(0) + ' MHz';
+//                 if (solvent) acsString += ', ';
+//             }
+//             if (solvent) {
+//                 acsString += formatMF(solvent);
+//             }
+//             acsString += ')';
+//         }
+//         acsString += ' δ ';
+//     }
+// }
+
+function appendDelta(range, acsRanges, nbDecimal) {
+    let startX = 0;
+    let stopX = 0;
+    let delta1 = 0;
+    let asymmetric;
+
+    if (range.from) {
+        if ((typeof range.from) === 'string') {
+            startX = parseFloat(range.from);
         } else {
-            startX = line.from;
-        }
+            startX = range.from;
+        } // is it really necessary?
     }
-    if (line.to) {
-        if ((typeof line.to) === 'string') {
-            stopX = parseFloat(line.to);
+    if (range.to) {
+        if ((typeof range.to) === 'string') {
+            stopX = parseFloat(range.to);
         } else {
-            stopX = line.to;
-        }
+            stopX = range.to;
+        } // Is it really necesarry?
     }
-    if (line.signal[0].delta) {
-        if ((typeof line.signal[0].delta) === 'string') {
-            delta1 = parseFloat(line.signal[0].delta);
-        } else {
-            delta1 = line.signal[0].delta;
+    if(Array.isArray(range.signal) && range.signal.length > 0) {
+        for(let signal of range) {
+
         }
     } else {
-        asymmetric = true;
-    }
-
-    if (asymmetric === true || (line.signal[0].multiplicity === 'm' && rangeForMultiplet === true)) {//Is it massive??
-        if (line.from && line.to) {
-            if (startX < stopX) {
-                acsString += startX.toFixed(nbDecimal) + '-' + stopX.toFixed(nbDecimal);
-            } else {
-                acsString += stopX.toFixed(nbDecimal) + '-' + startX.toFixed(nbDecimal);
-            }
-        } else if (line.signal[0].delta) {
-            acsString += '?';
-        }
-    } else if (line.signal[0].delta) {
-        acsString += delta1.toFixed(nbDecimal);
-    } else if (line.from && line.to) {
-        acsString += ((startX + stopX) / 2).toFixed(nbDecimal);
+        let fromTo = [range.from, range.to];
+        acsString += fromTo.min.fixed(options.nbDecimal) + fromTo.max.fixed(options.nbDecimal) + '';
     }
 }
+
+// function appendDelta(line, nbDecimal) {
+//     var startX = 0, stopX = 0, delta1 = 0, asymmetric;
+//     if (line.from) {
+//         if ((typeof line.from) === 'string') {
+//             startX = parseFloat(line.from);
+//         } else {
+//             startX = line.from;
+//         }
+//     }
+//     if (line.to) {
+//         if ((typeof line.to) === 'string') {
+//             stopX = parseFloat(line.to);
+//         } else {
+//             stopX = line.to;
+//         }
+//     }
+//     if (line.signal[0].delta) {
+//         if ((typeof line.signal[0].delta) === 'string') {
+//             delta1 = parseFloat(line.signal[0].delta);
+//         } else {
+//             delta1 = line.signal[0].delta;
+//         }
+//     } else {
+//         asymmetric = true;
+//     }
+//
+//     if (asymmetric === true || (line.signal[0].multiplicity === 'm' && rangeForMultiplet === true)) {//Is it massive??
+//         if (line.from && line.to) {
+//             if (startX < stopX) {
+//                 acsString += startX.toFixed(nbDecimal) + '-' + stopX.toFixed(nbDecimal);
+//             } else {
+//                 acsString += stopX.toFixed(nbDecimal) + '-' + startX.toFixed(nbDecimal);
+//             }
+//         } else if (line.signal[0].delta) {
+//             acsString += '?';
+//         }
+//     } else if (line.signal[0].delta) {
+//         acsString += delta1.toFixed(nbDecimal);
+//     } else if (line.from && line.to) {
+//         acsString += ((startX + stopX) / 2).toFixed(nbDecimal);
+//     }
+// }
 
 /*
  function appendValue(line, nbDecimal) {
