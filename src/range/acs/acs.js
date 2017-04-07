@@ -1,12 +1,6 @@
 'use strict';
 
-var getMultiplicityFromSignal=require('../getMultiplicityFromSignal')
-
-var acsString = '';
-var parenthesis = '';
-var rangeForMultiplet = false;
-var options;
-
+var getMultiplicityFromSignal = require('../getMultiplicityFromSignal');
 
 /**
  * nbDecimalsDelta : default depends nucleus H, F: 2 otherwise 1
@@ -17,14 +11,15 @@ var options;
  * detailSeparator : ', '
  */
 
+const defaultOptions = {
+    nucleus: '1H'
+};
 
-function toAcs(rangesIn, options = {}) {
-    this.options=options;
+function toAcs(ranges, options) {
+    options = Object.assign(defaultOptions, options);
 
-
-    let ranges = new Ranges(JSON.parse(JSON.stringify(rangesIn)));
+    ranges = ranges.clone();
     ranges.updateMultiplicity();
-
 
     if (options.ascending) {
         ranges.sort(function (a, b) {
@@ -36,36 +31,20 @@ function toAcs(rangesIn, options = {}) {
         });
     }
 
-    ranges.type = 'NMR SPEC';
-    switch (options.nucleus) {
-        case '1H':
-            formatAcsDefault(ranges, false, 2, 1, options.solvent);
-            break;
-        case '13C':
-            formatAcsDefault(ranges, false, 1, 0, options.solvent);
-            break;
+    var acsString = formatAcs(ranges, options);
 
     if (acsString.length > 0) acsString += '.';
 
     return acsString;
 }
 
-function formatAcsDefault(ranges, ascending, decimalValue, decimalJ, solvent, options) {
-    appendSeparator();
-    appendSpectroInformation(ranges, solvent, options);
-    var signal;
-    for (var i = 0; i < ranges.length; i++) {
-        if (ascending) {
-            signal = ranges[i];
-        } else {
-            signal = ranges[ranges.length - i - 1];
-        }
-        if (signal) {
-            appendSeparator();
-            appendDelta(signal, decimalValue);
-            appendParenthesis(signal, decimalJ);
-        }
+function formatAcs(ranges, options) {
+    var acs = appendSpectroInformation(ranges, options);
+    var acsRanges = [];
+    for (var range of ranges) {
+        appendDelta(range, acsRanges, options);
     }
+    return acs + acsRanges.join(', ');
 }
 
 function appendSpectroInformation(range, solvent, options) {
