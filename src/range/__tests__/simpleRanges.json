@@ -3,9 +3,11 @@
     "from": 1,
     "to": 2,
     "integral": 2,
+    "pubAssignment": "CH3CO",
     "signal": [
       {
-        "j": [
+      "delta": 1.5,
+      "j": [
           {
             "coupling": 7,
             "multiplicity": "d"
@@ -30,8 +32,7 @@
             "coupling": 2,
             "multiplicity": "hex"
           }
-        ],
-        "delta": 1.5
+        ]
       }
     ]
   },
@@ -39,9 +40,23 @@
     "from": 3,
     "to": 4,
     "integral": 1,
+    "pubIntegral": "1'H",
     "signal": [
       {
         "delta": 3.5
+      }
+    ]
+  },
+  {
+    "from": 4,
+    "to": 5,
+    "integral": 1,
+    "signal": [
+      {
+        "assignment": "xyz"
+      },
+      {
+        "assignment": "abc"
       }
     ]
   },
@@ -74,3 +89,4 @@
     ]
   }
 ]
+

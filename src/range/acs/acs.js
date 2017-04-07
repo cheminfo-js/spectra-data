@@ -5,25 +5,28 @@ var getMultiplicityFromSignal=require('../getMultiplicityFromSignal')
 var acsString = '';
 var parenthesis = '';
 var rangeForMultiplet = false;
+var options;
+
+
+/**
+ * nbDecimalsDelta : default depends nucleus H, F: 2 otherwise 1
+ * nbDecimalsJ : default depends nucleus H, F: 1, otherwise 0
+ * ascending : true / false
+ * format : default "AIMJ"
+ * deltaSeparator : ', '
+ * detailSeparator : ', '
+ */
 
 
 function toAcs(rangesIn, options = {}) {
-    let {
-        nucleus = '1H',
-        solvent,
-        rangeForMultiplet,
-        ascending
-    } = options;
+    this.options=options;
 
 
     let ranges = new Ranges(JSON.parse(JSON.stringify(rangesIn)));
     ranges.updateMultiplicity();
 
 
-    acsString = '';
-    parenthesis = '';
-
-    if (ascending) {
+    if (options.ascending) {
         ranges.sort(function (a, b) {
             return b.from - a.from;
         });
@@ -34,12 +37,12 @@ function toAcs(rangesIn, options = {}) {
     }
 
     ranges.type = 'NMR SPEC';
-    switch (nucleus) {
+    switch (options.nucleus) {
         case '1H':
-            formatAcsDefault(ranges, false, 2, 1, solvent, options);
+            formatAcsDefault(ranges, false, 2, 1, options.solvent);
             break;
         case '13C':
-            formatAcsDefault(ranges, false, 1, 0, solvent, options);
+            formatAcsDefault(ranges, false, 1, 0, options.solvent);
             break;
 
     if (acsString.length > 0) acsString += '.';
@@ -83,10 +86,6 @@ function appendSpectroInformation(range, solvent, options) {
             acsString += ')';
         }
         acsString += ' δ ';
-    } else if (range.type === 'IR') {
-        acsString += ' IR ';
-    } else if (range.type === 'MASS') {
-        acsString += ' MASS ';
     }
 }
 
@@ -202,18 +201,18 @@ function appendCoupling(range, nbDecimal) {
 }
 
 function formatAssignment(assignment) {
-    assignment = assignment.replace(/([0-9])/g, '<sub>$1</sub>');
+    assignment = assignment.replace(/([0-9]+)/g, '<sub>$1</sub>');
     assignment = assignment.replace(/\"([^\"]*)\"/g, '<i>$1</i>');
     return assignment;
 }
 
 function formatMF(mf) {
-    mf = mf.replace(/([0-9])/g, '<sub>$1</sub>');
+    mf = mf.replace(/([0-9]+)/g, '<sub>$1</sub>');
     return mf;
 }
 
 function formatNucleus(nucleus) {
-    nucleus = nucleus.replace(/([0-9])/g, '<sup>$1</sup>');
+    nucleus = nucleus.replace(/([0-9]+)/g, '<sup>$1</sup>');
     return nucleus;
 }
 
