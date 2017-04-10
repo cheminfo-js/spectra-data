@@ -3,18 +3,7 @@
 //const JAnalyzer = require('./../peakPicking/JAnalyzer');
 // const peakPicking = require('../peakPicking/peakPicking');
 // const peaks2Ranges = require('../peakPicking/peaks2Ranges');
-
-
-
-
-
-
-
-// const acs = require('./acs/acs');
-
-
-
-
+const acs = require('./acs/acs');
 const peak2Vector = require('./peak2Vector');
 const GUI = require('./visualizer/index');
 const patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
@@ -153,7 +142,7 @@ class Ranges extends Array {
             var range = this[i];
             for (let j = 0; j < range.signal.length; j++) {
                 var signal = range.signal[j];
-                if (signal.j && !signal.multiplicity) {
+                if (Array.isArray(signal.j) && !signal.multiplicity) {
                     signal.multiplicity = '';
                     for (let k = 0; k < signal.j.length; k++) {
                         signal.multiplicity += signal.j[k].multiplicity;
@@ -241,7 +230,8 @@ class Ranges extends Array {
             if (Array.isArray(range.signal) && range.signal.length > 0) {
                 range.signal.forEach(s => {
                     index.push({
-                        multiplicity: s.multiplicity || joinMultiplicityOfJ(s)
+                        multiplicity: s.multiplicity || joinMultiplicityOfJ(s),
+                        delta: s.delta
                     })
                 })
             } else {

@@ -18,21 +18,30 @@ var getMultiplicityFromSignal = require('../getMultiplicityFromSignal');
  */
 const defaultOptions = {
     nucleus: '1H',
+    nbDecimalCs: 2,
+    nbDecimalJ: 1,
+    frequencyObserved: 400,
+    ascending: false,
+
 };
 
 function toAcs(ranges, options) {
+
     options = Object.assign(defaultOptions, options);
 
     ranges = ranges.clone();  // define it in Ranges file
-    ranges.updateMultiplicity();
 
     if (options.ascending) {
         ranges.sort(function (a, b) {
-            return b.from - a.from;
+            let fromA = Math.min(a.from, a.to);
+            let fromB = Math.min(b.from, b.to);
+            return fromB - fromA;
         });
     } else {
         ranges.sort(function (a, b) {
-            return a.from - b.from;
+            let fromA = Math.min(a.from, a.to);
+            let fromB = Math.min(b.from, b.to);
+            return fromA - fromB;
         });
     }
 
@@ -44,100 +53,100 @@ function toAcs(ranges, options) {
 }
 
 function formatAcs(ranges, options) {
-    var acsString = '';
     // I will include the sampleName in the begining
-    var acs = appendSpectroInformation(acsString, options);
+    var acs = appendSpectroInformation(options);
+    if(acs.length === 0) acs = 'δ ';
     var acsRanges = [];
     for (let range of ranges) {
-        appendDelta(range, acs, options);
+        acsRanges.push(appendDelta(range, options));
     }
-    return acs + acsRanges.join(', ');
+    if (acsRanges.length > 0) {
+        return acs + acsRanges.join(', ');
+    } else {
+        return '';
+    }
 }
 
 
 // It is ok, included the private functions
-function appendSpectroInformation(acsString, options) {
+function appendSpectroInformation(options) {
+    let strings = '';
+    let parenthesis = '';
     if (options.nucleus) {
-        acsString += formatNucleus(options.nucleus);
+        strings += formatNucleus(options.nucleus) + ' NMR';
     }
-    acsString += ' (';
     if (options.solvent || options.frequencyObserved) {
         if (options.solvent) {
-            acsString += formatMF(options.solvent);
-            if (options.frequencyObserved) {
-                acsString += ', ' + (options.frequencyObserved * 1).toFixed(0) + ' MHz';
-            } else if (options.frequencyObserved) {
-                acsString += (options.frequencyObserved * 1).toFixed(0) + ' MHz';
-            }
-            acsString += ')';
+            parenthesis += formatMF(options.solvent);
+        } if (options.frequencyObserved) {
+            parenthesis = appendSeparator(parenthesis);
+            parenthesis += (options.frequencyObserved * 1).toFixed(0) + ' MHz';
+        } if(parenthesis.length > 0) {
+            strings += ' (' + parenthesis + ')';
+            strings += ' δ '
         }
-        acsString += ' δ ';
     }
-    return acsString;
+    return strings;
 }
 
-
-// function appendSpectroInformation(range, solvent, options) {
-//     if (range.type === 'NMR SPEC') {
-//         if (options.nucleus) {
-//             acsString += formatNucleus(options.nucleus);
-//         }
-//         acsString += ' NMR';
-//         if ((solvent) || (options.observe)) {
-//             acsString += ' (';
-//             if (options.observe) {
-//                 acsString += (options.observe * 1).toFixed(0) + ' MHz';
-//                 if (solvent) acsString += ', ';
-//             }
-//             if (solvent) {
-//                 acsString += formatMF(solvent);
-//             }
-//             acsString += ')';
-//         }
-//         acsString += ' δ ';
-//     }
-// }
-
-function appendDelta(range, acsRanges, nbDecimal) {
-    let startX = 0;
-    let stopX = 0;
-    let delta1 = 0;
-    let asymmetric;
-
-    if (range.from) {
-        if ((typeof range.from) === 'string') {
-            startX = parseFloat(range.from);
+function appendDelta(range, options) {
+    if(Array.isArray(range.signal) && range.signal.length > 0) {
+        var strings = '';
+        var parenthesis = '';
+        var signals = range.signal;
+        if(signals.length > 1) {
+            let fromTo = [range.from, range.to];
+            strings += ' ' + Math.min(...fromTo).toFixed(options.nbDecimalCs) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalCs);
+            strings += ' (' + getIntegral(range);
+            for(let signal of  signals) {
+                var parenthesis = '';
+                if(signal.delta) {
+                    strings = appendSeparator(strings);
+                    strings += signal.delta.toFixed(options.nbDecimalCs);
+                    parenthesis += getMultiplicityFromSignal(signal);
+                    parenthesis = appendCoupling(signal, parenthesis, options);
+                    parenthesis = appendAssignment(signal, parenthesis);
+                    strings += ' ('+ parenthesis + ')';
+                }
+            }
+            strings +=  ')';
         } else {
-            startX = range.from;
-        } // is it really necessary?
-    }
-    if (range.to) {
-        if ((typeof range.to) === 'string') {
-            stopX = parseFloat(range.to);
-        } else {
-            stopX = range.to;
-        } // Is it really necesarry?
-    }
-    if (Array.isArray(range.signal) && range.signal.length > 0) {
-        for (let signal of range) {
-
+            var signal = signals[0];
+            if(signal.delta) {
+                strings += signal.delta.toFixed(options.nbDecimalCs);
+                parenthesis += getIntegral(range);
+                parenthesis = appendSeparator(parenthesis);
+                parenthesis += getMultiplicityFromSignal(signal);
+                parenthesis = appendCoupling(signal, parenthesis, options);
+                parenthesis = appendAssignment(signal, parenthesis);
+                strings += ' ('+ parenthesis + ')'
+            } else {
+                let fromTo = [range.from, range.to];
+                strings += ' ' + Math.min(...fromTo).toFixed(options.nbDecimalCs) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalCs);
+                parenthesis += getIntegral(range);
+                parenthesis = appendSeparator(parenthesis);
+                parenthesis += getMultiplicityFromSignal(signal);
+                parenthesis = appendCoupling(signal, parenthesis, options);
+                parenthesis = appendAssignment(signal, parenthesis);
+                strings += ' ('+ parenthesis + ')'
+            }
         }
     } else {
+        var strings = '';
         let fromTo = [range.from, range.to];
-        acsString += fromTo.min.fixed(options.nbDecimal) + fromTo.max.fixed(options.nbDecimal) + '';
+        strings += ' ' + Math.min(...fromTo).toFixed(options.nbDecimalCs) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalCs) + ' ';
+        if(range.pubAssigment || range.assigment) {
+            let assignment = range.pubAssigment || range.assigment;
+            strings += ' (' + getIntegral(range);
+            strings = appendSeparator(strings);
+            strings += 'm, ' + assignment + ')'; // here is where is necessary an pubAssigment when a range doesn't have a signal otherwise always is necessary a signal[0].pubAssignment/signal[0].assignnment
+        } else {
+            strings += ' (' + getIntegral(range);
+            strings = appendSeparator(strings);
+            strings += 'm)';
+        }
     }
-}
-
-function appendParenthesis(signal, options) {
-    parenthesis = '';
-    appendMultiplicity(signal);
-    appendIntegration(signal);
-    appendCoupling(signal, options);
-    appendAssignment(signal);
-
-    if (parenthesis.length > 0) {
-        acsString += ' (' + parenthesis + ')';
-    }
+    return strings;
 }
 
 
@@ -145,52 +154,43 @@ module.exports = toAcs;
 
 
 // it is ok
-function appendIntegration(signal) {
-    if (signal.pubIntegral) {
-        parenthesis = appendSeparator(parenthesis);
-        parenthesis += signal.pubIntegral;
-    } else if (signal.integral) {
-        parenthesis = appendSeparator(parenthesis);
-        parenthesis += signal.integral.toFixed(0) + ' H';
-    }
-}
-
-function appendMultiplicity(signal) {
-    if (!Array.isArray(signal) {
-        parenthesis = appendSeparator(parenthesis);
-        parenthesis += 'm';
-    })
-    var multiplicity = getMultiplicityFromSignal(signal);
-    if (multiplicity) {
-        parenthesis = appendSeparator(parenthesis);
-        parenthesis += multiplicity;
+function getIntegral(range) {
+    if (range.pubIntegral) {
+        return range.pubIntegral;
+    } else if (range.integral) {
+        return range.integral.toFixed(0) + 'H';
     }
 }
 
 // this function needs a object as signal argument
-function appendCoupling(signal, options) {
-    if (signal.j && signal.j.length > 0) {
+function appendCoupling(signal, parenthesis, options) {
+    if (Array.isArray(signal.j) && signal.j.length > 0) {
+        parenthesis = appendSeparator(parenthesis);
         var Js = signal.j;
         var j = '<i>J</i> = ';
-        var coupling = Js[0].coupling || 0;
-        j += coupling.toFixed(options.nbDecimal);
-        for (var i = 1; i < Js.length; i++) {
+        for (var i = 0; i < Js.length; i++) {
             var coupling = Js[i].coupling || 0;
             j = appendSeparator(j);
-            j += coupling.toFixed(options.nbDecimal);
+            j += coupling.toFixed(options.nbDecimalJ);
         }
         parenthesis += j + ' Hz';
     }
+    return parenthesis;
 }
 
-function appendAssignment(signal) {
+function appendAssignment(signal, strings) {
     if (signal.pubAssignment) {
-        parenthesis = appendSeparator(parenthesis);
-        parenthesis += formatAssignment(signal.signal[0].pubAssignment);
+        strings = appendSeparator(strings);
+        strings += formatAssignment(signal.pubAssignment);
+        return strings;
     } else if (signal.assignment) {
-        parenthesis = appendSeparator(parenthesis);
-        parenthesis += formatAssignment(signal.assignment);
+        strings = appendSeparator(strings);
+        strings += formatAssignment(signal.assignment);
+        return strings;
+    } else {
+        return strings;
     }
+
 }
 
 // more private functions
@@ -205,9 +205,11 @@ function formatNucleus(nucleus) {
     return nucleus;
 }
 
-function appendSeparator(acsString) {
-    if ((acsString.length > 0) && (!acsString.match(/ $/))) {
-        return acsString + ', ';
+function appendSeparator(asdf) {
+    if ((asdf.length > 0) && (!asdf.match(/ $/)) && (!asdf.match(/\($/))) {
+        return asdf + ', ';
+    } else {
+        return asdf;
     }
 }
 
