@@ -90,58 +90,58 @@ function appendSpectroInformation(options) {
 }
 
 function appendDelta(range, options) {
+    var strings = '';
     if(Array.isArray(range.signal) && range.signal.length > 0) {
-        var strings = '';
-        var parenthesis = '';
         var signals = range.signal;
         if(signals.length > 1) {
             let fromTo = [range.from, range.to];
             strings += ' ' + Math.min(...fromTo).toFixed(options.nbDecimalCs) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalCs);
-            strings += ' (' + getIntegral(range);
+            strings += ' (' + pushIntegral(range);
             for(let signal of  signals) {
-                var parenthesis = '';
+                var parenthesis = [];
                 if(signal.delta) {
                     strings = appendSeparator(strings);
                     strings += signal.delta.toFixed(options.nbDecimalCs);
-                    parenthesis += getMultiplicityFromSignal(signal);
-                    parenthesis = appendCoupling(signal, parenthesis, options);
-                    parenthesis = appendAssignment(signal, parenthesis);
-                    strings += ' ('+ parenthesis + ')';
+                    pushMultiplicityFromSignal(signal, parenthesis);
+                    pushCoupling(signal, parenthesis, options);
+                    pushAssignment(signal, parenthesis, options);
+                    if (parenthesis.length>0) {
+                        strings+=' ('+parenthesis.join(', ')+')';
+                    }
                 }
             }
             strings +=  ')';
         } else {
             var signal = signals[0];
+            var parenthesis = [];
             if(signal.delta) {
                 strings += signal.delta.toFixed(options.nbDecimalCs);
-                parenthesis += getIntegral(range);
-                parenthesis = appendSeparator(parenthesis);
-                parenthesis += getMultiplicityFromSignal(signal);
-                parenthesis = appendCoupling(signal, parenthesis, options);
-                parenthesis = appendAssignment(signal, parenthesis);
-                strings += ' ('+ parenthesis + ')'
+                pushIntegral(range, parenthesis);
+                pushMultiplicityFromSignal(signal, parenthesis);
+                pushCoupling(signal, parenthesis, options);
+                pushAssignment(signal, parenthesis);
+                strings+=' ('+parenthesis.join(', ')+')';
             } else {
                 let fromTo = [range.from, range.to];
                 strings += ' ' + Math.min(...fromTo).toFixed(options.nbDecimalCs) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalCs);
-                parenthesis += getIntegral(range);
+                parenthesis += pushIntegral(range);
                 parenthesis = appendSeparator(parenthesis);
                 parenthesis += getMultiplicityFromSignal(signal);
-                parenthesis = appendCoupling(signal, parenthesis, options);
-                parenthesis = appendAssignment(signal, parenthesis);
+                parenthesis = pushCoupling(signal, parenthesis, options);
+                parenthesis = pushAssignment(signal, parenthesis);
                 strings += ' ('+ parenthesis + ')'
             }
         }
     } else {
-        var strings = '';
         let fromTo = [range.from, range.to];
         strings += ' ' + Math.min(...fromTo).toFixed(options.nbDecimalCs) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalCs) + ' ';
         if(range.pubAssigment || range.assigment) {
             let assignment = range.pubAssigment || range.assigment;
-            strings += ' (' + getIntegral(range);
+            strings += ' (' + pushIntegral(range);
             strings = appendSeparator(strings);
             strings += 'm, ' + assignment + ')'; // here is where is necessary an pubAssigment when a range doesn't have a signal otherwise always is necessary a signal[0].pubAssignment/signal[0].assignnment
         } else {
-            strings += ' (' + getIntegral(range);
+            strings += ' (' + pushIntegral(range);
             strings = appendSeparator(strings);
             strings += 'm)';
         }
@@ -153,8 +153,10 @@ function appendDelta(range, options) {
 module.exports = toAcs;
 
 
+
+
 // it is ok
-function getIntegral(range) {
+function pushIntegral(range) {
     if (range.pubIntegral) {
         return range.pubIntegral;
     } else if (range.integral) {
@@ -162,8 +164,12 @@ function getIntegral(range) {
     }
 }
 
+function pushMultiplicityFromSignal(signal, parenthesis) {
+
+}
+
 // this function needs a object as signal argument
-function appendCoupling(signal, parenthesis, options) {
+function pushCoupling(signal, parenthesis, options) {
     if (Array.isArray(signal.j) && signal.j.length > 0) {
         parenthesis = appendSeparator(parenthesis);
         var Js = signal.j;
@@ -178,7 +184,7 @@ function appendCoupling(signal, parenthesis, options) {
     return parenthesis;
 }
 
-function appendAssignment(signal, strings) {
+function pushAssignment(signal, strings) {
     if (signal.pubAssignment) {
         strings = appendSeparator(strings);
         strings += formatAssignment(signal.pubAssignment);
