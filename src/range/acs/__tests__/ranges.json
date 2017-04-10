@@ -3,7 +3,6 @@
     "from": 2.9207911403931033,
     "to": 3.005342719673898,
     "integral": 3.05464,
-    "delta": 2.9630669300,
     "signal": [
       {
         "nbAtoms": 0,
@@ -11,6 +10,7 @@
         "multiplicity": "dd",
         "kind": "",
         "remark": "",
+        "delta": 2.9630669300,
         "assigment": "COCH3",
         "j": [
           {
@@ -50,13 +50,13 @@
     "from": 3.2022,
     "to": 3.5045,
     "integral": 3.231412397661983,
-    "delta": 3.3541,
     "signal": [
       {
         "nbAtoms": 0,
         "diaID": [],
         "multiplicity": "d",
         "kind": "",
+        "delta": 3.3541,
         "remark": "",
         "pubAssigment": "CH3OH",
         "j": [
@@ -170,4 +170,5 @@
     "from": 6.256,
     "to": 7.2738,
     "integral": 7.831
-  }]
+  }
+]
