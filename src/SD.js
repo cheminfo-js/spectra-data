@@ -18,6 +18,9 @@ const DATACLASS_PEAK = 2;
  * @constructor
  */
 class SD {
+    /**
+     * @param sd
+     */
     constructor(sd) {
         this.sd = sd;
         this.activeElement = 0;
@@ -36,6 +39,29 @@ class SD {
         var spectrum = JcampConverter.convert(jcamp, options);
         return new this(spectrum);
     }
+
+    /**
+     * Creates a SD instance from the given jcamp.
+     * @param {string} text - The jcamp string to parse from
+     * @param {object} options
+     * @return {SD} Return the constructed SD instance
+     */
+    static fromText(text, options) {
+        var lines=text.split(/[\r\n]+/);
+        var spectrum={};
+        for (var line of lines) {
+            if (line.match(/^[0-9.,\t;eE-]+$/)) {
+                var fields=line.split(/[\t,;]+/);
+                if (fields.length===2) {
+                    var x=Number(fields[0]);
+                    var y=Number(fields[1]);
+                }
+            }
+        }
+
+        return new this(spectrum);
+    }
+
 
     /**
      * This function sets the nactiveSpectrum sub-spectrum as active
