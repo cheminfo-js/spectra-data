@@ -531,7 +531,7 @@ class SD {
      * @param {number} to - one limit the spectrum to fill
      * @param {number} value - value with which to fill
      */
-    fillWith(from, to, value) {
+    fill(from, to, value) {
         var tmp, start, end, x, y;
         if (from > to) {
             tmp = from;
@@ -575,7 +575,7 @@ class SD {
      * @param {number} to - one limit the spectrum to suppress
      */
     suppressZone(from, to) {
-        this.fillWith(from, to);
+        this.fill(from, to);
         this.setDataClass(DATACLASS_PEAK);
     }
 
@@ -772,6 +772,25 @@ class SD {
         } else {
             return this.getPointsInWindow(from, to);
         }
+    }
+
+    /**
+     * In place modification of the data to usually reduce the size
+     * This will convert the data in equally spaces X.
+     * @param {number} from - one limit in spectrum units
+     * @param {number} to - one limit in spectrum units
+     * @param {number} nPoints - number of points to return(!!!sometimes it is not possible to return exactly the required nbPoints)
+     * @return {this}
+     */
+    reduceData(from, to, nPoints) {
+        //TODO
+        if (nPoints) {
+            return ArrayUtils.getEquallySpacedData(this.getSpectraDataX(), this.getSpectraDataY(),
+                {from: from, to: to, numberOfPoints: nPoints});
+        } else {
+            return this.getPointsInWindow(from, to);
+        }
+        return this;
     }
 
     /**
