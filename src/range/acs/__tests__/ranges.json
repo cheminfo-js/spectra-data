@@ -11,7 +11,7 @@
         "kind": "",
         "remark": "",
         "delta": 2.9630669300,
-        "assigment": "COCH3",
+        "assignment": "COCH3",
         "j": [
           {
             "coupling": 2.7202333074737908,
@@ -58,7 +58,7 @@
         "kind": "",
         "delta": 3.3541,
         "remark": "",
-        "pubAssigment": "CH3OH",
+        "pubAssignment": "CH3OH",
         "j": [
           {
             "coupling": 5.194226872123636,
@@ -118,7 +118,7 @@
         "multiplicity": "d",
         "kind": "",
         "remark": "",
-        "pubAssigment": "D2O",
+        "pubAssignment": "D2O",
         "delta": 4.80465,
         "j": [
           {

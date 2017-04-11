@@ -17,10 +17,10 @@ var ranges = JSON.parse(FS.readFileSync(__dirname + '/ranges.json'));
 describe('ACS tests: formating and parsing', function () {
     it('format ACS', function () {
         var inputRange = new Ranges(ranges)
-        var acs = ACS(inputRange, {nbDecimal: 2, nucleus: '1H', frequencyObserved: 400, solvent: 'C6D6'});
-        // console.log(acs);
-        acs.should.equal('<sup>1</sup>H NMR (C<sub>6</sub>D<sub>6</sub>, 400 MHz) δ 3.35 (1H, t, <i>J</i> = 4.53 Hz),  2.92-3.01 (3H, dd, <i>J</i> = 2.72, 9.18 Hz),  ' +
-            '3.20-3.50 (3H, d, <i>J</i> = 5.19 Hz),  4.09-4.34 (3H, 4.23 (d, <i>J</i> = 5.19 Hz), 4.15 (t, <i>J</i> = 5.19, 5.50 Hz)), 4.80 (3H, d, <i>J</i> = 5.19 Hz),  ' +
-            '5.42-5.64 (3H, 5.46 (d, <i>J</i> = 5.19 Hz), 5.55 (dd, <i>J</i> = 5.19, 5.50 Hz)),  6.26-7.27  (8H, m).');
+        var acs = ACS(inputRange, {nbDecimal: 2, nucleus: '1H', frequencyObserved: 400, solvent: 'C6D6', format: 'IMJA'});
+        console.log(acs);
+        acs.should.equal('<sup>1</sup>H NMR (C<sub>6</sub>D<sub>6</sub>, 400 MHz): δ 3.35 (1H, t, <i>J</i> = 4.5 Hz), 2.96 (3H, dd, <i>J</i> = 2.7, 9.2 Hz, COCH<sub>3</sub>), ' +
+            '3.35 (3H, d, <i>J</i> = 5.2 Hz, CH<sub>3</sub>OH), 4.09-4.34 (3H, 4.23 (d, <i>J</i> = 5.2 Hz), 4.15 (t, <i>J</i> = 5.2, 5.5 Hz)), 4.80 (3H, d, <i>J</i> = 5.2 Hz, D<sub>2</sub>O), ' +
+            '5.42-5.64 (3H, 5.46 (d, <i>J</i> = 5.2 Hz), 5.55 (dd, <i>J</i> = 5.2, 5.5 Hz)), 6.26-7.27 (8H, m).');
     });
 });
