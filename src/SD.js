@@ -133,7 +133,7 @@ class SD {
      * @return {number | *}
      */
     getFirstX(i) {
-        i = i || this.activeElement;
+        if (i===undefined) i=this.activeElement;
         return this.sd.spectra[i].firstX;
     }
 
@@ -143,7 +143,7 @@ class SD {
      * @param {number} i sub-spectrum Default:activeSpectrum
      */
     setFirstX(x, i) {
-        i = i || this.activeElement;
+        if (i===undefined) i=this.activeElement;
         this.sd.spectra[i].firstX = x;
     }
 
@@ -153,7 +153,7 @@ class SD {
      * @return {number}
      */
     getLastX(i) {
-        i = i || this.activeElement;
+        if (i===undefined) i=this.activeElement;
         return this.sd.spectra[i].lastX;
     }
 
@@ -164,7 +164,7 @@ class SD {
      * @param {number} i - sub-spectrum Default:activeSpectrum
      */
     setLastX(x, i) {
-        i = i || this.activeElement;
+        if (i===undefined) i=this.activeElement;
         this.sd.spectra[i].lastX = x;
     }
 
@@ -176,7 +176,7 @@ class SD {
      * @return {number}
      */
     getFirstY(i) {
-        i = i || this.activeElement;
+        if (i===undefined) i=this.activeElement;
         return this.sd.spectra[i].firstY;
     }
 
@@ -186,7 +186,7 @@ class SD {
      * @param {number} i - sub-spectrum Default: activeSpectrum
      */
     setFirstY(y, i) {
-        i = i || this.activeElement;
+        if (i===undefined) i=this.activeElement;
         this.sd.spectra[i].firstY = y;
     }
 
@@ -196,7 +196,7 @@ class SD {
      * @return {number}
      */
     getLastY(i) {
-        i = i || this.activeElement;
+        if (i===undefined) i=this.activeElement;
         return this.sd.spectra[i].lastY;
     }
 
@@ -206,7 +206,7 @@ class SD {
      * @param {number} i - sub-spectrum Default:activeSpectrum
      */
     setLastY(y, i) {
-        i = i || this.activeElement;
+        if (i===undefined) i=this.activeElement;
         this.sd.spectra[i].lastY = y;
     }
 
@@ -271,7 +271,7 @@ class SD {
      * @return {object}
      */
     getSpectrumData(i) {
-        i = i || this.activeElement;
+        if (i === undefined) i=this.activeElement;
         return this.sd.spectra[i].data[0];
     }
 
@@ -281,7 +281,7 @@ class SD {
      * @return {object}
      */
     getSpectrum(i) {
-        i = i || this.activeElement;
+        if (i===undefined) i=this.activeElement;
         return this.sd.spectra[i];
     }
 
@@ -525,7 +525,7 @@ class SD {
     }
 
     /**
-     * This function fills a zone of the spectrum with the given value.
+     * Fills a zone of the spectrum with the given value.
      * If value is undefined it will suppress the elements
      * @param {number} from - one limit the spectrum to fill
      * @param {number} to - one limit the spectrum to fill
@@ -784,16 +784,49 @@ class SD {
      */
     reduceData(from, to, nPoints) {
         //TODO
-        if (nPoints) {
-            return ArrayUtils.getEquallySpacedData(this.getSpectraDataX(), this.getSpectraDataY(),
-                {from: from, to: to, numberOfPoints: nPoints});
-        } else {
-            return this.getPointsInWindow(from, to);
+
+        for (let i = 0; i < this.getNbSubSpectra(); i++) {
+            this.setActiveElement(i);
+            var x = this.getSpectrumData().x;
+            var y = this.getSpectrumData().y;
+            var spectrum=this.getSpectrum();
+
+
+
+            if (nPoints) {
+                y=ArrayUtils.getEquallySpacedData(this.getSpectraDataX(), this.getSpectraDataY(),
+                    {from: from, to: to, numberOfPoints: nPoints});
+                x=new Array(y.length);
+                var currentX=from;
+                var step=(to-from)/(y.length-1);
+                for (j=0; j<y.length; j++) {
+                    x[j]=currentX;
+                    currentX+=step;
+                }
+            } else {
+                // not trivial
+                return this.getPointsInWindow(from, to);
+            }
+
+
+            this.getSpectrumData().x=x;
+            this.getSpectrumData().y=y;
+
+            spectrum.firstX=x[0];
+            spectrum.lastX=x[x.length-1];
+            spectrum.nbPoints;
+            spectrum.setDataClass() ??? XY or peaks : it should be XY
+                spectrum.setDataType()
+
+
         }
+
+
+
         return this;
     }
 
-    /**
+    /*
      * Returns all the point in a given window.
      * Not tested, you have to know what you are doing
      * @param {number} from - index of a limit of the desired window.
@@ -801,10 +834,16 @@ class SD {
      * @param {number} nPoints - number of points in the desired window.
      * @return {Array} XYarray data of the desired window.
      */
+    /*
     getPointsInWindow(from, to, nPoints) {
+        if (this.getDataClass() != DATACLASS_XY) {
+            throw Error('getPointsInWindow can only apply on equidistant data')
+        }
         var x = this.getSpectraDataX();
         var y = this.getSpectraDataY();
-        var start = 0, end = x.length - 1, direction = 1;
+        var start = 0;
+        var end = x.length - 1;
+        var direction = 1;
 
         if (x[0] > x[1]) {
             direction = -1;
@@ -849,8 +888,9 @@ class SD {
             ywin[index] = y[i];
             index += direction;
         }
-        return [xwin, ywin];
+        return {x: xwin, y: ywin};
     }
+    */
 
     /**
      * Is it a 2D spectrum?
