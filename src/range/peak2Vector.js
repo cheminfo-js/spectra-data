@@ -12,7 +12,7 @@
  * @return {{x: Array, y: Array}}
  */
 function peak2Vector(peaks, options) {
-    var options = options || {};
+    options = options || {};
     var from = options.from;
     var to = options.to;
     var nbPoints = options.nbPoints || 16 * 1024;

@@ -18,9 +18,6 @@ const DATACLASS_PEAK = 2;
  * @constructor
  */
 class SD {
-    /**
-     * @param sd
-     */
     constructor(sd) {
         this.sd = sd;
         this.activeElement = 0;
@@ -39,29 +36,6 @@ class SD {
         var spectrum = JcampConverter.convert(jcamp, options);
         return new this(spectrum);
     }
-
-    /**
-     * Creates a SD instance from the given jcamp.
-     * @param {string} text - The jcamp string to parse from
-     * @param {object} options
-     * @return {SD} Return the constructed SD instance
-     */
-    static fromText(text, options) {
-        var lines = text.split(/[\r\n]+/);
-        var spectrum = {};
-        for (var line of lines) {
-            if (line.match(/^[0-9.,\t;eE-]+$/)) {
-                var fields = line.split(/[\t,;]+/);
-                if (fields.length === 2) {
-                    var x = Number(fields[0]);
-                    var y = Number(fields[1]);
-                }
-            }
-        }
-
-        return new this(spectrum);
-    }
-
 
     /**
      * This function sets the nactiveSpectrum sub-spectrum as active
@@ -113,6 +87,8 @@ class SD {
 
     /**
      * Return the current page
+     * @param {number} index - index of spectrum
+     * @return {number}
      */
     getPage(index) {
         return this.sd.spectra[index].page;
@@ -296,7 +272,7 @@ class SD {
     /**
      *  Returns an array containing the x values of the spectrum
      * @param {number} i sub-spectrum Default:activeSpectrum
-     * @return {Array}
+     * @return {array}
      */
     getXData(i) {
         return this.getSpectrumData(i).x;
@@ -305,7 +281,7 @@ class SD {
     /**
      * This function returns a double array containing the values with the intensities for the current sub-spectrum.
      * @param {number} i sub-spectrum Default:activeSpectrum
-     * @return {Array}
+     * @return {array}
      */
     getYData(i) {
         return this.getSpectrumData(i).y;
@@ -685,7 +661,7 @@ class SD {
 
     /**
      * Return the y elements of the current spectrum. Same as getYData. Kept for backward compatibility.
-     * @return {Array}
+     * @return {array}
      */
     getSpectraDataY() {
         return this.getYData();
@@ -693,7 +669,7 @@ class SD {
 
     /**
      * Return the x elements of the current spectrum. Same as getXData. Kept for backward compatibility.
-     * @return {Array}
+     * @return {array}
      */
     getSpectraDataX() {
         return this.getXData();
@@ -741,8 +717,7 @@ class SD {
     /**
      * This function return the integral values for certains ranges at specific SD instance .
      * @param {array} ranges - array of objects ranges
-     * @param {object} options - option such as nH for normalization, if it is nH is zero the integral value returned
-     * is absolute value
+     * @param {object} options - option such as nH for normalization, if it is nH is zero the integral value returned is absolute value
      */
     updateIntegrals(ranges, options) {
         var sum = 0;
@@ -786,21 +761,23 @@ class SD {
         if (!this.isDataClassXY()) {
             throw Error('reduceData can only apply on equidistant data');
         }
+        var y;
+        var x;
 
         for (let i = 0; i < this.getNbSubSpectra(); i++) {
             this.setActiveElement(i);
             var spectrum = this.getSpectrum();
 
             if (nbPoints) {
-                var x = this.getSpectraDataX();
-                var y = this.getSpectraDataY();
+                x = this.getSpectraDataX();
+                y = this.getSpectraDataY();
                 let data = ArrayUtils.getEquallySpacedData(x, y, {from: from, to: to, numberOfPoints: nbPoints});
                 y = data[1];
                 x = data[0];
             } else {
-                let data = getPointsInWindow(from, to);
-                var y = data[1];
-                var x = data[0];
+                let data = this.getPointsInWindow(from, to);
+                y = data[1];
+                x = data[0];
             }
 
             this.sd.spectra[i].data[0].x = x;

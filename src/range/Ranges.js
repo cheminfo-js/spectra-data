@@ -7,6 +7,7 @@ const acs = require('./acs/acs');
 const peak2Vector = require('./peak2Vector');
 const GUI = require('./visualizer/index');
 const patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
+const getMultiplicityFromSignal = require('./getMultiplicityFromSignal');
 
 class Ranges extends Array {
 
@@ -25,11 +26,11 @@ class Ranges extends Array {
 
     /**
      * This function return a Range instance from predictions
-     * @param {Object} predictions - predictions of a spin system
-     * @param {Object} options - options object
+     * @param {object} predictions - predictions of a spin system
+     * @param {object} options - options object
      * @param {number} [options.lineWidth] - spectral line width
      * @param {number} [options.frequency] - frequency to determine the [from, to] of a range
-     * @returns {Ranges}
+     * @return {Ranges}
      */
     static fromPrediction(predictions, options) {
         options = Object.assign({}, {lineWidth: 1, frequency: 400, nucleus: '1H'}, options);
@@ -75,12 +76,12 @@ class Ranges extends Array {
                 signal: [predictions[diaIDs[0]]]
             };
 
-            var multiplicity = '';
+            result[i].multiplicity = '';
 
             for (var k = 1; k < diaIDs.length; k++) {
                 result[i].signal.push(predictions[diaIDs[k]]);
                 for (var kk = 0; kk < predictions[diaIDs[k]].j.length; kk++) {
-                    multiplicity += predictions[diaIDs[k]].j[kk].multiplicity;
+                    result[i].multiplicity += predictions[diaIDs[k]].j[kk].multiplicity;
                 }
                 result[i].integral++;
             }
@@ -114,7 +115,7 @@ class Ranges extends Array {
      * This function return Ranges instance from a SD instance
      * @param {SD} spectrum - SD instance
      * @param {object} opt - options object to extractPeaks function
-     * @returns {Ranges}
+     * @return {Ranges}
      */
     static fromSpectrum(spectrum, opt) {
         this.options = Object.assign({}, {
@@ -135,7 +136,7 @@ class Ranges extends Array {
 
     /**
      * This function put signal.multiplicity with respect to
-     * @returns {Ranges}
+     * @return {Ranges}
      */
     updateMultiplicity() {
         for (let i = 0; i < this.length; i++) {
@@ -155,10 +156,10 @@ class Ranges extends Array {
 
     /**
      * This function normalize or scale the integral data
-     * @param {Object} options - object with the options
-     * @param {Boolean} [options.sum] - anything factor to normalize the integrals, Similar to the number of proton in the molecule for a nmr spectrum
+     * @param {object} options - object with the options
+     * @param {boolean} [options.sum] - anything factor to normalize the integrals, Similar to the number of proton in the molecule for a nmr spectrum
      * @param {number} [options.factor] - Factor that multiply the intensities, if [options.sum] is defined it is override
-     * @returns {Ranges}
+     * @return {Ranges}
      */
     updateIntegrals(options) {
         var factor = options.factor || 1;
@@ -179,8 +180,8 @@ class Ranges extends Array {
 
     /**
      * This function return the peak list as a object with x and y arrays
-     * @param {Object} options - See the options parameter in {@link #peak2vector} function documentation
-     * @returns {Object} - {x: Array, y: Array}
+     * @param {object} options - See the options parameter in {@link #peak2vector} function documentation
+     * @return {object} - {x: Array, y: Array}
      */
     getVector(options) {
         return peak2Vector(this.getPeakList(), options);
@@ -188,7 +189,7 @@ class Ranges extends Array {
 
     /**
      * This function return the peaks of a Ranges instance into an array
-     * @returns {Array}
+     * @return {array}
      */
     getPeakList() {
         var peaks = [];
@@ -205,8 +206,8 @@ class Ranges extends Array {
 
     /**
      * This function return format for each range
-     * @param {Object} options - options object for toAcs function
-     * @returns {*}
+     * @param {object} options - options object for toAcs function
+     * @return {*}
      */
     getACS(options) {
         return acs(this, options);
@@ -219,7 +220,7 @@ class Ranges extends Array {
     /**
      * Return an array of deltas and multiplicity for an index database
      * @options {array} options
-     * @returns {Array} [{delta, multiplicity},...]
+     * @return {array} [{delta, multiplicity},...]
      */
     toIndex(options) {
         var index = [];
@@ -228,12 +229,12 @@ class Ranges extends Array {
 
         for (var range of this) {
             if (Array.isArray(range.signal) && range.signal.length > 0) {
-                range.signal.forEach(s => {
+                for (let s of range.signal) {
                     index.push({
-                        multiplicity: s.multiplicity || joinMultiplicityOfJ(s),
+                        multiplicity: s.multiplicity || getMultiplicityFromSignal(s),
                         delta: s.delta
                     });
-                });
+                }
             } else {
                 index.push({
                     delta: (range.to + range.from) / 2,
@@ -247,9 +248,7 @@ class Ranges extends Array {
 
     /**
      * Returns the multiplet in the compact format
-     * @param {object} signal
-     * @param {object} Jc
-     * @return {string}
+     * @param {object} options
      * @private
      */
     compactPatterns(options) {
@@ -270,12 +269,16 @@ module.exports = Ranges;
 
 
 function compactPattern(signal, options) {
-    var jc = signal.j;
-    var cont = 1;
-    var pattern = '';
-    var tolerance = options.tolerance || 0.05;
-    var normalLineWidth = options.normalLineWidth || 0.2;
-    var newNmrJs = [], diaIDs = [], atoms = []; atoms;
+    var {
+        jc = signal.j,
+        cont = 1,
+        pattern = '',
+        tolerance = options.tolerance || 0.05,
+        normalLineWidth = options.normalLineWidth || 0.2,
+        newNmrJs = [],
+        diaIDs = [],
+        atoms = []
+    } = options;
     if (jc && jc.length > 0) {
         jc.sort(function (a, b) {
             return a.coupling - b.coupling;
@@ -333,7 +336,6 @@ function compactPattern(signal, options) {
     } else {
         pattern = 's'; // inside of signal don't exist a startX stopX properties
         if (Math.abs(signal.startX - signal.stopX) * signal.observe > normalLineWidth) {
-            //TODO this hsould never happen based on the speicifications. startX and stopX does not exists
             throw Error('Should not happen');
             pattern = 's br';
         }

@@ -1,13 +1,13 @@
 'use strict';
 
 function getMultiplicityFromSignal(signal) {
+    let multiplicity = '';
     if (signal.pubMultiplicity) {
-        return signal.pubMultiplicity;
+        multiplicity = signal.pubMultiplicity;
     } else if (signal.multiplicity) {
-        return signal.multiplicity;
+        multiplicity = signal.multiplicity;
     } else if (Array.isArray(signal.j) && signal.j.length > 0) {
         var couplings = signal.j;
-        var multiplicity = '';
         var addSpace = false;
         for (let coupling of couplings) {
             if (coupling.multiplicity.length > 1) {
@@ -27,6 +27,7 @@ function getMultiplicityFromSignal(signal) {
     } else {
         return 'm';
     }
+    return multiplicity
 }
 
 

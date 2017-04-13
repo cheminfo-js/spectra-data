@@ -1,6 +1,6 @@
 'use strict';
 
-var getMultiplicityFromSignal = require('../getMultiplicityFromSignal');
+const getMultiplicityFromSignal = require('../getMultiplicityFromSignal');
 
 /**
  * nbDecimalsDelta : default depends nucleus H, F: 2 otherwise 1
@@ -33,15 +33,11 @@ var globalOptions = {
     }
 };
 
-/**
- * some test case, with and without ascending option
- *
- */
 function toAcs(ranges, options = {}) {
 
-    var nucleus=(options.nucleus || "1H").toLowerCase().replace(/[0-9]/g,'');
+    var nucleus = (options.nucleus || '1H').toLowerCase().replace(/[0-9]/g, '');
 
-    var defaultOptions=globalOptions[nucleus];
+    var defaultOptions = globalOptions[nucleus];
 
     options = Object.assign({}, defaultOptions, {ascending: false, format: 'IMJA'}, options);
 
@@ -69,11 +65,11 @@ function toAcs(ranges, options = {}) {
 }
 
 function formatAcs(ranges, options) {
-    var acs = appendSpectroInformation(options);
+    var acs = spectroInformation(options);
     if (acs.length === 0) acs = 'δ ';
     var acsRanges = [];
     for (let range of ranges) {
-        appendDelta(range, acsRanges, options);
+        pushDelta(range, acsRanges, options);
     }
     if (acsRanges.length > 0) {
         return acs + acsRanges.join(', ');
@@ -82,7 +78,7 @@ function formatAcs(ranges, options) {
     }
 }
 
-function appendSpectroInformation(options) {
+function spectroInformation(options) {
     let parenthesis = [];
     let strings = formatNucleus(options.nucleus) + ' NMR';
     if (options.solvent) {
@@ -99,117 +95,68 @@ function appendSpectroInformation(options) {
     return strings;
 }
 
-function appendDelta(range, acsRanges, options) {
+function pushDelta(range, acsRanges, options) {
     var strings = '';
     var parenthesis = [];
-    var format = options.format;
+    let fromTo = [range.from, range.to];
     if (Array.isArray(range.signal) && range.signal.length > 0) {
         var signals = range.signal;
         if (signals.length > 1) {
-            let fromTo = [range.from, range.to];
-            strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
+            strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-'
+                     + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
             strings += ' (' + getIntegral(range, options);
-            options.format += '-IntegralLess';
             for (let signal of signals) {
+                // eslint-disable-next-line camelcase
                 var parenthesis = [];
-                if (signal.delta) {
+                if (signal.delta !== undefined) {
                     strings = appendSeparator(strings);
                     strings += signal.delta.toFixed(options.nbDecimalDelta);
-                    switchFormat(range, signal, parenthesis, options);
-                    if (parenthesis.length > 0) {
-                        strings += ' (' + parenthesis.join(', ') + ')';
-                    }
+                    switchFormat({}, signal, parenthesis, options);
+                    if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
                 }
             }
             strings += ')';
         } else {
-            var signal = signals[0];
+            // eslint-disable-next-line camelcase
             var parenthesis = [];
-            if (signal.delta) {
-                strings += signal.delta.toFixed(options.nbDecimalDelta);
-                switchFormat(range, signal, parenthesis, options);
-                strings += ' (' + parenthesis.join(', ') + ')';
+            if (signals[0].delta !== undefined) {
+                strings += signals[0].delta.toFixed(options.nbDecimalDelta);
+                switchFormat(range, signals[0], parenthesis, options);
+                if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
             } else {
-                let fromTo = [range.from, range.to];
                 strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
-                switchFormat(range, signal, parenthesis, options);
-                strings += ' (' + parenthesis + ')';
+                switchFormat(range, signals[0], parenthesis, options);
+                if (parenthesis.length > 0) strings += ' (' + parenthesis + ')';
             }
         }
     } else {
-        let fromTo = [range.from, range.to];
         strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
-        options.format += '-massive';
         switchFormat(range, [], parenthesis, options);
-        strings += ' (' + parenthesis.join(', ') + ')';
+        if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
     }
-    options.format = format;
     acsRanges.push(strings);
 }
 
 module.exports = toAcs;
 
 function getIntegral(range, options) {
+    let integral = '';
     if (range.pubIntegral) {
-        return range.pubIntegral;
+        integral = range.pubIntegral;
     } else if (range.integral) {
-        return range.integral.toFixed(0) + options.nucleus[options.nucleus.length - 1];
+        integral = range.integral.toFixed(0) + options.nucleus[options.nucleus.length - 1];
     }
-    // todo check what to do when there is no integral like 13C for example
-    // todo: add test case 13C when we have only chemical shift  10,20,30
+    return integral;
 }
 
 function pushIntegral(range, parenthesis, options) {
-    parenthesis.push(getIntegral(range, options));
+    let integral = getIntegral(range, options);
+    if (integral.length > 0) parenthesis.push(integral);
 }
 
 function pushMultiplicityFromSignal(signal, parenthesis) {
-    parenthesis.push(getMultiplicityFromSignal(signal));
-}
-
-// this function needs a object as signal argument
-function pushCoupling(signal, parenthesis, options) {
-    if (Array.isArray(signal.j) && signal.j.length > 0) {
-        var Js = signal.j;
-        var values = [];
-        var j = '<i>J</i> = ';
-        for (var i = 0; i < Js.length; i++) {
-            var coupling = Js[i].coupling || 0;
-            values.push(coupling.toFixed(options.nbDecimalJ));
-        }
-        parenthesis.push(j + values.join(', ') + ' Hz');
-    }
-}
-
-function pushAssignment(signal, parenthesis) {
-    if (signal.pubAssignment) {
-        parenthesis.push(formatAssignment(signal.pubAssignment));
-    } else if (signal.assignment) {
-        parenthesis.push(formatAssignment(signal.assignment));
-    }
-}
-
-// more private functions
-function formatMF(mf) {
-    return mf.replace(/([0-9]+)/g, '<sub>$1</sub>');
-}
-
-function formatNucleus(nucleus) {
-    return nucleus.replace(/([0-9]+)/g, '<sup>$1</sup>');
-}
-
-function appendSeparator(strings) {
-    if ((strings.length > 0) && (!strings.match(/ $/)) && (!strings.match(/\($/))) {
-        return strings + ', ';
-    } else {
-        return strings;
-    }
-}
-
-function formatAssignment(assignment) {
-    assignment = assignment.replace(/([0-9]+)/g, '<sub>$1</sub>');
-    assignment = assignment.replace(/\"([^\"]*)\"/g, '<i>$1</i>');
-    return assignment;
+    let multiplicity = getMultiplicityFromSignal(signal);
+    if (multiplicity.length > 0) parenthesis.push(multiplicity);
 }
 
 function switchFormat(range, signal, parenthesis, options) {
@@ -219,61 +166,57 @@ function switchFormat(range, signal, parenthesis, options) {
                 pushIntegral(range, parenthesis, options);
                 break;
             case 'M':
-
+                pushMultiplicityFromSignal(signal, parenthesis);
                 break;
             case 'A':
-
+                pushAssignment(signal, parenthesis);
                 break;
             case 'J':
+                pushCoupling(signal, parenthesis, options);
                 break;
             default:
-                throw new Error('Unknow format letter: '+char)
+                throw new Error('Unknow format letter: ' + char);
         }
     }
+}
 
+function formatMF(mf) {
+    return mf.replace(/([0-9]+)/g, '<sub>$1</sub>');
+}
 
-    switch (options.format) {
-        case 'IMJA':
-            pushIntegral(range, parenthesis, options);
-            pushMultiplicityFromSignal(signal, parenthesis);
-            pushCoupling(signal, parenthesis, options);
-            pushAssignment(signal, parenthesis);
-            break;
-        case 'AIMJ':
-            pushAssignment(signal, parenthesis);
-            pushIntegral(range, parenthesis, options);
-            pushMultiplicityFromSignal(signal, parenthesis);
-            pushCoupling(signal, parenthesis, options);
-            break;
-        case 'MJA':
-            pushMultiplicityFromSignal(signal, parenthesis);
-            pushCoupling(signal, parenthesis, options);
-            pushAssignment(signal, parenthesis);
-            break;
-        case 'AIMJ-IntegralLess':
-            pushAssignment(signal, parenthesis);
-            pushMultiplicityFromSignal(signal, parenthesis);
-            pushCoupling(signal, parenthesis, options);
-            break;
-        case 'AIMJ-massive':
-            if (range.pubAssignment !== undefined) {
-                parenthesis.push(range.pubAssignment);
-            } else if (range.assignment !== undefined) {
-                parenthesis.push(range.assignment);
+function formatNucleus(nucleus) {
+    return nucleus.replace(/([0-9]+)/g, '<sup>$1</sup>');
+}
+
+function appendSeparator(strings) {
+    if ((strings.length > 0) && (! strings.match(/ $/)) && (! strings.match(/\($/))) {
+        strings += ', ';
+    }
+    return strings;
+}
+
+function formatAssignment(assignment) {
+    assignment = assignment.replace(/([0-9]+)/g, '<sub>$1</sub>');
+    assignment = assignment.replace(/\"([^\"]*)\"/g, '<i>$1</i>');
+    return assignment;
+}
+
+function pushCoupling(signal, parenthesis, options) {
+    if (Array.isArray(signal.j) && signal.j.length > 0) {
+        var values = [];
+        for (let j of signal.j) {
+            if (j.coupling !== undefined) {
+                values.push(j.coupling.toFixed(options.nbDecimalJ));
             }
-            pushIntegral(range, parenthesis, options);
-            parenthesis.push('m');
-            break;
-        case 'IMJA-massive':
-            pushIntegral(range, parenthesis, options);
-            parenthesis.push('m');
-            if (range.pubAssignment !== undefined) {
-                parenthesis.push(range.pubAssignment);
-            } else if (range.assignment !== undefined) {
-                parenthesis.push(range.assignment);
-            }
-            break;
-        default:
-            throw new Error('Unknow format option: '+options.format)
+        }
+        if (values.length > 0) parenthesis.push('<i>J</i> = ' + values.join(', ') + ' Hz');
+    }
+}
+
+function pushAssignment(signal, parenthesis) {
+    if (signal.pubAssignment) {
+        parenthesis.push(formatAssignment(signal.pubAssignment));
+    } else if (signal.assignment) {
+        parenthesis.push(formatAssignment(signal.assignment));
     }
 }
