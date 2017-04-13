@@ -1,6 +1,3 @@
-/**
- * Created by acastillo on 4/8/15.
- */
 'use strict';
 
 var Data = require('../../index.js');

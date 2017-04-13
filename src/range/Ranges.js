@@ -142,7 +142,7 @@ class Ranges extends Array {
             var range = this[i];
             for (let j = 0; j < range.signal.length; j++) {
                 var signal = range.signal[j];
-                if (signal.j && !signal.multiplicity) {
+                if (Array.isArray(signal.j) && !signal.multiplicity) {
                     signal.multiplicity = '';
                     for (let k = 0; k < signal.j.length; k++) {
                         signal.multiplicity += signal.j[k].multiplicity;
@@ -230,7 +230,8 @@ class Ranges extends Array {
             if (Array.isArray(range.signal) && range.signal.length > 0) {
                 range.signal.forEach(s => {
                     index.push({
-                        multiplicity: s.multiplicity || joinMultiplicityOfJ(s)
+                        multiplicity: s.multiplicity || joinMultiplicityOfJ(s),
+                        delta: s.delta
                     })
                 })
             } else {
@@ -258,6 +259,11 @@ class Ranges extends Array {
             });
         });
     }
+
+    clone() {
+        let newRanges = JSON.parse(JSON.stringify(this));
+        return new Ranges(newRanges);
+    }
 }
 
 module.exports = Ranges;
@@ -269,7 +275,7 @@ function compactPattern(signal, options) {
     var pattern = '';
     var tolerance = options.tolerance || 0.05;
     var normalLineWidth = options.normalLineWidth || 0.2
-    var newNmrJs = [], diaIDs = [], atoms = [];
+    var newNmrJs = [], diaIDs = [], atoms = [];atoms
     if (jc && jc.length > 0) {
         jc.sort(function (a, b) {
             return a.coupling - b.coupling;
@@ -327,11 +333,3 @@ function compactPattern(signal, options) {
     return pattern;
 }
 
-// this function is not a fine way to join multiplicity
-function joinMultiplicityOfJ(signal) {
-    var jc = signal.j,
-        i,
-        multiplicity = '';
-    for (coupling of jc) multiplicity += coupling.multiplicity;
-    return multiplicity;
-}

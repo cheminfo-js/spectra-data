@@ -18,6 +18,9 @@ const DATACLASS_PEAK = 2;
  * @constructor
  */
 class SD {
+    /**
+     * @param sd
+     */
     constructor(sd) {
         this.sd = sd;
         this.activeElement = 0;
@@ -36,6 +39,29 @@ class SD {
         var spectrum = JcampConverter.convert(jcamp, options);
         return new this(spectrum);
     }
+
+    /**
+     * Creates a SD instance from the given jcamp.
+     * @param {string} text - The jcamp string to parse from
+     * @param {object} options
+     * @return {SD} Return the constructed SD instance
+     */
+    static fromText(text, options) {
+        var lines=text.split(/[\r\n]+/);
+        var spectrum={};
+        for (var line of lines) {
+            if (line.match(/^[0-9.,\t;eE-]+$/)) {
+                var fields=line.split(/[\t,;]+/);
+                if (fields.length===2) {
+                    var x=Number(fields[0]);
+                    var y=Number(fields[1]);
+                }
+            }
+        }
+
+        return new this(spectrum);
+    }
+
 
     /**
      * This function sets the nactiveSpectrum sub-spectrum as active
@@ -107,7 +133,7 @@ class SD {
      * @return {number | *}
      */
     getFirstX(i) {
-        i = i || this.activeElement;
+        if (i===undefined) i=this.activeElement;
         return this.sd.spectra[i].firstX;
     }
 
@@ -117,7 +143,7 @@ class SD {
      * @param {number} i sub-spectrum Default:activeSpectrum
      */
     setFirstX(x, i) {
-        i = i || this.activeElement;
+        if (i===undefined) i=this.activeElement;
         this.sd.spectra[i].firstX = x;
     }
 
@@ -127,7 +153,7 @@ class SD {
      * @return {number}
      */
     getLastX(i) {
-        i = i || this.activeElement;
+        if (i===undefined) i=this.activeElement;
         return this.sd.spectra[i].lastX;
     }
 
@@ -138,7 +164,7 @@ class SD {
      * @param {number} i - sub-spectrum Default:activeSpectrum
      */
     setLastX(x, i) {
-        i = i || this.activeElement;
+        if (i===undefined) i=this.activeElement;
         this.sd.spectra[i].lastX = x;
     }
 
@@ -150,7 +176,7 @@ class SD {
      * @return {number}
      */
     getFirstY(i) {
-        i = i || this.activeElement;
+        if (i===undefined) i=this.activeElement;
         return this.sd.spectra[i].firstY;
     }
 
@@ -160,7 +186,7 @@ class SD {
      * @param {number} i - sub-spectrum Default: activeSpectrum
      */
     setFirstY(y, i) {
-        i = i || this.activeElement;
+        if (i===undefined) i=this.activeElement;
         this.sd.spectra[i].firstY = y;
     }
 
@@ -170,7 +196,7 @@ class SD {
      * @return {number}
      */
     getLastY(i) {
-        i = i || this.activeElement;
+        if (i===undefined) i=this.activeElement;
         return this.sd.spectra[i].lastY;
     }
 
@@ -180,7 +206,7 @@ class SD {
      * @param {number} i - sub-spectrum Default:activeSpectrum
      */
     setLastY(y, i) {
-        i = i || this.activeElement;
+        if (i===undefined) i=this.activeElement;
         this.sd.spectra[i].lastY = y;
     }
 
@@ -245,7 +271,7 @@ class SD {
      * @return {object}
      */
     getSpectrumData(i) {
-        i = i || this.activeElement;
+        if (i === undefined) i=this.activeElement;
         return this.sd.spectra[i].data[0];
     }
 
@@ -255,7 +281,7 @@ class SD {
      * @return {object}
      */
     getSpectrum(i) {
-        i = i || this.activeElement;
+        if (i===undefined) i=this.activeElement;
         return this.sd.spectra[i];
     }
 
@@ -499,13 +525,13 @@ class SD {
     }
 
     /**
-     * This function fills a zone of the spectrum with the given value.
+     * Fills a zone of the spectrum with the given value.
      * If value is undefined it will suppress the elements
      * @param {number} from - one limit the spectrum to fill
      * @param {number} to - one limit the spectrum to fill
      * @param {number} value - value with which to fill
      */
-    fillWith(from, to, value) {
+    fill(from, to, value) {
         var tmp, start, end, x, y;
         if (from > to) {
             tmp = from;
@@ -549,7 +575,7 @@ class SD {
      * @param {number} to - one limit the spectrum to suppress
      */
     suppressZone(from, to) {
-        this.fillWith(from, to);
+        this.fill(from, to);
         this.setDataClass(DATACLASS_PEAK);
     }
 
@@ -749,6 +775,44 @@ class SD {
     }
 
     /**
+     * In place modification of the data to usually reduce the size
+     * This will convert the data in equally spaces X.
+     * @param {number} from - one limit in spectrum units
+     * @param {number} to - one limit in spectrum units
+     * @param {number} nbPoints - number of points to return(!!!sometimes it is not possible to return exactly the required nbPoints)
+     * @return {this}
+     */
+    reduceData(from, to, nbPoints) {
+        if (! this.isDataClassXY()) {
+            throw Error('reduceData can only apply on equidistant data')
+        }
+
+        for (let i = 0; i < this.getNbSubSpectra(); i++) {
+            this.setActiveElement(i);
+            var spectrum = this.getSpectrum();
+
+            if (nbPoints) {
+                var x = this.getSpectraDataX();
+                var y = this.getSpectraDataY();
+                let data = ArrayUtils.getEquallySpacedData(x, y, {from: from, to: to, numberOfPoints: nbPoints});
+                y = data[1];
+                x = data[0];
+            } else {
+                let data = getPointsInWindow(from, to);
+                var y = data[1];
+                var x = data[0];
+            }
+
+            this.sd.spectra[i].data[0].x = x;
+            this.sd.spectra[i].data[0].y = y;
+            spectrum.firstX = x[0];
+            spectrum.lastX = x[x.length-1];
+            spectrum.nbPoints = y.length;
+        }
+        return this;
+    }
+
+    /**
      * Returns all the point in a given window.
      * Not tested, you have to know what you are doing
      * @param {number} from - index of a limit of the desired window.
@@ -756,55 +820,23 @@ class SD {
      * @param {number} nPoints - number of points in the desired window.
      * @return {Array} XYarray data of the desired window.
      */
-    getPointsInWindow(from, to, nPoints) {
-        var x = this.getSpectraDataX();
-        var y = this.getSpectraDataY();
-        var start = 0, end = x.length - 1, direction = 1;
 
-        if (x[0] > x[1]) {
-            direction = -1;
-            start = x.length - 1;
-            end = 0;
+    getPointsInWindow(from, to) {
+        if (! this.isDataClassXY()) {
+            throw Error('getPointsInWindow can only apply on equidistant data')
         }
 
-        if (from > to) {
-            var tmp = from;
-            from = to;
-            to = tmp;
-        }
-        //console.log(x[end]+" "+from+" "+x[start]+" "+to);
-        if (x[start] > to || x[end] < from) {
-            return [];
-        }
+        let fromTo = [this.unitsToArrayPoint(from), this.unitsToArrayPoint(to)];
+        let indexOfTo = Math.max(...fromTo);
+        let indexOfFrom = Math.min(...fromTo);
 
-        while (x[start] < from) {
-            start += direction;
+        if(indexOfFrom >= 0 && indexOfTo <= this.getNbPoints() - 1) {
+            let x = this.getSpectraDataX().slice(indexOfFrom, indexOfTo);
+            let y = this.getSpectraDataY().slice(indexOfFrom, indexOfTo);
+            return [x, y];
+        } else {
+            throw Error('values outside this in range')
         }
-        while (x[end] > to) {
-            end -= direction;
-        }
-
-        var winPoints = Math.abs(end - start) + 1;
-        if (!nPoints) {
-            nPoints = winPoints;
-        }
-        var xwin = new Array(nPoints);
-        var ywin = new Array(nPoints);
-        var index = 0;
-
-        if (direction === -1) {
-            index = nPoints - 1;
-        }
-
-        var di = winPoints / nPoints;
-        var i = start - direction;
-        for (var k = 0; k < nPoints; k++) {
-            i += Math.round(di * direction);
-            xwin[index] = x[i];
-            ywin[index] = y[i];
-            index += direction;
-        }
-        return [xwin, ywin];
     }
 
     /**

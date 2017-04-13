@@ -1,233 +1,261 @@
 'use strict';
 
+var getMultiplicityFromSignal = require('../getMultiplicityFromSignal');
 
-var acsString = '';
-var parenthesis = '';
-var rangeForMultiplet = false;
+/**
+ * nbDecimalsDelta : default depends nucleus H, F: 2 otherwise 1
+ * nbDecimalsJ : default depends nucleus H, F: 1, otherwise 0
+ * ascending : true / false
+ * format : default "AIMJ" or when 2D data is collected the default format may be "IMJA"
+ * deltaSeparator : ', '
+ * detailSeparator : ', '
+ */
 
 
-function toAcs(rangesIn, opt) {
-    let options = Object.assign({}, {nucleus: '1H'}, opt);
+/**
+ * some test case, with and without ascending option
+ *
+ */
 
-    var ranges = JSON.parse(JSON.stringify(rangesIn));
+function toAcs(ranges, options) {
 
-    if (ranges[0].delta1) {//Old signals format
-        throw new Error('Old unsupported format');
+    if(options && options.nucleus) {
+        if(options.nucleus === '1H' || options.nucleus === 'H' ||
+            options.nucleus === '19F' || options.nucleus === 'F' ||
+            options.nucleus === '1h' || options.nucleus === 'h' ||
+            options.nucleus === 'f' || options.nucleus === '19f') {
+
+            if(options.nucleus === '1h' || options.nucleus === 'h') {
+                options.nucleus = '1H';
+            }else if(options.nucleus === 'f' || options.nucleus === '19f') {
+                options.nucleus = '19F';
+            };
+            var defaultOptions =  {
+                nbDecimalDelta: 2,
+                nbDecimalJ: 1,
+                observedFrequency: 400
+            };
+        } else if (options.nucleus === '13C' || options.nucleus === 'C' ||
+                options.nucleus === '13c' || options.nucleus === 'c') {
+            var defaultOptions = {
+                nbDecimalDelta: 1,
+                nbDecimalJ: 1,
+                observedFrequency: 100
+            };
+            options.nucleus = '13C';
+        }
+    } else {
+        return;
     }
-    if (ranges.updateMultiplicity) {
-        ranges = ranges.updateMultiplicity();
-    }
 
-    acsString = '';
-    parenthesis = '';
-    var solvent = null;
-    if (options && options.solvent) {
-        solvent = options.solvent;
-    }
-    if (options && options.rangeForMultiplet !== undefined) {
-        rangeForMultiplet = options.rangeForMultiplet;
-    }
+    options = Object.assign({}, defaultOptions, {ascending: false, format: 'IMJA'}, options);
 
-    if (options && options.ascending) {
+    ranges = ranges.clone();
+
+    if (options.ascending) {
         ranges.sort(function (a, b) {
-            return b.from - a.from;
+            let fromA = Math.min(a.from, a.to);
+            let fromB = Math.min(b.from, b.to);
+            return fromB - fromA;
         });
     } else {
         ranges.sort(function (a, b) {
-            return a.from - b.from;
+            let fromA = Math.min(a.from, a.to);
+            let fromB = Math.min(b.from, b.to);
+            return fromA - fromB;
         });
     }
 
-    ranges.type = 'NMR SPEC';
-    if (options && options.nucleus === '1H') {
-        formatAcsDefault(ranges, false, 2, 1, solvent, options);
-    }
-    if (options && options.nucleus === '13C') {
-        formatAcsDefault(ranges, false, 1, 0, solvent, options);
-    }
+    var acsString = formatAcs(ranges, options);
 
     if (acsString.length > 0) acsString += '.';
 
     return acsString;
 }
 
-function formatAcsDefault(ranges, ascending, decimalValue, decimalJ, solvent, options) {
-    appendSeparator();
-    appendSpectroInformation(ranges, solvent, options);
-    var numberSmartPeakLabels = ranges.length;
-    var signal;
-    for (var i = 0; i < numberSmartPeakLabels; i++) {
-        if (ascending) {
-            signal = ranges[i];
-        } else {
-            signal = ranges[numberSmartPeakLabels - i - 1];
-        }
-        if (signal) {
-            appendSeparator();
-            appendDelta(signal, decimalValue);
-            appendParenthesis(signal, decimalJ);
-        }
+function formatAcs(ranges, options) {
+    var acs = appendSpectroInformation(options);
+    if(acs.length === 0) acs = 'δ ';
+    var acsRanges = [];
+    for (let range of ranges) {
+        appendDelta(range, acsRanges, options);
+    }
+    if (acsRanges.length > 0) {
+        return acs + acsRanges.join(', ');
+    } else {
+        return '';
     }
 }
 
-function appendSpectroInformation(range, solvent, options) {
-    if (range.type === 'NMR SPEC') {
-        if (options.nucleus) {
-            acsString += formatNucleus(options.nucleus);
-        }
-        acsString += ' NMR';
-        if ((solvent) || (options.observe)) {
-            acsString += ' (';
-            if (options.observe) {
-                acsString += (options.observe * 1).toFixed(0) + ' MHz';
-                if (solvent) acsString += ', ';
-            }
-            if (solvent) {
-                acsString += formatMF(solvent);
-            }
-            acsString += ')';
-        }
-        acsString += ' δ ';
-    } else if (range.type === 'IR') {
-        acsString += ' IR ';
-    } else if (range.type === 'MASS') {
-        acsString += ' MASS ';
+function appendSpectroInformation(options) {
+    let parenthesis = [];
+    let strings = formatNucleus(options.nucleus) + ' NMR';
+    if (options.solvent) {
+        parenthesis.push(formatMF(options.solvent));
     }
+    if (options.frequencyObserved) {
+        parenthesis.push((options.frequencyObserved * 1).toFixed(0) + ' MHz');
+    }
+    if (parenthesis.length > 0) {
+        strings += ' (' + parenthesis.join(', ') + '): δ ';
+    } else {
+        strings += ' : δ '
+    }
+    return strings;
 }
 
-function appendDelta(line, nbDecimal) {
-    var startX = 0, stopX = 0, delta1 = 0, asymmetric;
-    if (line.from) {
-        if ((typeof line.from) === 'string') {
-            startX = parseFloat(line.from);
+function appendDelta(range, acsRanges, options) {
+    var strings = '';
+    var parenthesis = [];
+    var format = options.format;
+    if(Array.isArray(range.signal) && range.signal.length > 0) {
+        var signals = range.signal;
+        if(signals.length > 1) {
+            let fromTo = [range.from, range.to];
+            strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
+            strings +=  ' (' + getIntegral(range, options);
+            options.format += '-IntegralLess'
+            for(let signal of  signals) {
+                var parenthesis = [];
+                if(signal.delta) {
+                    strings = appendSeparator(strings);
+                    strings += signal.delta.toFixed(options.nbDecimalDelta);
+                    switchFormat(range, signal, parenthesis, options);
+                    if (parenthesis.length > 0) {
+                        strings+=' ('+parenthesis.join(', ')+')';
+                    }
+                }
+            }
+            strings +=  ')';
         } else {
-            startX = line.from;
-        }
-    }
-    if (line.to) {
-        if ((typeof line.to) === 'string') {
-            stopX = parseFloat(line.to);
-        } else {
-            stopX = line.to;
-        }
-    }
-    if (line.signal[0].delta) {
-        if ((typeof line.signal[0].delta) === 'string') {
-            delta1 = parseFloat(line.signal[0].delta);
-        } else {
-            delta1 = line.signal[0].delta;
+            var signal = signals[0];
+            var parenthesis = [];
+            if(signal.delta) {
+                strings += signal.delta.toFixed(options.nbDecimalDelta);
+                switchFormat(range, signal, parenthesis, options);
+                strings+=' ('+parenthesis.join(', ')+')';
+            } else {
+                let fromTo = [range.from, range.to];
+                strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
+                switchFormat(range, signal, parenthesis, options);
+                strings += ' ('+ parenthesis + ')'
+            }
         }
     } else {
-        asymmetric = true;
+        let fromTo = [range.from, range.to];
+        strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
+        options.format += '-massive';
+        switchFormat(range, [], parenthesis, options);
+        strings += ' (' + parenthesis.join(', ') + ')'
     }
+    options.format = format;
+    acsRanges.push(strings);
+}
 
-    if (asymmetric === true || (line.signal[0].multiplicity === 'm' && rangeForMultiplet === true)) {//Is it massive??
-        if (line.from && line.to) {
-            if (startX < stopX) {
-                acsString += startX.toFixed(nbDecimal) + '-' + stopX.toFixed(nbDecimal);
-            } else {
-                acsString += stopX.toFixed(nbDecimal) + '-' + startX.toFixed(nbDecimal);
-            }
-        } else if (line.signal[0].delta) {
-            acsString += '?';
-        }
-    } else if (line.signal[0].delta) {
-        acsString += delta1.toFixed(nbDecimal);
-    } else if (line.from && line.to) {
-        acsString += ((startX + stopX) / 2).toFixed(nbDecimal);
+module.exports = toAcs;
+
+function getIntegral(range, options) {
+    if (range.pubIntegral) {
+        return range.pubIntegral;
+    } else if (range.integral) {
+        return range.integral.toFixed(0) + options.nucleus[options.nucleus.length - 1];
     }
 }
 
-/*
- function appendValue(line, nbDecimal) {
- if (line.xPosition) {
- acsString += line.xPosition.toFixed(nbDecimal);
- }
- }
- */
-function appendParenthesis(line, nbDecimal) {
-    parenthesis = '';
-    appendMultiplicity(line);
-    appendIntegration(line);
-    appendCoupling(line, nbDecimal);
-    appendAssignment(line);
+function pushIntegral(range, parenthesis, options) {
+    parenthesis.push(getIntegral(range, options));
+};
 
-    if (parenthesis.length > 0) {
-        acsString += ' (' + parenthesis + ')';
-    }
+function pushMultiplicityFromSignal(signal, parenthesis) {
+    parenthesis.push(getMultiplicityFromSignal(signal));
 }
 
-function appendIntegration(line) {
-    if (line.pubIntegral) {
-        appendParenthesisSeparator();
-        parenthesis += line.pubIntegral;
-    } else if (line.integral) {
-        appendParenthesisSeparator();
-        parenthesis += line.integral.toFixed(0) + ' H';
-    }
-}
-
-function appendAssignment(line) {
-    if (line.signal[0].pubAssignment) {
-        appendParenthesisSeparator();
-        parenthesis += formatAssignment(line.signal[0].pubAssignment);
-    } else if (line.signal[0].assignment) {
-        appendParenthesisSeparator();
-        parenthesis += formatAssignment(line.signal[0].assignment);
-    }
-}
-
-function appendMultiplicity(line) {
-    if (line.signal[0].pubMultiplicity) {
-        appendParenthesisSeparator();
-        parenthesis += line.pubMultiplicity;
-    } else if (line.signal[0].multiplicity) {
-        appendParenthesisSeparator();
-        parenthesis += line.signal[0].multiplicity;
-    }
-}
-
-function appendCoupling(line, nbDecimal) {
-    if ('sm'.indexOf(line.signal[0].multiplicity) < 0
-        && line.signal[0].j && line.signal[0].j.length > 0) {
-        var Js = line.signal[0].j;
+// this function needs a object as signal argument
+function pushCoupling(signal, parenthesis, options) {
+    if (Array.isArray(signal.j) && signal.j.length > 0) {
+        var Js = signal.j;
+        var values = []
         var j = '<i>J</i> = ';
         for (var i = 0; i < Js.length; i++) {
             var coupling = Js[i].coupling || 0;
-            if (j.length > 11) {
-                j += ', ';
-            }
-            j += coupling.toFixed(nbDecimal);
+            values.push(coupling.toFixed(options.nbDecimalJ));
         }
-        appendParenthesisSeparator();
-        parenthesis += j + ' Hz';
+        parenthesis.push(j + values.join(', ') + ' Hz');
+    }
+}
+
+function pushAssignment(signal, parenthesis) {
+    if (signal.pubAssignment) {
+        parenthesis.push(formatAssignment(signal.pubAssignment));
+    } else if (signal.assignment) {
+        parenthesis.push(formatAssignment(signal.assignment));
+    }
+}
+
+// more private functions
+function formatMF(mf) {
+    return mf.replace(/([0-9]+)/g, '<sub>$1</sub>');
+}
+
+function formatNucleus(nucleus) {
+    return nucleus.replace(/([0-9]+)/g, '<sup>$1</sup>');
+}
+
+function appendSeparator(strings) {
+    if ((strings.length > 0) && (!strings.match(/ $/)) && (!strings.match(/\($/))) {
+        return strings + ', ';
+    } else {
+        return strings;
     }
 }
 
 function formatAssignment(assignment) {
-    assignment = assignment.replace(/([0-9])/g, '<sub>$1</sub>');
+    assignment = assignment.replace(/([0-9]+)/g, '<sub>$1</sub>');
     assignment = assignment.replace(/\"([^\"]*)\"/g, '<i>$1</i>');
     return assignment;
 }
 
-function formatMF(mf) {
-    mf = mf.replace(/([0-9])/g, '<sub>$1</sub>');
-    return mf;
-}
-
-function formatNucleus(nucleus) {
-    nucleus = nucleus.replace(/([0-9])/g, '<sup>$1</sup>');
-    return nucleus;
-}
-
-function appendSeparator() {
-    if ((acsString.length > 0) && (!acsString.match(/ $/))) {
-        acsString += ', ';
+function switchFormat(range, signal, parenthesis, options) {
+    switch (options.format) {
+        case 'IMJA':
+            pushIntegral(range, parenthesis, options);
+            pushMultiplicityFromSignal(signal, parenthesis);
+            pushCoupling(signal, parenthesis, options);
+            pushAssignment(signal, parenthesis);
+            break;
+        case 'AIMJ':
+            pushAssignment(signal, parenthesis);
+            pushIntegral(range, parenthesis, options);
+            pushMultiplicityFromSignal(signal, parenthesis);
+            pushCoupling(signal, parenthesis, options);
+            break;
+        case 'IMJA-IntegralLess':
+            pushMultiplicityFromSignal(signal, parenthesis);
+            pushCoupling(signal, parenthesis, options);
+            pushAssignment(signal, parenthesis);
+            break;
+        case 'AIMJ-IntegralLess':
+            pushAssignment(signal, parenthesis);
+            pushMultiplicityFromSignal(signal, parenthesis);
+            pushCoupling(signal, parenthesis, options);
+            break;
+        case 'AIMJ-massive':
+            if(range.pubAssignment !== undefined) {
+                parenthesis.push(range.pubAssignment);
+            } else if(range.assignment !== undefined) {
+                parenthesis.push(range.assignment);
+            }
+            pushIntegral(range, parenthesis, options);
+            parenthesis.push('m');
+            break;
+        case 'IMJA-massive':
+            pushIntegral(range, parenthesis, options);
+            parenthesis.push('m');
+            if(range.pubAssignment !== undefined) {
+                parenthesis.push(range.pubAssignment);
+            } else if(range.assignment !== undefined) {
+                parenthesis.push(range.assignment);
+            }
+            break
     }
 }
-
-function appendParenthesisSeparator() {
-    if ((parenthesis.length > 0) && (!parenthesis.match(', $'))) parenthesis += ', ';
-}
-
-module.exports = toAcs;

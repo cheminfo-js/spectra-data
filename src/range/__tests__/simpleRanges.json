@@ -1,0 +1,92 @@
+[
+  {
+    "from": 1,
+    "to": 2,
+    "integral": 2,
+    "pubAssignment": "CH3CO",
+    "signal": [
+      {
+      "delta": 1.5,
+      "j": [
+          {
+            "coupling": 7,
+            "multiplicity": "d"
+          },
+          {
+            "coupling": 6,
+            "multiplicity": "d"
+          },
+          {
+            "coupling": 5,
+            "multiplicity": "quint"
+          },
+          {
+            "coupling": 4,
+            "multiplicity": "hex"
+          },
+          {
+            "coupling": 3,
+            "multiplicity": "d"
+          },
+          {
+            "coupling": 2,
+            "multiplicity": "hex"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": 3,
+    "to": 4,
+    "integral": 1,
+    "pubIntegral": "1'H",
+    "signal": [
+      {
+        "delta": 3.5
+      }
+    ]
+  },
+  {
+    "from": 4,
+    "to": 5,
+    "integral": 1,
+    "signal": [
+      {
+        "assignment": "xyz"
+      },
+      {
+        "assignment": "abc"
+      }
+    ]
+  },
+  {
+    "from": 6,
+    "to": 7,
+    "integral": 3
+  },
+  {
+    "from": 8,
+    "to": 9,
+    "integral": 3.231412397661983,
+    "signal": [
+      {
+        "pubMultiplicity": "s br",
+        "delta": 8.1
+      },{
+        "delta": 8.4,
+        "j": [
+          {
+            "coupling": 7,
+            "multiplicity": "d"
+          },
+          {
+            "coupling": 3,
+            "multiplicity": "t"
+          }
+        ]
+      }
+    ]
+  }
+]
+

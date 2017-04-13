@@ -1,6 +1,3 @@
-/**
- * Created by acastillo on 6/14/16.
- */
 'use strict';
 
 const Ranges = require('../Ranges');
@@ -98,7 +95,7 @@ describe('toIndex Test Case from differents sources', function () {
             w2 = w;
 
         var line = new Array(NbPoints);
-        var x = Xrange(0, 10, NbPoints);
+        var x = xRange(0, 10, NbPoints);
 
         for (var i = 0; i < NbPoints; i++) {
             line[i] = 2 * intensity / Math.PI * w / (4 * Math.pow(cs1 - x[i], 2) + Math.pow(w, 2))
@@ -109,7 +106,7 @@ describe('toIndex Test Case from differents sources', function () {
         var range = Ranges.fromSpectrum(spectrum, {});
         var index = range.toIndex({tolerance: 0.05, compactPattern: false});
         index[0].delta.should.greaterThan(7.5);
-        index[0].multiplicity.should.equal('br s');
+        index[0].multiplicity.should.eql('br s');
         // var index = range.toIndex({tolerance: 0.05, compactPattern: true});
         // index[0].multiplicity.should.equal('s'); // because inside of peakPicking information don't exist a j array for this signal. It shows us that compactPattern function need to be modified
     });
@@ -117,18 +114,18 @@ describe('toIndex Test Case from differents sources', function () {
     it('from Prediction', function () {
         var range = Ranges.fromPrediction(prediction, {lineWidth: 1});
         var index = range.toIndex({});
-        index.length.should.equal(10);
-        index[0].delta.should.equal(6.853);
-        index[0].multiplicity.should.equal('t')
+        index.length.should.eql(10);
+        index[0].delta.should.eql(6.853);
+        index[0].multiplicity.should.eql('t');
         // var index = range.toIndex({tolerance: 0.05, compactPattern: true});
         // index[0].multiplicity.should.equal('t') // at the moment I don't know where is the problem
-    })
+    });
 });
 
-function Xrange(start, end, NbPoints) {
-    var a = new Array(NbPoints);
-    var jump = (end - start) / (NbPoints - 1);
-    for (var i = 0; i < NbPoints; i++) {
+function xRange(start, end, nbPoints) {
+    var a = new Array(nbPoints);
+    var jump = (end - start) / (nbPoints - 1);
+    for (var i = 0; i < nbPoints; i++) {
         a[i] = start + jump * i;
     }
     return a;
