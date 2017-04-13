@@ -114,7 +114,6 @@ describe('toIndex Test Case from differents sources', function () {
     it('from Prediction', function () {
         var range = Ranges.fromPrediction(prediction, {lineWidth: 1});
         var index = range.toIndex({});
-        console.log(index);
         index.length.should.eql(10);
         index[0].delta.should.eql(6.853);
         index[0].multiplicity.should.eql('t');

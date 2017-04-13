@@ -779,54 +779,40 @@ class SD {
      * This will convert the data in equally spaces X.
      * @param {number} from - one limit in spectrum units
      * @param {number} to - one limit in spectrum units
-     * @param {number} nPoints - number of points to return(!!!sometimes it is not possible to return exactly the required nbPoints)
+     * @param {number} nbPoints - number of points to return(!!!sometimes it is not possible to return exactly the required nbPoints)
      * @return {this}
      */
-    reduceData(from, to, nPoints) {
-        //TODO
+    reduceData(from, to, nbPoints) {
+        if (! this.isDataClassXY()) {
+            throw Error('reduceData can only apply on equidistant data')
+        }
 
         for (let i = 0; i < this.getNbSubSpectra(); i++) {
             this.setActiveElement(i);
-            var x = this.getSpectrumData().x;
-            var y = this.getSpectrumData().y;
-            var spectrum=this.getSpectrum();
+            var spectrum = this.getSpectrum();
 
-
-
-            if (nPoints) {
-                y=ArrayUtils.getEquallySpacedData(this.getSpectraDataX(), this.getSpectraDataY(),
-                    {from: from, to: to, numberOfPoints: nPoints});
-                x=new Array(y.length);
-                var currentX=from;
-                var step=(to-from)/(y.length-1);
-                for (j=0; j<y.length; j++) {
-                    x[j]=currentX;
-                    currentX+=step;
-                }
+            if (nbPoints) {
+                var x = this.getSpectraDataX();
+                var y = this.getSpectraDataY();
+                let data = ArrayUtils.getEquallySpacedData(x, y, {from: from, to: to, numberOfPoints: nbPoints});
+                y = data[1];
+                x = data[0];
             } else {
-                // not trivial
-                return this.getPointsInWindow(from, to);
+                let data = getPointsInWindow(from, to);
+                var y = data[1];
+                var x = data[0];
             }
 
-
-            this.getSpectrumData().x=x;
-            this.getSpectrumData().y=y;
-
-            spectrum.firstX=x[0];
-            spectrum.lastX=x[x.length-1];
-            spectrum.nbPoints;
-            spectrum.setDataClass() ??? XY or peaks : it should be XY
-                spectrum.setDataType()
-
-
+            this.sd.spectra[i].data[0].x = x;
+            this.sd.spectra[i].data[0].y = y;
+            spectrum.firstX = x[0];
+            spectrum.lastX = x[x.length-1];
+            spectrum.nbPoints = y.length;
         }
-
-
-
         return this;
     }
 
-    /*
+    /**
      * Returns all the point in a given window.
      * Not tested, you have to know what you are doing
      * @param {number} from - index of a limit of the desired window.
@@ -834,63 +820,24 @@ class SD {
      * @param {number} nPoints - number of points in the desired window.
      * @return {Array} XYarray data of the desired window.
      */
-    /*
-    getPointsInWindow(from, to, nPoints) {
-        if (this.getDataClass() != DATACLASS_XY) {
+
+    getPointsInWindow(from, to) {
+        if (! this.isDataClassXY()) {
             throw Error('getPointsInWindow can only apply on equidistant data')
         }
-        var x = this.getSpectraDataX();
-        var y = this.getSpectraDataY();
-        var start = 0;
-        var end = x.length - 1;
-        var direction = 1;
 
-        if (x[0] > x[1]) {
-            direction = -1;
-            start = x.length - 1;
-            end = 0;
-        }
+        let fromTo = [this.unitsToArrayPoint(from), this.unitsToArrayPoint(to)];
+        let indexOfTo = Math.max(...fromTo);
+        let indexOfFrom = Math.min(...fromTo);
 
-        if (from > to) {
-            var tmp = from;
-            from = to;
-            to = tmp;
+        if(indexOfFrom >= 0 && indexOfTo <= this.getNbPoints() - 1) {
+            let x = this.getSpectraDataX().slice(indexOfFrom, indexOfTo);
+            let y = this.getSpectraDataY().slice(indexOfFrom, indexOfTo);
+            return [x, y];
+        } else {
+            throw Error('values outside this in range')
         }
-        //console.log(x[end]+" "+from+" "+x[start]+" "+to);
-        if (x[start] > to || x[end] < from) {
-            return [];
-        }
-
-        while (x[start] < from) {
-            start += direction;
-        }
-        while (x[end] > to) {
-            end -= direction;
-        }
-
-        var winPoints = Math.abs(end - start) + 1;
-        if (!nPoints) {
-            nPoints = winPoints;
-        }
-        var xwin = new Array(nPoints);
-        var ywin = new Array(nPoints);
-        var index = 0;
-
-        if (direction === -1) {
-            index = nPoints - 1;
-        }
-
-        var di = winPoints / nPoints;
-        var i = start - direction;
-        for (var k = 0; k < nPoints; k++) {
-            i += Math.round(di * direction);
-            xwin[index] = x[i];
-            ywin[index] = y[i];
-            index += direction;
-        }
-        return {x: xwin, y: ywin};
     }
-    */
 
     /**
      * Is it a 2D spectrum?
