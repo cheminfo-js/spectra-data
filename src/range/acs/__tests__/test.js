@@ -16,7 +16,7 @@ var ranges = JSON.parse(FS.readFileSync(__dirname + '/ranges.json'));
 
 describe('ACS tests: formating and parsing', function () {
     it('format ACS', function () {
-        var inputRange = new Ranges(ranges)
+        var inputRange = new Ranges(ranges);
         var acs = ACS(inputRange, {nbDecimal: 2, nucleus: '1H', frequencyObserved: 400, solvent: 'C6D6', format: 'IMJA'});
         console.log(acs);
         acs.should.equal('<sup>1</sup>H NMR (C<sub>6</sub>D<sub>6</sub>, 400 MHz): δ 3.35 (1H, t, <i>J</i> = 4.5 Hz), 2.96 (3H, dd, <i>J</i> = 2.7, 9.2 Hz, COCH<sub>3</sub>), ' +

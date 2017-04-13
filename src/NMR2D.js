@@ -119,6 +119,7 @@ class NMR2D extends SD {
         result.info.observefrequency = result.info['2D_X_FREQUENCY'];
         result.info.$BF1 = result.info.observefrequency;
         result.info['.SOLVENTNAME'] = options.solvent || 'none';
+        // eslint-disable-next-line camelcase
         result.info.$SW_h = Math.abs(lastX - firstX) * observeFrequency;
         result.info.$SW = Math.abs(lastX - firstX);
         result.info.$TD = nbPoints;

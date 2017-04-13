@@ -66,6 +66,7 @@ class NMR extends SD {
         spectrum.observeFrequency = options.frequency || 400;
         result.info.observefrequency = spectrum.observeFrequency;
         result.info['.SOLVENTNAME'] = options.solvent || 'none';
+        // eslint-disable-next-line camelcase
         result.info.$SW_h = Math.abs(spectrum.lastX - spectrum.firstX) * spectrum.observeFrequency;
         result.info.$SW = Math.abs(spectrum.lastX - spectrum.firstX);
         result.info.$TD = spectrum.nbPoints;

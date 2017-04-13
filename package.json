@@ -21,7 +21,7 @@
   "scripts": {
     "eslint": "eslint src test --cache",
     "eslint-fix": "npm run eslint -- --fix",
-    "test": "npm run test-mocha",
+    "test": "npm run test-mocha && npm run eslint",
     "test-mocha": "mocha --require should --reporter mocha-better-spec-reporter --recursive src/**/__tests__/**/*.js",
     "build": "cheminfo build"
   },

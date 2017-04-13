@@ -8,21 +8,21 @@ function getMultiplicityFromSignal(signal) {
     } else if (Array.isArray(signal.j) && signal.j.length > 0) {
         var couplings = signal.j;
         var multiplicity = '';
-        var addSpace=false;
+        var addSpace = false;
         for (let coupling of couplings) {
             if (coupling.multiplicity.length > 1) {
                 multiplicity += ' ';
-                addSpace=true;
+                addSpace = true;
             } else {
                 if (addSpace) {
-                    multiplicity+=' ';
-                    addSpace=false;
+                    multiplicity += ' ';
+                    addSpace = false;
                 }
             }
             multiplicity += coupling.multiplicity;
         }
-        return multiplicity
-    } else if(signal.delta) {
+        return multiplicity;
+    } else if (signal.delta) {
         return 's';
     } else {
         return 'm';
@@ -30,4 +30,4 @@ function getMultiplicityFromSignal(signal) {
 }
 
 
-module.exports=getMultiplicityFromSignal;
+module.exports = getMultiplicityFromSignal;

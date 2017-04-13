@@ -47,14 +47,14 @@ class SD {
      * @return {SD} Return the constructed SD instance
      */
     static fromText(text, options) {
-        var lines=text.split(/[\r\n]+/);
-        var spectrum={};
+        var lines = text.split(/[\r\n]+/);
+        var spectrum = {};
         for (var line of lines) {
             if (line.match(/^[0-9.,\t;eE-]+$/)) {
-                var fields=line.split(/[\t,;]+/);
-                if (fields.length===2) {
-                    var x=Number(fields[0]);
-                    var y=Number(fields[1]);
+                var fields = line.split(/[\t,;]+/);
+                if (fields.length === 2) {
+                    var x = Number(fields[0]);
+                    var y = Number(fields[1]);
                 }
             }
         }
@@ -133,7 +133,7 @@ class SD {
      * @return {number | *}
      */
     getFirstX(i) {
-        if (i===undefined) i=this.activeElement;
+        if (i === undefined) i = this.activeElement;
         return this.sd.spectra[i].firstX;
     }
 
@@ -143,7 +143,7 @@ class SD {
      * @param {number} i sub-spectrum Default:activeSpectrum
      */
     setFirstX(x, i) {
-        if (i===undefined) i=this.activeElement;
+        if (i === undefined) i = this.activeElement;
         this.sd.spectra[i].firstX = x;
     }
 
@@ -153,7 +153,7 @@ class SD {
      * @return {number}
      */
     getLastX(i) {
-        if (i===undefined) i=this.activeElement;
+        if (i === undefined) i = this.activeElement;
         return this.sd.spectra[i].lastX;
     }
 
@@ -164,7 +164,7 @@ class SD {
      * @param {number} i - sub-spectrum Default:activeSpectrum
      */
     setLastX(x, i) {
-        if (i===undefined) i=this.activeElement;
+        if (i === undefined) i = this.activeElement;
         this.sd.spectra[i].lastX = x;
     }
 
@@ -176,7 +176,7 @@ class SD {
      * @return {number}
      */
     getFirstY(i) {
-        if (i===undefined) i=this.activeElement;
+        if (i === undefined) i = this.activeElement;
         return this.sd.spectra[i].firstY;
     }
 
@@ -186,7 +186,7 @@ class SD {
      * @param {number} i - sub-spectrum Default: activeSpectrum
      */
     setFirstY(y, i) {
-        if (i===undefined) i=this.activeElement;
+        if (i === undefined) i = this.activeElement;
         this.sd.spectra[i].firstY = y;
     }
 
@@ -196,7 +196,7 @@ class SD {
      * @return {number}
      */
     getLastY(i) {
-        if (i===undefined) i=this.activeElement;
+        if (i === undefined) i = this.activeElement;
         return this.sd.spectra[i].lastY;
     }
 
@@ -206,7 +206,7 @@ class SD {
      * @param {number} i - sub-spectrum Default:activeSpectrum
      */
     setLastY(y, i) {
-        if (i===undefined) i=this.activeElement;
+        if (i === undefined) i = this.activeElement;
         this.sd.spectra[i].lastY = y;
     }
 
@@ -271,7 +271,7 @@ class SD {
      * @return {object}
      */
     getSpectrumData(i) {
-        if (i === undefined) i=this.activeElement;
+        if (i === undefined) i = this.activeElement;
         return this.sd.spectra[i].data[0];
     }
 
@@ -281,7 +281,7 @@ class SD {
      * @return {object}
      */
     getSpectrum(i) {
-        if (i===undefined) i=this.activeElement;
+        if (i === undefined) i = this.activeElement;
         return this.sd.spectra[i];
     }
 
@@ -783,8 +783,8 @@ class SD {
      * @return {this}
      */
     reduceData(from, to, nbPoints) {
-        if (! this.isDataClassXY()) {
-            throw Error('reduceData can only apply on equidistant data')
+        if (!this.isDataClassXY()) {
+            throw Error('reduceData can only apply on equidistant data');
         }
 
         for (let i = 0; i < this.getNbSubSpectra(); i++) {
@@ -806,7 +806,7 @@ class SD {
             this.sd.spectra[i].data[0].x = x;
             this.sd.spectra[i].data[0].y = y;
             spectrum.firstX = x[0];
-            spectrum.lastX = x[x.length-1];
+            spectrum.lastX = x[x.length - 1];
             spectrum.nbPoints = y.length;
         }
         return this;
@@ -822,20 +822,20 @@ class SD {
      */
 
     getPointsInWindow(from, to) {
-        if (! this.isDataClassXY()) {
-            throw Error('getPointsInWindow can only apply on equidistant data')
+        if (!this.isDataClassXY()) {
+            throw Error('getPointsInWindow can only apply on equidistant data');
         }
 
         let fromTo = [this.unitsToArrayPoint(from), this.unitsToArrayPoint(to)];
         let indexOfTo = Math.max(...fromTo);
         let indexOfFrom = Math.min(...fromTo);
 
-        if(indexOfFrom >= 0 && indexOfTo <= this.getNbPoints() - 1) {
+        if (indexOfFrom >= 0 && indexOfTo <= this.getNbPoints() - 1) {
             let x = this.getSpectraDataX().slice(indexOfFrom, indexOfTo);
             let y = this.getSpectraDataY().slice(indexOfFrom, indexOfTo);
             return [x, y];
         } else {
-            throw Error('values outside this in range')
+            throw Error('values outside this in range');
         }
     }
 

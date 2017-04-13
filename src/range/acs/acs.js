@@ -12,41 +12,36 @@ var getMultiplicityFromSignal = require('../getMultiplicityFromSignal');
  */
 
 
+var globalOptions = {
+    h: {
+        nucleus: '1H',
+        nbDecimalDelta: 2,
+        nbDecimalJ: 1,
+        observedFrequency: 400
+    },
+    c: {
+        nucleus: '13C',
+        nbDecimalDelta: 1,
+        nbDecimalJ: 1,
+        observedFrequency: 100
+    },
+    f: {
+        nucleus: '19F',
+        nbDecimalDelta: 2,
+        nbDecimalJ: 1,
+        observedFrequency: 400
+    }
+};
+
 /**
  * some test case, with and without ascending option
  *
  */
+function toAcs(ranges, options = {}) {
 
-function toAcs(ranges, options) {
+    var nucleus=(options.nucleus || "1H").toLowerCase().replace(/[0-9]/g,'');
 
-    if(options && options.nucleus) {
-        if(options.nucleus === '1H' || options.nucleus === 'H' ||
-            options.nucleus === '19F' || options.nucleus === 'F' ||
-            options.nucleus === '1h' || options.nucleus === 'h' ||
-            options.nucleus === 'f' || options.nucleus === '19f') {
-
-            if(options.nucleus === '1h' || options.nucleus === 'h') {
-                options.nucleus = '1H';
-            }else if(options.nucleus === 'f' || options.nucleus === '19f') {
-                options.nucleus = '19F';
-            };
-            var defaultOptions =  {
-                nbDecimalDelta: 2,
-                nbDecimalJ: 1,
-                observedFrequency: 400
-            };
-        } else if (options.nucleus === '13C' || options.nucleus === 'C' ||
-                options.nucleus === '13c' || options.nucleus === 'c') {
-            var defaultOptions = {
-                nbDecimalDelta: 1,
-                nbDecimalJ: 1,
-                observedFrequency: 100
-            };
-            options.nucleus = '13C';
-        }
-    } else {
-        return;
-    }
+    var defaultOptions=globalOptions[nucleus];
 
     options = Object.assign({}, defaultOptions, {ascending: false, format: 'IMJA'}, options);
 
@@ -75,7 +70,7 @@ function toAcs(ranges, options) {
 
 function formatAcs(ranges, options) {
     var acs = appendSpectroInformation(options);
-    if(acs.length === 0) acs = 'δ ';
+    if (acs.length === 0) acs = 'δ ';
     var acsRanges = [];
     for (let range of ranges) {
         appendDelta(range, acsRanges, options);
@@ -99,7 +94,7 @@ function appendSpectroInformation(options) {
     if (parenthesis.length > 0) {
         strings += ' (' + parenthesis.join(', ') + '): δ ';
     } else {
-        strings += ' : δ '
+        strings += ' : δ ';
     }
     return strings;
 }
@@ -108,37 +103,37 @@ function appendDelta(range, acsRanges, options) {
     var strings = '';
     var parenthesis = [];
     var format = options.format;
-    if(Array.isArray(range.signal) && range.signal.length > 0) {
+    if (Array.isArray(range.signal) && range.signal.length > 0) {
         var signals = range.signal;
-        if(signals.length > 1) {
+        if (signals.length > 1) {
             let fromTo = [range.from, range.to];
             strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
-            strings +=  ' (' + getIntegral(range, options);
-            options.format += '-IntegralLess'
-            for(let signal of  signals) {
+            strings += ' (' + getIntegral(range, options);
+            options.format += '-IntegralLess';
+            for (let signal of signals) {
                 var parenthesis = [];
-                if(signal.delta) {
+                if (signal.delta) {
                     strings = appendSeparator(strings);
                     strings += signal.delta.toFixed(options.nbDecimalDelta);
                     switchFormat(range, signal, parenthesis, options);
                     if (parenthesis.length > 0) {
-                        strings+=' ('+parenthesis.join(', ')+')';
+                        strings += ' (' + parenthesis.join(', ') + ')';
                     }
                 }
             }
-            strings +=  ')';
+            strings += ')';
         } else {
             var signal = signals[0];
             var parenthesis = [];
-            if(signal.delta) {
+            if (signal.delta) {
                 strings += signal.delta.toFixed(options.nbDecimalDelta);
                 switchFormat(range, signal, parenthesis, options);
-                strings+=' ('+parenthesis.join(', ')+')';
+                strings += ' (' + parenthesis.join(', ') + ')';
             } else {
                 let fromTo = [range.from, range.to];
                 strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
                 switchFormat(range, signal, parenthesis, options);
-                strings += ' ('+ parenthesis + ')'
+                strings += ' (' + parenthesis + ')';
             }
         }
     } else {
@@ -146,7 +141,7 @@ function appendDelta(range, acsRanges, options) {
         strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
         options.format += '-massive';
         switchFormat(range, [], parenthesis, options);
-        strings += ' (' + parenthesis.join(', ') + ')'
+        strings += ' (' + parenthesis.join(', ') + ')';
     }
     options.format = format;
     acsRanges.push(strings);
@@ -160,11 +155,13 @@ function getIntegral(range, options) {
     } else if (range.integral) {
         return range.integral.toFixed(0) + options.nucleus[options.nucleus.length - 1];
     }
+    // todo check what to do when there is no integral like 13C for example
+    // todo: add test case 13C when we have only chemical shift  10,20,30
 }
 
 function pushIntegral(range, parenthesis, options) {
     parenthesis.push(getIntegral(range, options));
-};
+}
 
 function pushMultiplicityFromSignal(signal, parenthesis) {
     parenthesis.push(getMultiplicityFromSignal(signal));
@@ -174,7 +171,7 @@ function pushMultiplicityFromSignal(signal, parenthesis) {
 function pushCoupling(signal, parenthesis, options) {
     if (Array.isArray(signal.j) && signal.j.length > 0) {
         var Js = signal.j;
-        var values = []
+        var values = [];
         var j = '<i>J</i> = ';
         for (var i = 0; i < Js.length; i++) {
             var coupling = Js[i].coupling || 0;
@@ -216,6 +213,25 @@ function formatAssignment(assignment) {
 }
 
 function switchFormat(range, signal, parenthesis, options) {
+    for (const char of options.format) {
+        switch (char.toUpperCase()) {
+            case 'I':
+                pushIntegral(range, parenthesis, options);
+                break;
+            case 'M':
+
+                break;
+            case 'A':
+
+                break;
+            case 'J':
+                break;
+            default:
+                throw new Error('Unknow format letter: '+char)
+        }
+    }
+
+
     switch (options.format) {
         case 'IMJA':
             pushIntegral(range, parenthesis, options);
@@ -229,7 +245,7 @@ function switchFormat(range, signal, parenthesis, options) {
             pushMultiplicityFromSignal(signal, parenthesis);
             pushCoupling(signal, parenthesis, options);
             break;
-        case 'IMJA-IntegralLess':
+        case 'MJA':
             pushMultiplicityFromSignal(signal, parenthesis);
             pushCoupling(signal, parenthesis, options);
             pushAssignment(signal, parenthesis);
@@ -240,9 +256,9 @@ function switchFormat(range, signal, parenthesis, options) {
             pushCoupling(signal, parenthesis, options);
             break;
         case 'AIMJ-massive':
-            if(range.pubAssignment !== undefined) {
+            if (range.pubAssignment !== undefined) {
                 parenthesis.push(range.pubAssignment);
-            } else if(range.assignment !== undefined) {
+            } else if (range.assignment !== undefined) {
                 parenthesis.push(range.assignment);
             }
             pushIntegral(range, parenthesis, options);
@@ -251,11 +267,13 @@ function switchFormat(range, signal, parenthesis, options) {
         case 'IMJA-massive':
             pushIntegral(range, parenthesis, options);
             parenthesis.push('m');
-            if(range.pubAssignment !== undefined) {
+            if (range.pubAssignment !== undefined) {
                 parenthesis.push(range.pubAssignment);
-            } else if(range.assignment !== undefined) {
+            } else if (range.assignment !== undefined) {
                 parenthesis.push(range.assignment);
             }
-            break
+            break;
+        default:
+            throw new Error('Unknow format option: '+options.format)
     }
 }

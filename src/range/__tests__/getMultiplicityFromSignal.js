@@ -4,10 +4,9 @@ var FS = require('fs');
 var getMultiplicityFromSignal = require('../getMultiplicityFromSignal');
 
 
-
 describe('get multiplicity from signal ', function () {
 
-    var ranges=JSON.parse(FS.readFileSync(__dirname + '/simpleRanges.json'));
+    var ranges = JSON.parse(FS.readFileSync(__dirname + '/simpleRanges.json'));
 
     it('test signals', function () {
         getMultiplicityFromSignal(ranges[0].signal[0]).should.equal('dd quint hex d hex');

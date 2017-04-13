@@ -1,7 +1,7 @@
 'use strict';
 
 
-function getSignals(data, maxShiftDiference) {
+function getSignals(pdata, maxShiftDiference) {
     var signals = [];
     var signalsTemp = [];
     if (maxShiftDiference === undefined) var maxShiftDiference = 0.06;

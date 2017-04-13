@@ -232,13 +232,13 @@ class Ranges extends Array {
                     index.push({
                         multiplicity: s.multiplicity || joinMultiplicityOfJ(s),
                         delta: s.delta
-                    })
-                })
+                    });
+                });
             } else {
                 index.push({
                     delta: (range.to + range.from) / 2,
                     multiplicity: 'm'
-                })
+                });
             }
         }
         return index;
@@ -274,16 +274,18 @@ function compactPattern(signal, options) {
     var cont = 1;
     var pattern = '';
     var tolerance = options.tolerance || 0.05;
-    var normalLineWidth = options.normalLineWidth || 0.2
-    var newNmrJs = [], diaIDs = [], atoms = [];atoms
+    var normalLineWidth = options.normalLineWidth || 0.2;
+    var newNmrJs = [], diaIDs = [], atoms = []; atoms;
     if (jc && jc.length > 0) {
         jc.sort(function (a, b) {
             return a.coupling - b.coupling;
         });
-        if (jc[0].diaID)
+        if (jc[0].diaID) {
             diaIDs = [jc[0].diaID];
-        if (jc[0].assignment)
+        }
+        if (jc[0].assignment) {
             atoms = [jc[0].assignment];
+        }
         for (var i = 0; i < jc.length - 1; i++) {
             if (Math.abs(jc[i].coupling - jc[i + 1].coupling) < tolerance) {
                 cont++;
@@ -294,18 +296,22 @@ function compactPattern(signal, options) {
                     'coupling': Math.abs(jc[i].coupling),
                     'multiplicity': patterns[cont]
                 };
-                if (diaIDs.length > 0)
+                if (diaIDs.length > 0) {
                     jTemp.diaID = diaIDs;
-                if (atoms.length > 0)
+                }
+                if (atoms.length > 0) {
                     jTemp.assignment = atoms;
+                }
                 newNmrJs.push(jTemp);
 
                 pattern += patterns[cont];
                 cont = 1;
-                if (jc[0].diaID)
+                if (jc[0].diaID) {
                     diaIDs = [jc[i].diaID];
-                if (jc[0].assignment)
+                }
+                if (jc[0].assignment) {
                     atoms = [jc[i].assignment];
+                }
             }
         }
         let jTemp = {
@@ -313,10 +319,12 @@ function compactPattern(signal, options) {
 
             'multiplicity': patterns[cont]
         };
-        if (diaIDs.length > 0)
+        if (diaIDs.length > 0) {
             jTemp.diaID = diaIDs;
-        if (atoms.length > 0)
+        }
+        if (atoms.length > 0) {
             jTemp.assignment = atoms;
+        }
         newNmrJs.push(jTemp);
 
         pattern += patterns[cont];
@@ -326,7 +334,7 @@ function compactPattern(signal, options) {
         pattern = 's'; // inside of signal don't exist a startX stopX properties
         if (Math.abs(signal.startX - signal.stopX) * signal.observe > normalLineWidth) {
             //TODO this hsould never happen based on the speicifications. startX and stopX does not exists
-            throw Error('Should not happen')
+            throw Error('Should not happen');
             pattern = 's br';
         }
     }

@@ -26,7 +26,8 @@ function singleFitting(data, pInit, opts) {
     //calcule z position
     xDat = zGenerator(xDat, 6.811384250474384, 4258);
 
-    x = [], y = [];
+    x = [];
+    y = [];
 
     for (i = 0; i < xDat.length; i++) {
         x.push(xDat[i][0]);
