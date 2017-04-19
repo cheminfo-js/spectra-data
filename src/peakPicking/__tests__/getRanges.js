@@ -9,7 +9,8 @@ var cs1 = 2,
     w = 0.1,
     cs2 = 8,
     intensity2 = intensity * 2,
-    w2 = w;
+    w2 = w,
+    totalIntegral = 0;
 
 var line = new Array(NbPoints);
 var x = Xrange(0, 10, NbPoints);
@@ -39,20 +40,17 @@ var options = {noiseLevel: 0.1,
 };
 
 var peakPicking = spectrum.getRanges(options);
-
-var totalIntegral = 0,
-    i = 0;
-
+i = 0;
 while (i < peakPicking.length) {
     totalIntegral += peakPicking[i].integral;
     i += 1;
 }
 
 function Xrange(start, end, NbPoints) {
-    var a = new Array(NbPoints);
+    var a = new Array(NbPoints).fill(start);
     var jump = (end - start) / (NbPoints - 1);
-    for (var i = 0; i < NbPoints; i++) {
-        a[i] = start + jump * i;
+    for (let i = 0; i < NbPoints; i++) {
+        a[i] += jump * i;
     }
     return a;
 }

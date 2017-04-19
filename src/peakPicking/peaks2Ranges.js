@@ -167,7 +167,8 @@ function createRanges(spectrum, peakList, options) {
  */
 function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
     const frequency = spectrum.observeFrequencyX();
-    var cs,
+    var {
+        cs,
         sum,
         i,
         j,
@@ -175,15 +176,14 @@ function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
         signal1D = {},
         peaks = null,
         prevPeak = {x: 100000, y: 0, width: 0},
-        spectrumIntegral = 0;
+        spectrumIntegral = 0
+    } = spectrum;
 
-    var frequencyCluster = Number.isFinite(frequencyCluster) ? frequencyCluster : 16;
-    var integralType = (integralType === 'sum' || integralType === 'peaks') ? integralType : 'sum';
-
-    const rangeX = frequencyCluster / frequency;
+    frequencyCluster = Number.isFinite(frequencyCluster) ? frequencyCluster : 16;
+    integralType = (integralType === 'sum' || integralType === 'peaks') ? integralType : 'sum';
 
     for (i = 0; i < peakList.length; i++) {
-        if (Math.abs(peakList[i].x - prevPeak.x) > rangeX) {
+        if (Math.abs(peakList[i].x - prevPeak.x) > frequencyCluster / frequency) {
             signal1D = {nbPeaks: 1, units: 'PPM',
                 'startX': peakList[i].x - peakList[i].width,
                 'stopX': peakList[i].x + peakList[i].width,

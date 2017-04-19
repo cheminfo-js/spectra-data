@@ -274,7 +274,6 @@ function compactPattern(signal, options) {
         cont = 1,
         pattern = '',
         tolerance = options.tolerance || 0.05,
-        normalLineWidth = options.normalLineWidth || 0.2,
         newNmrJs = [],
         diaIDs = [],
         atoms = []
@@ -334,11 +333,7 @@ function compactPattern(signal, options) {
         signal.j = newNmrJs;
 
     } else {
-        pattern = 's'; // inside of signal don't exist a startX stopX properties
-        if (Math.abs(signal.startX - signal.stopX) * signal.observe > normalLineWidth) {
-            throw Error('Should not happen');
-            pattern = 's br';
-        }
+        pattern = 's';
     }
     return pattern;
 }

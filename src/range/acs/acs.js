@@ -106,8 +106,7 @@ function pushDelta(range, acsRanges, options) {
                      + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
             strings += ' (' + getIntegral(range, options);
             for (let signal of signals) {
-                // eslint-disable-next-line camelcase
-                var parenthesis = [];
+                parenthesis = [];
                 if (signal.delta !== undefined) {
                     strings = appendSeparator(strings);
                     strings += signal.delta.toFixed(options.nbDecimalDelta);
@@ -117,8 +116,7 @@ function pushDelta(range, acsRanges, options) {
             }
             strings += ')';
         } else {
-            // eslint-disable-next-line camelcase
-            var parenthesis = [];
+            parenthesis = [];
             if (signals[0].delta !== undefined) {
                 strings += signals[0].delta.toFixed(options.nbDecimalDelta);
                 switchFormat(range, signals[0], parenthesis, options);
@@ -189,7 +187,7 @@ function formatNucleus(nucleus) {
 }
 
 function appendSeparator(strings) {
-    if ((strings.length > 0) && (! strings.match(/ $/)) && (! strings.match(/\($/))) {
+    if ((strings.length > 0) && (!strings.match(/ $/)) && (!strings.match(/\($/))) {
         strings += ', ';
     }
     return strings;

@@ -27,7 +27,7 @@ function getMultiplicityFromSignal(signal) {
     } else {
         return 'm';
     }
-    return multiplicity
+    return multiplicity;
 }
 
 

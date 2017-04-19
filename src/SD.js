@@ -702,9 +702,9 @@ class SD {
         var ie = this.unitsToArrayPoint(to);
         var area = 0;
         if (i0 > ie) {
-            var tmp = i0;
-            i0 = ie;
-            ie = tmp;
+            i0 = i0 + ie;
+            ie = i0 - ie;
+            i0 = i0 - ie;
         }
         i0 = i0 < 0 ? 0 : i0;
         ie = ie >= this.getNbPoints() ? this.getNbPoints() - 1 : ie;
@@ -761,31 +761,47 @@ class SD {
         if (!this.isDataClassXY()) {
             throw Error('reduceData can only apply on equidistant data');
         }
-        var y;
-        var x;
 
         for (let i = 0; i < this.getNbSubSpectra(); i++) {
             this.setActiveElement(i);
-            var spectrum = this.getSpectrum();
+            if (this.getXUnits().toLowerCase() !== 'hz') {
+                if (typeof nbPoints !== 'undefined') {
+                    let x = this.getSpectraDataX();
+                    let y = this.getSpectraDataY();
 
-            if (nbPoints) {
-                x = this.getSpectraDataX();
-                y = this.getSpectraDataY();
-                let data = ArrayUtils.getEquallySpacedData(x, y, {from: from, to: to, numberOfPoints: nbPoints});
-                y = data[1];
-                x = data[0];
-            } else {
-                let data = this.getPointsInWindow(from, to);
-                y = data[1];
-                x = data[0];
+                    if (x[0] > x[1] && from < to) {
+                        from = from + to;
+                        to = from - to;
+                        from = from - to;
+                    } else if (from > to) {
+                        from = from + to;
+                        to = from - to;
+                        from = from - to;
+                    }
+                    y = ArrayUtils.getEquallySpacedData(x, y, {from: from, to: to, numberOfPoints: nbPoints});
+
+                    let step = (to - from) / (y.length - 1);
+                    x = new Array(y.length).fill(from);
+                    for (let j = 0; j < y.length; j++) {
+                        x[j] += step * j;
+                    }
+
+                    this.sd.spectra[i].data[0].x = x;
+                    this.sd.spectra[i].data[0].y = y;
+                    this.setFirstX(x[0]);
+                    this.setLastX(x[x.length - 1]);
+                    this.sd.spectra[i].nbPoints = y.length;
+                } else {
+                    var xyData = this.getPointsInWindow(from, to);
+                    this.sd.spectra[i].data[0].x = xyData[0];
+                    this.sd.spectra[i].data[0].y = xyData[1];
+                    this.setFirstX(xyData[0][0]);
+                    this.setLastX(xyData[0][xyData[0].length - 1]);
+                    this.sd.spectra[i].nbPoints = xyData[1].length;
+                }
             }
-
-            this.sd.spectra[i].data[0].x = x;
-            this.sd.spectra[i].data[0].y = y;
-            spectrum.firstX = x[0];
-            spectrum.lastX = x[x.length - 1];
-            spectrum.nbPoints = y.length;
         }
+        this.setActiveElement(0);
         return this;
     }
 
@@ -797,19 +813,22 @@ class SD {
      * @param {number} nPoints - number of points in the desired window.
      * @return {Array} XYarray data of the desired window.
      */
-
     getPointsInWindow(from, to) {
         if (!this.isDataClassXY()) {
             throw Error('getPointsInWindow can only apply on equidistant data');
         }
 
-        let fromTo = [this.unitsToArrayPoint(from), this.unitsToArrayPoint(to)];
-        let indexOfTo = Math.max(...fromTo);
-        let indexOfFrom = Math.min(...fromTo);
+        var indexOfFrom = this.unitsToArrayPoint(from);
+        var indexOfTo = this.unitsToArrayPoint(to);
 
-        if (indexOfFrom >= 0 && indexOfTo <= this.getNbPoints() - 1) {
-            let x = this.getSpectraDataX().slice(indexOfFrom, indexOfTo);
-            let y = this.getSpectraDataY().slice(indexOfFrom, indexOfTo);
+        if (indexOfFrom > indexOfTo) {
+            indexOfFrom = indexOfFrom + indexOfTo;
+            indexOfTo = indexOfFrom - indexOfTo;
+            indexOfFrom = indexOfFrom - indexOfTo;
+        }
+        if (indexOfFrom >= 0 && indexOfTo <= this.getNbPoints() - 2) {
+            var y = this.getSpectraDataY().slice(indexOfFrom, indexOfTo + 1);
+            var x = this.getSpectraDataX().slice(indexOfFrom, indexOfTo + 1);
             return [x, y];
         } else {
             throw Error('values outside this in range');

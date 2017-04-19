@@ -93,3 +93,5 @@ function zGenerator(x, g, gamma) {
     var z = math.multiply(x, math.inv(g * gamma));
     return z;
 }
+
+module.exports = singleFitting;
