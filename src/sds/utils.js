@@ -12,7 +12,7 @@ function xRange(start, end, nbPoints) {
 function getDataFromText(text) {
     var x = [];
     var y = [];
-    var lines=text.split(/ [\r \n]+ /);
+    var lines=text.split(/[\r\n]+/);
     for (var line of lines) {
         if (line.match(/^[0-9.,\t;eE-]+$/)) {
             var fields=line.split(/[\t,;]+/); // empty space may be would added...

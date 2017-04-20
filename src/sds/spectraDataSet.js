@@ -19,76 +19,100 @@ class SpectraDataSet extends Array {
 
     /**
      * Return an SpectraDataSet instance from an Array of text that contain the information
-     * @param {object} texts - contain parameters as a object and data as a Array of text.
+     * @param {array} arrayData - array of objects with parameters as a object and data as text.
      * @return {SpectraDataSet}
      */
-    static fromText(texts) {
-        var parameters;
-        var data;
-
-        if (!this.isDataClassXY()) {
-            throw Error('reduceData can only apply on equidistant data');
-        } else if (typeof texts.parameters === 'undefined') {
-            parameters = {};
-        } else {
-            parameters = texts.parameters;
+    static fromText(arrayData) {
+        // console.log(arrayData)
+        var output = new Array(arrayData.length);
+        for (let i = 0; i < arrayData.length; i++) {
+            let parameters = arrayData[i].parameters || {};
+            let text = arrayData[i].data || '';
+            output[i] = parameters;
+            output[i].data = utils.getDataFromText(text);
         }
-
-        if (typeof texts.data === 'undefined') {
-            data = [];
-        } else if (!Array.isArray(texts.data)) {
-            data = [texts.data];
-        }
-
-        for (let i = 0; i < data.length; i++) {
-            var text = data[i];
-            data[i] = parameters;
-            data[i].data = utils.getDataFromText(text);
-        }
-        return this(data);
+        return new this(output);
     }
 
 
     /**
      * Return an SpectraDataSet instance from an Array of text that contain the information
-     * @param {object} spectraDataSet - contain parameters as a object and data as a text file or array of text files.
+     * @param {array} arrayData - array of objects with parameters as a object and data as jcamp
      * @param {object} options - options for jcampconverter function.
      * @return {SpectraDataSet}
      */
-    static fromJcamp(spectraDataSet, options) {
-        var parameters;
-        var data;
-        if (!spectraDataSet.parameters) {
-            parameters = {};
-        } else {
-            parameters = spectraDataSet.parameters;
+    static fromJcamp(arrayData, options) {
+        options = Object.assign({}, {keepSpectra: true, keepRecordsRegExp: /^.+$/}, options, {xy: true});
+        var output = new Array(arrayData.length);
+        for (let i = 0; i < arrayData.length; i++) {
+            var parameters = arrayData[i].parameters || {};
+            var jcamp = arrayData[i].data || '';
+            var spectrum = SD.fromJcamp(jcamp, options);
+            console.log(spectrum.sd)
+            output[i] = parameters;
+            let xyData = spectrum.sd.spectra[0].data[0];
+            output[i].data = {x: xyData.x, y: xyData.y};
         }
-
-        if (!spectraDataSet.data) {
-            data = [];
-        } else if (!Array.isArray(spectraDataSet.data)) {
-            data = [spectraDataSet.data];
-        }
-
-        for (let i = 0; i < data.length; i++) {
-            var spectrum = SD.fromJcamp(data[i], options);
-            data[i] = parameters;
-            for (let j = 0; j < spectrum.sd.spectra.length;) {
-                let xyData = spectrum.sd.spectra[j].data[0];
-                data[i].data = {x: xyData.x, y: xyData.y};
-                j += 2;
-            }
-        }
-        return this(data);
+        return new this(output);
     }
 
-    setParameter(category, value) {
+    /**
+     * set a property in the index element, default index is zero
+     * @param {string} category - name of the property
+     * @param {*} value - value of the property
+     * @param {number} index - index of the element where the property will be set
+     */
+    setParameter(category, value, index) {
         if (typeof category === 'string') {
-            this[category] = value;
+            index = index || 0;
+            let element = this[index];
+            element[category] = value;
         }
     }
 
-    getParameter(category) {
-        return this[category];
+    /**
+     * return a property of the element requiered
+     * @param {string} category - name of the property
+     * @param {number} index - index of the element where the property will be set
+     * @returns {*}
+     */
+    getParameter(category, index) {
+        index = index || 0;
+        let element = this[index];
+        return element[category];
+    }
+
+    /**
+     * add a element to spectraDataSet instance
+     * @param {string} jcamp - jcamp with the data
+     * @param {object} parameters - parameters that will be set for the new element
+     * @param {object} options - options to jcampconverter
+     * @returns {SpectraDataSet}
+     */
+    pushJcamp(jcamp, parameters, options) {
+        jcamp = jcamp || '';
+        parameters = parameters || {};
+        options = Object.assign({}, {keepSpectra: true, keepRecordsRegExp: /^.+$/}, options, {xy: true});
+        let spectrum = SD.fromJcamp(jcamp, options);
+        let xyData = spectrum.sd.spectra[0].data[0];
+        parameters.data = {x: xyData.x, y: xyData.y};
+        this.push(parameters);
+        return this;
+    }
+
+    /**
+     * add a element to spectraDataSet instance
+     * @param {string} text - string with the data
+     * @param {object} parameters - parameters that will be set for the new element
+     * @returns {SpectraDataSet}
+     */
+    pushText(text, parameters) {
+        text = text || '';
+        parameters = parameters || {};
+        parameters.data = utils.getDataFromText(text);
+        this.push(parameters);
+        return this;
     }
 }
+
+module.exports = SpectraDataSet;
