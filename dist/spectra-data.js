@@ -16,9 +16,9 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	function __webpack_require__(moduleId) {
 /******/
 /******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId])
+/******/ 		if(installedModules[moduleId]) {
 /******/ 			return installedModules[moduleId].exports;
-/******/
+/******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = installedModules[moduleId] = {
 /******/ 			i: moduleId,
@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 152);
+/******/ 	return __webpack_require__(__webpack_require__.s = 67);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -434,9 +434,9 @@ exports.extend = function() {
 "use strict";
 
 
-__webpack_require__(125);
-var abstractMatrix = __webpack_require__(47);
-var util = __webpack_require__(8);
+__webpack_require__(117);
+var abstractMatrix = __webpack_require__(43);
+var util = __webpack_require__(7);
 
 class Matrix extends abstractMatrix(Array) {
     constructor(nRows, nColumns) {
@@ -686,6 +686,32 @@ exports.setTyped(TYPED_OK);
 
 /***/ }),
 /* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var abstractMatrix = __webpack_require__(43);
+var Matrix = __webpack_require__(1);
+
+class BaseView extends abstractMatrix() {
+    constructor(matrix, rows, columns) {
+        super();
+        this.matrix = matrix;
+        this.rows = rows;
+        this.columns = columns;
+    }
+
+    static get [Symbol.species]() {
+        return Matrix.Matrix;
+    }
+}
+
+module.exports = BaseView;
+
+
+/***/ }),
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2162,32 +2188,6 @@ module.exports = Matrix;
 
 
 /***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var abstractMatrix = __webpack_require__(47);
-var Matrix = __webpack_require__(1);
-
-class BaseView extends abstractMatrix() {
-    constructor(matrix, rows, columns) {
-        super();
-        this.matrix = matrix;
-        this.rows = rows;
-        this.columns = columns;
-    }
-
-    static get [Symbol.species]() {
-        return Matrix.Matrix;
-    }
-}
-
-module.exports = BaseView;
-
-
-/***/ }),
 /* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -2227,7 +2227,7 @@ else {
     }
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(27).Buffer))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26).Buffer))
 
 /***/ }),
 /* 6 */
@@ -2236,23 +2236,12 @@ else {
 "use strict";
 
 
-exports.array = __webpack_require__(46);
-exports.matrix = __webpack_require__(120);
+exports.array = __webpack_require__(50);
+exports.matrix = __webpack_require__(137);
 
 
 /***/ }),
 /* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = __webpack_require__(3);
-module.exports.Decompositions = module.exports.DC = __webpack_require__(113);
-
-
-/***/ }),
-/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2401,6 +2390,17 @@ exports.sumAll = function sumAll(matrix) {
 
 
 /***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = __webpack_require__(4);
+module.exports.Decompositions = module.exports.DC = __webpack_require__(132);
+
+
+/***/ }),
 /* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -2409,14 +2409,14 @@ exports.sumAll = function sumAll(matrix) {
 // small note on the best way to define array
 // http://jsperf.com/lp-array-and-loops/2
 
-var StatArray = __webpack_require__(6).array;
-var ArrayUtils = __webpack_require__(38);
-var JcampConverter = __webpack_require__(29);
-var JcampCreator = __webpack_require__(66);
-var peakPicking = __webpack_require__(24);
+const StatArray = __webpack_require__(6).array;
+const ArrayUtils = __webpack_require__(37);
+const JcampConverter = __webpack_require__(28);
+const JcampCreator = __webpack_require__(68);
+const peakPicking = __webpack_require__(71);
 
-var DATACLASS_XY = 1;
-var DATACLASS_PEAK = 2;
+const DATACLASS_XY = 1;
+const DATACLASS_PEAK = 2;
 
 /**
  * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
@@ -2494,6 +2494,8 @@ class SD {
 
     /**
      * Return the current page
+     * @param {number} index - index of spectrum
+     * @return {number}
      */
     getPage(index) {
         return this.sd.spectra[index].page;
@@ -2514,7 +2516,7 @@ class SD {
      * @return {number | *}
      */
     getFirstX(i) {
-        i = i || this.activeElement;
+        if (i === undefined) i = this.activeElement;
         return this.sd.spectra[i].firstX;
     }
 
@@ -2524,7 +2526,7 @@ class SD {
      * @param {number} i sub-spectrum Default:activeSpectrum
      */
     setFirstX(x, i) {
-        i = i || this.activeElement;
+        if (i === undefined) i = this.activeElement;
         this.sd.spectra[i].firstX = x;
     }
 
@@ -2534,7 +2536,7 @@ class SD {
      * @return {number}
      */
     getLastX(i) {
-        i = i || this.activeElement;
+        if (i === undefined) i = this.activeElement;
         return this.sd.spectra[i].lastX;
     }
 
@@ -2544,7 +2546,7 @@ class SD {
      * @param {number} i - sub-spectrum Default:activeSpectrum
      */
     setLastX(x, i) {
-        i = i || this.activeElement;
+        if (i === undefined) i = this.activeElement;
         this.sd.spectra[i].lastX = x;
     }
 
@@ -2556,7 +2558,7 @@ class SD {
      * @return {number}
      */
     getFirstY(i) {
-        i = i || this.activeElement;
+        if (i === undefined) i = this.activeElement;
         return this.sd.spectra[i].firstY;
     }
 
@@ -2566,7 +2568,7 @@ class SD {
      * @param {number} i - sub-spectrum Default: activeSpectrum
      */
     setFirstY(y, i) {
-        i = i || this.activeElement;
+        if (i === undefined) i = this.activeElement;
         this.sd.spectra[i].firstY = y;
     }
 
@@ -2576,7 +2578,7 @@ class SD {
      * @return {number}
      */
     getLastY(i) {
-        i = i || this.activeElement;
+        if (i === undefined) i = this.activeElement;
         return this.sd.spectra[i].lastY;
     }
 
@@ -2586,7 +2588,7 @@ class SD {
      * @param {number} i - sub-spectrum Default:activeSpectrum
      */
     setLastY(y, i) {
-        i = i || this.activeElement;
+        if (i === undefined) i = this.activeElement;
         this.sd.spectra[i].lastY = y;
     }
 
@@ -2651,7 +2653,7 @@ class SD {
      * @return {object}
      */
     getSpectrumData(i) {
-        i = i || this.activeElement;
+        if (i === undefined) i = this.activeElement;
         return this.sd.spectra[i].data[0];
     }
 
@@ -2661,7 +2663,7 @@ class SD {
      * @return {object}
      */
     getSpectrum(i) {
-        i = i || this.activeElement;
+        if (i === undefined) i = this.activeElement;
         return this.sd.spectra[i];
     }
 
@@ -2676,7 +2678,7 @@ class SD {
     /**
      *  Returns an array containing the x values of the spectrum
      * @param {number} i sub-spectrum Default:activeSpectrum
-     * @return {Array}
+     * @return {array}
      */
     getXData(i) {
         return this.getSpectrumData(i).x;
@@ -2685,7 +2687,7 @@ class SD {
     /**
      * This function returns a double array containing the values with the intensities for the current sub-spectrum.
      * @param {number} i sub-spectrum Default:activeSpectrum
-     * @return {Array}
+     * @return {array}
      */
     getYData(i) {
         return this.getSpectrumData(i).y;
@@ -2894,7 +2896,7 @@ class SD {
      * @param {number} globalShift - Distance of the shift for direct dimension.
      */
     shift(globalShift) {
-        for (var i = 0; i < this.getNbSubSpectra(); i++) {
+        for (let i = 0; i < this.getNbSubSpectra(); i++) {
             this.setActiveElement(i);
             var x = this.getSpectrumData().x;
             var length = this.getNbPoints(),
@@ -2909,13 +2911,13 @@ class SD {
     }
 
     /**
-     * This function fills a zone of the spectrum with the given value.
+     * Fills a zone of the spectrum with the given value.
      * If value is undefined it will suppress the elements
      * @param {number} from - one limit the spectrum to fill
      * @param {number} to - one limit the spectrum to fill
      * @param {number} value - value with which to fill
      */
-    fillWith(from, to, value) {
+    fill(from, to, value) {
         var tmp, start, end, x, y;
         if (from > to) {
             tmp = from;
@@ -2959,7 +2961,7 @@ class SD {
      * @param {number} to - one limit the spectrum to suppress
      */
     suppressZone(from, to) {
-        this.fillWith(from, to);
+        this.fill(from, to);
         this.setDataClass(DATACLASS_PEAK);
     }
 
@@ -3069,7 +3071,7 @@ class SD {
 
     /**
      * Return the y elements of the current spectrum. Same as getYData. Kept for backward compatibility.
-     * @return {Array}
+     * @return {array}
      */
     getSpectraDataY() {
         return this.getYData();
@@ -3077,7 +3079,7 @@ class SD {
 
     /**
      * Return the x elements of the current spectrum. Same as getXData. Kept for backward compatibility.
-     * @return {Array}
+     * @return {array}
      */
     getSpectraDataX() {
         return this.getXData();
@@ -3110,9 +3112,9 @@ class SD {
         var ie = this.unitsToArrayPoint(to);
         var area = 0;
         if (i0 > ie) {
-            var tmp = i0;
-            i0 = ie;
-            ie = tmp;
+            i0 = i0 + ie;
+            ie = i0 - ie;
+            i0 = i0 - ie;
         }
         i0 = i0 < 0 ? 0 : i0;
         ie = ie >= this.getNbPoints() ? this.getNbPoints() - 1 : ie;
@@ -3125,8 +3127,7 @@ class SD {
     /**
      * This function return the integral values for certains ranges at specific SD instance .
      * @param {array} ranges - array of objects ranges
-     * @param {object} options - option such as nH for normalization, if it is nH is zero the integral value returned
-     * is absolute value
+     * @param {object} options - option such as nH for normalization, if it is nH is zero the integral value returned is absolute value
      */
     updateIntegrals(ranges, options) {
         var sum = 0;
@@ -3158,6 +3159,62 @@ class SD {
     }
 
     /**
+     * In place modification of the data to usually reduce the size
+     * This will convert the data in equally spaces X.
+     * @param {number} from - one limit in spectrum units
+     * @param {number} to - one limit in spectrum units
+     * @param {number} nbPoints - number of points to return(!!!sometimes it is not possible to return exactly the required nbPoints)
+     * @return {this}
+     */
+    reduceData(from, to, nbPoints) {
+        if (!this.isDataClassXY()) {
+            throw Error('reduceData can only apply on equidistant data');
+        }
+
+        for (let i = 0; i < this.getNbSubSpectra(); i++) {
+            this.setActiveElement(i);
+            if (this.getXUnits().toLowerCase() !== 'hz') {
+                if (typeof nbPoints !== 'undefined') {
+                    let x = this.getSpectraDataX();
+                    let y = this.getSpectraDataY();
+
+                    if (x[0] > x[1] && from < to) {
+                        from = from + to;
+                        to = from - to;
+                        from = from - to;
+                    } else if (from > to) {
+                        from = from + to;
+                        to = from - to;
+                        from = from - to;
+                    }
+                    y = ArrayUtils.getEquallySpacedData(x, y, { from: from, to: to, numberOfPoints: nbPoints });
+
+                    let step = (to - from) / (y.length - 1);
+                    x = new Array(y.length).fill(from);
+                    for (let j = 0; j < y.length; j++) {
+                        x[j] += step * j;
+                    }
+
+                    this.sd.spectra[i].data[0].x = x;
+                    this.sd.spectra[i].data[0].y = y;
+                    this.setFirstX(x[0]);
+                    this.setLastX(x[x.length - 1]);
+                    this.sd.spectra[i].nbPoints = y.length;
+                } else {
+                    var xyData = this.getPointsInWindow(from, to);
+                    this.sd.spectra[i].data[0].x = xyData[0];
+                    this.sd.spectra[i].data[0].y = xyData[1];
+                    this.setFirstX(xyData[0][0]);
+                    this.setLastX(xyData[0][xyData[0].length - 1]);
+                    this.sd.spectra[i].nbPoints = xyData[1].length;
+                }
+            }
+        }
+        this.setActiveElement(0);
+        return this;
+    }
+
+    /**
      * Returns all the point in a given window.
      * Not tested, you have to know what you are doing
      * @param {number} from - index of a limit of the desired window.
@@ -3165,57 +3222,26 @@ class SD {
      * @param {number} nPoints - number of points in the desired window.
      * @return {Array} XYarray data of the desired window.
      */
-    getPointsInWindow(from, to, nPoints) {
-        var x = this.getSpectraDataX();
-        var y = this.getSpectraDataY();
-        var start = 0,
-            end = x.length - 1,
-            direction = 1;
-
-        if (x[0] > x[1]) {
-            direction = -1;
-            start = x.length - 1;
-            end = 0;
+    getPointsInWindow(from, to) {
+        if (!this.isDataClassXY()) {
+            throw Error('getPointsInWindow can only apply on equidistant data');
         }
 
-        if (from > to) {
-            var tmp = from;
-            from = to;
-            to = tmp;
-        }
-        //console.log(x[end]+" "+from+" "+x[start]+" "+to);
-        if (x[start] > to || x[end] < from) {
-            return [];
-        }
+        var indexOfFrom = this.unitsToArrayPoint(from);
+        var indexOfTo = this.unitsToArrayPoint(to);
 
-        while (x[start] < from) {
-            start += direction;
+        if (indexOfFrom > indexOfTo) {
+            indexOfFrom = indexOfFrom + indexOfTo;
+            indexOfTo = indexOfFrom - indexOfTo;
+            indexOfFrom = indexOfFrom - indexOfTo;
         }
-        while (x[end] > to) {
-            end -= direction;
+        if (indexOfFrom >= 0 && indexOfTo <= this.getNbPoints() - 2) {
+            var y = this.getSpectraDataY().slice(indexOfFrom, indexOfTo + 1);
+            var x = this.getSpectraDataX().slice(indexOfFrom, indexOfTo + 1);
+            return [x, y];
+        } else {
+            throw Error('values outside this in range');
         }
-
-        var winPoints = Math.abs(end - start) + 1;
-        if (!nPoints) {
-            nPoints = winPoints;
-        }
-        var xwin = new Array(nPoints);
-        var ywin = new Array(nPoints);
-        var index = 0;
-
-        if (direction === -1) {
-            index = nPoints - 1;
-        }
-
-        var di = winPoints / nPoints;
-        var i = start - direction;
-        for (var k = 0; k < nPoints; k++) {
-            i += Math.round(di * direction);
-            xwin[index] = x[i];
-            ywin[index] = y[i];
-            index += direction;
-        }
-        return [xwin, ywin];
     }
 
     /**
@@ -3413,7 +3439,7 @@ exports.STORE = {
     compressInputType: null,
     uncompressInputType: null
 };
-exports.DEFLATE = __webpack_require__(83);
+exports.DEFLATE = __webpack_require__(86);
 
 
 /***/ }),
@@ -3429,7 +3455,7 @@ module.exports.test = function(b){
     return Buffer.isBuffer(b);
 };
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(27).Buffer))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26).Buffer))
 
 /***/ }),
 /* 13 */
@@ -3439,16 +3465,16 @@ module.exports.test = function(b){
 
 var support = __webpack_require__(5);
 var utils = __webpack_require__(0);
-var crc32 = __webpack_require__(81);
-var signature = __webpack_require__(34);
-var defaults = __webpack_require__(33);
+var crc32 = __webpack_require__(84);
+var signature = __webpack_require__(33);
+var defaults = __webpack_require__(32);
 var base64 = __webpack_require__(10);
 var compressions = __webpack_require__(11);
-var CompressedObject = __webpack_require__(31);
+var CompressedObject = __webpack_require__(30);
 var nodeBuffer = __webpack_require__(12);
-var utf8 = __webpack_require__(37);
-var StringWriter = __webpack_require__(87);
-var Uint8ArrayWriter = __webpack_require__(88);
+var utf8 = __webpack_require__(36);
+var StringWriter = __webpack_require__(90);
+var Uint8ArrayWriter = __webpack_require__(91);
 
 /**
  * Returns the raw data of a ZipObject, decompress the content if necessary.
@@ -4315,18 +4341,7 @@ module.exports = out;
 "use strict";
 
 
-exports.FFTUtils = __webpack_require__(96);
-exports.FFT = __webpack_require__(40);
-
-
-/***/ }),
-/* 15 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-const Heap = __webpack_require__(75);
+const Heap = __webpack_require__(78);
 
 function Cluster() {
     this.children = [];
@@ -4408,44 +4423,7 @@ module.exports = Cluster;
 
 
 /***/ }),
-/* 16 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.hypotenuse = function hypotenuse(a, b) {
-    var r;
-    if (Math.abs(a) > Math.abs(b)) {
-        r = b / a;
-        return Math.abs(a) * Math.sqrt(1 + r * r);
-    }
-    if (b !== 0) {
-        r = a / b;
-        return Math.abs(b) * Math.sqrt(1 + r * r);
-    }
-    return 0;
-};
-
-
-/***/ }),
-/* 17 */
-/***/ (function(module, exports) {
-
-module.exports = newArray
-
-function newArray (n, value) {
-  n = n || 0
-  var array = new Array(n)
-  for (var i = 0; i < n; i++) {
-    array[i] = value
-  }
-  return array
-}
-
-
-/***/ }),
-/* 18 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4489,22 +4467,78 @@ exports.getFilled2DArray = function (rows, columns, value) {
 
 
 /***/ }),
-/* 19 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 module.exports = __webpack_require__(1).Matrix;
-module.exports.Decompositions = module.exports.DC = __webpack_require__(124);
+module.exports.Decompositions = module.exports.DC = __webpack_require__(116);
 
 
 /***/ }),
-/* 20 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
+
+exports.hypotenuse = function hypotenuse(a, b) {
+    var r;
+    if (Math.abs(a) > Math.abs(b)) {
+        r = b / a;
+        return Math.abs(a) * Math.sqrt(1 + r * r);
+    }
+    if (b !== 0) {
+        r = a / b;
+        return Math.abs(b) * Math.sqrt(1 + r * r);
+    }
+    return 0;
+};
+
+
+/***/ }),
+/* 18 */
+/***/ (function(module, exports) {
+
+module.exports = newArray
+
+function newArray (n, value) {
+  n = n || 0
+  var array = new Array(n)
+  for (var i = 0; i < n; i++) {
+    array[i] = value
+  }
+  return array
+}
+
+
+/***/ }),
+/* 19 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 
 module.exports = {
   2:      'need dictionary',     /* Z_NEED_DICT       2  */
@@ -4520,25 +4554,28 @@ module.exports = {
 
 
 /***/ }),
-/* 21 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 //const JAnalyzer = require('./../peakPicking/JAnalyzer');
+// const peakPicking = require('../peakPicking/peakPicking');
+// const peaks2Ranges = require('../peakPicking/peaks2Ranges');
 
-var peakPicking = __webpack_require__(24);
-var acs = __webpack_require__(71);
-var peak2Vector = __webpack_require__(72);
-var GUI = __webpack_require__(73);
+const acs = __webpack_require__(74);
+const peak2Vector = __webpack_require__(75);
+const GUI = __webpack_require__(76);
+const patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
+const getMultiplicityFromSignal = __webpack_require__(23);
 
 class Ranges extends Array {
 
     constructor(ranges) {
         if (Array.isArray(ranges)) {
             super(ranges.length);
-            for (var i = 0; i < ranges.length; i++) {
+            for (let i = 0; i < ranges.length; i++) {
                 this[i] = ranges[i];
             }
         } else if (typeof ranges === 'number') {
@@ -4550,17 +4587,17 @@ class Ranges extends Array {
 
     /**
      * This function return a Range instance from predictions
-     * @param {Object} predictions - predictions of a spin system
-     * @param {Object} options - options object
+     * @param {object} predictions - predictions of a spin system
+     * @param {object} options - options object
      * @param {number} [options.lineWidth] - spectral line width
      * @param {number} [options.frequency] - frequency to determine the [from, to] of a range
-     * @returns {Ranges}
+     * @return {Ranges}
      */
     static fromPrediction(predictions, options) {
         options = Object.assign({}, { lineWidth: 1, frequency: 400, nucleus: '1H' }, options);
         //1. Collapse all the equivalent predictions
-        var nPredictions = predictions.length;
-        var ids = new Array(nPredictions);
+        const nPredictions = predictions.length;
+        const ids = new Array(nPredictions);
         var i, j, diaIDs, prediction, width, center, jc;
         for (i = 0; i < nPredictions; i++) {
             if (!ids[predictions[i].diaIDs[0]]) {
@@ -4569,8 +4606,8 @@ class Ranges extends Array {
                 ids[predictions[i].diaIDs[0]].push(i);
             }
         }
-        var idsKeys = Object.keys(ids);
-        var result = new Array(idsKeys.length);
+        const idsKeys = Object.keys(ids);
+        const result = new Array(idsKeys.length);
 
         for (i = 0; i < idsKeys.length; i++) {
             diaIDs = ids[idsKeys[i]];
@@ -4587,12 +4624,20 @@ class Ranges extends Array {
 
             width /= options.frequency;
 
-            result[i] = { from: prediction.delta - width,
+            result[i] = {
+                from: prediction.delta - width,
                 to: prediction.delta + width,
                 integral: 1,
-                signal: [predictions[diaIDs[0]]] };
-            for (j = 1; j < diaIDs.length; j++) {
-                result[i].signal.push(predictions[diaIDs[j]]);
+                signal: [predictions[diaIDs[0]]]
+            };
+
+            result[i].multiplicity = '';
+
+            for (var k = 1; k < diaIDs.length; k++) {
+                result[i].signal.push(predictions[diaIDs[k]]);
+                for (var kk = 0; kk < predictions[diaIDs[k]].j.length; kk++) {
+                    result[i].multiplicity += predictions[diaIDs[k]].j[kk].multiplicity;
+                }
                 result[i].integral++;
             }
         }
@@ -4604,6 +4649,7 @@ class Ranges extends Array {
             for (j = result.length - 1; j > i; j--) {
                 //Does it overlap?
                 if (Math.abs(center - (result[j].from + result[j].to) / 2) <= Math.abs(width + Math.abs(result[j].from - result[j].to)) / 2) {
+                    result[i].multiplicity = 'm';
                     result[i].from = Math.min(result[i].from, result[j].from);
                     result[i].to = Math.max(result[i].to, result[j].to);
                     result[i].integral = result[i].integral + result[j].integral;
@@ -4623,7 +4669,7 @@ class Ranges extends Array {
      * This function return Ranges instance from a SD instance
      * @param {SD} spectrum - SD instance
      * @param {object} opt - options object to extractPeaks function
-     * @returns {Ranges}
+     * @return {Ranges}
      */
     static fromSpectrum(spectrum, opt) {
         this.options = Object.assign({}, {
@@ -4639,21 +4685,21 @@ class Ranges extends Array {
             frequencyCluster: 16
         }, opt);
 
-        return new Ranges(peakPicking(spectrum, this.options));
+        return spectrum.getRanges(this.options);
     }
 
     /**
      * This function put signal.multiplicity with respect to
-     * @returns {Ranges}
+     * @return {Ranges}
      */
     updateMultiplicity() {
-        for (var i = 0; i < this.length; i++) {
+        for (let i = 0; i < this.length; i++) {
             var range = this[i];
-            for (var j = 0; j < range.signal.length; j++) {
+            for (let j = 0; j < range.signal.length; j++) {
                 var signal = range.signal[j];
-                if (signal.j && !signal.multiplicity) {
+                if (Array.isArray(signal.j) && !signal.multiplicity) {
                     signal.multiplicity = '';
-                    for (var k = 0; k < signal.j.length; k++) {
+                    for (let k = 0; k < signal.j.length; k++) {
                         signal.multiplicity += signal.j[k].multiplicity;
                     }
                 }
@@ -4664,10 +4710,10 @@ class Ranges extends Array {
 
     /**
      * This function normalize or scale the integral data
-     * @param {Object} options - object with the options
-     * @param {Boolean} [options.sum] - anything factor to normalize the integrals, Similar to the number of proton in the molecule for a nmr spectrum
+     * @param {object} options - object with the options
+     * @param {boolean} [options.sum] - anything factor to normalize the integrals, Similar to the number of proton in the molecule for a nmr spectrum
      * @param {number} [options.factor] - Factor that multiply the intensities, if [options.sum] is defined it is override
-     * @returns {Ranges}
+     * @return {Ranges}
      */
     updateIntegrals(options) {
         var factor = options.factor || 1;
@@ -4688,8 +4734,8 @@ class Ranges extends Array {
 
     /**
      * This function return the peak list as a object with x and y arrays
-     * @param {Object} options - See the options parameter in {@link #peak2vector} function documentation
-     * @returns {Object} - {x: Array, y: Array}
+     * @param {object} options - See the options parameter in {@link #peak2vector} function documentation
+     * @return {object} - {x: Array, y: Array}
      */
     getVector(options) {
         return peak2Vector(this.getPeakList(), options);
@@ -4697,7 +4743,7 @@ class Ranges extends Array {
 
     /**
      * This function return the peaks of a Ranges instance into an array
-     * @returns {Array}
+     * @return {array}
      */
     getPeakList() {
         var peaks = [];
@@ -4713,8 +4759,8 @@ class Ranges extends Array {
 
     /**
      * This function return format for each range
-     * @param {Object} options - options object for toAcs function
-     * @returns {*}
+     * @param {object} options - options object for toAcs function
+     * @return {*}
      */
     getACS(options) {
         return acs(this, options);
@@ -4723,25 +4769,189 @@ class Ranges extends Array {
     getAnnotations(options) {
         return GUI.annotations1D(this, options);
     }
+
+    /**
+     * Return an array of deltas and multiplicity for an index database
+     * @options {array} options
+     * @return {array} [{delta, multiplicity},...]
+     */
+    toIndex(options) {
+        var index = [];
+
+        if (options.compactPattern || false) this.compactPatterns(options);
+
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+            for (var _iterator = this[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                var range = _step.value;
+
+                if (Array.isArray(range.signal) && range.signal.length > 0) {
+                    var _iteratorNormalCompletion2 = true;
+                    var _didIteratorError2 = false;
+                    var _iteratorError2 = undefined;
+
+                    try {
+                        for (var _iterator2 = range.signal[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                            let s = _step2.value;
+
+                            index.push({
+                                multiplicity: s.multiplicity || getMultiplicityFromSignal(s),
+                                delta: s.delta
+                            });
+                        }
+                    } catch (err) {
+                        _didIteratorError2 = true;
+                        _iteratorError2 = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                                _iterator2.return();
+                            }
+                        } finally {
+                            if (_didIteratorError2) {
+                                throw _iteratorError2;
+                            }
+                        }
+                    }
+                } else {
+                    index.push({
+                        delta: (range.to + range.from) / 2,
+                        multiplicity: 'm'
+                    });
+                }
+            }
+        } catch (err) {
+            _didIteratorError = true;
+            _iteratorError = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                    _iterator.return();
+                }
+            } finally {
+                if (_didIteratorError) {
+                    throw _iteratorError;
+                }
+            }
+        }
+
+        return index;
+    }
+
+    /**
+     * Returns the multiplet in the compact format
+     * @param {object} options
+     * @private
+     */
+    compactPatterns(options) {
+        this.forEach(range => {
+            range.signal.forEach(signal => {
+                signal.multiplicity = compactPattern(signal, options);
+            });
+        });
+    }
+
+    clone() {
+        let newRanges = JSON.parse(JSON.stringify(this));
+        return new Ranges(newRanges);
+    }
 }
 
 module.exports = Ranges;
 
+function compactPattern(signal, options) {
+    var _options$jc = options.jc,
+        jc = _options$jc === undefined ? signal.j : _options$jc,
+        _options$cont = options.cont,
+        cont = _options$cont === undefined ? 1 : _options$cont,
+        _options$pattern = options.pattern,
+        pattern = _options$pattern === undefined ? '' : _options$pattern,
+        _options$tolerance = options.tolerance,
+        tolerance = _options$tolerance === undefined ? options.tolerance || 0.05 : _options$tolerance,
+        _options$newNmrJs = options.newNmrJs,
+        newNmrJs = _options$newNmrJs === undefined ? [] : _options$newNmrJs,
+        _options$diaIDs = options.diaIDs,
+        diaIDs = _options$diaIDs === undefined ? [] : _options$diaIDs,
+        _options$atoms = options.atoms,
+        atoms = _options$atoms === undefined ? [] : _options$atoms;
+
+    if (jc && jc.length > 0) {
+        jc.sort(function (a, b) {
+            return a.coupling - b.coupling;
+        });
+        if (jc[0].diaID) {
+            diaIDs = [jc[0].diaID];
+        }
+        if (jc[0].assignment) {
+            atoms = [jc[0].assignment];
+        }
+        for (var i = 0; i < jc.length - 1; i++) {
+            if (Math.abs(jc[i].coupling - jc[i + 1].coupling) < tolerance) {
+                cont++;
+                diaIDs.push(jc[i].diaID);
+                atoms.push(jc[i].assignment);
+            } else {
+                let jTemp = {
+                    'coupling': Math.abs(jc[i].coupling),
+                    'multiplicity': patterns[cont]
+                };
+                if (diaIDs.length > 0) {
+                    jTemp.diaID = diaIDs;
+                }
+                if (atoms.length > 0) {
+                    jTemp.assignment = atoms;
+                }
+                newNmrJs.push(jTemp);
+
+                pattern += patterns[cont];
+                cont = 1;
+                if (jc[0].diaID) {
+                    diaIDs = [jc[i].diaID];
+                }
+                if (jc[0].assignment) {
+                    atoms = [jc[i].assignment];
+                }
+            }
+        }
+        let jTemp = {
+            'coupling': Math.abs(jc[i].coupling),
+
+            'multiplicity': patterns[cont]
+        };
+        if (diaIDs.length > 0) {
+            jTemp.diaID = diaIDs;
+        }
+        if (atoms.length > 0) {
+            jTemp.assignment = atoms;
+        }
+        newNmrJs.push(jTemp);
+
+        pattern += patterns[cont];
+        signal.j = newNmrJs;
+    } else {
+        pattern = 's';
+    }
+    return pattern;
+}
+
 /***/ }),
-/* 22 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-module.exports.fourierTransform = __webpack_require__(62);
-module.exports.zeroFilling = __webpack_require__(65);
-module.exports.apodization = __webpack_require__(60);
-module.exports.phaseCorrection = __webpack_require__(63);
-module.exports.digitalFilter = __webpack_require__(61);
+module.exports.fourierTransform = __webpack_require__(63);
+module.exports.zeroFilling = __webpack_require__(66);
+module.exports.apodization = __webpack_require__(61);
+module.exports.phaseCorrection = __webpack_require__(64);
+module.exports.digitalFilter = __webpack_require__(62);
 
 /***/ }),
-/* 23 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4954,17 +5164,17 @@ function exist(output, properties, signal, type, symmetricSearch) {
         if (properties[i][0] === type) {
             if (distanceTo(signal, output[i], symmetricSearch) < tolerance) {
                 if (!symmetricSearch) {
-                    var shiftX = (output[i].shiftX + signal.shiftX) / 2.0;
-                    var shiftY = (output[i].shiftY + signal.shiftY) / 2.0;
+                    let shiftX = (output[i].shiftX + signal.shiftX) / 2.0;
+                    let shiftY = (output[i].shiftY + signal.shiftY) / 2.0;
                     output[i].shiftX = shiftX;
                     output[i].shiftY = shiftY;
                     signal.shiftX = shiftX;
                     signal.shiftY = shiftY;
                 } else {
-                    var _shiftX = signal.shiftX;
-                    var _shiftY = output[i].shiftX;
-                    output[i].shiftY = _shiftX;
-                    signal.shiftY = _shiftY;
+                    let shiftX = signal.shiftX;
+                    let shiftY = output[i].shiftX;
+                    output[i].shiftY = shiftX;
+                    signal.shiftY = shiftY;
                 }
                 return i;
             }
@@ -5049,89 +5259,68 @@ function alignSingleDimension(signals2D, references) {
 }
 
 /***/ }),
-/* 24 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-/**
- * Implementation of the peak picking method described by Cobas in:
- * A new approach to improving automated analysis of proton NMR spectra
- * through Global Spectral Deconvolution (GSD)
- * http://www.spectroscopyeurope.com/images/stories/ColumnPDFs/TD_23_1.pdf
- * @param {SD} spectrum - SD instance
- * @param {Object} peakList - nmr signals
- * @param {Object} options - options object with some parameter for GSD
- * @param {boolean} [options.clean = true] - If true remove all the signals with integral < 0.5
- * @param {number} [options.minMaxRatio = 0.01] - Threshold to determine if a given peak should be considered as a noise, bases on its relative height compared to the highest peak.
- * @param {number} [options.broadRatio = 0.00025] - If broadRatio is higher than 0, then all the peaks which second derivative smaller than broadRatio * maxAbsSecondDerivative will be marked with the soft mask equal to true.
- * @param {boolean} [options.smoothY = true] - Select the peak intensities from a smoothed version of the independent variables?
- * @param {number} [options.nL = 4] - factor to determine the width at the moment to group the peaks in signals in 'GSD.optimizePeaks' function.
- * @param {boolean} [options.optimize = true] - if it's true adjust an train of gaussian or lorentzian shapes to spectrum.
- * @param {string} [options.functionType = 'gaussian'] - This option allows us choose between 'gaussian' or 'lorentzian' function when options.optimize is true.
- * @param {number} [options.broadWidth = 0.25] - Threshold to determine if some peak is candidate to clustering into range.
- * @returns {Array}
- */
 
-var GSD = __webpack_require__(98);
-//var extend = require("extend");
-//var removeImpurities = require('./ImpurityRemover');
+function getMultiplicityFromSignal(signal) {
+    let multiplicity = '';
+    if (signal.pubMultiplicity) {
+        multiplicity = signal.pubMultiplicity;
+    } else if (signal.multiplicity) {
+        multiplicity = signal.multiplicity;
+    } else if (Array.isArray(signal.j) && signal.j.length > 0) {
+        var couplings = signal.j;
+        var addSpace = false;
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
 
-var defaultOptions = {
+        try {
+            for (var _iterator = couplings[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                let coupling = _step.value;
 
-    thresholdFactor: 1,
-    optimize: false,
-    minMaxRatio: 0.01,
-    broadRatio: 0.00025,
-    smoothY: true,
-    nL: 4,
-    functionType: 'gaussian',
-    broadWidth: 0.25,
-    sgOptions: { windowSize: 9, polynomial: 3 }
-};
-
-function extractPeaks(spectrum, optionsEx) {
-    var options = Object.assign({}, defaultOptions, optionsEx);
-    var noiseLevel = Math.abs(spectrum.getNoiseLevel()) * options.thresholdFactor;
-    var data = spectrum.getXYData();
-
-    if (options.from && options.to) {
-        data = spectrum.getVector(options.from, options.to);
-    }
-
-    var peakList = GSD.gsd(data[0], data[1], options);
-
-    if (options.broadWidth) {
-        peakList = GSD.post.joinBroadPeaks(peakList, { width: options.broadWidth });
-    }
-
-    if (options.optimize) {
-        peakList = GSD.post.optimizePeaks(peakList, data[0], data[1], options.nL, options.functionType);
-    }
-
-    return clearList(peakList, noiseLevel);
-}
-
-/**
- * this function remove the peaks with an intensity lower to threshold
- * @param {object} peakList - peaks
- * @param {number} threshold
- * @returns {object} the clean peakList
- * @private
- */
-function clearList(peakList, threshold) {
-    for (var i = peakList.length - 1; i >= 0; i--) {
-        if (Math.abs(peakList[i].y) < threshold) {
-            peakList.splice(i, 1);
+                if (coupling.multiplicity.length > 1) {
+                    multiplicity += ' ';
+                    addSpace = true;
+                } else {
+                    if (addSpace) {
+                        multiplicity += ' ';
+                        addSpace = false;
+                    }
+                }
+                multiplicity += coupling.multiplicity;
+            }
+        } catch (err) {
+            _didIteratorError = true;
+            _iteratorError = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                    _iterator.return();
+                }
+            } finally {
+                if (_didIteratorError) {
+                    throw _iteratorError;
+                }
+            }
         }
+
+        return multiplicity;
+    } else if (signal.delta) {
+        return 's';
+    } else {
+        return 'm';
     }
-    return peakList;
+    return multiplicity;
 }
 
-module.exports = extractPeaks;
+module.exports = getMultiplicityFromSignal;
 
 /***/ }),
-/* 25 */
+/* 24 */
 /***/ (function(module, exports) {
 
 module.exports = function(haystack, needle, comparator, low, high) {
@@ -5180,15 +5369,15 @@ module.exports = function(haystack, needle, comparator, low, high) {
 
 
 /***/ }),
-/* 26 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const Converter = __webpack_require__(29);
-const IOBuffer = __webpack_require__(78);
-const JSZip = __webpack_require__(84);
+const Converter = __webpack_require__(28);
+const IOBuffer = __webpack_require__(81);
+const JSZip = __webpack_require__(87);
 
 // constants
 var BINARY = 1;
@@ -5731,7 +5920,7 @@ module.exports =  {
 };
 
 /***/ }),
-/* 27 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5745,9 +5934,9 @@ module.exports =  {
 
 
 
-var base64 = __webpack_require__(74)
-var ieee754 = __webpack_require__(77)
-var isArray = __webpack_require__(79)
+var base64 = __webpack_require__(77)
+var ieee754 = __webpack_require__(80)
+var isArray = __webpack_require__(82)
 
 exports.Buffer = Buffer
 exports.SlowBuffer = SlowBuffer
@@ -7525,10 +7714,10 @@ function isnan (val) {
   return val !== val // eslint-disable-line no-self-compare
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(57)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(58)))
 
 /***/ }),
-/* 28 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7621,13 +7810,13 @@ module.exports = function extend() {
 
 
 /***/ }),
-/* 29 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var parseXYDataRegExp = __webpack_require__(80);
+var parseXYDataRegExp = __webpack_require__(83);
 
 
 function getConverter() {
@@ -8503,12 +8692,12 @@ module.exports = {
 
 
 /***/ }),
-/* 30 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var DataReader = __webpack_require__(32);
+var DataReader = __webpack_require__(31);
 
 function ArrayReader(data) {
     if (data) {
@@ -8561,7 +8750,7 @@ module.exports = ArrayReader;
 
 
 /***/ }),
-/* 31 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8596,7 +8785,7 @@ module.exports = CompressedObject;
 
 
 /***/ }),
-/* 32 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8711,7 +8900,7 @@ module.exports = DataReader;
 
 
 /***/ }),
-/* 33 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8729,7 +8918,7 @@ exports.dosPermissions = null;
 
 
 /***/ }),
-/* 34 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8743,12 +8932,12 @@ exports.DATA_DESCRIPTOR = "PK\x07\x08";
 
 
 /***/ }),
-/* 35 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var DataReader = __webpack_require__(32);
+var DataReader = __webpack_require__(31);
 var utils = __webpack_require__(0);
 
 function StringReader(data, optimizedBinaryString) {
@@ -8787,12 +8976,12 @@ module.exports = StringReader;
 
 
 /***/ }),
-/* 36 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var ArrayReader = __webpack_require__(30);
+var ArrayReader = __webpack_require__(29);
 
 function Uint8ArrayReader(data) {
     if (data) {
@@ -8820,7 +9009,7 @@ module.exports = Uint8ArrayReader;
 
 
 /***/ }),
-/* 37 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9034,18 +9223,18 @@ exports.utf8decode = function utf8decode(buf) {
 
 
 /***/ }),
-/* 38 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = exports = __webpack_require__(91);
+module.exports = exports = __webpack_require__(94);
 
 
-exports.getEquallySpacedData = __webpack_require__(92).getEquallySpacedData;
-exports.SNV = __webpack_require__(93).SNV;
+exports.getEquallySpacedData = __webpack_require__(95).getEquallySpacedData;
+exports.SNV = __webpack_require__(96).SNV;
 
 
 /***/ }),
-/* 39 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9068,7 +9257,7 @@ euclidean.squared = squaredEuclidean;
 
 
 /***/ }),
-/* 40 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -9305,14 +9494,25 @@ var FFT = (function(){
 
 
 /***/ }),
+/* 40 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.FFTUtils = __webpack_require__(99);
+exports.FFT = __webpack_require__(39);
+
+
+/***/ }),
 /* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const Cluster = __webpack_require__(15);
-const util = __webpack_require__(150);
+const Cluster = __webpack_require__(14);
+const util = __webpack_require__(155);
 
 function ClusterLeaf(index) {
     Cluster.call(this);
@@ -9330,259 +9530,237 @@ module.exports = ClusterLeaf;
 /* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
 /**
- * Created by acastillo on 8/24/15.
+ * Fast Fourier Transform module
+ * 1D-FFT/IFFT, 2D-FFT/IFFT (radix-2)
  */
-/**
- * Non in-place function definitions, compatible with mathjs code *
- */
+var FFT = (function(){
+  var FFT;  
+  
+  if(true) {
+    FFT = exports;   // for CommonJS
+  } else {
+    FFT = {};
+  }
+  
+  var version = {
+    release: '0.3.0',
+    date: '2013-03'
+  };
+  FFT.toString = function() {
+    return "version " + version.release + ", released " + version.date;
+  };
 
+  // core operations
+  var _n = 0,          // order
+      _bitrev = null,  // bit reversal table
+      _cstb = null;    // sin/cos table
 
-
-var Matrix = __webpack_require__(7);
-
-function matrix(A,B){
-    return new Matrix(A,B);
-}
-
-function ones(rows, cols){
-    return Matrix.ones(rows,cols);
-}
-
-function eye(rows, cols){
-    return Matrix.eye(rows, cols);
-}
-
-function zeros(rows, cols){
-    return Matrix.zeros(rows, cols);
-}
-
-function random(rows, cols){
-    return Matrix.rand(rows,cols);
-}
-
-function transpose(A){
-    if(typeof A == 'number')
-        return A;
-    var result = A.clone();
-    return result.transpose();
-}
-
-function add(A, B){
-    if(typeof A == 'number'&&typeof B === 'number')
-        return A+B;
-    if(typeof A == 'number')
-        return this.add(B,A);
-
-    var result = A.clone();
-    return result.add(B);
-
-}
-
-function subtract(A, B){
-    if(typeof A == 'number'&&typeof B === 'number')
-        return A-B;
-    if(typeof A == 'number')
-        return this.subtract(B,A);
-    var result = A.clone();
-    return result.sub(B);
-}
-
-function multiply(A, B){
-    if(typeof A == 'number'&&typeof B === 'number')
-        return A*B;
-    if(typeof A == 'number')
-        return this.multiply(B,A);
-
-    var result = A.clone();
-
-    if(typeof B === 'number')
-        result.mul(B);
-    else
-        result = result.mmul(B);
-
-    if(result.rows==1&&result.columns==1)
-        return result[0][0];
-    else
-        return result;
-
-}
-
-function dotMultiply(A, B){
-    var result = A.clone();
-    return result.mul(B);
-}
-
-function dotDivide(A, B){
-    var result = A.clone();
-    return result.div(B);
-}
-
-function diag(A){
-    var diag = null;
-    var rows = A.rows, cols = A.columns, j, r;
-    //It is an array
-    if(typeof cols === "undefined" && (typeof A)=='object'){
-        if(A[0]&&A[0].length){
-            rows = A.length;
-            cols = A[0].length;
-            r = Math.min(rows,cols);
-            diag = Matrix.zeros(cols, cols);
-            for (j = 0; j < cols; j++) {
-                diag[j][j]=A[j][j];
-            }
+  var core = {
+    init : function(n) {
+      if(n !== 0 && (n & (n - 1)) === 0) {
+        _n = n;
+        core._initArray();
+        core._makeBitReversalTable();
+        core._makeCosSinTable();
+      } else {
+        throw new Error("init: radix-2 required");
+      }
+    },
+    // 1D-FFT
+    fft1d : function(re, im) {
+      core.fft(re, im, 1);
+    },
+    // 1D-IFFT
+    ifft1d : function(re, im) {
+      var n = 1/_n;
+      core.fft(re, im, -1);
+      for(var i=0; i<_n; i++) {
+        re[i] *= n;
+        im[i] *= n;
+      }
+    },
+     // 1D-IFFT
+    bt1d : function(re, im) {
+      core.fft(re, im, -1);
+    },
+    // 2D-FFT Not very useful if the number of rows have to be equal to cols
+    fft2d : function(re, im) {
+      var tre = [],
+          tim = [],
+          i = 0;
+      // x-axis
+      for(var y=0; y<_n; y++) {
+        i = y*_n;
+        for(var x1=0; x1<_n; x1++) {
+          tre[x1] = re[x1 + i];
+          tim[x1] = im[x1 + i];
         }
-        else{
-            cols = A.length;
-            diag = Matrix.zeros(cols, cols);
-            for (j = 0; j < cols; j++) {
-                diag[j][j]=A[j];
-            }
+        core.fft1d(tre, tim);
+        for(var x2=0; x2<_n; x2++) {
+          re[x2 + i] = tre[x2];
+          im[x2 + i] = tim[x2];
         }
-
+      }
+      // y-axis
+      for(var x=0; x<_n; x++) {
+        for(var y1=0; y1<_n; y1++) {
+          i = x + y1*_n;
+          tre[y1] = re[i];
+          tim[y1] = im[i];
+        }
+        core.fft1d(tre, tim);
+        for(var y2=0; y2<_n; y2++) {
+          i = x + y2*_n;
+          re[i] = tre[y2];
+          im[i] = tim[y2];
+        }
+      }
+    },
+    // 2D-IFFT
+    ifft2d : function(re, im) {
+      var tre = [],
+          tim = [],
+          i = 0;
+      // x-axis
+      for(var y=0; y<_n; y++) {
+        i = y*_n;
+        for(var x1=0; x1<_n; x1++) {
+          tre[x1] = re[x1 + i];
+          tim[x1] = im[x1 + i];
+        }
+        core.ifft1d(tre, tim);
+        for(var x2=0; x2<_n; x2++) {
+          re[x2 + i] = tre[x2];
+          im[x2 + i] = tim[x2];
+        }
+      }
+      // y-axis
+      for(var x=0; x<_n; x++) {
+        for(var y1=0; y1<_n; y1++) {
+          i = x + y1*_n;
+          tre[y1] = re[i];
+          tim[y1] = im[i];
+        }
+        core.ifft1d(tre, tim);
+        for(var y2=0; y2<_n; y2++) {
+          i = x + y2*_n;
+          re[i] = tre[y2];
+          im[i] = tim[y2];
+        }
+      }
+    },
+    // core operation of FFT
+    fft : function(re, im, inv) {
+      var d, h, ik, m, tmp, wr, wi, xr, xi,
+          n4 = _n >> 2;
+      // bit reversal
+      for(var l=0; l<_n; l++) {
+        m = _bitrev[l];
+        if(l < m) {
+          tmp = re[l];
+          re[l] = re[m];
+          re[m] = tmp;
+          tmp = im[l];
+          im[l] = im[m];
+          im[m] = tmp;
+        }
+      }
+      // butterfly operation
+      for(var k=1; k<_n; k<<=1) {
+        h = 0;
+        d = _n/(k << 1);
+        for(var j=0; j<k; j++) {
+          wr = _cstb[h + n4];
+          wi = inv*_cstb[h];
+          for(var i=j; i<_n; i+=(k<<1)) {
+            ik = i + k;
+            xr = wr*re[ik] + wi*im[ik];
+            xi = wr*im[ik] - wi*re[ik];
+            re[ik] = re[i] - xr;
+            re[i] += xr;
+            im[ik] = im[i] - xi;
+            im[i] += xi;
+          }
+          h += d;
+        }
+      }
+    },
+    // initialize the array (supports TypedArray)
+    _initArray : function() {
+      if(typeof Uint32Array !== 'undefined') {
+        _bitrev = new Uint32Array(_n);
+      } else {
+        _bitrev = [];
+      }
+      if(typeof Float64Array !== 'undefined') {
+        _cstb = new Float64Array(_n*1.25);
+      } else {
+        _cstb = [];
+      }
+    },
+    // zero padding
+    _paddingZero : function() {
+      // TODO
+    },
+    // makes bit reversal table
+    _makeBitReversalTable : function() {
+      var i = 0,
+          j = 0,
+          k = 0;
+      _bitrev[0] = 0;
+      while(++i < _n) {
+        k = _n >> 1;
+        while(k <= j) {
+          j -= k;
+          k >>= 1;
+        }
+        j += k;
+        _bitrev[i] = j;
+      }
+    },
+    // makes trigonometiric function table
+    _makeCosSinTable : function() {
+      var n2 = _n >> 1,
+          n4 = _n >> 2,
+          n8 = _n >> 3,
+          n2p4 = n2 + n4,
+          t = Math.sin(Math.PI/_n),
+          dc = 2*t*t,
+          ds = Math.sqrt(dc*(2 - dc)),
+          c = _cstb[n4] = 1,
+          s = _cstb[0] = 0;
+      t = 2*dc;
+      for(var i=1; i<n8; i++) {
+        c -= dc;
+        dc += t*c;
+        s += ds;
+        ds -= t*s;
+        _cstb[i] = s;
+        _cstb[n4 - i] = c;
+      }
+      if(n8 !== 0) {
+        _cstb[n8] = Math.sqrt(0.5);
+      }
+      for(var j=0; j<n4; j++) {
+        _cstb[n2 - j]  = _cstb[j];
+      }
+      for(var k=0; k<n2p4; k++) {
+        _cstb[k + n2] = -_cstb[k];
+      }
     }
-    if(rows == 1){
-        diag = Matrix.zeros(cols, cols);
-        for (j = 0; j < cols; j++) {
-            diag[j][j]=A[0][j];
-        }
-    }
-    else{
-        if(rows>0 && cols > 0){
-            r = Math.min(rows,cols);
-            diag = new Array(r);
-            for (j = 0; j < r; j++) {
-                diag[j] = A[j][j];
-            }
-        }
-    }
-    return diag;
-}
-
-function min(A, B){
-    if(typeof A==='number' && typeof B ==='number')
-        return Math.min(A,B);
-    var ii = A.rows, jj = A.columns;
-    var result = new Matrix(ii,jj);
-    for (var i = 0; i < ii; i++) {
-        for (var j = 0; j < jj; j++) {
-            if (A[i][j] < B[i][j]) {
-                result[i][j] = A[i][j];
-            }
-            else{
-                result[i][j] = B[i][j];
-            }
-        }
-    }
-    return result;
-}
-
-function max(A, B){
-    if(typeof A==='number' && typeof B ==='number')
-        return Math.max(A,B);
-    var ii = A.rows, jj = A.columns;
-    var result = new Matrix(ii,jj);
-    for (var i = 0; i < ii; i++) {
-        for (var j = 0; j < jj; j++) {
-            if (A[i][j] > B[i][j]) {
-                result[i][j] = A[i][j];
-            }
-            else{
-                result[i][j] = B[i][j];
-            }
-        }
-    }
-    return result;
-}
-
-function sqrt(A){
-    if(typeof A==='number' )
-        return Math.sqrt(A);
-    var ii = A.rows, jj = A.columns;
-    var result = new Matrix(ii,jj);
-    for (var i = 0; i < ii; i++) {
-        for (var j = 0; j < jj; j++) {
-            result[i][j] = Math.sqrt(A[i][j]);
-
-        }
-    }
-    return result;
-}
-
-function abs(A){
-    if(typeof A==='number' )
-        return Math.abs(A);
-    var ii = A.rows, jj = A.columns;
-    var result = new Matrix(ii,jj);
-    for (var i = 0; i < ii; i++) {
-        for (var j = 0; j < jj; j++) {
-            result[i][j] = Math.abs(A[i][j]);
-
-        }
-    }
-    return result;
-}
-
-function exp(A){
-    if(typeof A==='number' )
-        return Math.sqrt(A);
-    var ii = A.rows, jj = A.columns;
-    var result = new Matrix(ii,jj);
-    for (var i = 0; i < ii; i++) {
-        for (var j = 0; j < jj; j++) {
-            result[i][j] = Math.exp(A[i][j]);
-        }
-    }
-    return result;
-}
-
-function dotPow(A, b){
-    if(typeof A==='number' )
-        return Math.pow(A,b);
-    //console.log(A);
-    var ii = A.rows, jj = A.columns;
-    var result = new Matrix(ii,jj);
-    for (var i = 0; i < ii; i++) {
-        for (var j = 0; j < jj; j++) {
-            result[i][j] = Math.pow(A[i][j],b);
-        }
-    }
-    return result;
-}
-
-function solve(A, B){
-    return A.solve(B);
-}
-
-function inv(A){
-    if(typeof A ==="number")
-        return 1/A;
-    return A.inverse();
-}
-
-module.exports = {
-    transpose:transpose,
-    add:add,
-    subtract:subtract,
-    multiply:multiply,
-    dotMultiply:dotMultiply,
-    dotDivide:dotDivide,
-    diag:diag,
-    min:min,
-    max:max,
-    solve:solve,
-    inv:inv,
-    sqrt:sqrt,
-    exp:exp,
-    dotPow:dotPow,
-    abs:abs,
-    matrix:matrix,
-    ones:ones,
-    zeros:zeros,
-    random:random,
-    eye:eye
-};
+  };
+  // aliases (public APIs)
+  var apis = ['init', 'fft1d', 'ifft1d', 'fft2d', 'ifft2d'];
+  for(var i=0; i<apis.length; i++) {
+    FFT[apis[i]] = core[apis[i]];
+  }
+  FFT.bt = core.bt1d;
+  FFT.fft = core.fft1d;
+  FFT.ifft = core.ifft1d;
+  
+  return FFT;
+}).call(this);
 
 
 /***/ }),
@@ -9592,1378 +9770,19 @@ module.exports = {
 "use strict";
 
 
-function compareNumbers(a, b) {
-    return a - b;
-}
-
-/**
- * Computes the sum of the given values
- * @param {Array} values
- * @returns {number}
- */
-exports.sum = function sum(values) {
-    var sum = 0;
-    for (var i = 0; i < values.length; i++) {
-        sum += values[i];
-    }
-    return sum;
-};
-
-/**
- * Computes the maximum of the given values
- * @param {Array} values
- * @returns {number}
- */
-exports.max = function max(values) {
-    var max = -Infinity;
-    var l = values.length;
-    for (var i = 0; i < l; i++) {
-        if (values[i] > max) max = values[i];
-    }
-    return max;
-};
-
-/**
- * Computes the minimum of the given values
- * @param {Array} values
- * @returns {number}
- */
-exports.min = function min(values) {
-    var min = Infinity;
-    var l = values.length;
-    for (var i = 0; i < l; i++) {
-        if (values[i] < min) min = values[i];
-    }
-    return min;
-};
-
-/**
- * Computes the min and max of the given values
- * @param {Array} values
- * @returns {{min: number, max: number}}
- */
-exports.minMax = function minMax(values) {
-    var min = Infinity;
-    var max = -Infinity;
-    var l = values.length;
-    for (var i = 0; i < l; i++) {
-        if (values[i] < min) min = values[i];
-        if (values[i] > max) max = values[i];
-    }
-    return {
-        min: min,
-        max: max
-    };
-};
-
-/**
- * Computes the arithmetic mean of the given values
- * @param {Array} values
- * @returns {number}
- */
-exports.arithmeticMean = function arithmeticMean(values) {
-    var sum = 0;
-    var l = values.length;
-    for (var i = 0; i < l; i++) {
-        sum += values[i];
-    }
-    return sum / l;
-};
-
-/**
- * {@link arithmeticMean}
- */
-exports.mean = exports.arithmeticMean;
-
-/**
- * Computes the geometric mean of the given values
- * @param {Array} values
- * @returns {number}
- */
-exports.geometricMean = function geometricMean(values) {
-    var mul = 1;
-    var l = values.length;
-    for (var i = 0; i < l; i++) {
-        mul *= values[i];
-    }
-    return Math.pow(mul, 1 / l);
-};
-
-/**
- * Computes the mean of the log of the given values
- * If the return value is exponentiated, it gives the same result as the
- * geometric mean.
- * @param {Array} values
- * @returns {number}
- */
-exports.logMean = function logMean(values) {
-    var lnsum = 0;
-    var l = values.length;
-    for (var i = 0; i < l; i++) {
-        lnsum += Math.log(values[i]);
-    }
-    return lnsum / l;
-};
-
-/**
- * Computes the weighted grand mean for a list of means and sample sizes
- * @param {Array} means - Mean values for each set of samples
- * @param {Array} samples - Number of original values for each set of samples
- * @returns {number}
- */
-exports.grandMean = function grandMean(means, samples) {
-    var sum = 0;
-    var n = 0;
-    var l = means.length;
-    for (var i = 0; i < l; i++) {
-        sum += samples[i] * means[i];
-        n += samples[i];
-    }
-    return sum / n;
-};
-
-/**
- * Computes the truncated mean of the given values using a given percentage
- * @param {Array} values
- * @param {number} percent - The percentage of values to keep (range: [0,1])
- * @param {boolean} [alreadySorted=false]
- * @returns {number}
- */
-exports.truncatedMean = function truncatedMean(values, percent, alreadySorted) {
-    if (alreadySorted === undefined) alreadySorted = false;
-    if (!alreadySorted) {
-        values = values.slice().sort(compareNumbers);
-    }
-    var l = values.length;
-    var k = Math.floor(l * percent);
-    var sum = 0;
-    for (var i = k; i < (l - k); i++) {
-        sum += values[i];
-    }
-    return sum / (l - 2 * k);
-};
-
-/**
- * Computes the harmonic mean of the given values
- * @param {Array} values
- * @returns {number}
- */
-exports.harmonicMean = function harmonicMean(values) {
-    var sum = 0;
-    var l = values.length;
-    for (var i = 0; i < l; i++) {
-        if (values[i] === 0) {
-            throw new RangeError('value at index ' + i + 'is zero');
-        }
-        sum += 1 / values[i];
-    }
-    return l / sum;
-};
-
-/**
- * Computes the contraharmonic mean of the given values
- * @param {Array} values
- * @returns {number}
- */
-exports.contraHarmonicMean = function contraHarmonicMean(values) {
-    var r1 = 0;
-    var r2 = 0;
-    var l = values.length;
-    for (var i = 0; i < l; i++) {
-        r1 += values[i] * values[i];
-        r2 += values[i];
-    }
-    if (r2 < 0) {
-        throw new RangeError('sum of values is negative');
-    }
-    return r1 / r2;
-};
-
-/**
- * Computes the median of the given values
- * @param {Array} values
- * @param {boolean} [alreadySorted=false]
- * @returns {number}
- */
-exports.median = function median(values, alreadySorted) {
-    if (alreadySorted === undefined) alreadySorted = false;
-    if (!alreadySorted) {
-        values = values.slice().sort(compareNumbers);
-    }
-    var l = values.length;
-    var half = Math.floor(l / 2);
-    if (l % 2 === 0) {
-        return (values[half - 1] + values[half]) * 0.5;
-    } else {
-        return values[half];
-    }
-};
-
-/**
- * Computes the variance of the given values
- * @param {Array} values
- * @param {boolean} [unbiased=true] - if true, divide by (n-1); if false, divide by n.
- * @returns {number}
- */
-exports.variance = function variance(values, unbiased) {
-    if (unbiased === undefined) unbiased = true;
-    var theMean = exports.mean(values);
-    var theVariance = 0;
-    var l = values.length;
-
-    for (var i = 0; i < l; i++) {
-        var x = values[i] - theMean;
-        theVariance += x * x;
-    }
-
-    if (unbiased) {
-        return theVariance / (l - 1);
-    } else {
-        return theVariance / l;
-    }
-};
-
-/**
- * Computes the standard deviation of the given values
- * @param {Array} values
- * @param {boolean} [unbiased=true] - if true, divide by (n-1); if false, divide by n.
- * @returns {number}
- */
-exports.standardDeviation = function standardDeviation(values, unbiased) {
-    return Math.sqrt(exports.variance(values, unbiased));
-};
-
-exports.standardError = function standardError(values) {
-    return exports.standardDeviation(values) / Math.sqrt(values.length);
-};
-
-exports.quartiles = function quartiles(values, alreadySorted) {
-    if (typeof(alreadySorted) === 'undefined') alreadySorted = false;
-    if (!alreadySorted) {
-        values = values.slice();
-        values.sort(compareNumbers);
-    }
-
-    var quart = values.length / 4;
-    var q1 = values[Math.ceil(quart) - 1];
-    var q2 = exports.median(values, true);
-    var q3 = values[Math.ceil(quart * 3) - 1];
-
-    return {q1: q1, q2: q2, q3: q3};
-};
-
-exports.pooledStandardDeviation = function pooledStandardDeviation(samples, unbiased) {
-    return Math.sqrt(exports.pooledVariance(samples, unbiased));
-};
-
-exports.pooledVariance = function pooledVariance(samples, unbiased) {
-    if (typeof(unbiased) === 'undefined') unbiased = true;
-    var sum = 0;
-    var length = 0, l = samples.length;
-    for (var i = 0; i < l; i++) {
-        var values = samples[i];
-        var vari = exports.variance(values);
-
-        sum += (values.length - 1) * vari;
-
-        if (unbiased)
-            length += values.length - 1;
-        else
-            length += values.length;
-    }
-    return sum / length;
-};
-
-exports.mode = function mode(values) {
-    var l = values.length,
-        itemCount = new Array(l),
-        i;
-    for (i = 0; i < l; i++) {
-        itemCount[i] = 0;
-    }
-    var itemArray = new Array(l);
-    var count = 0;
-
-    for (i = 0; i < l; i++) {
-        var index = itemArray.indexOf(values[i]);
-        if (index >= 0)
-            itemCount[index]++;
-        else {
-            itemArray[count] = values[i];
-            itemCount[count] = 1;
-            count++;
-        }
-    }
-
-    var maxValue = 0, maxIndex = 0;
-    for (i = 0; i < count; i++) {
-        if (itemCount[i] > maxValue) {
-            maxValue = itemCount[i];
-            maxIndex = i;
-        }
-    }
-
-    return itemArray[maxIndex];
-};
-
-exports.covariance = function covariance(vector1, vector2, unbiased) {
-    if (typeof(unbiased) === 'undefined') unbiased = true;
-    var mean1 = exports.mean(vector1);
-    var mean2 = exports.mean(vector2);
-
-    if (vector1.length !== vector2.length)
-        throw "Vectors do not have the same dimensions";
-
-    var cov = 0, l = vector1.length;
-    for (var i = 0; i < l; i++) {
-        var x = vector1[i] - mean1;
-        var y = vector2[i] - mean2;
-        cov += x * y;
-    }
-
-    if (unbiased)
-        return cov / (l - 1);
-    else
-        return cov / l;
-};
-
-exports.skewness = function skewness(values, unbiased) {
-    if (typeof(unbiased) === 'undefined') unbiased = true;
-    var theMean = exports.mean(values);
-
-    var s2 = 0, s3 = 0, l = values.length;
-    for (var i = 0; i < l; i++) {
-        var dev = values[i] - theMean;
-        s2 += dev * dev;
-        s3 += dev * dev * dev;
-    }
-    var m2 = s2 / l;
-    var m3 = s3 / l;
-
-    var g = m3 / (Math.pow(m2, 3 / 2.0));
-    if (unbiased) {
-        var a = Math.sqrt(l * (l - 1));
-        var b = l - 2;
-        return (a / b) * g;
-    }
-    else {
-        return g;
-    }
-};
-
-exports.kurtosis = function kurtosis(values, unbiased) {
-    if (typeof(unbiased) === 'undefined') unbiased = true;
-    var theMean = exports.mean(values);
-    var n = values.length, s2 = 0, s4 = 0;
-
-    for (var i = 0; i < n; i++) {
-        var dev = values[i] - theMean;
-        s2 += dev * dev;
-        s4 += dev * dev * dev * dev;
-    }
-    var m2 = s2 / n;
-    var m4 = s4 / n;
-
-    if (unbiased) {
-        var v = s2 / (n - 1);
-        var a = (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3));
-        var b = s4 / (v * v);
-        var c = ((n - 1) * (n - 1)) / ((n - 2) * (n - 3));
-
-        return a * b - 3 * c;
-    }
-    else {
-        return m4 / (m2 * m2) - 3;
-    }
-};
-
-exports.entropy = function entropy(values, eps) {
-    if (typeof(eps) === 'undefined') eps = 0;
-    var sum = 0, l = values.length;
-    for (var i = 0; i < l; i++)
-        sum += values[i] * Math.log(values[i] + eps);
-    return -sum;
-};
-
-exports.weightedMean = function weightedMean(values, weights) {
-    var sum = 0, l = values.length;
-    for (var i = 0; i < l; i++)
-        sum += values[i] * weights[i];
-    return sum;
-};
-
-exports.weightedStandardDeviation = function weightedStandardDeviation(values, weights) {
-    return Math.sqrt(exports.weightedVariance(values, weights));
-};
-
-exports.weightedVariance = function weightedVariance(values, weights) {
-    var theMean = exports.weightedMean(values, weights);
-    var vari = 0, l = values.length;
-    var a = 0, b = 0;
-
-    for (var i = 0; i < l; i++) {
-        var z = values[i] - theMean;
-        var w = weights[i];
-
-        vari += w * (z * z);
-        b += w;
-        a += w * w;
-    }
-
-    return vari * (b / (b * b - a));
-};
-
-exports.center = function center(values, inPlace) {
-    if (typeof(inPlace) === 'undefined') inPlace = false;
-
-    var result = values;
-    if (!inPlace)
-        result = values.slice();
-
-    var theMean = exports.mean(result), l = result.length;
-    for (var i = 0; i < l; i++)
-        result[i] -= theMean;
-};
-
-exports.standardize = function standardize(values, standardDev, inPlace) {
-    if (typeof(standardDev) === 'undefined') standardDev = exports.standardDeviation(values);
-    if (typeof(inPlace) === 'undefined') inPlace = false;
-    var l = values.length;
-    var result = inPlace ? values : new Array(l);
-    for (var i = 0; i < l; i++)
-        result[i] = values[i] / standardDev;
-    return result;
-};
-
-exports.cumulativeSum = function cumulativeSum(array) {
-    var l = array.length;
-    var result = new Array(l);
-    result[0] = array[0];
-    for (var i = 1; i < l; i++)
-        result[i] = result[i - 1] + array[i];
-    return result;
-};
-
-
-/***/ }),
-/* 44 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/**
- * Created by acastillo on 8/8/16.
- */
-
-
-const defOptions = {
-    threshold:0,
-    out:"assignment"
-};
-//TODO Consider a matrix of distances too
-module.exports = function fullClusterGenerator(conMat, opt) {
-    const options = Object.assign({}, defOptions, opt);
-    var clList, i, j, k;
-    if(typeof conMat[0] === "number"){
-        clList = fullClusterGeneratorVector(conMat);
-    }
-    else{
-        if(typeof conMat[0] === "object"){
-            var nRows = conMat.length;
-            var conn = new Array(nRows*(nRows+1)/2);
-            var index = 0;
-            for(var i=0;i<nRows;i++){
-                for(var j=i;j<nRows;j++){
-                    if(conMat[i][j]>options.threshold)
-                        conn[index++]= 1;
-                    else
-                        conn[index++]= 0;
-                }
-            }
-            clList = fullClusterGeneratorVector(conn);
-        }
-    }
-    if (options.out === "indexes" || options.out === "values") {
-        var result = new Array(clList.length);
-        for(i=0;i<clList.length;i++){
-            result[i] = [];
-            for(j=0;j<clList[i].length;j++){
-                if(clList[i][j] != 0){
-                    result[i].push(j);
-                }
-            }
-        }
-        if (options.out === "values") {
-            var resultAsMatrix = new Array(result.length);
-            for (i = 0; i<result.length;i++){
-                resultAsMatrix[i]=new Array(result[i].length);
-                for(j = 0; j < result[i].length; j++){
-                    resultAsMatrix[i][j]=new Array(result[i].length);
-                    for(k = 0; k < result[i].length; k++){
-                        resultAsMatrix[i][j][k]=conMat[result[i][j]][result[i][k]];
-                    }
-                }
-            }
-            return resultAsMatrix;
-        }
-        else{
-            return result;
-        }
-    }
-
-    return clList;
-
-}
-
-function fullClusterGeneratorVector(conn){
-    var nRows = Math.sqrt(conn.length*2+0.25)-0.5;
-    var clusterList = [];
-    var available = new Array(nRows);
-    var remaining = nRows, i=0;
-    var cluster = [];
-    //Mark all the elements as available
-    for(i=nRows-1;i>=0;i--){
-        available[i]=1;
-    }
-    var nextAv=-1;
-    var toInclude = [];
-    while(remaining>0){
-        if(toInclude.length===0){
-            //If there is no more elements to include. Start a new cluster
-            cluster = new Array(nRows);
-            for(i = 0;i < nRows ;i++)
-                cluster[i]=0;
-            clusterList.push(cluster);
-            for(nextAv = 0;available[nextAv]==0;nextAv++){};
-        }
-        else{
-            nextAv=toInclude.splice(0,1);
-        }
-        cluster[nextAv]=1;
-        available[nextAv]=0;
-        remaining--;
-        //Copy the next available row
-        var row = new Array(nRows);
-        for( i = 0;i < nRows;i++){
-            var c=Math.max(nextAv,i);
-            var r=Math.min(nextAv,i);
-            //The element in the conn matrix
-            //console.log("index: "+r*(2*nRows-r-1)/2+c)
-            row[i]=conn[r*(2*nRows-r-1)/2+c];
-            //There is new elements to include in this row?
-            //Then, include it to the current cluster
-            if(row[i]==1&&available[i]==1&&cluster[i]==0){
-                toInclude.push(i);
-                cluster[i]=1;
-            }
-        }
-    }
-    return clusterList;
-}
-
-/***/ }),
-/* 45 */
-/***/ (function(module, exports, __webpack_require__) {
-
-const HashTable = __webpack_require__(100);
-
-class SparseMatrix {
-    constructor(rows, columns, options = {}) {
-        if (rows instanceof SparseMatrix) { // clone
-            const other = rows;
-            this._init(other.rows, other.columns, other.elements.clone(), other.threshold);
-            return;
-        }
-
-        if (Array.isArray(rows)) {
-            const matrix = rows;
-            rows = matrix.length;
-            options = columns || {};
-            columns = matrix[0].length;
-            this._init(rows, columns, new HashTable(options), options.threshold);
-            for (var i = 0; i < rows; i++) {
-                for (var j = 0; j < columns; j++) {
-                    var value = matrix[i][j];
-                    if (this.threshold && Math.abs(value) < this.threshold) value = 0;
-                    if (value !== 0) {
-                        this.elements.set(i * columns + j, matrix[i][j]);
-                    }
-                }
-            }
-        } else {
-            this._init(rows, columns, new HashTable(options), options.threshold);
-        }
-    }
-
-    _init(rows, columns, elements, threshold) {
-        this.rows = rows;
-        this.columns = columns;
-        this.elements = elements;
-        this.threshold = threshold || 0;
-    }
-    
-    static eye(rows = 1, columns = rows) {
-        const min = Math.min(rows, columns);
-        const matrix = new SparseMatrix(rows, columns, {initialCapacity: min});
-        for (var i = 0; i < min; i++) {
-            matrix.set(i, i, 1);
-        }
-        return matrix;
-    }
-
-    clone() {
-        return new SparseMatrix(this);
-    }
-    
-    to2DArray() {
-        const copy = new Array(this.rows);
-        for (var i = 0; i < this.rows; i++) {
-            copy[i] = new Array(this.columns);
-            for (var j = 0; j < this.columns; j++) {
-                copy[i][j] = this.get(i, j);
-            }
-        }
-        return copy;
-    }
-
-    isSquare() {
-        return this.rows === this.columns;
-    }
-
-    isSymmetric() {
-        if (!this.isSquare()) return false;
-
-        var symmetric = true;
-        this.forEachNonZero((i, j, v) => {
-            if (this.get(j, i) !== v) {
-                symmetric = false;
-                return false;
-            }
-            return v;
-        });
-        return symmetric;
-    }
-
-    get cardinality() {
-        return this.elements.size;
-    }
-
-    get size() {
-        return this.rows * this.columns;
-    }
-
-    get(row, column) {
-        return this.elements.get(row * this.columns + column);
-    }
-
-    set(row, column, value) {
-        if (this.threshold && Math.abs(value) < this.threshold) value = 0;
-        if (value === 0) {
-            this.elements.remove(row * this.columns + column);
-        } else {
-            this.elements.set(row * this.columns + column, value);
-        }
-        return this;
-    }
-    
-    mmul(other) {
-        if (this.columns !== other.rows)
-            console.warn('Number of columns of left matrix are not equal to number of rows of right matrix.');
-        
-        const m = this.rows;
-        const p = other.columns;
-        
-        const result = new SparseMatrix(m, p);
-        this.forEachNonZero((i, j, v1) => {
-            other.forEachNonZero((k, l, v2) => {
-                if (j === k) {
-                    result.set(i, l, result.get(i, l) + v1 * v2);
-                }
-                return v2;
-            });
-            return v1;
-        });
-        return result;
-    }
-
-    kroneckerProduct(other) {
-        const m = this.rows;
-        const n = this.columns;
-        const p = other.rows;
-        const q = other.columns;
-
-        const result = new SparseMatrix(m * p, n * q, {
-            initialCapacity: this.cardinality * other.cardinality
-        });
-        this.forEachNonZero((i, j, v1) => {
-            other.forEachNonZero((k, l, v2) => {
-                result.set(p * i + k, q * j + l, v1 * v2);
-                return v2;
-            });
-            return v1;
-        });
-        return result;
-    }
-
-    forEachNonZero(callback) {
-        this.elements.forEachPair((key, value) => {
-            const i = (key / this.columns) | 0;
-            const j = key % this.columns;
-            let r = callback(i, j, value);
-            if (r === false) return false; // stop iteration
-            if (this.threshold && Math.abs(r) < this.threshold) r = 0;
-            if (r !== value) {
-                if (r === 0) {
-                    this.elements.remove(key, true);
-                } else {
-                    this.elements.set(key, r);
-                }
-            }
-            return true;
-        });
-        this.elements.maybeShrinkCapacity();
-        return this;
-    }
-
-    getNonZeros() {
-        const cardinality = this.cardinality;
-        const rows = new Array(cardinality);
-        const columns = new Array(cardinality);
-        const values = new Array(cardinality);
-        var idx = 0;
-        this.forEachNonZero((i, j, value) => {
-            rows[idx] = i;
-            columns[idx] = j;
-            values[idx] = value;
-            idx++;
-            return value;
-        });
-        return {rows, columns, values};
-    }
-
-    setThreshold(newThreshold) {
-        if (newThreshold !== 0 && newThreshold !== this.threshold) {
-            this.threshold = newThreshold;
-            this.forEachNonZero((i, j, v) => v);
-        }
-        return this;
-    }
-}
-
-SparseMatrix.prototype.klass = 'Matrix';
-
-SparseMatrix.identity = SparseMatrix.eye;
-SparseMatrix.prototype.tensorProduct = SparseMatrix.prototype.kroneckerProduct;
-
-module.exports = SparseMatrix;
-
-/*
- Add dynamically instance and static methods for mathematical operations
- */
-
-var inplaceOperator = `
-(function %name%(value) {
-    if (typeof value === 'number') return this.%name%S(value);
-    return this.%name%M(value);
-})
-`;
-
-var inplaceOperatorScalar = `
-(function %name%S(value) {
-    this.forEachNonZero((i, j, v) => v %op% value);
-    return this;
-})
-`;
-
-var inplaceOperatorMatrix = `
-(function %name%M(matrix) {
-    matrix.forEachNonZero((i, j, v) => {
-        this.set(i, j, this.get(i, j) %op% v);
-        return v;
-    });
-    return this;
-})
-`;
-
-var staticOperator = `
-(function %name%(matrix, value) {
-    var newMatrix = new SparseMatrix(matrix);
-    return newMatrix.%name%(value);
-})
-`;
-
-var inplaceMethod = `
-(function %name%() {
-    this.forEachNonZero((i, j, v) => %method%(v));
-    return this;
-})
-`;
-
-var staticMethod = `
-(function %name%(matrix) {
-    var newMatrix = new SparseMatrix(matrix);
-    return newMatrix.%name%();
-})
-`;
-
-var operators = [
-    // Arithmetic operators
-    ['+', 'add'],
-    ['-', 'sub', 'subtract'],
-    ['*', 'mul', 'multiply'],
-    ['/', 'div', 'divide'],
-    ['%', 'mod', 'modulus'],
-    // Bitwise operators
-    ['&', 'and'],
-    ['|', 'or'],
-    ['^', 'xor'],
-    ['<<', 'leftShift'],
-    ['>>', 'signPropagatingRightShift'],
-    ['>>>', 'rightShift', 'zeroFillRightShift']
-];
-
-for (var operator of operators) {
-    for (var i = 1; i < operator.length; i++) {
-        SparseMatrix.prototype[operator[i]] = eval(fillTemplateFunction(inplaceOperator, {name: operator[i], op: operator[0]}));
-        SparseMatrix.prototype[operator[i] + 'S'] = eval(fillTemplateFunction(inplaceOperatorScalar, {name: operator[i] + 'S', op: operator[0]}));
-        SparseMatrix.prototype[operator[i] + 'M'] = eval(fillTemplateFunction(inplaceOperatorMatrix, {name: operator[i] + 'M', op: operator[0]}));
-
-        SparseMatrix[operator[i]] = eval(fillTemplateFunction(staticOperator, {name: operator[i]}));
-    }
-}
-
-var methods = [
-    ['~', 'not']
-];
-
-[
-    'abs', 'acos', 'acosh', 'asin', 'asinh', 'atan', 'atanh', 'cbrt', 'ceil',
-    'clz32', 'cos', 'cosh', 'exp', 'expm1', 'floor', 'fround', 'log', 'log1p',
-    'log10', 'log2', 'round', 'sign', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', 'trunc'
-].forEach(function (mathMethod) {
-    methods.push(['Math.' + mathMethod, mathMethod]);
-});
-
-for (var method of methods) {
-    for (var i = 1; i < method.length; i++) {
-        SparseMatrix.prototype[method[i]] = eval(fillTemplateFunction(inplaceMethod, {name: method[i], method: method[0]}));
-        SparseMatrix[method[i]] = eval(fillTemplateFunction(staticMethod, {name: method[i]}));
-    }
-}
-
-function fillTemplateFunction(template, values) {
-    for (var i in values) {
-        template = template.replace(new RegExp('%' + i + '%', 'g'), values[i]);
-    }
-    return template;
-}
-
-
-/***/ }),
-/* 46 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-function compareNumbers(a, b) {
-    return a - b;
-}
-
-/**
- * Computes the sum of the given values
- * @param {Array} values
- * @returns {number}
- */
-exports.sum = function sum(values) {
-    var sum = 0;
-    for (var i = 0; i < values.length; i++) {
-        sum += values[i];
-    }
-    return sum;
-};
-
-/**
- * Computes the maximum of the given values
- * @param {Array} values
- * @returns {number}
- */
-exports.max = function max(values) {
-    var max = values[0];
-    var l = values.length;
-    for (var i = 1; i < l; i++) {
-        if (values[i] > max) max = values[i];
-    }
-    return max;
-};
-
-/**
- * Computes the minimum of the given values
- * @param {Array} values
- * @returns {number}
- */
-exports.min = function min(values) {
-    var min = values[0];
-    var l = values.length;
-    for (var i = 1; i < l; i++) {
-        if (values[i] < min) min = values[i];
-    }
-    return min;
-};
-
-/**
- * Computes the min and max of the given values
- * @param {Array} values
- * @returns {{min: number, max: number}}
- */
-exports.minMax = function minMax(values) {
-    var min = values[0];
-    var max = values[0];
-    var l = values.length;
-    for (var i = 1; i < l; i++) {
-        if (values[i] < min) min = values[i];
-        if (values[i] > max) max = values[i];
-    }
-    return {
-        min: min,
-        max: max
-    };
-};
-
-/**
- * Computes the arithmetic mean of the given values
- * @param {Array} values
- * @returns {number}
- */
-exports.arithmeticMean = function arithmeticMean(values) {
-    var sum = 0;
-    var l = values.length;
-    for (var i = 0; i < l; i++) {
-        sum += values[i];
-    }
-    return sum / l;
-};
-
-/**
- * {@link arithmeticMean}
- */
-exports.mean = exports.arithmeticMean;
-
-/**
- * Computes the geometric mean of the given values
- * @param {Array} values
- * @returns {number}
- */
-exports.geometricMean = function geometricMean(values) {
-    var mul = 1;
-    var l = values.length;
-    for (var i = 0; i < l; i++) {
-        mul *= values[i];
-    }
-    return Math.pow(mul, 1 / l);
-};
-
-/**
- * Computes the mean of the log of the given values
- * If the return value is exponentiated, it gives the same result as the
- * geometric mean.
- * @param {Array} values
- * @returns {number}
- */
-exports.logMean = function logMean(values) {
-    var lnsum = 0;
-    var l = values.length;
-    for (var i = 0; i < l; i++) {
-        lnsum += Math.log(values[i]);
-    }
-    return lnsum / l;
-};
-
-/**
- * Computes the weighted grand mean for a list of means and sample sizes
- * @param {Array} means - Mean values for each set of samples
- * @param {Array} samples - Number of original values for each set of samples
- * @returns {number}
- */
-exports.grandMean = function grandMean(means, samples) {
-    var sum = 0;
-    var n = 0;
-    var l = means.length;
-    for (var i = 0; i < l; i++) {
-        sum += samples[i] * means[i];
-        n += samples[i];
-    }
-    return sum / n;
-};
-
-/**
- * Computes the truncated mean of the given values using a given percentage
- * @param {Array} values
- * @param {number} percent - The percentage of values to keep (range: [0,1])
- * @param {boolean} [alreadySorted=false]
- * @returns {number}
- */
-exports.truncatedMean = function truncatedMean(values, percent, alreadySorted) {
-    if (alreadySorted === undefined) alreadySorted = false;
-    if (!alreadySorted) {
-        values = [].concat(values).sort(compareNumbers);
-    }
-    var l = values.length;
-    var k = Math.floor(l * percent);
-    var sum = 0;
-    for (var i = k; i < (l - k); i++) {
-        sum += values[i];
-    }
-    return sum / (l - 2 * k);
-};
-
-/**
- * Computes the harmonic mean of the given values
- * @param {Array} values
- * @returns {number}
- */
-exports.harmonicMean = function harmonicMean(values) {
-    var sum = 0;
-    var l = values.length;
-    for (var i = 0; i < l; i++) {
-        if (values[i] === 0) {
-            throw new RangeError('value at index ' + i + 'is zero');
-        }
-        sum += 1 / values[i];
-    }
-    return l / sum;
-};
-
-/**
- * Computes the contraharmonic mean of the given values
- * @param {Array} values
- * @returns {number}
- */
-exports.contraHarmonicMean = function contraHarmonicMean(values) {
-    var r1 = 0;
-    var r2 = 0;
-    var l = values.length;
-    for (var i = 0; i < l; i++) {
-        r1 += values[i] * values[i];
-        r2 += values[i];
-    }
-    if (r2 < 0) {
-        throw new RangeError('sum of values is negative');
-    }
-    return r1 / r2;
-};
-
-/**
- * Computes the median of the given values
- * @param {Array} values
- * @param {boolean} [alreadySorted=false]
- * @returns {number}
- */
-exports.median = function median(values, alreadySorted) {
-    if (alreadySorted === undefined) alreadySorted = false;
-    if (!alreadySorted) {
-        values = [].concat(values).sort(compareNumbers);
-    }
-    var l = values.length;
-    var half = Math.floor(l / 2);
-    if (l % 2 === 0) {
-        return (values[half - 1] + values[half]) * 0.5;
-    } else {
-        return values[half];
-    }
-};
-
-/**
- * Computes the variance of the given values
- * @param {Array} values
- * @param {boolean} [unbiased=true] - if true, divide by (n-1); if false, divide by n.
- * @returns {number}
- */
-exports.variance = function variance(values, unbiased) {
-    if (unbiased === undefined) unbiased = true;
-    var theMean = exports.mean(values);
-    var theVariance = 0;
-    var l = values.length;
-
-    for (var i = 0; i < l; i++) {
-        var x = values[i] - theMean;
-        theVariance += x * x;
-    }
-
-    if (unbiased) {
-        return theVariance / (l - 1);
-    } else {
-        return theVariance / l;
-    }
-};
-
-/**
- * Computes the standard deviation of the given values
- * @param {Array} values
- * @param {boolean} [unbiased=true] - if true, divide by (n-1); if false, divide by n.
- * @returns {number}
- */
-exports.standardDeviation = function standardDeviation(values, unbiased) {
-    return Math.sqrt(exports.variance(values, unbiased));
-};
-
-exports.standardError = function standardError(values) {
-    return exports.standardDeviation(values) / Math.sqrt(values.length);
-};
-
-/**
- * IEEE Transactions on biomedical engineering, vol. 52, no. 1, january 2005, p. 76-
- * Calculate the standard deviation via the Median of the absolute deviation
- *  The formula for the standard deviation only holds for Gaussian random variables.
- * @returns {{mean: number, stdev: number}}
- */
-exports.robustMeanAndStdev = function robustMeanAndStdev(y) {
-    var mean = 0, stdev = 0;
-    var length = y.length, i = 0;
-    for (i = 0; i < length; i++) {
-        mean += y[i];
-    }
-    mean /= length;
-    var averageDeviations = new Array(length);
-    for (i = 0; i < length; i++)
-        averageDeviations[i] = Math.abs(y[i] - mean);
-    averageDeviations.sort(compareNumbers);
-    if (length % 2 === 1) {
-        stdev = averageDeviations[(length - 1) / 2] / 0.6745;
-    } else {
-        stdev = 0.5 * (averageDeviations[length / 2] + averageDeviations[length / 2 - 1]) / 0.6745;
-    }
-
-    return {
-        mean: mean,
-        stdev: stdev
-    };
-};
-
-exports.quartiles = function quartiles(values, alreadySorted) {
-    if (typeof (alreadySorted) === 'undefined') alreadySorted = false;
-    if (!alreadySorted) {
-        values = [].concat(values).sort(compareNumbers);
-    }
-
-    var quart = values.length / 4;
-    var q1 = values[Math.ceil(quart) - 1];
-    var q2 = exports.median(values, true);
-    var q3 = values[Math.ceil(quart * 3) - 1];
-
-    return {q1: q1, q2: q2, q3: q3};
-};
-
-exports.pooledStandardDeviation = function pooledStandardDeviation(samples, unbiased) {
-    return Math.sqrt(exports.pooledVariance(samples, unbiased));
-};
-
-exports.pooledVariance = function pooledVariance(samples, unbiased) {
-    if (typeof (unbiased) === 'undefined') unbiased = true;
-    var sum = 0;
-    var length = 0, l = samples.length;
-    for (var i = 0; i < l; i++) {
-        var values = samples[i];
-        var vari = exports.variance(values);
-
-        sum += (values.length - 1) * vari;
-
-        if (unbiased)
-            length += values.length - 1;
-        else
-            length += values.length;
-    }
-    return sum / length;
-};
-
-exports.mode = function mode(values) {
-    var l = values.length,
-        itemCount = new Array(l),
-        i;
-    for (i = 0; i < l; i++) {
-        itemCount[i] = 0;
-    }
-    var itemArray = new Array(l);
-    var count = 0;
-
-    for (i = 0; i < l; i++) {
-        var index = itemArray.indexOf(values[i]);
-        if (index >= 0)
-            itemCount[index]++;
-        else {
-            itemArray[count] = values[i];
-            itemCount[count] = 1;
-            count++;
-        }
-    }
-
-    var maxValue = 0, maxIndex = 0;
-    for (i = 0; i < count; i++) {
-        if (itemCount[i] > maxValue) {
-            maxValue = itemCount[i];
-            maxIndex = i;
-        }
-    }
-
-    return itemArray[maxIndex];
-};
-
-exports.covariance = function covariance(vector1, vector2, unbiased) {
-    if (typeof (unbiased) === 'undefined') unbiased = true;
-    var mean1 = exports.mean(vector1);
-    var mean2 = exports.mean(vector2);
-
-    if (vector1.length !== vector2.length)
-        throw 'Vectors do not have the same dimensions';
-
-    var cov = 0, l = vector1.length;
-    for (var i = 0; i < l; i++) {
-        var x = vector1[i] - mean1;
-        var y = vector2[i] - mean2;
-        cov += x * y;
-    }
-
-    if (unbiased)
-        return cov / (l - 1);
-    else
-        return cov / l;
-};
-
-exports.skewness = function skewness(values, unbiased) {
-    if (typeof (unbiased) === 'undefined') unbiased = true;
-    var theMean = exports.mean(values);
-
-    var s2 = 0, s3 = 0, l = values.length;
-    for (var i = 0; i < l; i++) {
-        var dev = values[i] - theMean;
-        s2 += dev * dev;
-        s3 += dev * dev * dev;
-    }
-    var m2 = s2 / l;
-    var m3 = s3 / l;
-
-    var g = m3 / (Math.pow(m2, 3 / 2.0));
-    if (unbiased) {
-        var a = Math.sqrt(l * (l - 1));
-        var b = l - 2;
-        return (a / b) * g;
-    } else {
-        return g;
-    }
-};
-
-exports.kurtosis = function kurtosis(values, unbiased) {
-    if (typeof (unbiased) === 'undefined') unbiased = true;
-    var theMean = exports.mean(values);
-    var n = values.length, s2 = 0, s4 = 0;
-
-    for (var i = 0; i < n; i++) {
-        var dev = values[i] - theMean;
-        s2 += dev * dev;
-        s4 += dev * dev * dev * dev;
-    }
-    var m2 = s2 / n;
-    var m4 = s4 / n;
-
-    if (unbiased) {
-        var v = s2 / (n - 1);
-        var a = (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3));
-        var b = s4 / (v * v);
-        var c = ((n - 1) * (n - 1)) / ((n - 2) * (n - 3));
-
-        return a * b - 3 * c;
-    } else {
-        return m4 / (m2 * m2) - 3;
-    }
-};
-
-exports.entropy = function entropy(values, eps) {
-    if (typeof (eps) === 'undefined') eps = 0;
-    var sum = 0, l = values.length;
-    for (var i = 0; i < l; i++)
-        sum += values[i] * Math.log(values[i] + eps);
-    return -sum;
-};
-
-exports.weightedMean = function weightedMean(values, weights) {
-    var sum = 0, l = values.length;
-    for (var i = 0; i < l; i++)
-        sum += values[i] * weights[i];
-    return sum;
-};
-
-exports.weightedStandardDeviation = function weightedStandardDeviation(values, weights) {
-    return Math.sqrt(exports.weightedVariance(values, weights));
-};
-
-exports.weightedVariance = function weightedVariance(values, weights) {
-    var theMean = exports.weightedMean(values, weights);
-    var vari = 0, l = values.length;
-    var a = 0, b = 0;
-
-    for (var i = 0; i < l; i++) {
-        var z = values[i] - theMean;
-        var w = weights[i];
-
-        vari += w * (z * z);
-        b += w;
-        a += w * w;
-    }
-
-    return vari * (b / (b * b - a));
-};
-
-exports.center = function center(values, inPlace) {
-    if (typeof (inPlace) === 'undefined') inPlace = false;
-
-    var result = values;
-    if (!inPlace)
-        result = [].concat(values);
-
-    var theMean = exports.mean(result), l = result.length;
-    for (var i = 0; i < l; i++)
-        result[i] -= theMean;
-};
-
-exports.standardize = function standardize(values, standardDev, inPlace) {
-    if (typeof (standardDev) === 'undefined') standardDev = exports.standardDeviation(values);
-    if (typeof (inPlace) === 'undefined') inPlace = false;
-    var l = values.length;
-    var result = inPlace ? values : new Array(l);
-    for (var i = 0; i < l; i++)
-        result[i] = values[i] / standardDev;
-    return result;
-};
-
-exports.cumulativeSum = function cumulativeSum(array) {
-    var l = array.length;
-    var result = new Array(l);
-    result[0] = array[0];
-    for (var i = 1; i < l; i++)
-        result[i] = result[i - 1] + array[i];
-    return result;
-};
-
-
-/***/ }),
-/* 47 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
 module.exports = abstractMatrix;
 
-var LuDecomposition = __webpack_require__(48);
-var SvDecomposition = __webpack_require__(49);
-var arrayUtils = __webpack_require__(38);
-var util = __webpack_require__(8);
-var MatrixTransposeView = __webpack_require__(132);
-var MatrixRowView = __webpack_require__(129);
-var MatrixSubView = __webpack_require__(131);
-var MatrixSelectionView = __webpack_require__(130);
-var MatrixColumnView = __webpack_require__(126);
-var MatrixFlipRowView = __webpack_require__(128);
-var MatrixFlipColumnView = __webpack_require__(127);
+var LuDecomposition = __webpack_require__(44);
+var SvDecomposition = __webpack_require__(45);
+var arrayUtils = __webpack_require__(37);
+var util = __webpack_require__(7);
+var MatrixTransposeView = __webpack_require__(124);
+var MatrixRowView = __webpack_require__(121);
+var MatrixSubView = __webpack_require__(123);
+var MatrixSelectionView = __webpack_require__(122);
+var MatrixColumnView = __webpack_require__(118);
+var MatrixFlipRowView = __webpack_require__(120);
+var MatrixFlipColumnView = __webpack_require__(119);
 
 function abstractMatrix(superCtor) {
     if (superCtor === undefined) superCtor = Object;
@@ -12770,7 +11589,7 @@ function abstractMatrix(superCtor) {
 
 
 /***/ }),
-/* 48 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12951,14 +11770,14 @@ module.exports = LuDecomposition;
 
 
 /***/ }),
-/* 49 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 var Matrix = __webpack_require__(1);
-var util = __webpack_require__(18);
+var util = __webpack_require__(15);
 var hypotenuse = util.hypotenuse;
 var getFilled2DArray = util.getFilled2DArray;
 
@@ -13472,15 +12291,1621 @@ module.exports = SingularValueDecomposition;
 
 
 /***/ }),
+/* 46 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/**
+ * Created by acastillo on 8/24/15.
+ */
+/**
+ * Non in-place function definitions, compatible with mathjs code *
+ */
+
+
+
+var Matrix = __webpack_require__(8);
+
+function matrix(A,B){
+    return new Matrix(A,B);
+}
+
+function ones(rows, cols){
+    return Matrix.ones(rows,cols);
+}
+
+function eye(rows, cols){
+    return Matrix.eye(rows, cols);
+}
+
+function zeros(rows, cols){
+    return Matrix.zeros(rows, cols);
+}
+
+function random(rows, cols){
+    return Matrix.rand(rows,cols);
+}
+
+function transpose(A){
+    if(typeof A == 'number')
+        return A;
+    var result = A.clone();
+    return result.transpose();
+}
+
+function add(A, B){
+    if(typeof A == 'number'&&typeof B === 'number')
+        return A+B;
+    if(typeof A == 'number')
+        return this.add(B,A);
+
+    var result = A.clone();
+    return result.add(B);
+
+}
+
+function subtract(A, B){
+    if(typeof A == 'number'&&typeof B === 'number')
+        return A-B;
+    if(typeof A == 'number')
+        return this.subtract(B,A);
+    var result = A.clone();
+    return result.sub(B);
+}
+
+function multiply(A, B){
+    if(typeof A == 'number'&&typeof B === 'number')
+        return A*B;
+    if(typeof A == 'number')
+        return this.multiply(B,A);
+
+    var result = A.clone();
+
+    if(typeof B === 'number')
+        result.mul(B);
+    else
+        result = result.mmul(B);
+
+    if(result.rows==1&&result.columns==1)
+        return result[0][0];
+    else
+        return result;
+
+}
+
+function dotMultiply(A, B){
+    var result = A.clone();
+    return result.mul(B);
+}
+
+function dotDivide(A, B){
+    var result = A.clone();
+    return result.div(B);
+}
+
+function diag(A){
+    var diag = null;
+    var rows = A.rows, cols = A.columns, j, r;
+    //It is an array
+    if(typeof cols === "undefined" && (typeof A)=='object'){
+        if(A[0]&&A[0].length){
+            rows = A.length;
+            cols = A[0].length;
+            r = Math.min(rows,cols);
+            diag = Matrix.zeros(cols, cols);
+            for (j = 0; j < cols; j++) {
+                diag[j][j]=A[j][j];
+            }
+        }
+        else{
+            cols = A.length;
+            diag = Matrix.zeros(cols, cols);
+            for (j = 0; j < cols; j++) {
+                diag[j][j]=A[j];
+            }
+        }
+
+    }
+    if(rows == 1){
+        diag = Matrix.zeros(cols, cols);
+        for (j = 0; j < cols; j++) {
+            diag[j][j]=A[0][j];
+        }
+    }
+    else{
+        if(rows>0 && cols > 0){
+            r = Math.min(rows,cols);
+            diag = new Array(r);
+            for (j = 0; j < r; j++) {
+                diag[j] = A[j][j];
+            }
+        }
+    }
+    return diag;
+}
+
+function min(A, B){
+    if(typeof A==='number' && typeof B ==='number')
+        return Math.min(A,B);
+    var ii = A.rows, jj = A.columns;
+    var result = new Matrix(ii,jj);
+    for (var i = 0; i < ii; i++) {
+        for (var j = 0; j < jj; j++) {
+            if (A[i][j] < B[i][j]) {
+                result[i][j] = A[i][j];
+            }
+            else{
+                result[i][j] = B[i][j];
+            }
+        }
+    }
+    return result;
+}
+
+function max(A, B){
+    if(typeof A==='number' && typeof B ==='number')
+        return Math.max(A,B);
+    var ii = A.rows, jj = A.columns;
+    var result = new Matrix(ii,jj);
+    for (var i = 0; i < ii; i++) {
+        for (var j = 0; j < jj; j++) {
+            if (A[i][j] > B[i][j]) {
+                result[i][j] = A[i][j];
+            }
+            else{
+                result[i][j] = B[i][j];
+            }
+        }
+    }
+    return result;
+}
+
+function sqrt(A){
+    if(typeof A==='number' )
+        return Math.sqrt(A);
+    var ii = A.rows, jj = A.columns;
+    var result = new Matrix(ii,jj);
+    for (var i = 0; i < ii; i++) {
+        for (var j = 0; j < jj; j++) {
+            result[i][j] = Math.sqrt(A[i][j]);
+
+        }
+    }
+    return result;
+}
+
+function abs(A){
+    if(typeof A==='number' )
+        return Math.abs(A);
+    var ii = A.rows, jj = A.columns;
+    var result = new Matrix(ii,jj);
+    for (var i = 0; i < ii; i++) {
+        for (var j = 0; j < jj; j++) {
+            result[i][j] = Math.abs(A[i][j]);
+
+        }
+    }
+    return result;
+}
+
+function exp(A){
+    if(typeof A==='number' )
+        return Math.sqrt(A);
+    var ii = A.rows, jj = A.columns;
+    var result = new Matrix(ii,jj);
+    for (var i = 0; i < ii; i++) {
+        for (var j = 0; j < jj; j++) {
+            result[i][j] = Math.exp(A[i][j]);
+        }
+    }
+    return result;
+}
+
+function dotPow(A, b){
+    if(typeof A==='number' )
+        return Math.pow(A,b);
+    //console.log(A);
+    var ii = A.rows, jj = A.columns;
+    var result = new Matrix(ii,jj);
+    for (var i = 0; i < ii; i++) {
+        for (var j = 0; j < jj; j++) {
+            result[i][j] = Math.pow(A[i][j],b);
+        }
+    }
+    return result;
+}
+
+function solve(A, B){
+    return A.solve(B);
+}
+
+function inv(A){
+    if(typeof A ==="number")
+        return 1/A;
+    return A.inverse();
+}
+
+module.exports = {
+    transpose:transpose,
+    add:add,
+    subtract:subtract,
+    multiply:multiply,
+    dotMultiply:dotMultiply,
+    dotDivide:dotDivide,
+    diag:diag,
+    min:min,
+    max:max,
+    solve:solve,
+    inv:inv,
+    sqrt:sqrt,
+    exp:exp,
+    dotPow:dotPow,
+    abs:abs,
+    matrix:matrix,
+    ones:ones,
+    zeros:zeros,
+    random:random,
+    eye:eye
+};
+
+
+/***/ }),
+/* 47 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+function compareNumbers(a, b) {
+    return a - b;
+}
+
+/**
+ * Computes the sum of the given values
+ * @param {Array} values
+ * @returns {number}
+ */
+exports.sum = function sum(values) {
+    var sum = 0;
+    for (var i = 0; i < values.length; i++) {
+        sum += values[i];
+    }
+    return sum;
+};
+
+/**
+ * Computes the maximum of the given values
+ * @param {Array} values
+ * @returns {number}
+ */
+exports.max = function max(values) {
+    var max = -Infinity;
+    var l = values.length;
+    for (var i = 0; i < l; i++) {
+        if (values[i] > max) max = values[i];
+    }
+    return max;
+};
+
+/**
+ * Computes the minimum of the given values
+ * @param {Array} values
+ * @returns {number}
+ */
+exports.min = function min(values) {
+    var min = Infinity;
+    var l = values.length;
+    for (var i = 0; i < l; i++) {
+        if (values[i] < min) min = values[i];
+    }
+    return min;
+};
+
+/**
+ * Computes the min and max of the given values
+ * @param {Array} values
+ * @returns {{min: number, max: number}}
+ */
+exports.minMax = function minMax(values) {
+    var min = Infinity;
+    var max = -Infinity;
+    var l = values.length;
+    for (var i = 0; i < l; i++) {
+        if (values[i] < min) min = values[i];
+        if (values[i] > max) max = values[i];
+    }
+    return {
+        min: min,
+        max: max
+    };
+};
+
+/**
+ * Computes the arithmetic mean of the given values
+ * @param {Array} values
+ * @returns {number}
+ */
+exports.arithmeticMean = function arithmeticMean(values) {
+    var sum = 0;
+    var l = values.length;
+    for (var i = 0; i < l; i++) {
+        sum += values[i];
+    }
+    return sum / l;
+};
+
+/**
+ * {@link arithmeticMean}
+ */
+exports.mean = exports.arithmeticMean;
+
+/**
+ * Computes the geometric mean of the given values
+ * @param {Array} values
+ * @returns {number}
+ */
+exports.geometricMean = function geometricMean(values) {
+    var mul = 1;
+    var l = values.length;
+    for (var i = 0; i < l; i++) {
+        mul *= values[i];
+    }
+    return Math.pow(mul, 1 / l);
+};
+
+/**
+ * Computes the mean of the log of the given values
+ * If the return value is exponentiated, it gives the same result as the
+ * geometric mean.
+ * @param {Array} values
+ * @returns {number}
+ */
+exports.logMean = function logMean(values) {
+    var lnsum = 0;
+    var l = values.length;
+    for (var i = 0; i < l; i++) {
+        lnsum += Math.log(values[i]);
+    }
+    return lnsum / l;
+};
+
+/**
+ * Computes the weighted grand mean for a list of means and sample sizes
+ * @param {Array} means - Mean values for each set of samples
+ * @param {Array} samples - Number of original values for each set of samples
+ * @returns {number}
+ */
+exports.grandMean = function grandMean(means, samples) {
+    var sum = 0;
+    var n = 0;
+    var l = means.length;
+    for (var i = 0; i < l; i++) {
+        sum += samples[i] * means[i];
+        n += samples[i];
+    }
+    return sum / n;
+};
+
+/**
+ * Computes the truncated mean of the given values using a given percentage
+ * @param {Array} values
+ * @param {number} percent - The percentage of values to keep (range: [0,1])
+ * @param {boolean} [alreadySorted=false]
+ * @returns {number}
+ */
+exports.truncatedMean = function truncatedMean(values, percent, alreadySorted) {
+    if (alreadySorted === undefined) alreadySorted = false;
+    if (!alreadySorted) {
+        values = values.slice().sort(compareNumbers);
+    }
+    var l = values.length;
+    var k = Math.floor(l * percent);
+    var sum = 0;
+    for (var i = k; i < (l - k); i++) {
+        sum += values[i];
+    }
+    return sum / (l - 2 * k);
+};
+
+/**
+ * Computes the harmonic mean of the given values
+ * @param {Array} values
+ * @returns {number}
+ */
+exports.harmonicMean = function harmonicMean(values) {
+    var sum = 0;
+    var l = values.length;
+    for (var i = 0; i < l; i++) {
+        if (values[i] === 0) {
+            throw new RangeError('value at index ' + i + 'is zero');
+        }
+        sum += 1 / values[i];
+    }
+    return l / sum;
+};
+
+/**
+ * Computes the contraharmonic mean of the given values
+ * @param {Array} values
+ * @returns {number}
+ */
+exports.contraHarmonicMean = function contraHarmonicMean(values) {
+    var r1 = 0;
+    var r2 = 0;
+    var l = values.length;
+    for (var i = 0; i < l; i++) {
+        r1 += values[i] * values[i];
+        r2 += values[i];
+    }
+    if (r2 < 0) {
+        throw new RangeError('sum of values is negative');
+    }
+    return r1 / r2;
+};
+
+/**
+ * Computes the median of the given values
+ * @param {Array} values
+ * @param {boolean} [alreadySorted=false]
+ * @returns {number}
+ */
+exports.median = function median(values, alreadySorted) {
+    if (alreadySorted === undefined) alreadySorted = false;
+    if (!alreadySorted) {
+        values = values.slice().sort(compareNumbers);
+    }
+    var l = values.length;
+    var half = Math.floor(l / 2);
+    if (l % 2 === 0) {
+        return (values[half - 1] + values[half]) * 0.5;
+    } else {
+        return values[half];
+    }
+};
+
+/**
+ * Computes the variance of the given values
+ * @param {Array} values
+ * @param {boolean} [unbiased=true] - if true, divide by (n-1); if false, divide by n.
+ * @returns {number}
+ */
+exports.variance = function variance(values, unbiased) {
+    if (unbiased === undefined) unbiased = true;
+    var theMean = exports.mean(values);
+    var theVariance = 0;
+    var l = values.length;
+
+    for (var i = 0; i < l; i++) {
+        var x = values[i] - theMean;
+        theVariance += x * x;
+    }
+
+    if (unbiased) {
+        return theVariance / (l - 1);
+    } else {
+        return theVariance / l;
+    }
+};
+
+/**
+ * Computes the standard deviation of the given values
+ * @param {Array} values
+ * @param {boolean} [unbiased=true] - if true, divide by (n-1); if false, divide by n.
+ * @returns {number}
+ */
+exports.standardDeviation = function standardDeviation(values, unbiased) {
+    return Math.sqrt(exports.variance(values, unbiased));
+};
+
+exports.standardError = function standardError(values) {
+    return exports.standardDeviation(values) / Math.sqrt(values.length);
+};
+
+exports.quartiles = function quartiles(values, alreadySorted) {
+    if (typeof(alreadySorted) === 'undefined') alreadySorted = false;
+    if (!alreadySorted) {
+        values = values.slice();
+        values.sort(compareNumbers);
+    }
+
+    var quart = values.length / 4;
+    var q1 = values[Math.ceil(quart) - 1];
+    var q2 = exports.median(values, true);
+    var q3 = values[Math.ceil(quart * 3) - 1];
+
+    return {q1: q1, q2: q2, q3: q3};
+};
+
+exports.pooledStandardDeviation = function pooledStandardDeviation(samples, unbiased) {
+    return Math.sqrt(exports.pooledVariance(samples, unbiased));
+};
+
+exports.pooledVariance = function pooledVariance(samples, unbiased) {
+    if (typeof(unbiased) === 'undefined') unbiased = true;
+    var sum = 0;
+    var length = 0, l = samples.length;
+    for (var i = 0; i < l; i++) {
+        var values = samples[i];
+        var vari = exports.variance(values);
+
+        sum += (values.length - 1) * vari;
+
+        if (unbiased)
+            length += values.length - 1;
+        else
+            length += values.length;
+    }
+    return sum / length;
+};
+
+exports.mode = function mode(values) {
+    var l = values.length,
+        itemCount = new Array(l),
+        i;
+    for (i = 0; i < l; i++) {
+        itemCount[i] = 0;
+    }
+    var itemArray = new Array(l);
+    var count = 0;
+
+    for (i = 0; i < l; i++) {
+        var index = itemArray.indexOf(values[i]);
+        if (index >= 0)
+            itemCount[index]++;
+        else {
+            itemArray[count] = values[i];
+            itemCount[count] = 1;
+            count++;
+        }
+    }
+
+    var maxValue = 0, maxIndex = 0;
+    for (i = 0; i < count; i++) {
+        if (itemCount[i] > maxValue) {
+            maxValue = itemCount[i];
+            maxIndex = i;
+        }
+    }
+
+    return itemArray[maxIndex];
+};
+
+exports.covariance = function covariance(vector1, vector2, unbiased) {
+    if (typeof(unbiased) === 'undefined') unbiased = true;
+    var mean1 = exports.mean(vector1);
+    var mean2 = exports.mean(vector2);
+
+    if (vector1.length !== vector2.length)
+        throw "Vectors do not have the same dimensions";
+
+    var cov = 0, l = vector1.length;
+    for (var i = 0; i < l; i++) {
+        var x = vector1[i] - mean1;
+        var y = vector2[i] - mean2;
+        cov += x * y;
+    }
+
+    if (unbiased)
+        return cov / (l - 1);
+    else
+        return cov / l;
+};
+
+exports.skewness = function skewness(values, unbiased) {
+    if (typeof(unbiased) === 'undefined') unbiased = true;
+    var theMean = exports.mean(values);
+
+    var s2 = 0, s3 = 0, l = values.length;
+    for (var i = 0; i < l; i++) {
+        var dev = values[i] - theMean;
+        s2 += dev * dev;
+        s3 += dev * dev * dev;
+    }
+    var m2 = s2 / l;
+    var m3 = s3 / l;
+
+    var g = m3 / (Math.pow(m2, 3 / 2.0));
+    if (unbiased) {
+        var a = Math.sqrt(l * (l - 1));
+        var b = l - 2;
+        return (a / b) * g;
+    }
+    else {
+        return g;
+    }
+};
+
+exports.kurtosis = function kurtosis(values, unbiased) {
+    if (typeof(unbiased) === 'undefined') unbiased = true;
+    var theMean = exports.mean(values);
+    var n = values.length, s2 = 0, s4 = 0;
+
+    for (var i = 0; i < n; i++) {
+        var dev = values[i] - theMean;
+        s2 += dev * dev;
+        s4 += dev * dev * dev * dev;
+    }
+    var m2 = s2 / n;
+    var m4 = s4 / n;
+
+    if (unbiased) {
+        var v = s2 / (n - 1);
+        var a = (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3));
+        var b = s4 / (v * v);
+        var c = ((n - 1) * (n - 1)) / ((n - 2) * (n - 3));
+
+        return a * b - 3 * c;
+    }
+    else {
+        return m4 / (m2 * m2) - 3;
+    }
+};
+
+exports.entropy = function entropy(values, eps) {
+    if (typeof(eps) === 'undefined') eps = 0;
+    var sum = 0, l = values.length;
+    for (var i = 0; i < l; i++)
+        sum += values[i] * Math.log(values[i] + eps);
+    return -sum;
+};
+
+exports.weightedMean = function weightedMean(values, weights) {
+    var sum = 0, l = values.length;
+    for (var i = 0; i < l; i++)
+        sum += values[i] * weights[i];
+    return sum;
+};
+
+exports.weightedStandardDeviation = function weightedStandardDeviation(values, weights) {
+    return Math.sqrt(exports.weightedVariance(values, weights));
+};
+
+exports.weightedVariance = function weightedVariance(values, weights) {
+    var theMean = exports.weightedMean(values, weights);
+    var vari = 0, l = values.length;
+    var a = 0, b = 0;
+
+    for (var i = 0; i < l; i++) {
+        var z = values[i] - theMean;
+        var w = weights[i];
+
+        vari += w * (z * z);
+        b += w;
+        a += w * w;
+    }
+
+    return vari * (b / (b * b - a));
+};
+
+exports.center = function center(values, inPlace) {
+    if (typeof(inPlace) === 'undefined') inPlace = false;
+
+    var result = values;
+    if (!inPlace)
+        result = values.slice();
+
+    var theMean = exports.mean(result), l = result.length;
+    for (var i = 0; i < l; i++)
+        result[i] -= theMean;
+};
+
+exports.standardize = function standardize(values, standardDev, inPlace) {
+    if (typeof(standardDev) === 'undefined') standardDev = exports.standardDeviation(values);
+    if (typeof(inPlace) === 'undefined') inPlace = false;
+    var l = values.length;
+    var result = inPlace ? values : new Array(l);
+    for (var i = 0; i < l; i++)
+        result[i] = values[i] / standardDev;
+    return result;
+};
+
+exports.cumulativeSum = function cumulativeSum(array) {
+    var l = array.length;
+    var result = new Array(l);
+    result[0] = array[0];
+    for (var i = 1; i < l; i++)
+        result[i] = result[i - 1] + array[i];
+    return result;
+};
+
+
+/***/ }),
+/* 48 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/**
+ * Created by acastillo on 8/8/16.
+ */
+
+
+const defOptions = {
+    threshold:0,
+    out:"assignment"
+};
+//TODO Consider a matrix of distances too
+module.exports = function fullClusterGenerator(conMat, opt) {
+    const options = Object.assign({}, defOptions, opt);
+    var clList, i, j, k;
+    if(typeof conMat[0] === "number"){
+        clList = fullClusterGeneratorVector(conMat);
+    }
+    else{
+        if(typeof conMat[0] === "object"){
+            var nRows = conMat.length;
+            var conn = new Array(nRows*(nRows+1)/2);
+            var index = 0;
+            for(var i=0;i<nRows;i++){
+                for(var j=i;j<nRows;j++){
+                    if(conMat[i][j]>options.threshold)
+                        conn[index++]= 1;
+                    else
+                        conn[index++]= 0;
+                }
+            }
+            clList = fullClusterGeneratorVector(conn);
+        }
+    }
+    if (options.out === "indexes" || options.out === "values") {
+        var result = new Array(clList.length);
+        for(i=0;i<clList.length;i++){
+            result[i] = [];
+            for(j=0;j<clList[i].length;j++){
+                if(clList[i][j] != 0){
+                    result[i].push(j);
+                }
+            }
+        }
+        if (options.out === "values") {
+            var resultAsMatrix = new Array(result.length);
+            for (i = 0; i<result.length;i++){
+                resultAsMatrix[i]=new Array(result[i].length);
+                for(j = 0; j < result[i].length; j++){
+                    resultAsMatrix[i][j]=new Array(result[i].length);
+                    for(k = 0; k < result[i].length; k++){
+                        resultAsMatrix[i][j][k]=conMat[result[i][j]][result[i][k]];
+                    }
+                }
+            }
+            return resultAsMatrix;
+        }
+        else{
+            return result;
+        }
+    }
+
+    return clList;
+
+}
+
+function fullClusterGeneratorVector(conn){
+    var nRows = Math.sqrt(conn.length*2+0.25)-0.5;
+    var clusterList = [];
+    var available = new Array(nRows);
+    var remaining = nRows, i=0;
+    var cluster = [];
+    //Mark all the elements as available
+    for(i=nRows-1;i>=0;i--){
+        available[i]=1;
+    }
+    var nextAv=-1;
+    var toInclude = [];
+    while(remaining>0){
+        if(toInclude.length===0){
+            //If there is no more elements to include. Start a new cluster
+            cluster = new Array(nRows);
+            for(i = 0;i < nRows ;i++)
+                cluster[i]=0;
+            clusterList.push(cluster);
+            for(nextAv = 0;available[nextAv]==0;nextAv++){};
+        }
+        else{
+            nextAv=toInclude.splice(0,1);
+        }
+        cluster[nextAv]=1;
+        available[nextAv]=0;
+        remaining--;
+        //Copy the next available row
+        var row = new Array(nRows);
+        for( i = 0;i < nRows;i++){
+            var c=Math.max(nextAv,i);
+            var r=Math.min(nextAv,i);
+            //The element in the conn matrix
+            //console.log("index: "+r*(2*nRows-r-1)/2+c)
+            row[i]=conn[r*(2*nRows-r-1)/2+c];
+            //There is new elements to include in this row?
+            //Then, include it to the current cluster
+            if(row[i]==1&&available[i]==1&&cluster[i]==0){
+                toInclude.push(i);
+                cluster[i]=1;
+            }
+        }
+    }
+    return clusterList;
+}
+
+/***/ }),
+/* 49 */
+/***/ (function(module, exports, __webpack_require__) {
+
+const HashTable = __webpack_require__(103);
+
+class SparseMatrix {
+    constructor(rows, columns, options = {}) {
+        if (rows instanceof SparseMatrix) { // clone
+            const other = rows;
+            this._init(other.rows, other.columns, other.elements.clone(), other.threshold);
+            return;
+        }
+
+        if (Array.isArray(rows)) {
+            const matrix = rows;
+            rows = matrix.length;
+            options = columns || {};
+            columns = matrix[0].length;
+            this._init(rows, columns, new HashTable(options), options.threshold);
+            for (var i = 0; i < rows; i++) {
+                for (var j = 0; j < columns; j++) {
+                    var value = matrix[i][j];
+                    if (this.threshold && Math.abs(value) < this.threshold) value = 0;
+                    if (value !== 0) {
+                        this.elements.set(i * columns + j, matrix[i][j]);
+                    }
+                }
+            }
+        } else {
+            this._init(rows, columns, new HashTable(options), options.threshold);
+        }
+    }
+
+    _init(rows, columns, elements, threshold) {
+        this.rows = rows;
+        this.columns = columns;
+        this.elements = elements;
+        this.threshold = threshold || 0;
+    }
+    
+    static eye(rows = 1, columns = rows) {
+        const min = Math.min(rows, columns);
+        const matrix = new SparseMatrix(rows, columns, {initialCapacity: min});
+        for (var i = 0; i < min; i++) {
+            matrix.set(i, i, 1);
+        }
+        return matrix;
+    }
+
+    clone() {
+        return new SparseMatrix(this);
+    }
+    
+    to2DArray() {
+        const copy = new Array(this.rows);
+        for (var i = 0; i < this.rows; i++) {
+            copy[i] = new Array(this.columns);
+            for (var j = 0; j < this.columns; j++) {
+                copy[i][j] = this.get(i, j);
+            }
+        }
+        return copy;
+    }
+
+    isSquare() {
+        return this.rows === this.columns;
+    }
+
+    isSymmetric() {
+        if (!this.isSquare()) return false;
+
+        var symmetric = true;
+        this.forEachNonZero((i, j, v) => {
+            if (this.get(j, i) !== v) {
+                symmetric = false;
+                return false;
+            }
+            return v;
+        });
+        return symmetric;
+    }
+
+    get cardinality() {
+        return this.elements.size;
+    }
+
+    get size() {
+        return this.rows * this.columns;
+    }
+
+    get(row, column) {
+        return this.elements.get(row * this.columns + column);
+    }
+
+    set(row, column, value) {
+        if (this.threshold && Math.abs(value) < this.threshold) value = 0;
+        if (value === 0) {
+            this.elements.remove(row * this.columns + column);
+        } else {
+            this.elements.set(row * this.columns + column, value);
+        }
+        return this;
+    }
+    
+    mmul(other) {
+        if (this.columns !== other.rows)
+            console.warn('Number of columns of left matrix are not equal to number of rows of right matrix.');
+        
+        const m = this.rows;
+        const p = other.columns;
+        
+        const result = new SparseMatrix(m, p);
+        this.forEachNonZero((i, j, v1) => {
+            other.forEachNonZero((k, l, v2) => {
+                if (j === k) {
+                    result.set(i, l, result.get(i, l) + v1 * v2);
+                }
+                return v2;
+            });
+            return v1;
+        });
+        return result;
+    }
+
+    kroneckerProduct(other) {
+        const m = this.rows;
+        const n = this.columns;
+        const p = other.rows;
+        const q = other.columns;
+
+        const result = new SparseMatrix(m * p, n * q, {
+            initialCapacity: this.cardinality * other.cardinality
+        });
+        this.forEachNonZero((i, j, v1) => {
+            other.forEachNonZero((k, l, v2) => {
+                result.set(p * i + k, q * j + l, v1 * v2);
+                return v2;
+            });
+            return v1;
+        });
+        return result;
+    }
+
+    forEachNonZero(callback) {
+        this.elements.forEachPair((key, value) => {
+            const i = (key / this.columns) | 0;
+            const j = key % this.columns;
+            let r = callback(i, j, value);
+            if (r === false) return false; // stop iteration
+            if (this.threshold && Math.abs(r) < this.threshold) r = 0;
+            if (r !== value) {
+                if (r === 0) {
+                    this.elements.remove(key, true);
+                } else {
+                    this.elements.set(key, r);
+                }
+            }
+            return true;
+        });
+        this.elements.maybeShrinkCapacity();
+        return this;
+    }
+
+    getNonZeros() {
+        const cardinality = this.cardinality;
+        const rows = new Array(cardinality);
+        const columns = new Array(cardinality);
+        const values = new Array(cardinality);
+        var idx = 0;
+        this.forEachNonZero((i, j, value) => {
+            rows[idx] = i;
+            columns[idx] = j;
+            values[idx] = value;
+            idx++;
+            return value;
+        });
+        return {rows, columns, values};
+    }
+
+    setThreshold(newThreshold) {
+        if (newThreshold !== 0 && newThreshold !== this.threshold) {
+            this.threshold = newThreshold;
+            this.forEachNonZero((i, j, v) => v);
+        }
+        return this;
+    }
+}
+
+SparseMatrix.prototype.klass = 'Matrix';
+
+SparseMatrix.identity = SparseMatrix.eye;
+SparseMatrix.prototype.tensorProduct = SparseMatrix.prototype.kroneckerProduct;
+
+module.exports = SparseMatrix;
+
+/*
+ Add dynamically instance and static methods for mathematical operations
+ */
+
+var inplaceOperator = `
+(function %name%(value) {
+    if (typeof value === 'number') return this.%name%S(value);
+    return this.%name%M(value);
+})
+`;
+
+var inplaceOperatorScalar = `
+(function %name%S(value) {
+    this.forEachNonZero((i, j, v) => v %op% value);
+    return this;
+})
+`;
+
+var inplaceOperatorMatrix = `
+(function %name%M(matrix) {
+    matrix.forEachNonZero((i, j, v) => {
+        this.set(i, j, this.get(i, j) %op% v);
+        return v;
+    });
+    return this;
+})
+`;
+
+var staticOperator = `
+(function %name%(matrix, value) {
+    var newMatrix = new SparseMatrix(matrix);
+    return newMatrix.%name%(value);
+})
+`;
+
+var inplaceMethod = `
+(function %name%() {
+    this.forEachNonZero((i, j, v) => %method%(v));
+    return this;
+})
+`;
+
+var staticMethod = `
+(function %name%(matrix) {
+    var newMatrix = new SparseMatrix(matrix);
+    return newMatrix.%name%();
+})
+`;
+
+var operators = [
+    // Arithmetic operators
+    ['+', 'add'],
+    ['-', 'sub', 'subtract'],
+    ['*', 'mul', 'multiply'],
+    ['/', 'div', 'divide'],
+    ['%', 'mod', 'modulus'],
+    // Bitwise operators
+    ['&', 'and'],
+    ['|', 'or'],
+    ['^', 'xor'],
+    ['<<', 'leftShift'],
+    ['>>', 'signPropagatingRightShift'],
+    ['>>>', 'rightShift', 'zeroFillRightShift']
+];
+
+for (var operator of operators) {
+    for (var i = 1; i < operator.length; i++) {
+        SparseMatrix.prototype[operator[i]] = eval(fillTemplateFunction(inplaceOperator, {name: operator[i], op: operator[0]}));
+        SparseMatrix.prototype[operator[i] + 'S'] = eval(fillTemplateFunction(inplaceOperatorScalar, {name: operator[i] + 'S', op: operator[0]}));
+        SparseMatrix.prototype[operator[i] + 'M'] = eval(fillTemplateFunction(inplaceOperatorMatrix, {name: operator[i] + 'M', op: operator[0]}));
+
+        SparseMatrix[operator[i]] = eval(fillTemplateFunction(staticOperator, {name: operator[i]}));
+    }
+}
+
+var methods = [
+    ['~', 'not']
+];
+
+[
+    'abs', 'acos', 'acosh', 'asin', 'asinh', 'atan', 'atanh', 'cbrt', 'ceil',
+    'clz32', 'cos', 'cosh', 'exp', 'expm1', 'floor', 'fround', 'log', 'log1p',
+    'log10', 'log2', 'round', 'sign', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', 'trunc'
+].forEach(function (mathMethod) {
+    methods.push(['Math.' + mathMethod, mathMethod]);
+});
+
+for (var method of methods) {
+    for (var i = 1; i < method.length; i++) {
+        SparseMatrix.prototype[method[i]] = eval(fillTemplateFunction(inplaceMethod, {name: method[i], method: method[0]}));
+        SparseMatrix[method[i]] = eval(fillTemplateFunction(staticMethod, {name: method[i]}));
+    }
+}
+
+function fillTemplateFunction(template, values) {
+    for (var i in values) {
+        template = template.replace(new RegExp('%' + i + '%', 'g'), values[i]);
+    }
+    return template;
+}
+
+
+/***/ }),
 /* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-exports.SpinSystem = __webpack_require__(133);
-exports.simulate1D = __webpack_require__(135);
-exports.simulate2D = __webpack_require__(136);
+function compareNumbers(a, b) {
+    return a - b;
+}
+
+/**
+ * Computes the sum of the given values
+ * @param {Array} values
+ * @returns {number}
+ */
+exports.sum = function sum(values) {
+    var sum = 0;
+    for (var i = 0; i < values.length; i++) {
+        sum += values[i];
+    }
+    return sum;
+};
+
+/**
+ * Computes the maximum of the given values
+ * @param {Array} values
+ * @returns {number}
+ */
+exports.max = function max(values) {
+    var max = values[0];
+    var l = values.length;
+    for (var i = 1; i < l; i++) {
+        if (values[i] > max) max = values[i];
+    }
+    return max;
+};
+
+/**
+ * Computes the minimum of the given values
+ * @param {Array} values
+ * @returns {number}
+ */
+exports.min = function min(values) {
+    var min = values[0];
+    var l = values.length;
+    for (var i = 1; i < l; i++) {
+        if (values[i] < min) min = values[i];
+    }
+    return min;
+};
+
+/**
+ * Computes the min and max of the given values
+ * @param {Array} values
+ * @returns {{min: number, max: number}}
+ */
+exports.minMax = function minMax(values) {
+    var min = values[0];
+    var max = values[0];
+    var l = values.length;
+    for (var i = 1; i < l; i++) {
+        if (values[i] < min) min = values[i];
+        if (values[i] > max) max = values[i];
+    }
+    return {
+        min: min,
+        max: max
+    };
+};
+
+/**
+ * Computes the arithmetic mean of the given values
+ * @param {Array} values
+ * @returns {number}
+ */
+exports.arithmeticMean = function arithmeticMean(values) {
+    var sum = 0;
+    var l = values.length;
+    for (var i = 0; i < l; i++) {
+        sum += values[i];
+    }
+    return sum / l;
+};
+
+/**
+ * {@link arithmeticMean}
+ */
+exports.mean = exports.arithmeticMean;
+
+/**
+ * Computes the geometric mean of the given values
+ * @param {Array} values
+ * @returns {number}
+ */
+exports.geometricMean = function geometricMean(values) {
+    var mul = 1;
+    var l = values.length;
+    for (var i = 0; i < l; i++) {
+        mul *= values[i];
+    }
+    return Math.pow(mul, 1 / l);
+};
+
+/**
+ * Computes the mean of the log of the given values
+ * If the return value is exponentiated, it gives the same result as the
+ * geometric mean.
+ * @param {Array} values
+ * @returns {number}
+ */
+exports.logMean = function logMean(values) {
+    var lnsum = 0;
+    var l = values.length;
+    for (var i = 0; i < l; i++) {
+        lnsum += Math.log(values[i]);
+    }
+    return lnsum / l;
+};
+
+/**
+ * Computes the weighted grand mean for a list of means and sample sizes
+ * @param {Array} means - Mean values for each set of samples
+ * @param {Array} samples - Number of original values for each set of samples
+ * @returns {number}
+ */
+exports.grandMean = function grandMean(means, samples) {
+    var sum = 0;
+    var n = 0;
+    var l = means.length;
+    for (var i = 0; i < l; i++) {
+        sum += samples[i] * means[i];
+        n += samples[i];
+    }
+    return sum / n;
+};
+
+/**
+ * Computes the truncated mean of the given values using a given percentage
+ * @param {Array} values
+ * @param {number} percent - The percentage of values to keep (range: [0,1])
+ * @param {boolean} [alreadySorted=false]
+ * @returns {number}
+ */
+exports.truncatedMean = function truncatedMean(values, percent, alreadySorted) {
+    if (alreadySorted === undefined) alreadySorted = false;
+    if (!alreadySorted) {
+        values = [].concat(values).sort(compareNumbers);
+    }
+    var l = values.length;
+    var k = Math.floor(l * percent);
+    var sum = 0;
+    for (var i = k; i < (l - k); i++) {
+        sum += values[i];
+    }
+    return sum / (l - 2 * k);
+};
+
+/**
+ * Computes the harmonic mean of the given values
+ * @param {Array} values
+ * @returns {number}
+ */
+exports.harmonicMean = function harmonicMean(values) {
+    var sum = 0;
+    var l = values.length;
+    for (var i = 0; i < l; i++) {
+        if (values[i] === 0) {
+            throw new RangeError('value at index ' + i + 'is zero');
+        }
+        sum += 1 / values[i];
+    }
+    return l / sum;
+};
+
+/**
+ * Computes the contraharmonic mean of the given values
+ * @param {Array} values
+ * @returns {number}
+ */
+exports.contraHarmonicMean = function contraHarmonicMean(values) {
+    var r1 = 0;
+    var r2 = 0;
+    var l = values.length;
+    for (var i = 0; i < l; i++) {
+        r1 += values[i] * values[i];
+        r2 += values[i];
+    }
+    if (r2 < 0) {
+        throw new RangeError('sum of values is negative');
+    }
+    return r1 / r2;
+};
+
+/**
+ * Computes the median of the given values
+ * @param {Array} values
+ * @param {boolean} [alreadySorted=false]
+ * @returns {number}
+ */
+exports.median = function median(values, alreadySorted) {
+    if (alreadySorted === undefined) alreadySorted = false;
+    if (!alreadySorted) {
+        values = [].concat(values).sort(compareNumbers);
+    }
+    var l = values.length;
+    var half = Math.floor(l / 2);
+    if (l % 2 === 0) {
+        return (values[half - 1] + values[half]) * 0.5;
+    } else {
+        return values[half];
+    }
+};
+
+/**
+ * Computes the variance of the given values
+ * @param {Array} values
+ * @param {boolean} [unbiased=true] - if true, divide by (n-1); if false, divide by n.
+ * @returns {number}
+ */
+exports.variance = function variance(values, unbiased) {
+    if (unbiased === undefined) unbiased = true;
+    var theMean = exports.mean(values);
+    var theVariance = 0;
+    var l = values.length;
+
+    for (var i = 0; i < l; i++) {
+        var x = values[i] - theMean;
+        theVariance += x * x;
+    }
+
+    if (unbiased) {
+        return theVariance / (l - 1);
+    } else {
+        return theVariance / l;
+    }
+};
+
+/**
+ * Computes the standard deviation of the given values
+ * @param {Array} values
+ * @param {boolean} [unbiased=true] - if true, divide by (n-1); if false, divide by n.
+ * @returns {number}
+ */
+exports.standardDeviation = function standardDeviation(values, unbiased) {
+    return Math.sqrt(exports.variance(values, unbiased));
+};
+
+exports.standardError = function standardError(values) {
+    return exports.standardDeviation(values) / Math.sqrt(values.length);
+};
+
+/**
+ * IEEE Transactions on biomedical engineering, vol. 52, no. 1, january 2005, p. 76-
+ * Calculate the standard deviation via the Median of the absolute deviation
+ *  The formula for the standard deviation only holds for Gaussian random variables.
+ * @returns {{mean: number, stdev: number}}
+ */
+exports.robustMeanAndStdev = function robustMeanAndStdev(y) {
+    var mean = 0, stdev = 0;
+    var length = y.length, i = 0;
+    for (i = 0; i < length; i++) {
+        mean += y[i];
+    }
+    mean /= length;
+    var averageDeviations = new Array(length);
+    for (i = 0; i < length; i++)
+        averageDeviations[i] = Math.abs(y[i] - mean);
+    averageDeviations.sort(compareNumbers);
+    if (length % 2 === 1) {
+        stdev = averageDeviations[(length - 1) / 2] / 0.6745;
+    } else {
+        stdev = 0.5 * (averageDeviations[length / 2] + averageDeviations[length / 2 - 1]) / 0.6745;
+    }
+
+    return {
+        mean: mean,
+        stdev: stdev
+    };
+};
+
+exports.quartiles = function quartiles(values, alreadySorted) {
+    if (typeof (alreadySorted) === 'undefined') alreadySorted = false;
+    if (!alreadySorted) {
+        values = [].concat(values).sort(compareNumbers);
+    }
+
+    var quart = values.length / 4;
+    var q1 = values[Math.ceil(quart) - 1];
+    var q2 = exports.median(values, true);
+    var q3 = values[Math.ceil(quart * 3) - 1];
+
+    return {q1: q1, q2: q2, q3: q3};
+};
+
+exports.pooledStandardDeviation = function pooledStandardDeviation(samples, unbiased) {
+    return Math.sqrt(exports.pooledVariance(samples, unbiased));
+};
+
+exports.pooledVariance = function pooledVariance(samples, unbiased) {
+    if (typeof (unbiased) === 'undefined') unbiased = true;
+    var sum = 0;
+    var length = 0, l = samples.length;
+    for (var i = 0; i < l; i++) {
+        var values = samples[i];
+        var vari = exports.variance(values);
+
+        sum += (values.length - 1) * vari;
+
+        if (unbiased)
+            length += values.length - 1;
+        else
+            length += values.length;
+    }
+    return sum / length;
+};
+
+exports.mode = function mode(values) {
+    var l = values.length,
+        itemCount = new Array(l),
+        i;
+    for (i = 0; i < l; i++) {
+        itemCount[i] = 0;
+    }
+    var itemArray = new Array(l);
+    var count = 0;
+
+    for (i = 0; i < l; i++) {
+        var index = itemArray.indexOf(values[i]);
+        if (index >= 0)
+            itemCount[index]++;
+        else {
+            itemArray[count] = values[i];
+            itemCount[count] = 1;
+            count++;
+        }
+    }
+
+    var maxValue = 0, maxIndex = 0;
+    for (i = 0; i < count; i++) {
+        if (itemCount[i] > maxValue) {
+            maxValue = itemCount[i];
+            maxIndex = i;
+        }
+    }
+
+    return itemArray[maxIndex];
+};
+
+exports.covariance = function covariance(vector1, vector2, unbiased) {
+    if (typeof (unbiased) === 'undefined') unbiased = true;
+    var mean1 = exports.mean(vector1);
+    var mean2 = exports.mean(vector2);
+
+    if (vector1.length !== vector2.length)
+        throw 'Vectors do not have the same dimensions';
+
+    var cov = 0, l = vector1.length;
+    for (var i = 0; i < l; i++) {
+        var x = vector1[i] - mean1;
+        var y = vector2[i] - mean2;
+        cov += x * y;
+    }
+
+    if (unbiased)
+        return cov / (l - 1);
+    else
+        return cov / l;
+};
+
+exports.skewness = function skewness(values, unbiased) {
+    if (typeof (unbiased) === 'undefined') unbiased = true;
+    var theMean = exports.mean(values);
+
+    var s2 = 0, s3 = 0, l = values.length;
+    for (var i = 0; i < l; i++) {
+        var dev = values[i] - theMean;
+        s2 += dev * dev;
+        s3 += dev * dev * dev;
+    }
+    var m2 = s2 / l;
+    var m3 = s3 / l;
+
+    var g = m3 / (Math.pow(m2, 3 / 2.0));
+    if (unbiased) {
+        var a = Math.sqrt(l * (l - 1));
+        var b = l - 2;
+        return (a / b) * g;
+    } else {
+        return g;
+    }
+};
+
+exports.kurtosis = function kurtosis(values, unbiased) {
+    if (typeof (unbiased) === 'undefined') unbiased = true;
+    var theMean = exports.mean(values);
+    var n = values.length, s2 = 0, s4 = 0;
+
+    for (var i = 0; i < n; i++) {
+        var dev = values[i] - theMean;
+        s2 += dev * dev;
+        s4 += dev * dev * dev * dev;
+    }
+    var m2 = s2 / n;
+    var m4 = s4 / n;
+
+    if (unbiased) {
+        var v = s2 / (n - 1);
+        var a = (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3));
+        var b = s4 / (v * v);
+        var c = ((n - 1) * (n - 1)) / ((n - 2) * (n - 3));
+
+        return a * b - 3 * c;
+    } else {
+        return m4 / (m2 * m2) - 3;
+    }
+};
+
+exports.entropy = function entropy(values, eps) {
+    if (typeof (eps) === 'undefined') eps = 0;
+    var sum = 0, l = values.length;
+    for (var i = 0; i < l; i++)
+        sum += values[i] * Math.log(values[i] + eps);
+    return -sum;
+};
+
+exports.weightedMean = function weightedMean(values, weights) {
+    var sum = 0, l = values.length;
+    for (var i = 0; i < l; i++)
+        sum += values[i] * weights[i];
+    return sum;
+};
+
+exports.weightedStandardDeviation = function weightedStandardDeviation(values, weights) {
+    return Math.sqrt(exports.weightedVariance(values, weights));
+};
+
+exports.weightedVariance = function weightedVariance(values, weights) {
+    var theMean = exports.weightedMean(values, weights);
+    var vari = 0, l = values.length;
+    var a = 0, b = 0;
+
+    for (var i = 0; i < l; i++) {
+        var z = values[i] - theMean;
+        var w = weights[i];
+
+        vari += w * (z * z);
+        b += w;
+        a += w * w;
+    }
+
+    return vari * (b / (b * b - a));
+};
+
+exports.center = function center(values, inPlace) {
+    if (typeof (inPlace) === 'undefined') inPlace = false;
+
+    var result = values;
+    if (!inPlace)
+        result = [].concat(values);
+
+    var theMean = exports.mean(result), l = result.length;
+    for (var i = 0; i < l; i++)
+        result[i] -= theMean;
+};
+
+exports.standardize = function standardize(values, standardDev, inPlace) {
+    if (typeof (standardDev) === 'undefined') standardDev = exports.standardDeviation(values);
+    if (typeof (inPlace) === 'undefined') inPlace = false;
+    var l = values.length;
+    var result = inPlace ? values : new Array(l);
+    for (var i = 0; i < l; i++)
+        result[i] = values[i] / standardDev;
+    return result;
+};
+
+exports.cumulativeSum = function cumulativeSum(array) {
+    var l = array.length;
+    var result = new Array(l);
+    result[0] = array[0];
+    for (var i = 1; i < l; i++)
+        result[i] = result[i - 1] + array[i];
+    return result;
+};
 
 
 /***/ }),
@@ -13489,7 +13914,19 @@ exports.simulate2D = __webpack_require__(136);
 
 "use strict";
 
-var numberIsNan = __webpack_require__(137);
+
+exports.SpinSystem = __webpack_require__(138);
+exports.simulate1D = __webpack_require__(140);
+exports.simulate2D = __webpack_require__(141);
+
+
+/***/ }),
+/* 52 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var numberIsNan = __webpack_require__(142);
 
 function assertNum(x) {
 	if (typeof x !== 'number' || numberIsNan(x)) {
@@ -13511,7 +13948,7 @@ exports.desc = function (a, b) {
 
 
 /***/ }),
-/* 52 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13703,7 +14140,7 @@ exports.utf8border = function (buf, max) {
 
 
 /***/ }),
-/* 53 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13712,6 +14149,25 @@ exports.utf8border = function (buf, max) {
 // Note: adler32 takes 12% for level 0 and 2% for level 6.
 // It doesn't worth to make additional optimizationa as in original.
 // Small size is preferable.
+
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 
 function adler32(adler, buf, len, pos) {
   var s1 = (adler & 0xffff) |0,
@@ -13742,12 +14198,30 @@ module.exports = adler32;
 
 
 /***/ }),
-/* 54 */
+/* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 
 module.exports = {
 
@@ -13799,7 +14273,7 @@ module.exports = {
 
 
 /***/ }),
-/* 55 */
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13809,6 +14283,24 @@ module.exports = {
 // So write code to minimize size - no pregenerated tables
 // and array tools dependencies.
 
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 
 // Use ordinary array, since untyped makes no boost here
 function makeTable() {
@@ -13847,12 +14339,30 @@ module.exports = crc32;
 
 
 /***/ }),
-/* 56 */
+/* 57 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 
 function ZStream() {
   /* next input byte */
@@ -13883,7 +14393,7 @@ module.exports = ZStream;
 
 
 /***/ }),
-/* 57 */
+/* 58 */
 /***/ (function(module, exports) {
 
 var g;
@@ -13910,17 +14420,17 @@ module.exports = g;
 
 
 /***/ }),
-/* 58 */
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var SD = __webpack_require__(9);
-var Filters = __webpack_require__(22);
-var Brukerconverter = __webpack_require__(26);
-var peaks2Ranges = __webpack_require__(70);
-var simulator = __webpack_require__(50);
+const SD = __webpack_require__(9);
+const Filters = __webpack_require__(21);
+const Brukerconverter = __webpack_require__(25);
+const peaks2Ranges = __webpack_require__(73);
+const simulator = __webpack_require__(51);
 
 /**
  * @class NMR
@@ -13940,8 +14450,8 @@ class NMR extends SD {
      * @returns {SD}
      */
     static fromPrediction(prediction, options) {
-        var spinSystem = simulator.SpinSystem.fromPrediction(prediction);
-        var opt = Object.assign({}, options, {
+        const spinSystem = simulator.SpinSystem.fromPrediction(prediction);
+        let opt = Object.assign({}, options, {
             nbPoints: 16 * 1024,
             maxClusterSize: 8,
             output: 'xy'
@@ -13982,6 +14492,7 @@ class NMR extends SD {
         spectrum.observeFrequency = options.frequency || 400;
         result.info.observefrequency = spectrum.observeFrequency;
         result.info['.SOLVENTNAME'] = options.solvent || 'none';
+        // eslint-disable-next-line camelcase
         result.info.$SW_h = Math.abs(spectrum.lastX - spectrum.firstX) * spectrum.observeFrequency;
         result.info.$SW = Math.abs(spectrum.lastX - spectrum.firstX);
         result.info.$TD = spectrum.nbPoints;
@@ -14333,19 +14844,19 @@ class NMR extends SD {
 module.exports = NMR;
 
 /***/ }),
-/* 59 */
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var SD = __webpack_require__(9);
-var peakPicking2D = __webpack_require__(69);
-var PeakOptimizer = __webpack_require__(23);
-var Brukerconverter = __webpack_require__(26);
-var Filters = __webpack_require__(22);
-var StatArray = __webpack_require__(6).array;
-var simule2DNmrSpectrum = __webpack_require__(50).simulate2D;
+const SD = __webpack_require__(9);
+const peakPicking2D = __webpack_require__(72);
+const PeakOptimizer = __webpack_require__(22);
+const Brukerconverter = __webpack_require__(25);
+const Filters = __webpack_require__(21);
+const StatArray = __webpack_require__(6).array;
+const simule2DNmrSpectrum = __webpack_require__(51).simulate2D;
 
 class NMR2D extends SD {
 
@@ -14405,27 +14916,27 @@ class NMR2D extends SD {
         result.profiling = [];
         result.logs = [];
         var spectra = [];
-        var nbPoints = data[0].length;
+        let nbPoints = data[0].length;
         result.spectra = spectra;
         result.info = {};
-        var firstY = options.firstY || 0;
-        var lastY = options.lastY || data.length - 1;
-        var deltaY = (lastY - firstY) / (data.length - 1);
+        let firstY = options.firstY || 0;
+        let lastY = options.lastY || data.length - 1;
+        let deltaY = (lastY - firstY) / (data.length - 1);
 
-        var firstX = options.firstX || 0;
-        var lastX = options.lastX || nbPoints - 1;
-        var deltaX = (lastY - firstY) / (nbPoints - 1);
-        var x = options.x;
+        let firstX = options.firstX || 0;
+        let lastX = options.lastX || nbPoints - 1;
+        let deltaX = (lastY - firstY) / (nbPoints - 1);
+        let x = options.x;
         if (!x) {
             x = new Array(nbPoints);
-            for (var i = 0; i < nbPoints; i++) {
+            for (let i = 0; i < nbPoints; i++) {
                 x[i] = firstX + deltaX * i;
             }
         }
 
-        var observeFrequency = options.frequencyX || 400;
-        var minZ = Number.MAX_SAFE_INTEGER;
-        var maxZ = Number.MIN_SAFE_INTEGER;
+        let observeFrequency = options.frequencyX || 400;
+        let minZ = Number.MAX_SAFE_INTEGER;
+        let maxZ = Number.MIN_SAFE_INTEGER;
 
         data.forEach((y, index) => {
             var spectrum = {};
@@ -14446,7 +14957,7 @@ class NMR2D extends SD {
             result.xType = options.xType || options.nucleusX || '1H';
             spectra.push(spectrum);
 
-            var minMax = StatArray.minMax(y);
+            let minMax = StatArray.minMax(y);
             minZ = Math.min(minZ, minMax.min);
             maxZ = Math.max(maxZ, minMax.max);
         });
@@ -14457,6 +14968,7 @@ class NMR2D extends SD {
         result.info.observefrequency = result.info['2D_X_FREQUENCY'];
         result.info.$BF1 = result.info.observefrequency;
         result.info['.SOLVENTNAME'] = options.solvent || 'none';
+        // eslint-disable-next-line camelcase
         result.info.$SW_h = Math.abs(lastX - firstX) * observeFrequency;
         result.info.$SW = Math.abs(lastX - firstX);
         result.info.$TD = nbPoints;
@@ -14707,14 +15219,14 @@ class NMR2D extends SD {
 module.exports = NMR2D;
 
 /***/ }),
-/* 60 */
+/* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 function apodization(spectraData, parameters) {
-    var params = Object.assign({}, parameters);
+    let params = Object.assign({}, parameters);
     if (!params) {
         return spectraData;
     }
@@ -14744,16 +15256,16 @@ function apodization(spectraData, parameters) {
 module.exports = apodization;
 
 /***/ }),
-/* 61 */
+/* 62 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var rotate = __webpack_require__(64);
+var rotate = __webpack_require__(65);
 
 function digitalFilter(spectraData, options) {
-    var activeElement = spectraData.activeElement;
+    let activeElement = spectraData.activeElement;
     var nbPoints = 0;
     if (options.nbPoints) {
         nbPoints = options.nbPoints;
@@ -14784,13 +15296,13 @@ function digitalFilter(spectraData, options) {
 module.exports = digitalFilter;
 
 /***/ }),
-/* 62 */
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var fft = __webpack_require__(14);
+const fft = __webpack_require__(40);
 
 /**
  * This function make a fourier transformation to each FID withing a SD instance
@@ -14877,7 +15389,7 @@ function updateSpectra(spectraData, spectraType) {
 module.exports = fourierTransform;
 
 /***/ }),
-/* 63 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14944,7 +15456,7 @@ function phaseCorrection(spectraData, phi0, phi1) {
 module.exports = phaseCorrection;
 
 /***/ }),
-/* 64 */
+/* 65 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15011,7 +15523,7 @@ function putInRange(value, nbPoints) {
 module.exports = rotate;
 
 /***/ }),
-/* 65 */
+/* 66 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15055,17 +15567,29 @@ function zeroFilling(spectraData, zeroFillingX) {
 module.exports = zeroFilling;
 
 /***/ }),
-/* 66 */
+/* 67 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Encoder = __webpack_require__(67);
-var Integer = { MAX_VALUE: Number.MAX_SAFE_INTEGER, MIN_VALUE: Number.MIN_SAFE_INTEGER };
-var CRLF = '\r\n';
-var version = 'Cheminfo tools ' + __webpack_require__(151).version;
-var defaultParameters = { 'encode': 'DIFDUP', 'yFactor': 1, 'type': 'SIMPLE', 'keep': [] };
+exports.SD = __webpack_require__(9);
+exports.NMR = __webpack_require__(59);
+exports.NMR2D = __webpack_require__(60);
+exports.Ranges = __webpack_require__(20);
+
+/***/ }),
+/* 68 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+const Encoder = __webpack_require__(69);
+const Integer = { MAX_VALUE: Number.MAX_SAFE_INTEGER, MIN_VALUE: Number.MIN_SAFE_INTEGER };
+const CRLF = '\r\n';
+const version = 'Cheminfo tools ' + __webpack_require__(156).version;
+const defaultParameters = { 'encode': 'DIFDUP', 'yFactor': 1, 'type': 'SIMPLE', 'keep': [] };
 /**
  * This class converts a SpectraData object into a String that can be stored as a jcamp file.
  * The string reflects the current state of the object and not the raw data from where this
@@ -15091,10 +15615,10 @@ class JcampCreator {
     convert(spectraData, options) {
         // encodeFormat: ('FIX','SQZ','DIF','DIFDUP','CVS','PAC')
         options = Object.assign({}, defaultParameters, options);
-        var encodeFormat = options.encode.toUpperCase().trim();
-        var factorY = options.yFactor || 1;
-        var type = options.type;
-        var userDefinedParams = options.keep;
+        const encodeFormat = options.encode.toUpperCase().trim();
+        const factorY = options.yFactor || 1;
+        let type = options.type;
+        const userDefinedParams = options.keep;
 
         if (type === null || type.length === 0) {
             type = 'SIMPLE';
@@ -15104,7 +15628,7 @@ class JcampCreator {
         spectraData.setActiveElement(0);
 
         var scale = factorY / spectraData.getParamDouble('YFACTOR', 1);
-        var minMax = {};
+        let minMax = {};
 
         if (!spectraData.is2D()) {
             minMax = spectraData.getMinMaxY();
@@ -15319,7 +15843,7 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
         outString += '##DATA TABLE= ';
         if (spectraData.isDataClassPeak()) {
             outString += '(XY..XY), PEAKS' + CRLF;
-            for (var point = 0; point < spectraData.getNbPoints(); point++) {
+            for (let point = 0; point < spectraData.getNbPoints(); point++) {
                 outString += spectraData.getX(point) + ', ' + spectraData.getY(point) + CRLF;
             }
         } else if (spectraData.isDataClassXY()) {
@@ -15339,8 +15863,8 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
 
             var tempString = '';
             var data = new Array(spectraData.getNbPoints());
-            for (var _point = data.length - 1; _point >= 0; _point--) {
-                data[_point] = Math.round(spectraData.getY(_point) * scale);
+            for (let point = data.length - 1; point >= 0; point--) {
+                data[point] = Math.round(spectraData.getY(point) * scale);
             }
 
             tempString += Encoder.encode(data, spectraData.getFirstX() * scaleX, spectraData.getDeltaX() * scaleX, encodeFormat);
@@ -15420,8 +15944,8 @@ function simpleHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams)
         outString += '##XYDATA=(X++(Y..Y))' + CRLF;
         var tempString = '';
         var data = new Array(spectraData.getNbPoints());
-        for (var _point2 = data.length - 1; _point2 >= 0; _point2--) {
-            data[_point2] = Math.round(spectraData.getY(_point2) * scale);
+        for (let point = data.length - 1; point >= 0; point--) {
+            data[point] = Math.round(spectraData.getY(point) * scale);
         }
 
         tempString += Encoder.encode(data, spectraData.getFirstX() * scaleX, spectraData.getDeltaX() * scaleX, encodeFormat);
@@ -15437,7 +15961,7 @@ function simpleHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams)
 module.exports = JcampCreator;
 
 /***/ }),
-/* 67 */
+/* 69 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15450,16 +15974,16 @@ module.exports = JcampCreator;
 * Created by acastillo on 3/2/16.
 */
 
-var newLine = '\r\n';
+const newLine = '\r\n';
 
-var pseudoDigits = [['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'], ['@', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'], ['@', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'], ['%', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'], ['%', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r'], [' ', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 's']];
+const pseudoDigits = [['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'], ['@', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'], ['@', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'], ['%', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'], ['%', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r'], [' ', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 's']];
 
-var SQZ_P = 1,
-    SQZ_N = 2,
-    DIF_P = 3,
-    DIF_N = 4,
-    DUP = 5,
-    MaxLinelength = 100;
+const SQZ_P = 1,
+      SQZ_N = 2,
+      DIF_P = 3,
+      DIF_N = 4,
+      DUP = 5,
+      MaxLinelength = 100;
 
 /**
  * This function encodes the given vector. The encoding format is specified by the
@@ -15808,7 +16332,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 68 */
+/* 70 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15818,7 +16342,7 @@ module.exports = {
  */
 
 
-var patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
+const patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
 var symRatio = 1.5;
 var maxErrorIter1 = 2.5; //Hz
 var maxErrorIter2 = 1; //Hz
@@ -16298,7 +16822,7 @@ function symmetrize(signal, maxError, iteration) {
     }
     signal.delta1 = cs / signal.observe;
     //Now, the peak should be symmetric in heights, but we need to know if it is symmetric in x
-    var symFactor = 0,
+    let symFactor = 0,
         weight = 0;
     if (peaks.length > 1) {
         for (i = Math.ceil(peaks.length / 2) - 1; i >= 0; i--) {
@@ -16326,7 +16850,7 @@ function symmetrize(signal, maxError, iteration) {
     } else {
         //Center the given pattern at cs and symmetrize x
         if (peaks.length > 1) {
-            var dxi = void 0;
+            let dxi;
             for (i = Math.ceil(peaks.length / 2) - 1; i >= 0; i--) {
                 dxi = (peaks[i].x - peaks[peaks.length - 1 - i].x) / 2.0;
                 peaks[i].x = cs + dxi;
@@ -16436,18 +16960,100 @@ function getArea(peak) {
 }
 
 /***/ }),
-/* 69 */
+/* 71 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/**
+ * Implementation of the peak picking method described by Cobas in:
+ * A new approach to improving automated analysis of proton NMR spectra
+ * through Global Spectral Deconvolution (GSD)
+ * http://www.spectroscopyeurope.com/images/stories/ColumnPDFs/TD_23_1.pdf
+ * @param {SD} spectrum - SD instance
+ * @param {Object} peakList - nmr signals
+ * @param {Object} options - options object with some parameter for GSD
+ * @param {boolean} [options.clean = true] - If true remove all the signals with integral < 0.5
+ * @param {number} [options.minMaxRatio = 0.01] - Threshold to determine if a given peak should be considered as a noise, bases on its relative height compared to the highest peak.
+ * @param {number} [options.broadRatio = 0.00025] - If broadRatio is higher than 0, then all the peaks which second derivative smaller than broadRatio * maxAbsSecondDerivative will be marked with the soft mask equal to true.
+ * @param {boolean} [options.smoothY = true] - Select the peak intensities from a smoothed version of the independent variables?
+ * @param {number} [options.nL = 4] - factor to determine the width at the moment to group the peaks in signals in 'GSD.optimizePeaks' function.
+ * @param {boolean} [options.optimize = true] - if it's true adjust an train of gaussian or lorentzian shapes to spectrum.
+ * @param {string} [options.functionType = 'gaussian'] - This option allows us choose between 'gaussian' or 'lorentzian' function when options.optimize is true.
+ * @param {number} [options.broadWidth = 0.25] - Threshold to determine if some peak is candidate to clustering into range.
+ * @returns {Array}
+ */
+
+const GSD = __webpack_require__(101);
+//var extend = require("extend");
+//var removeImpurities = require('./ImpurityRemover');
+
+const defaultOptions = {
+
+    thresholdFactor: 1,
+    optimize: false,
+    minMaxRatio: 0.01,
+    broadRatio: 0.00025,
+    smoothY: true,
+    nL: 4,
+    functionType: 'gaussian',
+    broadWidth: 0.25,
+    sgOptions: { windowSize: 9, polynomial: 3 }
+};
+
+function extractPeaks(spectrum, optionsEx) {
+    var options = Object.assign({}, defaultOptions, optionsEx);
+    var noiseLevel = Math.abs(spectrum.getNoiseLevel()) * options.thresholdFactor;
+    var data = spectrum.getXYData();
+
+    if (options.from && options.to) {
+        data = spectrum.getVector(options.from, options.to);
+    }
+
+    var peakList = GSD.gsd(data[0], data[1], options);
+
+    if (options.broadWidth) {
+        peakList = GSD.post.joinBroadPeaks(peakList, { width: options.broadWidth });
+    }
+
+    if (options.optimize) {
+        peakList = GSD.post.optimizePeaks(peakList, data[0], data[1], options.nL, options.functionType);
+    }
+
+    return clearList(peakList, noiseLevel);
+}
+
+/**
+ * this function remove the peaks with an intensity lower to threshold
+ * @param {object} peakList - peaks
+ * @param {number} threshold
+ * @returns {object} the clean peakList
+ * @private
+ */
+function clearList(peakList, threshold) {
+    for (var i = peakList.length - 1; i >= 0; i--) {
+        if (Math.abs(peakList[i].y) < threshold) {
+            peakList.splice(i, 1);
+        }
+    }
+    return peakList;
+}
+
+module.exports = extractPeaks;
+
+/***/ }),
+/* 72 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var PeakOptimizer = __webpack_require__(23);
-var simpleClustering = __webpack_require__(44);
-var matrixPeakFinders = __webpack_require__(107);
-var FFTUtils = __webpack_require__(14).FFTUtils;
+var PeakOptimizer = __webpack_require__(22);
+var simpleClustering = __webpack_require__(48);
+var matrixPeakFinders = __webpack_require__(112);
+var FFTUtils = __webpack_require__(40).FFTUtils;
 
-var smallFilter = [[0, 0, 1, 2, 2, 2, 1, 0, 0], [0, 1, 4, 7, 7, 7, 4, 1, 0], [1, 4, 5, 3, 0, 3, 5, 4, 1], [2, 7, 3, -12, -23, -12, 3, 7, 2], [2, 7, 0, -23, -40, -23, 0, 7, 2], [2, 7, 3, -12, -23, -12, 3, 7, 2], [1, 4, 5, 3, 0, 3, 5, 4, 1], [0, 1, 3, 7, 7, 7, 3, 1, 0], [0, 0, 1, 2, 2, 2, 1, 0, 0]];
+const smallFilter = [[0, 0, 1, 2, 2, 2, 1, 0, 0], [0, 1, 4, 7, 7, 7, 4, 1, 0], [1, 4, 5, 3, 0, 3, 5, 4, 1], [2, 7, 3, -12, -23, -12, 3, 7, 2], [2, 7, 0, -23, -40, -23, 0, 7, 2], [2, 7, 3, -12, -23, -12, 3, 7, 2], [1, 4, 5, 3, 0, 3, 5, 4, 1], [0, 1, 3, 7, 7, 7, 3, 1, 0], [0, 0, 1, 2, 2, 2, 1, 0, 0]];
 
 function getZones(spectraData, thresholdFactor) {
     if (thresholdFactor === 0) {
@@ -16475,19 +17081,19 @@ function getZones(spectraData, thresholdFactor) {
 
     var nStdDev = getLoGnStdDevNMR(spectraData);
     if (isHomonuclear) {
-        var convolutedSpectrum = FFTUtils.convolute(data, smallFilter, nbSubSpectra, nbPoints);
-        var peaksMC1 = matrixPeakFinders.findPeaks2DRegion(data, { filteredData: convolutedSpectrum, rows: nbSubSpectra, cols: nbPoints, nStdDev: nStdDev * thresholdFactor }); //)1.5);
+        let convolutedSpectrum = FFTUtils.convolute(data, smallFilter, nbSubSpectra, nbPoints);
+        let peaksMC1 = matrixPeakFinders.findPeaks2DRegion(data, { filteredData: convolutedSpectrum, rows: nbSubSpectra, cols: nbPoints, nStdDev: nStdDev * thresholdFactor }); //)1.5);
         var peaksMax1 = matrixPeakFinders.findPeaks2DMax(data, { filteredData: convolutedSpectrum, rows: nbSubSpectra, cols: nbPoints, nStdDev: (nStdDev + 0.5) * thresholdFactor }); //2.0);
         for (var i = 0; i < peaksMC1.length; i++) {
             peaksMax1.push(peaksMC1[i]);
         }
         return PeakOptimizer.enhanceSymmetry(createSignals2D(peaksMax1, spectraData, 24));
     } else {
-        var _convolutedSpectrum = FFTUtils.convolute(data, smallFilter, nbSubSpectra, nbPoints);
-        var _peaksMC = matrixPeakFinders.findPeaks2DRegion(data, { filteredData: _convolutedSpectrum, rows: nbSubSpectra, cols: nbPoints, nStdDev: nStdDev * thresholdFactor });
+        let convolutedSpectrum = FFTUtils.convolute(data, smallFilter, nbSubSpectra, nbPoints);
+        let peaksMC1 = matrixPeakFinders.findPeaks2DRegion(data, { filteredData: convolutedSpectrum, rows: nbSubSpectra, cols: nbPoints, nStdDev: nStdDev * thresholdFactor });
         //Peak2D[] peaksMC1 = matrixPeakFinders.findPeaks2DMax(data, nbSubSpectra, nbPoints, (nStdDev+0.5)*thresholdFactor);
         //Remove peaks with less than 3% of the intensity of the highest peak
-        return createSignals2D(PeakOptimizer.clean(_peaksMC, 0.05), spectraData, 24);
+        return createSignals2D(PeakOptimizer.clean(peaksMC1, 0.05), spectraData, 24);
     }
 }
 
@@ -16596,18 +17202,18 @@ function createSignals2D(peaks, spectraData, tolerance) {
 module.exports = getZones;
 
 /***/ }),
-/* 70 */
+/* 73 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var JAnalyzer = __webpack_require__(68);
-var Ranges = __webpack_require__(21);
+const JAnalyzer = __webpack_require__(70);
+const Ranges = __webpack_require__(20);
 //var extend = require("extend");
 //var removeImpurities = require('./ImpurityRemover');
 
-var defaultOptions = {
+const defaultOptions = {
     nH: 99,
     clean: true,
     compile: true,
@@ -16675,10 +17281,10 @@ function createRanges(spectrum, peakList, options) {
                     for (j = peaksO.length - 1; j >= 0; j--) {
                         peaks1.push(peaksO[j]);
                     }
-                    var _ranges = detectSignals(peaks1, spectrum, nHi, options.integralType, options.frequencyCluster);
+                    let ranges = detectSignals(peaks1, spectrum, nHi, options.integralType, options.frequencyCluster);
 
-                    for (j = 0; j < _ranges.length; j++) {
-                        signals.push(_ranges[j]);
+                    for (j = 0; j < ranges.length; j++) {
+                        signals.push(ranges[j]);
                     }
                 }
             }
@@ -16719,7 +17325,7 @@ function createRanges(spectrum, peakList, options) {
         signals[i]._highlight = [signals[i].signalID];
     }
 
-    var ranges = new Array(signals.length);
+    let ranges = new Array(signals.length);
     for (i = 0; i < signals.length; i++) {
         var signal = signals[i];
         ranges[i] = {
@@ -16762,24 +17368,28 @@ function createRanges(spectrum, peakList, options) {
  * @private
  */
 function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
-    var frequency = spectrum.observeFrequencyX();
-    var cs,
-        sum,
-        i,
-        j,
-        signals = [],
-        signal1D = {},
-        peaks = null,
-        prevPeak = { x: 100000, y: 0, width: 0 },
-        spectrumIntegral = 0;
+    const frequency = spectrum.observeFrequencyX();
+    var cs = spectrum.cs,
+        sum = spectrum.sum,
+        i = spectrum.i,
+        j = spectrum.j,
+        _spectrum$signals = spectrum.signals,
+        signals = _spectrum$signals === undefined ? [] : _spectrum$signals,
+        _spectrum$signal1D = spectrum.signal1D,
+        signal1D = _spectrum$signal1D === undefined ? {} : _spectrum$signal1D,
+        _spectrum$peaks = spectrum.peaks,
+        peaks = _spectrum$peaks === undefined ? null : _spectrum$peaks,
+        _spectrum$prevPeak = spectrum.prevPeak,
+        prevPeak = _spectrum$prevPeak === undefined ? { x: 100000, y: 0, width: 0 } : _spectrum$prevPeak,
+        _spectrum$spectrumInt = spectrum.spectrumIntegral,
+        spectrumIntegral = _spectrum$spectrumInt === undefined ? 0 : _spectrum$spectrumInt;
 
-    var frequencyCluster = Number.isFinite(frequencyCluster) ? frequencyCluster : 16;
-    var integralType = integralType === 'sum' || integralType === 'peaks' ? integralType : 'sum';
 
-    var rangeX = frequencyCluster / frequency;
+    frequencyCluster = Number.isFinite(frequencyCluster) ? frequencyCluster : 16;
+    integralType = integralType === 'sum' || integralType === 'peaks' ? integralType : 'sum';
 
     for (i = 0; i < peakList.length; i++) {
-        if (Math.abs(peakList[i].x - prevPeak.x) > rangeX) {
+        if (Math.abs(peakList[i].x - prevPeak.x) > frequencyCluster / frequency) {
             signal1D = { nbPeaks: 1, units: 'PPM',
                 'startX': peakList[i].x - peakList[i].width,
                 'stopX': peakList[i].x + peakList[i].width,
@@ -16810,7 +17420,7 @@ function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
     //Normalize the integral to the normalization parameter and calculate cs
     for (i = 0; i < signals.length; i++) {
         peaks = signals[i].peaks;
-        var integral = signals[i].integralData;
+        let integral = signals[i].integralData;
         cs = 0;
         sum = 0;
 
@@ -16830,8 +17440,8 @@ function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
     if (nH !== 0) {
         for (i = 0; i < signals.length; i++) {
             //console.log(integral.value);
-            var _integral = signals[i].integralData;
-            _integral.value *= nH / spectrumIntegral;
+            let integral = signals[i].integralData;
+            integral.value *= nH / spectrumIntegral;
         }
     }
 
@@ -16986,248 +17596,318 @@ function area(peak) {
 module.exports = createRanges;
 
 /***/ }),
-/* 71 */
+/* 74 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var acsString = '';
-var parenthesis = '';
-var rangeForMultiplet = false;
+const getMultiplicityFromSignal = __webpack_require__(23);
 
-function toAcs(rangesIn, opt) {
-    var options = Object.assign({}, { nucleus: '1H' }, opt);
+/**
+ * nbDecimalsDelta : default depends nucleus H, F: 2 otherwise 1
+ * nbDecimalsJ : default depends nucleus H, F: 1, otherwise 0
+ * ascending : true / false
+ * format : default "AIMJ" or when 2D data is collected the default format may be "IMJA"
+ * deltaSeparator : ', '
+ * detailSeparator : ', '
+ */
 
-    var ranges = JSON.parse(JSON.stringify(rangesIn));
-
-    if (ranges[0].delta1) {
-        //Old signals format
-        throw new Error('Old unsupported format');
+var globalOptions = {
+    h: {
+        nucleus: '1H',
+        nbDecimalDelta: 2,
+        nbDecimalJ: 1,
+        observedFrequency: 400
+    },
+    c: {
+        nucleus: '13C',
+        nbDecimalDelta: 1,
+        nbDecimalJ: 1,
+        observedFrequency: 100
+    },
+    f: {
+        nucleus: '19F',
+        nbDecimalDelta: 2,
+        nbDecimalJ: 1,
+        observedFrequency: 400
     }
-    if (ranges.updateMultiplicity) {
-        ranges = ranges.updateMultiplicity();
-    }
+};
 
-    acsString = '';
-    parenthesis = '';
-    var solvent = null;
-    if (options && options.solvent) {
-        solvent = options.solvent;
-    }
-    if (options && options.rangeForMultiplet !== undefined) {
-        rangeForMultiplet = options.rangeForMultiplet;
-    }
+function toAcs(ranges, options = {}) {
 
-    if (options && options.ascending) {
+    var nucleus = (options.nucleus || '1H').toLowerCase().replace(/[0-9]/g, '');
+
+    var defaultOptions = globalOptions[nucleus];
+
+    options = Object.assign({}, defaultOptions, { ascending: false, format: 'IMJA' }, options);
+
+    ranges = ranges.clone();
+
+    if (options.ascending) {
         ranges.sort(function (a, b) {
-            return b.from - a.from;
+            let fromA = Math.min(a.from, a.to);
+            let fromB = Math.min(b.from, b.to);
+            return fromB - fromA;
         });
     } else {
         ranges.sort(function (a, b) {
-            return a.from - b.from;
+            let fromA = Math.min(a.from, a.to);
+            let fromB = Math.min(b.from, b.to);
+            return fromA - fromB;
         });
     }
 
-    ranges.type = 'NMR SPEC';
-    if (options && options.nucleus === '1H') {
-        formatAcsDefault(ranges, false, 2, 1, solvent, options);
-    }
-    if (options && options.nucleus === '13C') {
-        formatAcsDefault(ranges, false, 1, 0, solvent, options);
-    }
+    var acsString = formatAcs(ranges, options);
 
     if (acsString.length > 0) acsString += '.';
 
     return acsString;
 }
 
-function formatAcsDefault(ranges, ascending, decimalValue, decimalJ, solvent, options) {
-    appendSeparator();
-    appendSpectroInformation(ranges, solvent, options);
-    var numberSmartPeakLabels = ranges.length;
-    var signal;
-    for (var i = 0; i < numberSmartPeakLabels; i++) {
-        if (ascending) {
-            signal = ranges[i];
-        } else {
-            signal = ranges[numberSmartPeakLabels - i - 1];
+function formatAcs(ranges, options) {
+    var acs = spectroInformation(options);
+    if (acs.length === 0) acs = 'δ ';
+    var acsRanges = [];
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+        for (var _iterator = ranges[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+            let range = _step.value;
+
+            pushDelta(range, acsRanges, options);
         }
-        if (signal) {
-            appendSeparator();
-            appendDelta(signal, decimalValue);
-            appendParenthesis(signal, decimalJ);
+    } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+    } finally {
+        try {
+            if (!_iteratorNormalCompletion && _iterator.return) {
+                _iterator.return();
+            }
+        } finally {
+            if (_didIteratorError) {
+                throw _iteratorError;
+            }
         }
+    }
+
+    if (acsRanges.length > 0) {
+        return acs + acsRanges.join(', ');
+    } else {
+        return '';
     }
 }
 
-function appendSpectroInformation(range, solvent, options) {
-    if (range.type === 'NMR SPEC') {
-        if (options.nucleus) {
-            acsString += formatNucleus(options.nucleus);
-        }
-        acsString += ' NMR';
-        if (solvent || options.observe) {
-            acsString += ' (';
-            if (options.observe) {
-                acsString += (options.observe * 1).toFixed(0) + ' MHz';
-                if (solvent) acsString += ', ';
-            }
-            if (solvent) {
-                acsString += formatMF(solvent);
-            }
-            acsString += ')';
-        }
-        acsString += ' δ ';
-    } else if (range.type === 'IR') {
-        acsString += ' IR ';
-    } else if (range.type === 'MASS') {
-        acsString += ' MASS ';
+function spectroInformation(options) {
+    let parenthesis = [];
+    let strings = formatNucleus(options.nucleus) + ' NMR';
+    if (options.solvent) {
+        parenthesis.push(formatMF(options.solvent));
     }
+    if (options.frequencyObserved) {
+        parenthesis.push((options.frequencyObserved * 1).toFixed(0) + ' MHz');
+    }
+    if (parenthesis.length > 0) {
+        strings += ' (' + parenthesis.join(', ') + '): δ ';
+    } else {
+        strings += ' : δ ';
+    }
+    return strings;
 }
 
-function appendDelta(line, nbDecimal) {
-    var startX = 0,
-        stopX = 0,
-        delta1 = 0,
-        asymmetric;
-    if (line.from) {
-        if (typeof line.from === 'string') {
-            startX = parseFloat(line.from);
+function pushDelta(range, acsRanges, options) {
+    var strings = '';
+    var parenthesis = [];
+    let fromTo = [range.from, range.to];
+    if (Array.isArray(range.signal) && range.signal.length > 0) {
+        var signals = range.signal;
+        if (signals.length > 1) {
+            strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
+            strings += ' (' + getIntegral(range, options);
+            var _iteratorNormalCompletion2 = true;
+            var _didIteratorError2 = false;
+            var _iteratorError2 = undefined;
+
+            try {
+                for (var _iterator2 = signals[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                    let signal = _step2.value;
+
+                    parenthesis = [];
+                    if (signal.delta !== undefined) {
+                        strings = appendSeparator(strings);
+                        strings += signal.delta.toFixed(options.nbDecimalDelta);
+                        switchFormat({}, signal, parenthesis, options);
+                        if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
+                    }
+                }
+            } catch (err) {
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                        _iterator2.return();
+                    }
+                } finally {
+                    if (_didIteratorError2) {
+                        throw _iteratorError2;
+                    }
+                }
+            }
+
+            strings += ')';
         } else {
-            startX = line.from;
-        }
-    }
-    if (line.to) {
-        if (typeof line.to === 'string') {
-            stopX = parseFloat(line.to);
-        } else {
-            stopX = line.to;
-        }
-    }
-    if (line.signal[0].delta) {
-        if (typeof line.signal[0].delta === 'string') {
-            delta1 = parseFloat(line.signal[0].delta);
-        } else {
-            delta1 = line.signal[0].delta;
+            parenthesis = [];
+            if (signals[0].delta !== undefined) {
+                strings += signals[0].delta.toFixed(options.nbDecimalDelta);
+                switchFormat(range, signals[0], parenthesis, options);
+                if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
+            } else {
+                strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
+                switchFormat(range, signals[0], parenthesis, options);
+                if (parenthesis.length > 0) strings += ' (' + parenthesis + ')';
+            }
         }
     } else {
-        asymmetric = true;
+        strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
+        switchFormat(range, [], parenthesis, options);
+        if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
     }
-
-    if (asymmetric === true || line.signal[0].multiplicity === 'm' && rangeForMultiplet === true) {
-        //Is it massive??
-        if (line.from && line.to) {
-            if (startX < stopX) {
-                acsString += startX.toFixed(nbDecimal) + '-' + stopX.toFixed(nbDecimal);
-            } else {
-                acsString += stopX.toFixed(nbDecimal) + '-' + startX.toFixed(nbDecimal);
-            }
-        } else if (line.signal[0].delta) {
-            acsString += '?';
-        }
-    } else if (line.signal[0].delta) {
-        acsString += delta1.toFixed(nbDecimal);
-    } else if (line.from && line.to) {
-        acsString += ((startX + stopX) / 2).toFixed(nbDecimal);
-    }
-}
-
-/*
- function appendValue(line, nbDecimal) {
- if (line.xPosition) {
- acsString += line.xPosition.toFixed(nbDecimal);
- }
- }
- */
-function appendParenthesis(line, nbDecimal) {
-    parenthesis = '';
-    appendMultiplicity(line);
-    appendIntegration(line);
-    appendCoupling(line, nbDecimal);
-    appendAssignment(line);
-
-    if (parenthesis.length > 0) {
-        acsString += ' (' + parenthesis + ')';
-    }
-}
-
-function appendIntegration(line) {
-    if (line.pubIntegral) {
-        appendParenthesisSeparator();
-        parenthesis += line.pubIntegral;
-    } else if (line.integral) {
-        appendParenthesisSeparator();
-        parenthesis += line.integral.toFixed(0) + ' H';
-    }
-}
-
-function appendAssignment(line) {
-    if (line.signal[0].pubAssignment) {
-        appendParenthesisSeparator();
-        parenthesis += formatAssignment(line.signal[0].pubAssignment);
-    } else if (line.signal[0].assignment) {
-        appendParenthesisSeparator();
-        parenthesis += formatAssignment(line.signal[0].assignment);
-    }
-}
-
-function appendMultiplicity(line) {
-    if (line.signal[0].pubMultiplicity) {
-        appendParenthesisSeparator();
-        parenthesis += line.pubMultiplicity;
-    } else if (line.signal[0].multiplicity) {
-        appendParenthesisSeparator();
-        parenthesis += line.signal[0].multiplicity;
-    }
-}
-
-function appendCoupling(line, nbDecimal) {
-    if ('sm'.indexOf(line.signal[0].multiplicity) < 0 && line.signal[0].j && line.signal[0].j.length > 0) {
-        var Js = line.signal[0].j;
-        var j = '<i>J</i> = ';
-        for (var i = 0; i < Js.length; i++) {
-            var coupling = Js[i].coupling || 0;
-            if (j.length > 11) {
-                j += ', ';
-            }
-            j += coupling.toFixed(nbDecimal);
-        }
-        appendParenthesisSeparator();
-        parenthesis += j + ' Hz';
-    }
-}
-
-function formatAssignment(assignment) {
-    assignment = assignment.replace(/([0-9])/g, '<sub>$1</sub>');
-    assignment = assignment.replace(/\"([^\"]*)\"/g, '<i>$1</i>');
-    return assignment;
-}
-
-function formatMF(mf) {
-    mf = mf.replace(/([0-9])/g, '<sub>$1</sub>');
-    return mf;
-}
-
-function formatNucleus(nucleus) {
-    nucleus = nucleus.replace(/([0-9])/g, '<sup>$1</sup>');
-    return nucleus;
-}
-
-function appendSeparator() {
-    if (acsString.length > 0 && !acsString.match(/ $/)) {
-        acsString += ', ';
-    }
-}
-
-function appendParenthesisSeparator() {
-    if (parenthesis.length > 0 && !parenthesis.match(', $')) parenthesis += ', ';
+    acsRanges.push(strings);
 }
 
 module.exports = toAcs;
 
+function getIntegral(range, options) {
+    let integral = '';
+    if (range.pubIntegral) {
+        integral = range.pubIntegral;
+    } else if (range.integral) {
+        integral = range.integral.toFixed(0) + options.nucleus[options.nucleus.length - 1];
+    }
+    return integral;
+}
+
+function pushIntegral(range, parenthesis, options) {
+    let integral = getIntegral(range, options);
+    if (integral.length > 0) parenthesis.push(integral);
+}
+
+function pushMultiplicityFromSignal(signal, parenthesis) {
+    let multiplicity = getMultiplicityFromSignal(signal);
+    if (multiplicity.length > 0) parenthesis.push(multiplicity);
+}
+
+function switchFormat(range, signal, parenthesis, options) {
+    var _iteratorNormalCompletion3 = true;
+    var _didIteratorError3 = false;
+    var _iteratorError3 = undefined;
+
+    try {
+        for (var _iterator3 = options.format[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+            const char = _step3.value;
+
+            switch (char.toUpperCase()) {
+                case 'I':
+                    pushIntegral(range, parenthesis, options);
+                    break;
+                case 'M':
+                    pushMultiplicityFromSignal(signal, parenthesis);
+                    break;
+                case 'A':
+                    pushAssignment(signal, parenthesis);
+                    break;
+                case 'J':
+                    pushCoupling(signal, parenthesis, options);
+                    break;
+                default:
+                    throw new Error('Unknow format letter: ' + char);
+            }
+        }
+    } catch (err) {
+        _didIteratorError3 = true;
+        _iteratorError3 = err;
+    } finally {
+        try {
+            if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                _iterator3.return();
+            }
+        } finally {
+            if (_didIteratorError3) {
+                throw _iteratorError3;
+            }
+        }
+    }
+}
+
+function formatMF(mf) {
+    return mf.replace(/([0-9]+)/g, '<sub>$1</sub>');
+}
+
+function formatNucleus(nucleus) {
+    return nucleus.replace(/([0-9]+)/g, '<sup>$1</sup>');
+}
+
+function appendSeparator(strings) {
+    if (strings.length > 0 && !strings.match(/ $/) && !strings.match(/\($/)) {
+        strings += ', ';
+    }
+    return strings;
+}
+
+function formatAssignment(assignment) {
+    assignment = assignment.replace(/([0-9]+)/g, '<sub>$1</sub>');
+    assignment = assignment.replace(/\"([^\"]*)\"/g, '<i>$1</i>');
+    return assignment;
+}
+
+function pushCoupling(signal, parenthesis, options) {
+    if (Array.isArray(signal.j) && signal.j.length > 0) {
+        var values = [];
+        var _iteratorNormalCompletion4 = true;
+        var _didIteratorError4 = false;
+        var _iteratorError4 = undefined;
+
+        try {
+            for (var _iterator4 = signal.j[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                let j = _step4.value;
+
+                if (j.coupling !== undefined) {
+                    values.push(j.coupling.toFixed(options.nbDecimalJ));
+                }
+            }
+        } catch (err) {
+            _didIteratorError4 = true;
+            _iteratorError4 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                    _iterator4.return();
+                }
+            } finally {
+                if (_didIteratorError4) {
+                    throw _iteratorError4;
+                }
+            }
+        }
+
+        if (values.length > 0) parenthesis.push('<i>J</i> = ' + values.join(', ') + ' Hz');
+    }
+}
+
+function pushAssignment(signal, parenthesis) {
+    if (signal.pubAssignment) {
+        parenthesis.push(formatAssignment(signal.pubAssignment));
+    } else if (signal.assignment) {
+        parenthesis.push(formatAssignment(signal.assignment));
+    }
+}
+
 /***/ }),
-/* 72 */
+/* 75 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -17246,7 +17926,7 @@ module.exports = toAcs;
  */
 
 function peak2Vector(peaks, options) {
-    var options = options || {};
+    options = options || {};
     var from = options.from;
     var to = options.to;
     var nbPoints = options.nbPoints || 16 * 1024;
@@ -17255,7 +17935,7 @@ function peak2Vector(peaks, options) {
 
     if (!from) {
         from = Number.MAX_VALUE;
-        for (var i = 0; i < peaks.length; i++) {
+        for (let i = 0; i < peaks.length; i++) {
             if (peaks[i].x - peaks[i].width * nWidth < from) {
                 from = peaks[i].x - peaks[i].width * nWidth;
             }
@@ -17264,9 +17944,9 @@ function peak2Vector(peaks, options) {
 
     if (!to) {
         to = Number.MIN_VALUE;
-        for (var _i = 0; _i < peaks.length; _i++) {
-            if (peaks[_i].x + peaks[_i].width * nWidth > to) {
-                to = peaks[_i].x + peaks[_i].width * nWidth;
+        for (let i = 0; i < peaks.length; i++) {
+            if (peaks[i].x + peaks[i].width * nWidth > to) {
+                to = peaks[i].x + peaks[i].width * nWidth;
             }
         }
     }
@@ -17274,9 +17954,9 @@ function peak2Vector(peaks, options) {
     var x = new Array(nbPoints);
     var y = new Array(nbPoints);
     var dx = (to - from) / (nbPoints - 1);
-    for (var _i2 = 0; _i2 < nbPoints; _i2++) {
-        x[_i2] = from + _i2 * dx;
-        y[_i2] = 0;
+    for (let i = 0; i < nbPoints; i++) {
+        x[i] = from + i * dx;
+        y[i] = 0;
     }
 
     var intensity = 'intensity';
@@ -17284,8 +17964,8 @@ function peak2Vector(peaks, options) {
         intensity = 'y';
     }
 
-    for (var _i3 = 0; _i3 < peaks.length; _i3++) {
-        var peak = peaks[_i3];
+    for (let i = 0; i < peaks.length; i++) {
+        var peak = peaks[i];
         if (peak.x > from && peak.x < to) {
             var index = Math.round((peak.x - from) / dx);
             var w = Math.round(peak.width * nWidth / dx);
@@ -17297,9 +17977,9 @@ function peak2Vector(peaks, options) {
                 }
             } else {
                 var factor = peak[intensity] * Math.pow(peak.width, 2) / 4;
-                for (var _j = index - w; _j < index + w; _j++) {
-                    if (_j >= 0 && _j < nbPoints) {
-                        y[_j] += factor / (Math.pow(peak.x - x[_j], 2) + Math.pow(peak.width / 2, 2));
+                for (let j = index - w; j < index + w; j++) {
+                    if (j >= 0 && j < nbPoints) {
+                        y[j] += factor / (Math.pow(peak.x - x[j], 2) + Math.pow(peak.width / 2, 2));
                     }
                 }
             }
@@ -17312,7 +17992,7 @@ function peak2Vector(peaks, options) {
 module.exports = peak2Vector;
 
 /***/ }),
-/* 73 */
+/* 76 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -17339,7 +18019,7 @@ function annotations1D(ranges, optionsG) {
         if (!annotation._highlight || annotation._highlight.length === 0) {
             annotation._highlight = [prediction.signalID];
             prediction.signal.forEach(function (signal) {
-                for (var j = 0; j < signal.diaID.length; j++) {
+                for (let j = 0; j < signal.diaID.length; j++) {
                     annotation._highlight.push(signal.diaID[j]);
                 }
             });
@@ -17412,7 +18092,7 @@ function annotations2D(zones, optionsG) {
 module.exports = { annotations2D: annotations2D, annotations1D: annotations1D };
 
 /***/ }),
-/* 74 */
+/* 77 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -17533,14 +18213,14 @@ function fromByteArray (uint8) {
 
 
 /***/ }),
-/* 75 */
+/* 78 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(76);
+module.exports = __webpack_require__(79);
 
 
 /***/ }),
-/* 76 */
+/* 79 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// Generated by CoffeeScript 1.8.0
@@ -17924,7 +18604,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
 
 /***/ }),
-/* 77 */
+/* 80 */
 /***/ (function(module, exports) {
 
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
@@ -18014,7 +18694,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 
 
 /***/ }),
-/* 78 */
+/* 81 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18265,7 +18945,7 @@ module.exports = IOBuffer;
 
 
 /***/ }),
-/* 79 */
+/* 82 */
 /***/ (function(module, exports) {
 
 var toString = {}.toString;
@@ -18276,7 +18956,7 @@ module.exports = Array.isArray || function (arr) {
 
 
 /***/ }),
-/* 80 */
+/* 83 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18427,7 +19107,7 @@ module.exports=function(spectrum, value, result) {
 
 
 /***/ }),
-/* 81 */
+/* 84 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18536,7 +19216,7 @@ module.exports = function crc32(input, crc) {
 
 
 /***/ }),
-/* 82 */
+/* 85 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18648,14 +19328,14 @@ exports.isRegExp = function (object) {
 
 
 /***/ }),
-/* 83 */
+/* 86 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var USE_TYPEDARRAY = (typeof Uint8Array !== 'undefined') && (typeof Uint16Array !== 'undefined') && (typeof Uint32Array !== 'undefined');
 
-var pako = __webpack_require__(138);
+var pako = __webpack_require__(143);
 exports.uncompressInputType = USE_TYPEDARRAY ? "uint8array" : "array";
 exports.compressInputType = USE_TYPEDARRAY ? "uint8array" : "array";
 
@@ -18671,7 +19351,7 @@ exports.uncompress =  function(input) {
 
 
 /***/ }),
-/* 84 */
+/* 87 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18726,15 +19406,15 @@ function JSZip(data, options) {
     };
 }
 JSZip.prototype = __webpack_require__(13);
-JSZip.prototype.load = __webpack_require__(85);
+JSZip.prototype.load = __webpack_require__(88);
 JSZip.support = __webpack_require__(5);
-JSZip.defaults = __webpack_require__(33);
+JSZip.defaults = __webpack_require__(32);
 
 /**
  * @deprecated
  * This namespace will be removed in a future version without replacement.
  */
-JSZip.utils = __webpack_require__(82);
+JSZip.utils = __webpack_require__(85);
 
 JSZip.base64 = {
     /**
@@ -18757,15 +19437,15 @@ module.exports = JSZip;
 
 
 /***/ }),
-/* 85 */
+/* 88 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var base64 = __webpack_require__(10);
-var utf8 = __webpack_require__(37);
+var utf8 = __webpack_require__(36);
 var utils = __webpack_require__(0);
-var ZipEntries = __webpack_require__(89);
+var ZipEntries = __webpack_require__(92);
 module.exports = function(data, options) {
     var files, zipEntries, i, input;
     options = utils.extend(options || {}, {
@@ -18803,12 +19483,12 @@ module.exports = function(data, options) {
 
 
 /***/ }),
-/* 86 */
+/* 89 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var Uint8ArrayReader = __webpack_require__(36);
+var Uint8ArrayReader = __webpack_require__(35);
 
 function NodeBufferReader(data) {
     this.data = data;
@@ -18831,7 +19511,7 @@ module.exports = NodeBufferReader;
 
 
 /***/ }),
-/* 87 */
+/* 90 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18868,7 +19548,7 @@ module.exports = StringWriter;
 
 
 /***/ }),
-/* 88 */
+/* 91 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18911,18 +19591,18 @@ module.exports = Uint8ArrayWriter;
 
 
 /***/ }),
-/* 89 */
+/* 92 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var StringReader = __webpack_require__(35);
-var NodeBufferReader = __webpack_require__(86);
-var Uint8ArrayReader = __webpack_require__(36);
-var ArrayReader = __webpack_require__(30);
+var StringReader = __webpack_require__(34);
+var NodeBufferReader = __webpack_require__(89);
+var Uint8ArrayReader = __webpack_require__(35);
+var ArrayReader = __webpack_require__(29);
 var utils = __webpack_require__(0);
-var sig = __webpack_require__(34);
-var ZipEntry = __webpack_require__(90);
+var sig = __webpack_require__(33);
+var ZipEntry = __webpack_require__(93);
 var support = __webpack_require__(5);
 var jszipProto = __webpack_require__(13);
 //  class ZipEntries {{{
@@ -19198,14 +19878,14 @@ module.exports = ZipEntries;
 
 
 /***/ }),
-/* 90 */
+/* 93 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var StringReader = __webpack_require__(35);
+var StringReader = __webpack_require__(34);
 var utils = __webpack_require__(0);
-var CompressedObject = __webpack_require__(31);
+var CompressedObject = __webpack_require__(30);
 var jszipProto = __webpack_require__(13);
 var support = __webpack_require__(5);
 
@@ -19524,7 +20204,7 @@ module.exports = ZipEntry;
 
 
 /***/ }),
-/* 91 */
+/* 94 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19756,7 +20436,7 @@ module.exports = {
 
 
 /***/ }),
-/* 92 */
+/* 95 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20016,7 +20696,7 @@ exports.getEquallySpacedData = getEquallySpacedData;
 exports.integral = integral;
 
 /***/ }),
-/* 93 */
+/* 96 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20043,7 +20723,7 @@ function SNV(data) {
 
 
 /***/ }),
-/* 94 */
+/* 97 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20131,7 +20811,7 @@ function DisjointSetNode(value) {
 
 
 /***/ }),
-/* 95 */
+/* 98 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20170,13 +20850,1897 @@ module.exports = distanceMatrix;
 
 
 /***/ }),
-/* 96 */
+/* 99 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var FFT = __webpack_require__(40);
+var FFT = __webpack_require__(39);
+
+var FFTUtils= {
+    DEBUG : false,
+
+    /**
+     * Calculates the inverse of a 2D Fourier transform
+     *
+     * @param ft
+     * @param ftRows
+     * @param ftCols
+     * @return
+     */
+    ifft2DArray : function(ft, ftRows, ftCols){
+        var tempTransform = new Array(ftRows * ftCols);
+        var nRows = ftRows / 2;
+        var nCols = (ftCols - 1) * 2;
+        // reverse transform columns
+        FFT.init(nRows);
+        var tmpCols = {re: new Array(nRows), im: new Array(nRows)};
+        for (var iCol = 0; iCol < ftCols; iCol++) {
+            for (var iRow = nRows - 1; iRow >= 0; iRow--) {
+                tmpCols.re[iRow] = ft[(iRow * 2) * ftCols + iCol];
+                tmpCols.im[iRow] = ft[(iRow * 2 + 1) * ftCols + iCol];
+            }
+            //Unnormalized inverse transform
+            FFT.bt(tmpCols.re, tmpCols.im);
+            for (var iRow = nRows - 1; iRow >= 0; iRow--) {
+                tempTransform[(iRow * 2) * ftCols + iCol] = tmpCols.re[iRow];
+                tempTransform[(iRow * 2 + 1) * ftCols + iCol] = tmpCols.im[iRow];
+            }
+        }
+
+        // reverse row transform
+        var finalTransform = new Array(nRows * nCols);
+        FFT.init(nCols);
+        var tmpRows = {re: new Array(nCols), im: new Array(nCols)};
+        var scale = nCols * nRows;
+        for (var iRow = 0; iRow < ftRows; iRow += 2) {
+            tmpRows.re[0] = tempTransform[iRow * ftCols];
+            tmpRows.im[0] = tempTransform[(iRow + 1) * ftCols];
+            for (var iCol = 1; iCol < ftCols; iCol++) {
+                tmpRows.re[iCol] = tempTransform[iRow * ftCols + iCol];
+                tmpRows.im[iCol] = tempTransform[(iRow + 1) * ftCols + iCol];
+                tmpRows.re[nCols - iCol] = tempTransform[iRow * ftCols + iCol];
+                tmpRows.im[nCols - iCol] = -tempTransform[(iRow + 1) * ftCols + iCol];
+            }
+            //Unnormalized inverse transform
+            FFT.bt(tmpRows.re, tmpRows.im);
+
+            var indexB = (iRow / 2) * nCols;
+            for (var iCol = nCols - 1; iCol >= 0; iCol--) {
+                finalTransform[indexB + iCol] = tmpRows.re[iCol] / scale;
+            }
+        }
+        return finalTransform;
+    },
+    /**
+     * Calculates the fourier transform of a matrix of size (nRows,nCols) It is
+     * assumed that both nRows and nCols are a power of two
+     *
+     * On exit the matrix has dimensions (nRows * 2, nCols / 2 + 1) where the
+     * even rows contain the real part and the odd rows the imaginary part of the
+     * transform
+     * @param data
+     * @param nRows
+     * @param nCols
+     * @return
+     */
+    fft2DArray:function(data, nRows, nCols, opt) {
+        var options = Object.assign({},{inplace:true})
+        var ftCols = (nCols / 2 + 1);
+        var ftRows = nRows * 2;
+        var tempTransform = new Array(ftRows * ftCols);
+        FFT.init(nCols);
+        // transform rows
+        var tmpRows = {re: new Array(nCols), im: new Array(nCols)};
+        var row1 = {re: new Array(nCols), im: new Array(nCols)}
+        var row2 = {re: new Array(nCols), im: new Array(nCols)}
+        var index, iRow0, iRow1, iRow2, iRow3;
+        for (var iRow = 0; iRow < nRows / 2; iRow++) {
+            index = (iRow * 2) * nCols;
+            tmpRows.re = data.slice(index, index + nCols);
+
+            index = (iRow * 2 + 1) * nCols;
+            tmpRows.im = data.slice(index, index + nCols);
+
+            FFT.fft1d(tmpRows.re, tmpRows.im);
+
+            this.reconstructTwoRealFFT(tmpRows, row1, row2);
+            //Now lets put back the result into the output array
+            iRow0 = (iRow * 4) * ftCols;
+            iRow1 = (iRow * 4 + 1) * ftCols;
+            iRow2 = (iRow * 4 + 2) * ftCols;
+            iRow3 = (iRow * 4 + 3) * ftCols;
+            for (var k = ftCols - 1; k >= 0; k--) {
+                tempTransform[iRow0 + k] = row1.re[k];
+                tempTransform[iRow1 + k] = row1.im[k];
+                tempTransform[iRow2 + k] = row2.re[k];
+                tempTransform[iRow3 + k] = row2.im[k];
+            }
+        }
+
+        //console.log(tempTransform);
+        row1 = null;
+        row2 = null;
+        // transform columns
+        var finalTransform = new Array(ftRows * ftCols);
+
+        FFT.init(nRows);
+        var tmpCols = {re: new Array(nRows), im: new Array(nRows)};
+        for (var iCol = ftCols - 1; iCol >= 0; iCol--) {
+            for (var iRow = nRows - 1; iRow >= 0; iRow--) {
+                tmpCols.re[iRow] = tempTransform[(iRow * 2) * ftCols + iCol];
+                tmpCols.im[iRow] = tempTransform[(iRow * 2 + 1) * ftCols + iCol];
+                //TODO Chech why this happens
+                if(isNaN(tmpCols.re[iRow])){
+                    tmpCols.re[iRow]=0;
+                }
+                if(isNaN(tmpCols.im[iRow])){
+                    tmpCols.im[iRow]=0;
+                }
+            }
+            FFT.fft1d(tmpCols.re, tmpCols.im);
+            for (var iRow = nRows - 1; iRow >= 0; iRow--) {
+                finalTransform[(iRow * 2) * ftCols + iCol] = tmpCols.re[iRow];
+                finalTransform[(iRow * 2 + 1) * ftCols + iCol] = tmpCols.im[iRow];
+            }
+        }
+
+        //console.log(finalTransform);
+        return finalTransform;
+
+    },
+    /**
+     *
+     * @param fourierTransform
+     * @param realTransform1
+     * @param realTransform2
+     *
+     * Reconstructs the individual Fourier transforms of two simultaneously
+     * transformed series. Based on the Symmetry relationships (the asterisk
+     * denotes the complex conjugate)
+     *
+     * F_{N-n} = F_n^{*} for a purely real f transformed to F
+     *
+     * G_{N-n} = G_n^{*} for a purely imaginary g transformed to G
+     *
+     */
+    reconstructTwoRealFFT:function(fourierTransform, realTransform1, realTransform2) {
+        var length = fourierTransform.re.length;
+
+        // the components n=0 are trivial
+        realTransform1.re[0] = fourierTransform.re[0];
+        realTransform1.im[0] = 0.0;
+        realTransform2.re[0] = fourierTransform.im[0];
+        realTransform2.im[0] = 0.0;
+        var rm, rp, im, ip, j;
+        for (var i = length / 2; i > 0; i--) {
+            j = length - i;
+            rm = 0.5 * (fourierTransform.re[i] - fourierTransform.re[j]);
+            rp = 0.5 * (fourierTransform.re[i] + fourierTransform.re[j]);
+            im = 0.5 * (fourierTransform.im[i] - fourierTransform.im[j]);
+            ip = 0.5 * (fourierTransform.im[i] + fourierTransform.im[j]);
+            realTransform1.re[i] = rp;
+            realTransform1.im[i] = im;
+            realTransform1.re[j] = rp;
+            realTransform1.im[j] = -im;
+            realTransform2.re[i] = ip;
+            realTransform2.im[i] = -rm;
+            realTransform2.re[j] = ip;
+            realTransform2.im[j] = rm;
+        }
+    },
+
+    /**
+     * In place version of convolute 2D
+     *
+     * @param ftSignal
+     * @param ftFilter
+     * @param ftRows
+     * @param ftCols
+     * @return
+     */
+    convolute2DI:function(ftSignal, ftFilter, ftRows, ftCols) {
+        var re, im;
+        for (var iRow = 0; iRow < ftRows / 2; iRow++) {
+            for (var iCol = 0; iCol < ftCols; iCol++) {
+                //
+                re = ftSignal[(iRow * 2) * ftCols + iCol]
+                    * ftFilter[(iRow * 2) * ftCols + iCol]
+                    - ftSignal[(iRow * 2 + 1) * ftCols + iCol]
+                    * ftFilter[(iRow * 2 + 1) * ftCols + iCol];
+                im = ftSignal[(iRow * 2) * ftCols + iCol]
+                    * ftFilter[(iRow * 2 + 1) * ftCols + iCol]
+                    + ftSignal[(iRow * 2 + 1) * ftCols + iCol]
+                    * ftFilter[(iRow * 2) * ftCols + iCol];
+                //
+                ftSignal[(iRow * 2) * ftCols + iCol] = re;
+                ftSignal[(iRow * 2 + 1) * ftCols + iCol] = im;
+            }
+        }
+    },
+    /**
+     *
+     * @param data
+     * @param kernel
+     * @param nRows
+     * @param nCols
+     * @returns {*}
+     */
+    convolute:function(data, kernel, nRows, nCols, opt) {
+        var ftSpectrum = new Array(nCols * nRows);
+        for (var i = 0; i<nRows * nCols; i++) {
+            ftSpectrum[i] = data[i];
+        }
+
+        ftSpectrum = this.fft2DArray(ftSpectrum, nRows, nCols);
+
+
+        var dimR = kernel.length;
+        var dimC = kernel[0].length;
+        var ftFilterData = new Array(nCols * nRows);
+        for(var i = 0; i < nCols * nRows; i++) {
+            ftFilterData[i] = 0;
+        }
+
+        var iRow, iCol;
+        var shiftR = Math.floor((dimR - 1) / 2);
+        var shiftC = Math.floor((dimC - 1) / 2);
+        for (var ir = 0; ir < dimR; ir++) {
+            iRow = (ir - shiftR + nRows) % nRows;
+            for (var ic = 0; ic < dimC; ic++) {
+                iCol = (ic - shiftC + nCols) % nCols;
+                ftFilterData[iRow * nCols + iCol] = kernel[ir][ic];
+            }
+        }
+        ftFilterData = this.fft2DArray(ftFilterData, nRows, nCols);
+
+        var ftRows = nRows * 2;
+        var ftCols = nCols / 2 + 1;
+        this.convolute2DI(ftSpectrum, ftFilterData, ftRows, ftCols);
+
+        return this.ifft2DArray(ftSpectrum, ftRows, ftCols);
+    },
+
+
+    toRadix2:function(data, nRows, nCols) {
+        var i, j, irow, icol;
+        var cols = nCols, rows = nRows, prows=0, pcols=0;
+        if(!(nCols !== 0 && (nCols & (nCols - 1)) === 0)) {
+            //Then we have to make a pading to next radix2
+            cols = 0;
+            while((nCols>>++cols)!=0);
+            cols=1<<cols;
+            pcols = cols-nCols;
+        }
+        if(!(nRows !== 0 && (nRows & (nRows - 1)) === 0)) {
+            //Then we have to make a pading to next radix2
+            rows = 0;
+            while((nRows>>++rows)!=0);
+            rows=1<<rows;
+            prows = (rows-nRows)*cols;
+        }
+        if(rows==nRows&&cols==nCols)//Do nothing. Returns the same input!!! Be careful
+            return {data:data, rows:nRows, cols:nCols};
+
+        var output = new Array(rows*cols);
+        var shiftR = Math.floor((rows-nRows)/2)-nRows;
+        var shiftC = Math.floor((cols-nCols)/2)-nCols;
+
+        for( i = 0; i < rows; i++) {
+            irow = i*cols;
+            icol = ((i-shiftR) % nRows) * nCols;
+            for( j = 0; j < cols; j++) {
+                output[irow+j] = data[(icol+(j-shiftC) % nCols) ];
+            }
+        }
+        return {data:output, rows:rows, cols:cols};
+    },
+
+    /**
+     * Crop the given matrix to fit the corresponding number of rows and columns
+     */
+    crop:function(data, rows, cols, nRows, nCols, opt) {
+
+        if(rows == nRows && cols == nCols)//Do nothing. Returns the same input!!! Be careful
+            return data;
+
+        var options = Object.assign({}, opt);
+
+        var output = new Array(nCols*nRows);
+
+        var shiftR = Math.floor((rows-nRows)/2);
+        var shiftC = Math.floor((cols-nCols)/2);
+        var destinyRow, sourceRow, i, j;
+        for( i = 0; i < nRows; i++) {
+            destinyRow = i*nCols;
+            sourceRow = (i+shiftR)*cols;
+            for( j = 0;j < nCols; j++) {
+                output[destinyRow+j] = data[sourceRow+(j+shiftC)];
+            }
+        }
+
+        return output;
+    }
+}
+
+module.exports = FFTUtils;
+
+
+/***/ }),
+/* 100 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+const extend = __webpack_require__(27);
+const SG = __webpack_require__(136);
+
+const defaultOptions = {
+    sgOptions: {
+        windowSize: 9,
+        polynomial: 3
+    },
+    minMaxRatio: 0.00025,
+    broadRatio: 0.00,
+    maxCriteria: true,
+    smoothY: true,
+    realTopDetection: false,
+    heightFactor: 0,
+    boundaries: false,
+    derivativeThreshold: -1
+};
+
+/**
+ * Global spectra deconvolution
+ * @param {Array<Number>} x - Independent variable
+ * @param {Array<Number>} yIn - Dependent variable
+ * @param {Object} [options] - Options object
+ * @param {Object} [options.sgOptions] - Options object for Savitzky-Golay filter. See https://github.com/mljs/savitzky-golay-generalized#options
+ * @param {Number} [options.sgOptions.windowSize = 9] - points to use in the approximations
+ * @param {Number} [options.sgOptions.polynomial = 3] - degree of the polynomial to use in the approximations
+ * @param {Number} [options.minMaxRatio = 0.00025] - Threshold to determine if a given peak should be considered as a noise
+ * @param {Number} [options.broadRatio = 0.00] - If `broadRatio` is higher than 0, then all the peaks which second derivative
+ * smaller than `broadRatio * maxAbsSecondDerivative` will be marked with the soft mask equal to true.
+ * @param {Number} [options.noiseLevel = 0] - Noise threshold in spectrum units
+ * @param {Boolean} [options.maxCriteria = true] - Peaks are local maximum(true) or minimum(false)
+ * @param {Boolean} [options.smoothY = true] - Select the peak intensities from a smoothed version of the independent variables
+ * @param {Boolean} [options.realTopDetection = false] - Use a quadratic optimizations with the peak and its 3 closest neighbors
+ * to determine the true x,y values of the peak?
+ * @param {Number} [options.heightFactor = 0] - Factor to multiply the calculated height (usually 2)
+ * @param {Boolean} [options.boundaries = false] - Return also the inflection points of the peaks
+ * @param {Number} [options.derivativeThreshold = -1] - Filters based on the amplitude of the first derivative
+ * @return {Array<Object>}
+ */
+function gsd(x, yIn, options) {
+    options = extend({}, defaultOptions, options);
+    let sgOptions = options.sgOptions;
+    const y = [].concat(yIn);
+
+    if (!('noiseLevel' in options)) {
+        // We have to know if x is equally spaced
+        var maxDx = 0,
+            minDx = Number.MAX_VALUE,
+            tmp;
+        for (let i = 0; i < x.length - 1; ++i) {
+            tmp = Math.abs(x[i + 1] - x[i]);
+            if (tmp < minDx) {
+                minDx = tmp;
+            }
+            if (tmp > maxDx) {
+                maxDx = tmp;
+            }
+        }
+
+        if ((maxDx - minDx) / maxDx < 0.05) {
+            options.noiseLevel = getNoiseLevel(y);
+        } else {
+            options.noiseLevel = 0;
+        }
+    }
+    const yCorrection = {m: 1, b: options.noiseLevel};
+    if (!options.maxCriteria) {
+        yCorrection.m = -1;
+        yCorrection.b *= -1;
+    }
+
+    for (let i = 0; i < y.length; i++) {
+        y[i] = yCorrection.m * y[i] - yCorrection.b;
+    }
+
+    for (let i = 0; i < y.length; i++) {
+        if (y[i] < 0) {
+            y[i] = 0;
+        }
+    }
+    // If the max difference between delta x is less than 5%, then, we can assume it to be equally spaced variable
+    let Y = y;
+    let dY, ddY;
+    if ((maxDx - minDx) / maxDx < 0.05) {
+        if (options.smoothY)
+            Y = SG(y, x[1] - x[0], {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 0});
+        dY = SG(y, x[1] - x[0], {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 1});
+        ddY = SG(y, x[1] - x[0], {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 2});
+    } else {
+        if (options.smoothY)
+            Y = SG(y, x, {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 0});
+        dY = SG(y, x, {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 1});
+        ddY = SG(y, x, {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 2});
+    }
+
+    const X = x;
+    const dx = x[1] - x[0];
+    var maxDdy = 0;
+    var maxY = 0;
+    for (let i = 0; i < Y.length; i++) {
+        if (Math.abs(ddY[i]) > maxDdy) {
+            maxDdy = Math.abs(ddY[i]);
+        }
+        if (Math.abs(Y[i]) > maxY) {
+            maxY = Math.abs(Y[i]);
+        }
+    }
+
+    var lastMax = null;
+    var lastMin = null;
+    var minddY = new Array(Y.length - 2);
+    var intervalL = new Array(Y.length);
+    var intervalR = new Array(Y.length);
+    var broadMask = new Array(Y.length - 2);
+    var minddYLen = 0;
+    var intervalLLen = 0;
+    var intervalRLen = 0;
+    var broadMaskLen = 0;
+    // By the intermediate value theorem We cannot find 2 consecutive maximum or minimum
+    for (let i = 1; i < Y.length - 1; ++i) {
+
+        // filter based on derivativeThreshold
+        if (Math.abs(dY[i]) > options.derivativeThreshold) {
+
+            // Minimum in first derivative
+            if ((dY[i] < dY[i - 1]) && (dY[i] <= dY[i + 1]) ||
+                (dY[i] <= dY[i - 1]) && (dY[i] < dY[i + 1])) {
+                lastMin = {
+                    x: X[i],
+                    index: i
+                };
+                if (dx > 0 && lastMax !== null) {
+                    intervalL[intervalLLen++] = lastMax;
+                    intervalR[intervalRLen++] = lastMin;
+                }
+            }
+
+            // Maximum in first derivative
+            if ((dY[i] >= dY[i - 1]) && (dY[i] > dY[i + 1]) ||
+                (dY[i] > dY[i - 1]) && (dY[i] >= dY[i + 1])) {
+                lastMax = {
+                    x: X[i],
+                    index: i
+                };
+                if (dx < 0 && lastMin !== null) {
+                    intervalL[intervalLLen++] = lastMax;
+                    intervalR[intervalRLen++] = lastMin;
+                }
+            }
+        }
+
+        // Minimum in second derivative
+        if ((ddY[i] < ddY[i - 1]) && (ddY[i] < ddY[i + 1])) {
+            // TODO should we change this to have 3 arrays ? Huge overhead creating arrays
+            minddY[minddYLen++] = i; //( [X[i], Y[i], i] );
+            broadMask[broadMaskLen++] = Math.abs(ddY[i]) <= options.broadRatio * maxDdy;
+        }
+    }
+    minddY.length = minddYLen;
+    intervalL.length = intervalLLen;
+    intervalR.length = intervalRLen;
+    broadMask.length = broadMaskLen;
+
+    let signals = new Array(minddY.length);
+    let signalsLen = 0;
+    let lastK = -1;
+    let possible, frequency, distanceJ, minDistance, gettingCloser;
+    for (let j = 0; j < minddY.length; ++j) {
+        frequency = X[minddY[j]];
+        possible = -1;
+        let k = lastK + 1;
+        minDistance = Number.MAX_VALUE;
+        distanceJ = 0;
+        gettingCloser = true;
+        while (possible === -1 && (k < intervalL.length) && gettingCloser) {
+            distanceJ = Math.abs(frequency - (intervalL[k].x + intervalR[k].x) / 2);
+
+            //Still getting closer?
+            if (distanceJ < minDistance) {
+                minDistance = distanceJ;
+            } else {
+                gettingCloser = false;
+            }
+            if (distanceJ < Math.abs(intervalL[k].x - intervalR[k].x) / 2) {
+                possible = k;
+                lastK = k;
+            }
+            ++k;
+        }
+
+        if (possible !== -1) {
+            if (Math.abs(Y[minddY[j]]) > options.minMaxRatio * maxY) {
+                signals[signalsLen++] = {
+                    index: minddY[j],
+                    x: frequency,
+                    y: (Y[minddY[j]] + yCorrection.b) / yCorrection.m,
+                    width: Math.abs(intervalR[possible].x - intervalL[possible].x), //widthCorrection
+                    soft: broadMask[j]
+                };
+                if (options.boundaries) {
+                    signals[signalsLen - 1].left = intervalL[possible];
+                    signals[signalsLen - 1].right = intervalR[possible];
+                }
+                if (options.heightFactor) {
+                    let yLeft = Y[intervalL[possible].index];
+                    let yRight = Y[intervalR[possible].index];
+                    signals[signalsLen - 1].height = options.heightFactor * (signals[signalsLen - 1].y - ((yLeft + yRight) / 2));
+                }
+            }
+        }
+    }
+    signals.length = signalsLen;
+
+    if (options.realTopDetection)
+        realTopDetection(signals, X, Y);
+
+    //Correct the values to fit the original spectra data
+    for (let j = 0; j < signals.length; j++) {
+        signals[j].base = options.noiseLevel;
+    }
+
+    signals.sort(function (a, b) {
+        return a.x - b.x;
+    });
+
+    return signals;
+
+}
+
+function getNoiseLevel(y) {
+    var mean = 0, stddev = 0;
+    var length = y.length;
+    for (let i = 0; i < length; ++i) {
+        mean += y[i];
+    }
+    mean /= length;
+    var averageDeviations = new Array(length);
+    for (let i = 0; i < length; ++i)
+        averageDeviations[i] = Math.abs(y[i] - mean);
+    averageDeviations.sort();
+    if (length % 2 === 1) {
+        stddev = averageDeviations[(length - 1) / 2] / 0.6745;
+    } else {
+        stddev = 0.5 * (averageDeviations[length / 2] + averageDeviations[length / 2 - 1]) / 0.6745;
+    }
+
+    return stddev;
+}
+
+function realTopDetection(peakList, x, y) {
+    var alpha, beta, gamma, p, currentPoint;
+    for (var j = 0; j < peakList.length; j++) {
+        currentPoint = peakList[j].i;//peakList[j][2];
+        //The detected peak could be moved 1 or 2 unit to left or right.
+        if (y[currentPoint - 1] >= y[currentPoint - 2]
+            && y[currentPoint - 1] >= y[currentPoint]) {
+            currentPoint--;
+        } else {
+            if (y[currentPoint + 1] >= y[currentPoint]
+                && y[currentPoint + 1] >= y[currentPoint + 2]) {
+                currentPoint++;
+            } else {
+                if (y[currentPoint - 2] >= y[currentPoint - 3]
+                    && y[currentPoint - 2] >= y[currentPoint - 1]) {
+                    currentPoint -= 2;
+                } else {
+                    if (y[currentPoint + 2] >= y[currentPoint + 1]
+                        && y[currentPoint + 2] >= y[currentPoint + 3]) {
+                        currentPoint += 2;
+                    }
+                }
+            }
+        }
+        if (y[currentPoint - 1] > 0 && y[currentPoint + 1] > 0
+            && y[currentPoint] >= y[currentPoint - 1]
+            && y[currentPoint] >= y[currentPoint + 1]) {
+            alpha = 20 * Math.log10(y[currentPoint - 1]);
+            beta = 20 * Math.log10(y[currentPoint]);
+            gamma = 20 * Math.log10(y[currentPoint + 1]);
+            p = 0.5 * (alpha - gamma) / (alpha - 2 * beta + gamma);
+            //console.log("p: "+p);
+            //console.log(x[currentPoint]+" "+tmp+" "+currentPoint);
+            peakList[j].x = x[currentPoint] + (x[currentPoint] - x[currentPoint - 1]) * p;
+            peakList[j].y = y[currentPoint] - 0.25 * (y[currentPoint - 1] - y[currentPoint + 1]) * p;
+        }
+    }
+}
+
+module.exports = gsd;
+
+
+/***/ }),
+/* 101 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports.post = __webpack_require__(102);
+module.exports.gsd = __webpack_require__(100);
+
+
+/***/ }),
+/* 102 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/**
+ * Created by acastillo on 9/6/15.
+ */
+
+
+var Opt = __webpack_require__(133);
+
+function sampleFunction(from, to, x, y, lastIndex) {
+    var nbPoints = x.length;
+    var sampleX = [];
+    var sampleY = [];
+    var direction = Math.sign(x[1] - x[0]);//Direction of the derivative
+    if (direction === -1) {
+        lastIndex[0] = x.length - 1;
+    }
+
+    var delta = Math.abs(to - from) / 2;
+    var mid = (from + to) / 2;
+    var stop = false;
+    var index = lastIndex[0];
+    while (!stop && index < nbPoints && index >= 0) {
+        if (Math.abs(x[index] - mid) <= delta) {
+            sampleX.push(x[index]);
+            sampleY.push(y[index]);
+            index += direction;
+        } else {
+            //It is outside the range.
+            if (Math.sign(mid - x[index]) === 1) {
+                //We'll reach the mid going in the current direction
+                index += direction;
+            } else {
+                //There is not more peaks in the current range
+                stop = true;
+            }
+        }
+        //console.log(sampleX);
+    }
+    lastIndex[0] = index;
+    return [sampleX, sampleY];
+}
+
+function optimizePeaks(peakList, x, y, n, fnType) {
+    var i, j, lastIndex = [0];
+    var groups = groupPeaks(peakList, n);
+    var result = [];
+    var factor = 1;
+    if (fnType === 'gaussian')
+        factor = 1.17741;//From https://en.wikipedia.org/wiki/Gaussian_function#Properties
+    var sampling, error, opts;
+    for (i = 0; i < groups.length; i++) {
+        var peaks = groups[i].group;
+        if (peaks.length > 1) {
+            //Multiple peaks
+            //console.log("Pending group of overlaped peaks "+peaks.length);
+            //console.log("here1");
+            //console.log(groups[i].limits);
+            sampling = sampleFunction(groups[i].limits[0] - groups[i].limits[1], groups[i].limits[0] + groups[i].limits[1], x, y, lastIndex);
+            //console.log(sampling);
+            if (sampling[0].length > 5) {
+                error = peaks[0].width / 1000;
+                opts = [  3,    100, error, error, error, error * 10, error * 10,    11,    9,        1 ];
+                //var gauss = Opt.optimizeSingleGaussian(sampling[0], sampling[1], opts, peaks);
+                var optPeaks = [];
+                if (fnType === 'gaussian')
+                    optPeaks = Opt.optimizeGaussianSum(sampling, peaks, opts);
+                else {
+                    if (fnType === 'lorentzian') {
+                        optPeaks = Opt.optimizeLorentzianSum(sampling, peaks, opts);
+                    }
+                }
+                //console.log(optPeak);
+                for (j = 0; j < optPeaks.length; j++) {
+                    result.push({x: optPeaks[j][0][0], y: optPeaks[j][1][0], width: optPeaks[j][2][0] * factor});
+                }
+            }
+        } else {
+            //Single peak
+            peaks = peaks[0];
+            sampling = sampleFunction(peaks.x - n * peaks.width,
+                peaks.x + n * peaks.width, x, y, lastIndex);
+            //console.log("here2");
+            //console.log(groups[i].limits);
+            if (sampling[0].length > 5) {
+                error = peaks.width / 1000;
+                opts = [3, 100, error, error, error, error * 10, error * 10, 11, 9, 1];
+                //var gauss = Opt.optimizeSingleGaussian(sampling[0], sampling[1], opts, peaks);
+                //var gauss = Opt.optimizeSingleGaussian([sampling[0],sampling[1]], peaks, opts);
+                var optPeak = [];
+                if (fnType === 'gaussian')
+                    optPeak = Opt.optimizeSingleGaussian([sampling[0], sampling[1]], peaks,  opts);
+                else {
+                    if (fnType === 'lorentzian') {
+                        optPeak = Opt.optimizeSingleLorentzian([sampling[0], sampling[1]], peaks,  opts);
+                    }
+                }
+                //console.log(optPeak);
+                result.push({x: optPeak[0][0], y: optPeak[1][0], width: optPeak[2][0] * factor}); // From https://en.wikipedia.org/wiki/Gaussian_function#Properties}
+            }
+        }
+
+    }
+    return result;
+}
+
+function groupPeaks(peakList, nL) {
+    var group = [];
+    var groups = [];
+    var i, j;
+    var limits = [peakList[0].x, nL * peakList[0].width];
+    var upperLimit, lowerLimit;
+    //Merge forward
+    for (i = 0; i < peakList.length; i++) {
+        //If the 2 things overlaps
+        if (Math.abs(peakList[i].x - limits[0]) < (nL * peakList[i].width + limits[1])) {
+            //Add the peak to the group
+            group.push(peakList[i]);
+            //Update the group limits
+            upperLimit = limits[0] + limits[1];
+            if (peakList[i].x + nL * peakList[i].width > upperLimit) {
+                upperLimit = peakList[i].x + nL * peakList[i].width;
+            }
+            lowerLimit = limits[0] - limits[1];
+            if (peakList[i].x - nL * peakList[i].width < lowerLimit) {
+                lowerLimit = peakList[i].x - nL * peakList[i].width;
+            }
+            limits = [(upperLimit + lowerLimit) / 2, Math.abs(upperLimit - lowerLimit) / 2];
+
+        } else {
+            groups.push({limits: limits, group: group});
+            //var optmimalPeak = fitSpectrum(group,limits,spectrum);
+            group = [peakList[i]];
+            limits = [peakList[i].x, nL * peakList[i].width];
+        }
+    }
+    groups.push({limits: limits, group: group});
+    //Merge backward
+    for (i = groups.length - 2; i >= 0; i--) {
+        //The groups overlaps
+        if (Math.abs(groups[i].limits[0] - groups[i + 1].limits[0]) <
+            (groups[i].limits[1] + groups[i + 1].limits[1]) / 2) {
+            for (j = 0; j < groups[i + 1].group.length; j++) {
+                groups[i].group.push(groups[i + 1].group[j]);
+            }
+            upperLimit = groups[i].limits[0] + groups[i].limits[1];
+            if (groups[i + 1].limits[0] + groups[i + 1].limits[1] > upperLimit) {
+                upperLimit = groups[i + 1].limits[0] + groups[i + 1].limits[1];
+            }
+            lowerLimit = groups[i].limits[0] - groups[i].limits[1];
+            if (groups[i + 1].limits[0] - groups[i + 1].limits[1] < lowerLimit) {
+                lowerLimit = groups[i + 1].limits[0] - groups[i + 1].limits[1];
+            }
+            //console.log(limits);
+            groups[i].limits = [(upperLimit + lowerLimit) / 2, Math.abs(upperLimit - lowerLimit) / 2];
+
+            groups.splice(i + 1, 1);
+        }
+    }
+    return groups;
+}
+/**
+ * This function try to join the peaks that seems to belong to a broad signal in a single broad peak.
+ * @param peakList
+ * @param options
+ */
+function joinBroadPeaks(peakList, options) {
+    var width = options.width;
+    var broadLines = [];
+    //Optimize the possible broad lines
+    var max = 0, maxI = 0, count = 1;
+    for (let i = peakList.length - 1; i >= 0; i--) {
+        if (peakList[i].soft) {
+            broadLines.push(peakList.splice(i, 1)[0]);
+        }
+    }
+    //Push a feak peak
+    broadLines.push({x: Number.MAX_VALUE});
+
+    var candidates = [[broadLines[0].x,
+                        broadLines[0].y]];
+    var indexes = [0];
+
+    for (let i = 1; i < broadLines.length; i++) {
+        //console.log(broadLines[i-1].x+" "+broadLines[i].x);
+        if (Math.abs(broadLines[i - 1].x - broadLines[i].x) < width) {
+            candidates.push([broadLines[i].x, broadLines[i].y]);
+            if (broadLines[i].y > max) {
+                max = broadLines[i].y;
+                maxI = i;
+            }
+            indexes.push(i);
+            count++;
+        } else {
+            if (count > 2) {
+                var fitted = Opt.optimizeSingleLorentzian(candidates,
+                    {x: broadLines[maxI].x, y: max, width: Math.abs(candidates[0][0] - candidates[candidates.length - 1][0])});
+                peakList.push({x: fitted[0][0], y: fitted[1][0], width: fitted[2][0], soft: false});
+
+            } else {
+                //Put back the candidates to the signals list
+                indexes.map(function (index) {
+                    peakList.push(broadLines[index]);
+                });
+            }
+            candidates = [[broadLines[i].x, broadLines[i].y]];
+            indexes = [i];
+            max = broadLines[i].y;
+            maxI = i;
+            count = 1;
+        }
+    }
+
+    peakList.sort(function (a, b) {
+        return a.x - b.x;
+    });
+
+    return peakList;
+
+}
+
+/*
+ var isPartOf = true
+if(options.broadRatio>0){
+ var broadLines=[[Number.MAX_VALUE,0,0]];
+ //Optimize the possible broad lines
+ var max=0, maxI=0,count=0;
+ var candidates = [],broadLinesS=[];
+ var isPartOf = false;
+
+ for(var i=broadLines.length-1;i>0;i--){
+ //console.log(broadLines[i][0]+" "+rangeX+" "+Math.abs(broadLines[i-1][0]-broadLines[i][0]));
+ if(Math.abs(broadLines[i-1][0]-broadLines[i][0])<rangeX){
+
+ candidates.push(broadLines[i]);
+ if(broadLines[i][1]>max){
+ max = broadLines[i][1];
+ maxI = i;
+ }
+ count++;
+ }
+ else{
+ isPartOf = true;
+ if(count>30){ // TODO, an options ?
+ isPartOf = false;
+ //for(var j=0;j<signals.length;j++){
+ //    if(Math.abs(broadLines[maxI][0]-signals[j][0])<rangeX)
+ //       isPartOf = true;
+ //    }
+ //console.log("Was part of "+isPartOf);
+ }
+ if(isPartOf){
+ for(var j=0;j<candidates.length;j++){
+ signals.push([candidates[j][0], candidates[j][1], dx]);
+ }
+ }
+ else{
+ var fitted =  Opt.optimizeSingleLorentzian(candidates,{x:candidates[maxI][0],
+ width:Math.abs(candidates[0][0]-candidates[candidates.length-1][0])},
+ []);
+ //console.log(fitted);
+ signals.push([fitted[0][0],fitted[0][1],fitted[0][2]]);
+ }
+ candidates = [];
+ max = 0;
+ maxI = 0;
+ count = 0;
+ }
+ }
+ }*/
+
+module.exports = {optimizePeaks: optimizePeaks, joinBroadPeaks: joinBroadPeaks};
+
+
+
+/***/ }),
+/* 103 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+const newArray = __webpack_require__(18);
+
+const primeFinder = __webpack_require__(104);
+const nextPrime = primeFinder.nextPrime;
+const largestPrime = primeFinder.largestPrime;
+
+const FREE = 0;
+const FULL = 1;
+const REMOVED = 2;
+
+const defaultInitialCapacity = 150;
+const defaultMinLoadFactor = 1 / 6;
+const defaultMaxLoadFactor = 2 / 3;
+
+class HashTable {
+    constructor(options = {}) {
+        if (options instanceof HashTable) {
+            this.table = options.table.slice();
+            this.values = options.values.slice();
+            this.state = options.state.slice();
+            this.minLoadFactor = options.minLoadFactor;
+            this.maxLoadFactor = options.maxLoadFactor;
+            this.distinct = options.distinct;
+            this.freeEntries = options.freeEntries;
+            this.lowWaterMark = options.lowWaterMark;
+            this.highWaterMark = options.maxLoadFactor;
+            return;
+        }
+
+        const initialCapacity = options.initialCapacity === undefined ? defaultInitialCapacity : options.initialCapacity;
+        if (initialCapacity < 0) {
+            throw new RangeError(`initial capacity must not be less than zero: ${initialCapacity}`);
+        }
+
+        const minLoadFactor = options.minLoadFactor === undefined ? defaultMinLoadFactor : options.minLoadFactor;
+        const maxLoadFactor = options.maxLoadFactor === undefined ? defaultMaxLoadFactor : options.maxLoadFactor;
+        if (minLoadFactor < 0 || minLoadFactor >= 1) {
+            throw new RangeError(`invalid minLoadFactor: ${minLoadFactor}`);
+        }
+        if (maxLoadFactor <= 0 || maxLoadFactor >= 1) {
+            throw new RangeError(`invalid maxLoadFactor: ${maxLoadFactor}`);
+        }
+        if (minLoadFactor >= maxLoadFactor) {
+            throw new RangeError(`minLoadFactor (${minLoadFactor}) must be smaller than maxLoadFactor (${maxLoadFactor})`);
+        }
+
+        let capacity = initialCapacity;
+        // User wants to put at least capacity elements. We need to choose the size based on the maxLoadFactor to
+        // avoid the need to rehash before this capacity is reached.
+        // actualCapacity * maxLoadFactor >= capacity
+        capacity = (capacity / maxLoadFactor) | 0;
+        capacity = nextPrime(capacity);
+        if (capacity === 0) capacity = 1;
+
+        this.table = newArray(capacity, 0);
+        this.values = newArray(capacity, 0);
+        this.state = newArray(capacity, 0);
+
+        this.minLoadFactor = minLoadFactor;
+        if (capacity === largestPrime) {
+            this.maxLoadFactor = 1;
+        } else {
+            this.maxLoadFactor = maxLoadFactor;
+        }
+
+        this.distinct = 0;
+        this.freeEntries = capacity;
+
+        this.lowWaterMark = 0;
+        this.highWaterMark = chooseHighWaterMark(capacity, this.maxLoadFactor);
+    }
+
+    clone() {
+        return new HashTable(this);
+    }
+
+    get size() {
+        return this.distinct;
+    }
+
+    get(key) {
+        const i = this.indexOfKey(key);
+        if (i < 0) return 0;
+        return this.values[i];
+    }
+
+    set(key, value) {
+        let i = this.indexOfInsertion(key);
+        if (i < 0) {
+            i = -i - 1;
+            this.values[i] = value;
+            return false;
+        }
+
+        if (this.distinct > this.highWaterMark) {
+            const newCapacity = chooseGrowCapacity(this.distinct + 1, this.minLoadFactor, this.maxLoadFactor);
+            this.rehash(newCapacity);
+            return this.set(key, value);
+        }
+
+        this.table[i] = key;
+        this.values[i] = value;
+        if (this.state[i] === FREE) this.freeEntries--;
+        this.state[i] = FULL;
+        this.distinct++;
+
+        if (this.freeEntries < 1) {
+            const newCapacity = chooseGrowCapacity(this.distinct + 1, this.minLoadFactor, this.maxLoadFactor);
+            this.rehash(newCapacity);
+        }
+
+        return true;
+    }
+    
+    remove(key, noRehash) {
+        const i = this.indexOfKey(key);
+        if (i < 0) return false;
+
+        this.state[i] = REMOVED;
+        this.distinct--;
+
+        if (!noRehash) this.maybeShrinkCapacity();
+
+        return true;
+    }
+
+    delete(key, noRehash) {
+        const i = this.indexOfKey(key);
+        if (i < 0) return false;
+
+        this.state[i] = FREE;
+        this.distinct--;
+
+        if (!noRehash) this.maybeShrinkCapacity();
+
+        return true;
+    }
+
+    maybeShrinkCapacity() {
+        if (this.distinct < this.lowWaterMark) {
+            const newCapacity = chooseShrinkCapacity(this.distinct, this.minLoadFactor, this.maxLoadFactor);
+            this.rehash(newCapacity);
+        }
+    }
+
+    containsKey(key) {
+        return this.indexOfKey(key) >= 0;
+    }
+
+    indexOfKey(key) {
+        const table = this.table;
+        const state = this.state;
+        const length = this.table.length;
+
+        const hash = key & 0x7fffffff;
+        let i = hash % length;
+        let decrement = hash % (length - 2);
+        if (decrement === 0) decrement = 1;
+
+        while (state[i] !== FREE && (state[i] === REMOVED || table[i] !== key)) {
+            i -= decrement;
+            if (i < 0) i += length;
+        }
+
+        if (state[i] === FREE) return -1;
+        return i;
+    }
+
+    containsValue(value) {
+        return this.indexOfValue(value) >= 0;
+    }
+
+    indexOfValue(value) {
+        const values = this.values;
+        const state = this.state;
+
+        for (var i = 0; i < state.length; i++) {
+            if (state[i] === FULL && values[i] === value) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    indexOfInsertion(key) {
+        const table = this.table;
+        const state = this.state;
+        const length = table.length;
+
+
+        const hash = key & 0x7fffffff;
+        let i = hash % length;
+        let decrement = hash % (length - 2);
+        if (decrement === 0) decrement = 1;
+
+        while (state[i] === FULL && table[i] !== key) {
+            i -= decrement;
+            if (i < 0) i += length;
+        }
+
+        if (state[i] === REMOVED) {
+            const j = i;
+            while (state[i] !== FREE && (state[i] === REMOVED || table[i] !== key)) {
+                i -= decrement;
+                if (i < 0) i += length;
+            }
+            if (state[i] === FREE) i = j;
+        }
+
+        if (state[i] === FULL) {
+            return -i - 1;
+        }
+
+        return i;
+    }
+
+    ensureCapacity(minCapacity) {
+        if (this.table.length < minCapacity) {
+            const newCapacity = nextPrime(minCapacity);
+            this.rehash(newCapacity);
+        }
+    }
+
+    rehash(newCapacity) {
+        const oldCapacity = this.table.length;
+
+        if (newCapacity <= this.distinct) throw new Error('Unexpected');
+
+        const oldTable = this.table;
+        const oldValues = this.values;
+        const oldState = this.state;
+
+        const newTable = newArray(newCapacity, 0);
+        const newValues = newArray(newCapacity, 0);
+        const newState = newArray(newCapacity, 0);
+
+        this.lowWaterMark = chooseLowWaterMark(newCapacity, this.minLoadFactor);
+        this.highWaterMark = chooseHighWaterMark(newCapacity, this.maxLoadFactor);
+
+        this.table = newTable;
+        this.values = newValues;
+        this.state = newState;
+        this.freeEntries = newCapacity - this.distinct;
+
+        for (var i = 0; i < oldCapacity; i++) {
+            if (oldState[i] === FULL) {
+                var element = oldTable[i];
+                var index = this.indexOfInsertion(element);
+                newTable[index] = element;
+                newValues[index] = oldValues[i];
+                newState[index] = FULL;
+            }
+        }
+    }
+
+    forEachKey(callback) {
+        for (var i = 0; i < this.state.length; i++) {
+            if (this.state[i] === FULL) {
+                if (!callback(this.table[i])) return false;
+            }
+        }
+        return true;
+    }
+
+    forEachValue(callback) {
+        for (var i = 0; i < this.state.length; i++) {
+            if (this.state[i] === FULL) {
+                if (!callback(this.values[i])) return false;
+            }
+        }
+        return true;
+    }
+
+    forEachPair(callback) {
+        for (var i = 0; i < this.state.length; i++) {
+            if (this.state[i] === FULL) {
+                if (!callback(this.table[i], this.values[i])) return false;
+            }
+        }
+        return true;
+    }
+}
+
+module.exports = HashTable;
+
+function chooseLowWaterMark(capacity, minLoad) {
+    return (capacity * minLoad) | 0;
+}
+
+function chooseHighWaterMark(capacity, maxLoad) {
+    return Math.min(capacity - 2, (capacity * maxLoad) | 0);
+}
+
+function chooseGrowCapacity(size, minLoad, maxLoad) {
+    return nextPrime(Math.max(size + 1, (4 * size / (3 * minLoad + maxLoad)) | 0));
+}
+
+function chooseShrinkCapacity(size, minLoad, maxLoad) {
+    return nextPrime(Math.max(size + 1, (4 * size / (minLoad + 3 * maxLoad)) | 0));
+}
+
+
+/***/ }),
+/* 104 */
+/***/ (function(module, exports, __webpack_require__) {
+
+const binarySearch = __webpack_require__(24);
+const sortAsc = __webpack_require__(52).asc;
+
+const largestPrime = 0x7fffffff;
+
+const primeNumbers = [
+    //chunk #0
+    largestPrime, // 2^31-1
+
+    //chunk #1
+    5, 11, 23, 47, 97, 197, 397, 797, 1597, 3203, 6421, 12853, 25717, 51437, 102877, 205759,
+    411527, 823117, 1646237, 3292489, 6584983, 13169977, 26339969, 52679969, 105359939,
+    210719881, 421439783, 842879579, 1685759167,
+
+    //chunk #2
+    433, 877, 1759, 3527, 7057, 14143, 28289, 56591, 113189, 226379, 452759, 905551, 1811107,
+    3622219, 7244441, 14488931, 28977863, 57955739, 115911563, 231823147, 463646329, 927292699,
+    1854585413,
+
+    //chunk #3
+    953, 1907, 3821, 7643, 15287, 30577, 61169, 122347, 244703, 489407, 978821, 1957651, 3915341,
+    7830701, 15661423, 31322867, 62645741, 125291483, 250582987, 501165979, 1002331963,
+    2004663929,
+
+    //chunk #4
+    1039, 2081, 4177, 8363, 16729, 33461, 66923, 133853, 267713, 535481, 1070981, 2141977, 4283963,
+    8567929, 17135863, 34271747, 68543509, 137087021, 274174111, 548348231, 1096696463,
+
+    //chunk #5
+    31, 67, 137, 277, 557, 1117, 2237, 4481, 8963, 17929, 35863, 71741, 143483, 286973, 573953,
+    1147921, 2295859, 4591721, 9183457, 18366923, 36733847, 73467739, 146935499, 293871013,
+    587742049, 1175484103,
+
+    //chunk #6
+    599, 1201, 2411, 4831, 9677, 19373, 38747, 77509, 155027, 310081, 620171, 1240361, 2480729,
+    4961459, 9922933, 19845871, 39691759, 79383533, 158767069, 317534141, 635068283, 1270136683,
+
+    //chunk #7
+    311, 631, 1277, 2557, 5119, 10243, 20507, 41017, 82037, 164089, 328213, 656429, 1312867,
+    2625761, 5251529, 10503061, 21006137, 42012281, 84024581, 168049163, 336098327, 672196673,
+    1344393353,
+
+    //chunk #8
+    3, 7, 17, 37, 79, 163, 331, 673, 1361, 2729, 5471, 10949, 21911, 43853, 87719, 175447, 350899,
+    701819, 1403641, 2807303, 5614657, 11229331, 22458671, 44917381, 89834777, 179669557,
+    359339171, 718678369, 1437356741,
+
+    //chunk #9
+    43, 89, 179, 359, 719, 1439, 2879, 5779, 11579, 23159, 46327, 92657, 185323, 370661, 741337,
+    1482707, 2965421, 5930887, 11861791, 23723597, 47447201, 94894427, 189788857, 379577741,
+    759155483, 1518310967,
+
+    //chunk #10
+    379, 761, 1523, 3049, 6101, 12203, 24407, 48817, 97649, 195311, 390647, 781301, 1562611,
+    3125257, 6250537, 12501169, 25002389, 50004791, 100009607, 200019221, 400038451, 800076929,
+    1600153859,
+
+    //chunk #11
+    13, 29, 59, 127, 257, 521, 1049, 2099, 4201, 8419, 16843, 33703, 67409, 134837, 269683,
+    539389, 1078787, 2157587, 4315183, 8630387, 17260781, 34521589, 69043189, 138086407,
+    276172823, 552345671, 1104691373,
+
+    //chunk #12
+    19, 41, 83, 167, 337, 677,
+    1361, 2729, 5471, 10949, 21911, 43853, 87719, 175447, 350899,
+    701819, 1403641, 2807303, 5614657, 11229331, 22458671, 44917381, 89834777, 179669557,
+    359339171, 718678369, 1437356741,
+
+    //chunk #13
+    53, 107, 223, 449, 907, 1823, 3659, 7321, 14653, 29311, 58631, 117269,
+    234539, 469099, 938207, 1876417, 3752839, 7505681, 15011389, 30022781,
+    60045577, 120091177, 240182359, 480364727, 960729461, 1921458943
+];
+
+primeNumbers.sort(sortAsc);
+
+function nextPrime(value) {
+    let index = binarySearch(primeNumbers, value, sortAsc);
+    if (index < 0) {
+        index = ~index;
+    }
+    return primeNumbers[index];
+}
+
+exports.nextPrime = nextPrime;
+exports.largestPrime = largestPrime;
+
+
+/***/ }),
+/* 105 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+const euclidean = __webpack_require__(38);
+const ClusterLeaf = __webpack_require__(41);
+const Cluster = __webpack_require__(14);
+const distanceMatrix = __webpack_require__(98);
+
+/**
+ * @private
+ * @param cluster1
+ * @param cluster2
+ * @param disFun
+ * @returns {number}
+ */
+function simpleLink(cluster1, cluster2, disFun) {
+    var m = 10e100;
+    for (var i = 0; i < cluster1.length; i++) {
+        for (var j = 0; j < cluster2.length; j++) {
+            var d = disFun[cluster1[i]][ cluster2[j]];
+            m = Math.min(d, m);
+        }
+    }
+    return m;
+}
+
+/**
+ * @private
+ * @param cluster1
+ * @param cluster2
+ * @param disFun
+ * @returns {number}
+ */
+function completeLink(cluster1, cluster2, disFun) {
+    var m = -1;
+    for (var i = 0; i < cluster1.length; i++) {
+        for (var j = 0; j < cluster2.length; j++) {
+            var d = disFun[cluster1[i]][ cluster2[j]];
+            m = Math.max(d, m);
+        }
+    }
+    return m;
+}
+
+/**
+ * @private
+ * @param cluster1
+ * @param cluster2
+ * @param disFun
+ * @returns {number}
+ */
+function averageLink(cluster1, cluster2, disFun) {
+    var m = 0;
+    for (var i = 0; i < cluster1.length; i++) {
+        for (var j = 0; j < cluster2.length; j++) {
+            m += disFun[cluster1[i]][ cluster2[j]];
+        }
+    }
+    return m / (cluster1.length * cluster2.length);
+}
+
+/**
+ * @private
+ * @param cluster1
+ * @param cluster2
+ * @param disFun
+ * @returns {*}
+ */
+function centroidLink(cluster1, cluster2, disFun) {
+    var dist = new Array(cluster1.length * cluster2.length);
+    for (var i = 0; i < cluster1.length; i++) {
+        for (var j = 0; j < cluster2.length; j++) {
+            dist[i * cluster2.length + j] = (disFun[cluster1[i]][ cluster2[j]]);
+        }
+    }
+    return median(dist);
+}
+
+/**
+ * @private
+ * @param cluster1
+ * @param cluster2
+ * @param disFun
+ * @returns {number}
+ */
+function wardLink(cluster1, cluster2, disFun) {
+    return centroidLink(cluster1, cluster2, disFun)
+        * cluster1.length * cluster2.length / (cluster1.length + cluster2.length);
+}
+
+function compareNumbers(a, b) {
+    return a - b;
+}
+
+function median(values, alreadySorted) {
+    if (alreadySorted === undefined) alreadySorted = false;
+    if (!alreadySorted) {
+        values = [].concat(values).sort(compareNumbers);
+    }
+    var l = values.length;
+    var half = Math.floor(l / 2);
+    if (l % 2 === 0) {
+        return (values[half - 1] + values[half]) * 0.5;
+    } else {
+        return values[half];
+    }
+}
+
+var defaultOptions = {
+    disFunc: euclidean,
+    kind: 'single',
+    isDistanceMatrix: false
+
+};
+
+/**
+ * Continuously merge nodes that have the least dissimilarity
+ * @param {Array <Array <number>>} distance - Array of points to be clustered
+ * @param {json} options
+ * @option isDistanceMatrix: Is the input a distance matrix?
+ * @constructor
+ */
+function agnes(data, options) {
+    options = Object.assign({}, defaultOptions, options);
+    var len = data.length;
+    var distance = data;//If source
+    if (!options.isDistanceMatrix) {
+        distance = distanceMatrix(data, options.disFunc);
+    }
+
+
+    // allows to use a string or a given function
+    if (typeof options.kind === 'string') {
+        switch (options.kind) {
+            case 'single':
+                options.kind = simpleLink;
+                break;
+            case 'complete':
+                options.kind = completeLink;
+                break;
+            case 'average':
+                options.kind = averageLink;
+                break;
+            case 'centroid':
+                options.kind = centroidLink;
+                break;
+            case 'ward':
+                options.kind = wardLink;
+                break;
+            default:
+                throw new RangeError('Unknown kind of similarity');
+        }
+    } else if (typeof options.kind !== 'function') {
+        throw new TypeError('Undefined kind of similarity');
+    }
+
+    var list = new Array(len);
+    for (var i = 0; i < distance.length; i++) {
+        list[i] = new ClusterLeaf(i);
+    }
+    var min = 10e5,
+        d = {},
+        dis = 0;
+
+    while (list.length > 1) {
+        // calculates the minimum distance
+        d = {};
+        min = 10e5;
+        for (var j = 0; j < list.length; j++) {
+            for (var k = j + 1; k < list.length; k++) {
+                var fdistance, sdistance;
+                if (list[j] instanceof ClusterLeaf) {
+                    fdistance = [list[j].index];
+                } else {
+                    fdistance = new Array(list[j].index.length);
+                    for (var e = 0; e < fdistance.length; e++) {
+                        fdistance[e] = list[j].index[e].index;
+                    }
+                }
+                if (list[k] instanceof ClusterLeaf) {
+                    sdistance = [list[k].index];
+                } else {
+                    sdistance = new Array(list[k].index.length);
+                    for (var f = 0; f < sdistance.length; f++) {
+                        sdistance[f] = list[k].index[f].index;
+                    }
+                }
+                dis = options.kind(fdistance, sdistance, distance).toFixed(4);
+                if (dis in d) {
+                    d[dis].push([list[j], list[k]]);
+                } else {
+                    d[dis] = [[list[j], list[k]]];
+                }
+                min = Math.min(dis, min);
+            }
+        }
+        // cluster dots
+        var dmin = d[min.toFixed(4)];
+        var clustered = new Array(dmin.length);
+        var aux,
+            count = 0;
+        while (dmin.length > 0) {
+            aux = dmin.shift();
+            for (var q = 0; q < dmin.length; q++) {
+                var int = dmin[q].filter(function (n) {
+                    //noinspection JSReferencingMutableVariableFromClosure
+                    return aux.indexOf(n) !== -1;
+                });
+                if (int.length > 0) {
+                    var diff = dmin[q].filter(function (n) {
+                        //noinspection JSReferencingMutableVariableFromClosure
+                        return aux.indexOf(n) === -1;
+                    });
+                    aux = aux.concat(diff);
+                    dmin.splice(q--, 1);
+                }
+            }
+            clustered[count++] = aux;
+        }
+        clustered.length = count;
+
+        for (var ii = 0; ii < clustered.length; ii++) {
+            var obj = new Cluster();
+            obj.children = clustered[ii].concat();
+            obj.distance = min;
+            obj.index = new Array(len);
+            var indCount = 0;
+            for (var jj = 0; jj < clustered[ii].length; jj++) {
+                if (clustered[ii][jj] instanceof ClusterLeaf) {
+                    obj.index[indCount++] = clustered[ii][jj];
+                } else {
+                    indCount += clustered[ii][jj].index.length;
+                    obj.index = clustered[ii][jj].index.concat(obj.index);
+                }
+                list.splice((list.indexOf(clustered[ii][jj])), 1);
+            }
+            obj.index.length = indCount;
+            list.push(obj);
+        }
+    }
+    return list[0];
+}
+
+module.exports = agnes;
+
+
+/***/ }),
+/* 106 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+const euclidean = __webpack_require__(38);
+const ClusterLeaf = __webpack_require__(41);
+const Cluster = __webpack_require__(14);
+
+/**
+ * @private
+ * @param {Array <Array <number>>} cluster1
+ * @param {Array <Array <number>>} cluster2
+ * @param {function} disFun
+ * @returns {number}
+ */
+function simpleLink(cluster1, cluster2, disFun) {
+    var m = 10e100;
+    for (var i = 0; i < cluster1.length; i++) {
+        for (var j = i; j < cluster2.length; j++) {
+            var d = disFun(cluster1[i], cluster2[j]);
+            m = Math.min(d, m);
+        }
+    }
+    return m;
+}
+
+/**
+ * @private
+ * @param {Array <Array <number>>} cluster1
+ * @param {Array <Array <number>>} cluster2
+ * @param {function} disFun
+ * @returns {number}
+ */
+function completeLink(cluster1, cluster2, disFun) {
+    var m = -1;
+    for (var i = 0; i < cluster1.length; i++) {
+        for (var j = i; j < cluster2.length; j++) {
+            var d = disFun(cluster1[i], cluster2[j]);
+            m = Math.max(d, m);
+        }
+    }
+    return m;
+}
+
+/**
+ * @private
+ * @param {Array <Array <number>>} cluster1
+ * @param {Array <Array <number>>} cluster2
+ * @param {function} disFun
+ * @returns {number}
+ */
+function averageLink(cluster1, cluster2, disFun) {
+    var m = 0;
+    for (var i = 0; i < cluster1.length; i++) {
+        for (var j = 0; j < cluster2.length; j++) {
+            m += disFun(cluster1[i], cluster2[j]);
+        }
+    }
+    return m / (cluster1.length * cluster2.length);
+}
+
+/**
+ * @private
+ * @param {Array <Array <number>>} cluster1
+ * @param {Array <Array <number>>} cluster2
+ * @param {function} disFun
+ * @returns {number}
+ */
+function centroidLink(cluster1, cluster2, disFun) {
+    var x1 = 0,
+        y1 = 0,
+        x2 = 0,
+        y2 = 0;
+    for (var i = 0; i < cluster1.length; i++) {
+        x1 += cluster1[i][0];
+        y1 += cluster1[i][1];
+    }
+    for (var j = 0; j < cluster2.length; j++) {
+        x2 += cluster2[j][0];
+        y2 += cluster2[j][1];
+    }
+    x1 /= cluster1.length;
+    y1 /= cluster1.length;
+    x2 /= cluster2.length;
+    y2 /= cluster2.length;
+    return disFun([x1, y1], [x2, y2]);
+}
+
+/**
+ * @private
+ * @param {Array <Array <number>>} cluster1
+ * @param {Array <Array <number>>} cluster2
+ * @param {function} disFun
+ * @returns {number}
+ */
+function wardLink(cluster1, cluster2, disFun) {
+    var x1 = 0,
+        y1 = 0,
+        x2 = 0,
+        y2 = 0;
+    for (var i = 0; i < cluster1.length; i++) {
+        x1 += cluster1[i][0];
+        y1 += cluster1[i][1];
+    }
+    for (var j = 0; j < cluster2.length; j++) {
+        x2 += cluster2[j][0];
+        y2 += cluster2[j][1];
+    }
+    x1 /= cluster1.length;
+    y1 /= cluster1.length;
+    x2 /= cluster2.length;
+    y2 /= cluster2.length;
+    return disFun([x1, y1], [x2, y2]) * cluster1.length * cluster2.length / (cluster1.length + cluster2.length);
+}
+
+/**
+ * @private
+ * Returns the most distant point and his distance
+ * @param {Array <Array <number>>} splitting - Clusters to split
+ * @param {Array <Array <number>>} data - Original data
+ * @param {function} disFun - Distance function
+ * @returns {{d: number, p: number}} - d: maximum difference between points, p: the point more distant
+ */
+function diff(splitting, data, disFun) {
+    var ans = {
+        d: 0,
+        p: 0
+    };
+
+    var Ci = new Array(splitting[0].length);
+    for (var e = 0; e < splitting[0].length; e++) {
+        Ci[e] = data[splitting[0][e]];
+    }
+    var Cj = new Array(splitting[1].length);
+    for (var f = 0; f < splitting[1].length; f++) {
+        Cj[f] = data[splitting[1][f]];
+    }
+
+    var dist, ndist;
+    for (var i = 0; i < Ci.length; i++) {
+        dist = 0;
+        for (var j = 0; j < Ci.length; j++) {
+            if (i !== j) {
+                dist += disFun(Ci[i], Ci[j]);
+            }
+        }
+        dist /= (Ci.length - 1);
+        ndist = 0;
+        for (var k = 0; k < Cj.length; k++) {
+            ndist += disFun(Ci[i], Cj[k]);
+        }
+        ndist /= Cj.length;
+        if ((dist - ndist) > ans.d) {
+            ans.d = (dist - ndist);
+            ans.p = i;
+        }
+    }
+    return ans;
+}
+
+var defaultOptions = {
+    dist: euclidean,
+    kind: 'single'
+};
+
+/**
+ * @private
+ * Intra-cluster distance
+ * @param {Array} index
+ * @param {Array} data
+ * @param {function} disFun
+ * @returns {number}
+ */
+function intrDist(index, data, disFun) {
+    var dist = 0,
+        count = 0;
+    for (var i = 0; i < index.length; i++) {
+        for (var j = i; j < index.length; j++) {
+            dist += disFun(data[index[i].index], data[index[j].index]);
+            count++;
+        }
+    }
+    return dist / count;
+}
+
+/**
+ * Splits the higher level clusters
+ * @param {Array <Array <number>>} data - Array of points to be clustered
+ * @param {json} options
+ * @constructor
+ */
+function diana(data, options) {
+    options = Object.assign({}, defaultOptions, options);
+    if (typeof options.kind === 'string') {
+        switch (options.kind) {
+            case 'single':
+                options.kind = simpleLink;
+                break;
+            case 'complete':
+                options.kind = completeLink;
+                break;
+            case 'average':
+                options.kind = averageLink;
+                break;
+            case 'centroid':
+                options.kind = centroidLink;
+                break;
+            case 'ward':
+                options.kind = wardLink;
+                break;
+            default:
+                throw new RangeError('Unknown kind of similarity');
+        }
+    } else if (typeof options.kind !== 'function') {
+        throw new TypeError('Undefined kind of similarity');
+    }
+    var tree = new Cluster();
+    tree.children = new Array(data.length);
+    tree.index = new Array(data.length);
+    for (var ind = 0; ind < data.length; ind++) {
+        tree.children[ind] = new ClusterLeaf(ind);
+        tree.index[ind] = new ClusterLeaf(ind);
+    }
+
+    tree.distance = intrDist(tree.index, data, options.dist);
+    var m, M, clId,
+        dist, rebel;
+    var list = [tree];
+    while (list.length > 0) {
+        M = 0;
+        clId = 0;
+        for (var i = 0; i < list.length; i++) {
+            m = 0;
+            for (var j = 0; j < list[i].length; j++) {
+                for (var l = (j + 1); l < list[i].length; l++) {
+                    m = Math.max(options.dist(data[list[i].index[j].index], data[list[i].index[l].index]), m);
+                }
+            }
+            if (m > M) {
+                M = m;
+                clId = i;
+            }
+        }
+        M = 0;
+        if (list[clId].index.length === 2) {
+            list[clId].children = [list[clId].index[0], list[clId].index[1]];
+            list[clId].distance = options.dist(data[list[clId].index[0].index], data[list[clId].index[1].index]);
+        } else if (list[clId].index.length === 3) {
+            list[clId].children = [list[clId].index[0], list[clId].index[1], list[clId].index[2]];
+            var d = [
+                options.dist(data[list[clId].index[0].index], data[list[clId].index[1].index]),
+                options.dist(data[list[clId].index[1].index], data[list[clId].index[2].index])
+            ];
+            list[clId].distance = (d[0] + d[1]) / 2;
+        } else {
+            var C = new Cluster();
+            var sG = new Cluster();
+            var splitting = [new Array(list[clId].index.length), []];
+            for (var spl = 0; spl < splitting[0].length; spl++) {
+                splitting[0][spl] = spl;
+            }
+            for (var ii = 0; ii < splitting[0].length; ii++) {
+                dist = 0;
+                for (var jj = 0; jj < splitting[0].length; jj++) {
+                    if (ii !== jj) {
+                        dist += options.dist(data[list[clId].index[splitting[0][jj]].index], data[list[clId].index[splitting[0][ii]].index]);
+                    }
+                }
+                dist /= (splitting[0].length - 1);
+                if (dist > M) {
+                    M = dist;
+                    rebel = ii;
+                }
+            }
+            splitting[1] = [rebel];
+            splitting[0].splice(rebel, 1);
+            dist = diff(splitting, data, options.dist);
+            while (dist.d > 0) {
+                splitting[1].push(splitting[0][dist.p]);
+                splitting[0].splice(dist.p, 1);
+                dist = diff(splitting, data, options.dist);
+            }
+            var fData = new Array(splitting[0].length);
+            C.index = new Array(splitting[0].length);
+            for (var e = 0; e < fData.length; e++) {
+                fData[e] = data[list[clId].index[splitting[0][e]].index];
+                C.index[e] = list[clId].index[splitting[0][e]];
+                C.children[e] = list[clId].index[splitting[0][e]];
+            }
+            var sData = new Array(splitting[1].length);
+            sG.index = new Array(splitting[1].length);
+            for (var f = 0; f < sData.length; f++) {
+                sData[f] = data[list[clId].index[splitting[1][f]].index];
+                sG.index[f] = list[clId].index[splitting[1][f]];
+                sG.children[f] = list[clId].index[splitting[1][f]];
+            }
+            C.distance = intrDist(C.index, data, options.dist);
+            sG.distance = intrDist(sG.index, data, options.dist);
+            list.push(C);
+            list.push(sG);
+            list[clId].children = [C, sG];
+        }
+        list.splice(clId, 1);
+    }
+    return tree;
+}
+
+module.exports = diana;
+
+
+/***/ }),
+/* 107 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.agnes = __webpack_require__(105);
+exports.diana = __webpack_require__(106);
+//exports.birch = require('./birch');
+//exports.cure = require('./cure');
+//exports.chameleon = require('./chameleon');
+
+
+/***/ }),
+/* 108 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var FFT = __webpack_require__(42);
 
 var FFTUtils= {
     DEBUG : false,
@@ -20489,1580 +23053,25 @@ module.exports = FFTUtils;
 
 
 /***/ }),
-/* 97 */
+/* 109 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const extend = __webpack_require__(28);
-const SG = __webpack_require__(119);
-
-const defaultOptions = {
-    sgOptions: {
-        windowSize: 9,
-        polynomial: 3
-    },
-    minMaxRatio: 0.00025,
-    broadRatio: 0.00,
-    maxCriteria: true,
-    smoothY: true,
-    realTopDetection: false,
-    heightFactor: 0,
-    boundaries: false,
-    derivativeThreshold: -1
-};
-
-/**
- * Global spectra deconvolution
- * @param {Array<Number>} x - Independent variable
- * @param {Array<Number>} yIn - Dependent variable
- * @param {Object} [options] - Options object
- * @param {Object} [options.sgOptions] - Options object for Savitzky-Golay filter. See https://github.com/mljs/savitzky-golay-generalized#options
- * @param {Number} [options.sgOptions.windowSize = 9] - points to use in the approximations
- * @param {Number} [options.sgOptions.polynomial = 3] - degree of the polynomial to use in the approximations
- * @param {Number} [options.minMaxRatio = 0.00025] - Threshold to determine if a given peak should be considered as a noise
- * @param {Number} [options.broadRatio = 0.00] - If `broadRatio` is higher than 0, then all the peaks which second derivative
- * smaller than `broadRatio * maxAbsSecondDerivative` will be marked with the soft mask equal to true.
- * @param {Number} [options.noiseLevel = 0] - Noise threshold in spectrum units
- * @param {Boolean} [options.maxCriteria = true] - Peaks are local maximum(true) or minimum(false)
- * @param {Boolean} [options.smoothY = true] - Select the peak intensities from a smoothed version of the independent variables
- * @param {Boolean} [options.realTopDetection = false] - Use a quadratic optimizations with the peak and its 3 closest neighbors
- * to determine the true x,y values of the peak?
- * @param {Number} [options.heightFactor = 0] - Factor to multiply the calculated height (usually 2)
- * @param {Boolean} [options.boundaries = false] - Return also the inflection points of the peaks
- * @param {Number} [options.derivativeThreshold = -1] - Filters based on the amplitude of the first derivative
- * @return {Array<Object>}
- */
-function gsd(x, yIn, options) {
-    options = extend({}, defaultOptions, options);
-    let sgOptions = options.sgOptions;
-    const y = [].concat(yIn);
-
-    if (!('noiseLevel' in options)) {
-        // We have to know if x is equally spaced
-        var maxDx = 0,
-            minDx = Number.MAX_VALUE,
-            tmp;
-        for (let i = 0; i < x.length - 1; ++i) {
-            tmp = Math.abs(x[i + 1] - x[i]);
-            if (tmp < minDx) {
-                minDx = tmp;
-            }
-            if (tmp > maxDx) {
-                maxDx = tmp;
-            }
-        }
-
-        if ((maxDx - minDx) / maxDx < 0.05) {
-            options.noiseLevel = getNoiseLevel(y);
-        } else {
-            options.noiseLevel = 0;
-        }
-    }
-    const yCorrection = {m: 1, b: options.noiseLevel};
-    if (!options.maxCriteria) {
-        yCorrection.m = -1;
-        yCorrection.b *= -1;
-    }
-
-    for (let i = 0; i < y.length; i++) {
-        y[i] = yCorrection.m * y[i] - yCorrection.b;
-    }
-
-    for (let i = 0; i < y.length; i++) {
-        if (y[i] < 0) {
-            y[i] = 0;
-        }
-    }
-    // If the max difference between delta x is less than 5%, then, we can assume it to be equally spaced variable
-    let Y = y;
-    let dY, ddY;
-    if ((maxDx - minDx) / maxDx < 0.05) {
-        if (options.smoothY)
-            Y = SG(y, x[1] - x[0], {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 0});
-        dY = SG(y, x[1] - x[0], {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 1});
-        ddY = SG(y, x[1] - x[0], {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 2});
-    } else {
-        if (options.smoothY)
-            Y = SG(y, x, {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 0});
-        dY = SG(y, x, {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 1});
-        ddY = SG(y, x, {windowSize: sgOptions.windowSize, polynomial: sgOptions.polynomial, derivative: 2});
-    }
-
-    const X = x;
-    const dx = x[1] - x[0];
-    var maxDdy = 0;
-    var maxY = 0;
-    for (let i = 0; i < Y.length; i++) {
-        if (Math.abs(ddY[i]) > maxDdy) {
-            maxDdy = Math.abs(ddY[i]);
-        }
-        if (Math.abs(Y[i]) > maxY) {
-            maxY = Math.abs(Y[i]);
-        }
-    }
-
-    var lastMax = null;
-    var lastMin = null;
-    var minddY = new Array(Y.length - 2);
-    var intervalL = new Array(Y.length);
-    var intervalR = new Array(Y.length);
-    var broadMask = new Array(Y.length - 2);
-    var minddYLen = 0;
-    var intervalLLen = 0;
-    var intervalRLen = 0;
-    var broadMaskLen = 0;
-    // By the intermediate value theorem We cannot find 2 consecutive maximum or minimum
-    for (let i = 1; i < Y.length - 1; ++i) {
-
-        // filter based on derivativeThreshold
-        if (Math.abs(dY[i]) > options.derivativeThreshold) {
-
-            // Minimum in first derivative
-            if ((dY[i] < dY[i - 1]) && (dY[i] <= dY[i + 1]) ||
-                (dY[i] <= dY[i - 1]) && (dY[i] < dY[i + 1])) {
-                lastMin = {
-                    x: X[i],
-                    index: i
-                };
-                if (dx > 0 && lastMax !== null) {
-                    intervalL[intervalLLen++] = lastMax;
-                    intervalR[intervalRLen++] = lastMin;
-                }
-            }
-
-            // Maximum in first derivative
-            if ((dY[i] >= dY[i - 1]) && (dY[i] > dY[i + 1]) ||
-                (dY[i] > dY[i - 1]) && (dY[i] >= dY[i + 1])) {
-                lastMax = {
-                    x: X[i],
-                    index: i
-                };
-                if (dx < 0 && lastMin !== null) {
-                    intervalL[intervalLLen++] = lastMax;
-                    intervalR[intervalRLen++] = lastMin;
-                }
-            }
-        }
-
-        // Minimum in second derivative
-        if ((ddY[i] < ddY[i - 1]) && (ddY[i] < ddY[i + 1])) {
-            // TODO should we change this to have 3 arrays ? Huge overhead creating arrays
-            minddY[minddYLen++] = i; //( [X[i], Y[i], i] );
-            broadMask[broadMaskLen++] = Math.abs(ddY[i]) <= options.broadRatio * maxDdy;
-        }
-    }
-    minddY.length = minddYLen;
-    intervalL.length = intervalLLen;
-    intervalR.length = intervalRLen;
-    broadMask.length = broadMaskLen;
-
-    let signals = new Array(minddY.length);
-    let signalsLen = 0;
-    let lastK = -1;
-    let possible, frequency, distanceJ, minDistance, gettingCloser;
-    for (let j = 0; j < minddY.length; ++j) {
-        frequency = X[minddY[j]];
-        possible = -1;
-        let k = lastK + 1;
-        minDistance = Number.MAX_VALUE;
-        distanceJ = 0;
-        gettingCloser = true;
-        while (possible === -1 && (k < intervalL.length) && gettingCloser) {
-            distanceJ = Math.abs(frequency - (intervalL[k].x + intervalR[k].x) / 2);
-
-            //Still getting closer?
-            if (distanceJ < minDistance) {
-                minDistance = distanceJ;
-            } else {
-                gettingCloser = false;
-            }
-            if (distanceJ < Math.abs(intervalL[k].x - intervalR[k].x) / 2) {
-                possible = k;
-                lastK = k;
-            }
-            ++k;
-        }
-
-        if (possible !== -1) {
-            if (Math.abs(Y[minddY[j]]) > options.minMaxRatio * maxY) {
-                signals[signalsLen++] = {
-                    index: minddY[j],
-                    x: frequency,
-                    y: (Y[minddY[j]] + yCorrection.b) / yCorrection.m,
-                    width: Math.abs(intervalR[possible].x - intervalL[possible].x), //widthCorrection
-                    soft: broadMask[j]
-                };
-                if (options.boundaries) {
-                    signals[signalsLen - 1].left = intervalL[possible];
-                    signals[signalsLen - 1].right = intervalR[possible];
-                }
-                if (options.heightFactor) {
-                    let yLeft = Y[intervalL[possible].index];
-                    let yRight = Y[intervalR[possible].index];
-                    signals[signalsLen - 1].height = options.heightFactor * (signals[signalsLen - 1].y - ((yLeft + yRight) / 2));
-                }
-            }
-        }
-    }
-    signals.length = signalsLen;
-
-    if (options.realTopDetection)
-        realTopDetection(signals, X, Y);
-
-    //Correct the values to fit the original spectra data
-    for (let j = 0; j < signals.length; j++) {
-        signals[j].base = options.noiseLevel;
-    }
-
-    signals.sort(function (a, b) {
-        return a.x - b.x;
-    });
-
-    return signals;
-
-}
-
-function getNoiseLevel(y) {
-    var mean = 0, stddev = 0;
-    var length = y.length;
-    for (let i = 0; i < length; ++i) {
-        mean += y[i];
-    }
-    mean /= length;
-    var averageDeviations = new Array(length);
-    for (let i = 0; i < length; ++i)
-        averageDeviations[i] = Math.abs(y[i] - mean);
-    averageDeviations.sort();
-    if (length % 2 === 1) {
-        stddev = averageDeviations[(length - 1) / 2] / 0.6745;
-    } else {
-        stddev = 0.5 * (averageDeviations[length / 2] + averageDeviations[length / 2 - 1]) / 0.6745;
-    }
-
-    return stddev;
-}
-
-function realTopDetection(peakList, x, y) {
-    var alpha, beta, gamma, p, currentPoint;
-    for (var j = 0; j < peakList.length; j++) {
-        currentPoint = peakList[j].i;//peakList[j][2];
-        //The detected peak could be moved 1 or 2 unit to left or right.
-        if (y[currentPoint - 1] >= y[currentPoint - 2]
-            && y[currentPoint - 1] >= y[currentPoint]) {
-            currentPoint--;
-        } else {
-            if (y[currentPoint + 1] >= y[currentPoint]
-                && y[currentPoint + 1] >= y[currentPoint + 2]) {
-                currentPoint++;
-            } else {
-                if (y[currentPoint - 2] >= y[currentPoint - 3]
-                    && y[currentPoint - 2] >= y[currentPoint - 1]) {
-                    currentPoint -= 2;
-                } else {
-                    if (y[currentPoint + 2] >= y[currentPoint + 1]
-                        && y[currentPoint + 2] >= y[currentPoint + 3]) {
-                        currentPoint += 2;
-                    }
-                }
-            }
-        }
-        if (y[currentPoint - 1] > 0 && y[currentPoint + 1] > 0
-            && y[currentPoint] >= y[currentPoint - 1]
-            && y[currentPoint] >= y[currentPoint + 1]) {
-            alpha = 20 * Math.log10(y[currentPoint - 1]);
-            beta = 20 * Math.log10(y[currentPoint]);
-            gamma = 20 * Math.log10(y[currentPoint + 1]);
-            p = 0.5 * (alpha - gamma) / (alpha - 2 * beta + gamma);
-            //console.log("p: "+p);
-            //console.log(x[currentPoint]+" "+tmp+" "+currentPoint);
-            peakList[j].x = x[currentPoint] + (x[currentPoint] - x[currentPoint - 1]) * p;
-            peakList[j].y = y[currentPoint] - 0.25 * (y[currentPoint - 1] - y[currentPoint + 1]) * p;
-        }
-    }
-}
-
-module.exports = gsd;
+exports.FFTUtils = __webpack_require__(108);
+exports.FFT = __webpack_require__(42);
 
 
 /***/ }),
-/* 98 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports.post = __webpack_require__(99);
-module.exports.gsd = __webpack_require__(97);
-
-
-/***/ }),
-/* 99 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/**
- * Created by acastillo on 9/6/15.
- */
-
-
-var Opt = __webpack_require__(116);
-
-function sampleFunction(from, to, x, y, lastIndex) {
-    var nbPoints = x.length;
-    var sampleX = [];
-    var sampleY = [];
-    var direction = Math.sign(x[1] - x[0]);//Direction of the derivative
-    if (direction === -1) {
-        lastIndex[0] = x.length - 1;
-    }
-
-    var delta = Math.abs(to - from) / 2;
-    var mid = (from + to) / 2;
-    var stop = false;
-    var index = lastIndex[0];
-    while (!stop && index < nbPoints && index >= 0) {
-        if (Math.abs(x[index] - mid) <= delta) {
-            sampleX.push(x[index]);
-            sampleY.push(y[index]);
-            index += direction;
-        } else {
-            //It is outside the range.
-            if (Math.sign(mid - x[index]) === 1) {
-                //We'll reach the mid going in the current direction
-                index += direction;
-            } else {
-                //There is not more peaks in the current range
-                stop = true;
-            }
-        }
-        //console.log(sampleX);
-    }
-    lastIndex[0] = index;
-    return [sampleX, sampleY];
-}
-
-function optimizePeaks(peakList, x, y, n, fnType) {
-    var i, j, lastIndex = [0];
-    var groups = groupPeaks(peakList, n);
-    var result = [];
-    var factor = 1;
-    if (fnType === 'gaussian')
-        factor = 1.17741;//From https://en.wikipedia.org/wiki/Gaussian_function#Properties
-    var sampling, error, opts;
-    for (i = 0; i < groups.length; i++) {
-        var peaks = groups[i].group;
-        if (peaks.length > 1) {
-            //Multiple peaks
-            //console.log("Pending group of overlaped peaks "+peaks.length);
-            //console.log("here1");
-            //console.log(groups[i].limits);
-            sampling = sampleFunction(groups[i].limits[0] - groups[i].limits[1], groups[i].limits[0] + groups[i].limits[1], x, y, lastIndex);
-            //console.log(sampling);
-            if (sampling[0].length > 5) {
-                error = peaks[0].width / 1000;
-                opts = [  3,    100, error, error, error, error * 10, error * 10,    11,    9,        1 ];
-                //var gauss = Opt.optimizeSingleGaussian(sampling[0], sampling[1], opts, peaks);
-                var optPeaks = [];
-                if (fnType === 'gaussian')
-                    optPeaks = Opt.optimizeGaussianSum(sampling, peaks, opts);
-                else {
-                    if (fnType === 'lorentzian') {
-                        optPeaks = Opt.optimizeLorentzianSum(sampling, peaks, opts);
-                    }
-                }
-                //console.log(optPeak);
-                for (j = 0; j < optPeaks.length; j++) {
-                    result.push({x: optPeaks[j][0][0], y: optPeaks[j][1][0], width: optPeaks[j][2][0] * factor});
-                }
-            }
-        } else {
-            //Single peak
-            peaks = peaks[0];
-            sampling = sampleFunction(peaks.x - n * peaks.width,
-                peaks.x + n * peaks.width, x, y, lastIndex);
-            //console.log("here2");
-            //console.log(groups[i].limits);
-            if (sampling[0].length > 5) {
-                error = peaks.width / 1000;
-                opts = [3, 100, error, error, error, error * 10, error * 10, 11, 9, 1];
-                //var gauss = Opt.optimizeSingleGaussian(sampling[0], sampling[1], opts, peaks);
-                //var gauss = Opt.optimizeSingleGaussian([sampling[0],sampling[1]], peaks, opts);
-                var optPeak = [];
-                if (fnType === 'gaussian')
-                    optPeak = Opt.optimizeSingleGaussian([sampling[0], sampling[1]], peaks,  opts);
-                else {
-                    if (fnType === 'lorentzian') {
-                        optPeak = Opt.optimizeSingleLorentzian([sampling[0], sampling[1]], peaks,  opts);
-                    }
-                }
-                //console.log(optPeak);
-                result.push({x: optPeak[0][0], y: optPeak[1][0], width: optPeak[2][0] * factor}); // From https://en.wikipedia.org/wiki/Gaussian_function#Properties}
-            }
-        }
-
-    }
-    return result;
-}
-
-function groupPeaks(peakList, nL) {
-    var group = [];
-    var groups = [];
-    var i, j;
-    var limits = [peakList[0].x, nL * peakList[0].width];
-    var upperLimit, lowerLimit;
-    //Merge forward
-    for (i = 0; i < peakList.length; i++) {
-        //If the 2 things overlaps
-        if (Math.abs(peakList[i].x - limits[0]) < (nL * peakList[i].width + limits[1])) {
-            //Add the peak to the group
-            group.push(peakList[i]);
-            //Update the group limits
-            upperLimit = limits[0] + limits[1];
-            if (peakList[i].x + nL * peakList[i].width > upperLimit) {
-                upperLimit = peakList[i].x + nL * peakList[i].width;
-            }
-            lowerLimit = limits[0] - limits[1];
-            if (peakList[i].x - nL * peakList[i].width < lowerLimit) {
-                lowerLimit = peakList[i].x - nL * peakList[i].width;
-            }
-            limits = [(upperLimit + lowerLimit) / 2, Math.abs(upperLimit - lowerLimit) / 2];
-
-        } else {
-            groups.push({limits: limits, group: group});
-            //var optmimalPeak = fitSpectrum(group,limits,spectrum);
-            group = [peakList[i]];
-            limits = [peakList[i].x, nL * peakList[i].width];
-        }
-    }
-    groups.push({limits: limits, group: group});
-    //Merge backward
-    for (i = groups.length - 2; i >= 0; i--) {
-        //The groups overlaps
-        if (Math.abs(groups[i].limits[0] - groups[i + 1].limits[0]) <
-            (groups[i].limits[1] + groups[i + 1].limits[1]) / 2) {
-            for (j = 0; j < groups[i + 1].group.length; j++) {
-                groups[i].group.push(groups[i + 1].group[j]);
-            }
-            upperLimit = groups[i].limits[0] + groups[i].limits[1];
-            if (groups[i + 1].limits[0] + groups[i + 1].limits[1] > upperLimit) {
-                upperLimit = groups[i + 1].limits[0] + groups[i + 1].limits[1];
-            }
-            lowerLimit = groups[i].limits[0] - groups[i].limits[1];
-            if (groups[i + 1].limits[0] - groups[i + 1].limits[1] < lowerLimit) {
-                lowerLimit = groups[i + 1].limits[0] - groups[i + 1].limits[1];
-            }
-            //console.log(limits);
-            groups[i].limits = [(upperLimit + lowerLimit) / 2, Math.abs(upperLimit - lowerLimit) / 2];
-
-            groups.splice(i + 1, 1);
-        }
-    }
-    return groups;
-}
-/**
- * This function try to join the peaks that seems to belong to a broad signal in a single broad peak.
- * @param peakList
- * @param options
- */
-function joinBroadPeaks(peakList, options) {
-    var width = options.width;
-    var broadLines = [];
-    //Optimize the possible broad lines
-    var max = 0, maxI = 0, count = 1;
-    for (let i = peakList.length - 1; i >= 0; i--) {
-        if (peakList[i].soft) {
-            broadLines.push(peakList.splice(i, 1)[0]);
-        }
-    }
-    //Push a feak peak
-    broadLines.push({x: Number.MAX_VALUE});
-
-    var candidates = [[broadLines[0].x,
-                        broadLines[0].y]];
-    var indexes = [0];
-
-    for (let i = 1; i < broadLines.length; i++) {
-        //console.log(broadLines[i-1].x+" "+broadLines[i].x);
-        if (Math.abs(broadLines[i - 1].x - broadLines[i].x) < width) {
-            candidates.push([broadLines[i].x, broadLines[i].y]);
-            if (broadLines[i].y > max) {
-                max = broadLines[i].y;
-                maxI = i;
-            }
-            indexes.push(i);
-            count++;
-        } else {
-            if (count > 2) {
-                var fitted = Opt.optimizeSingleLorentzian(candidates,
-                    {x: broadLines[maxI].x, y: max, width: Math.abs(candidates[0][0] - candidates[candidates.length - 1][0])});
-                peakList.push({x: fitted[0][0], y: fitted[1][0], width: fitted[2][0], soft: false});
-
-            } else {
-                //Put back the candidates to the signals list
-                indexes.map(function (index) {
-                    peakList.push(broadLines[index]);
-                });
-            }
-            candidates = [[broadLines[i].x, broadLines[i].y]];
-            indexes = [i];
-            max = broadLines[i].y;
-            maxI = i;
-            count = 1;
-        }
-    }
-
-    peakList.sort(function (a, b) {
-        return a.x - b.x;
-    });
-
-    return peakList;
-
-}
-
-/*
- var isPartOf = true
-if(options.broadRatio>0){
- var broadLines=[[Number.MAX_VALUE,0,0]];
- //Optimize the possible broad lines
- var max=0, maxI=0,count=0;
- var candidates = [],broadLinesS=[];
- var isPartOf = false;
-
- for(var i=broadLines.length-1;i>0;i--){
- //console.log(broadLines[i][0]+" "+rangeX+" "+Math.abs(broadLines[i-1][0]-broadLines[i][0]));
- if(Math.abs(broadLines[i-1][0]-broadLines[i][0])<rangeX){
-
- candidates.push(broadLines[i]);
- if(broadLines[i][1]>max){
- max = broadLines[i][1];
- maxI = i;
- }
- count++;
- }
- else{
- isPartOf = true;
- if(count>30){ // TODO, an options ?
- isPartOf = false;
- //for(var j=0;j<signals.length;j++){
- //    if(Math.abs(broadLines[maxI][0]-signals[j][0])<rangeX)
- //       isPartOf = true;
- //    }
- //console.log("Was part of "+isPartOf);
- }
- if(isPartOf){
- for(var j=0;j<candidates.length;j++){
- signals.push([candidates[j][0], candidates[j][1], dx]);
- }
- }
- else{
- var fitted =  Opt.optimizeSingleLorentzian(candidates,{x:candidates[maxI][0],
- width:Math.abs(candidates[0][0]-candidates[candidates.length-1][0])},
- []);
- //console.log(fitted);
- signals.push([fitted[0][0],fitted[0][1],fitted[0][2]]);
- }
- candidates = [];
- max = 0;
- maxI = 0;
- count = 0;
- }
- }
- }*/
-
-module.exports = {optimizePeaks: optimizePeaks, joinBroadPeaks: joinBroadPeaks};
-
-
-
-/***/ }),
-/* 100 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-const newArray = __webpack_require__(17);
-
-const primeFinder = __webpack_require__(101);
-const nextPrime = primeFinder.nextPrime;
-const largestPrime = primeFinder.largestPrime;
-
-const FREE = 0;
-const FULL = 1;
-const REMOVED = 2;
-
-const defaultInitialCapacity = 150;
-const defaultMinLoadFactor = 1 / 6;
-const defaultMaxLoadFactor = 2 / 3;
-
-class HashTable {
-    constructor(options = {}) {
-        if (options instanceof HashTable) {
-            this.table = options.table.slice();
-            this.values = options.values.slice();
-            this.state = options.state.slice();
-            this.minLoadFactor = options.minLoadFactor;
-            this.maxLoadFactor = options.maxLoadFactor;
-            this.distinct = options.distinct;
-            this.freeEntries = options.freeEntries;
-            this.lowWaterMark = options.lowWaterMark;
-            this.highWaterMark = options.maxLoadFactor;
-            return;
-        }
-
-        const initialCapacity = options.initialCapacity === undefined ? defaultInitialCapacity : options.initialCapacity;
-        if (initialCapacity < 0) {
-            throw new RangeError(`initial capacity must not be less than zero: ${initialCapacity}`);
-        }
-
-        const minLoadFactor = options.minLoadFactor === undefined ? defaultMinLoadFactor : options.minLoadFactor;
-        const maxLoadFactor = options.maxLoadFactor === undefined ? defaultMaxLoadFactor : options.maxLoadFactor;
-        if (minLoadFactor < 0 || minLoadFactor >= 1) {
-            throw new RangeError(`invalid minLoadFactor: ${minLoadFactor}`);
-        }
-        if (maxLoadFactor <= 0 || maxLoadFactor >= 1) {
-            throw new RangeError(`invalid maxLoadFactor: ${maxLoadFactor}`);
-        }
-        if (minLoadFactor >= maxLoadFactor) {
-            throw new RangeError(`minLoadFactor (${minLoadFactor}) must be smaller than maxLoadFactor (${maxLoadFactor})`);
-        }
-
-        let capacity = initialCapacity;
-        // User wants to put at least capacity elements. We need to choose the size based on the maxLoadFactor to
-        // avoid the need to rehash before this capacity is reached.
-        // actualCapacity * maxLoadFactor >= capacity
-        capacity = (capacity / maxLoadFactor) | 0;
-        capacity = nextPrime(capacity);
-        if (capacity === 0) capacity = 1;
-
-        this.table = newArray(capacity, 0);
-        this.values = newArray(capacity, 0);
-        this.state = newArray(capacity, 0);
-
-        this.minLoadFactor = minLoadFactor;
-        if (capacity === largestPrime) {
-            this.maxLoadFactor = 1;
-        } else {
-            this.maxLoadFactor = maxLoadFactor;
-        }
-
-        this.distinct = 0;
-        this.freeEntries = capacity;
-
-        this.lowWaterMark = 0;
-        this.highWaterMark = chooseHighWaterMark(capacity, this.maxLoadFactor);
-    }
-
-    clone() {
-        return new HashTable(this);
-    }
-
-    get size() {
-        return this.distinct;
-    }
-
-    get(key) {
-        const i = this.indexOfKey(key);
-        if (i < 0) return 0;
-        return this.values[i];
-    }
-
-    set(key, value) {
-        let i = this.indexOfInsertion(key);
-        if (i < 0) {
-            i = -i - 1;
-            this.values[i] = value;
-            return false;
-        }
-
-        if (this.distinct > this.highWaterMark) {
-            const newCapacity = chooseGrowCapacity(this.distinct + 1, this.minLoadFactor, this.maxLoadFactor);
-            this.rehash(newCapacity);
-            return this.set(key, value);
-        }
-
-        this.table[i] = key;
-        this.values[i] = value;
-        if (this.state[i] === FREE) this.freeEntries--;
-        this.state[i] = FULL;
-        this.distinct++;
-
-        if (this.freeEntries < 1) {
-            const newCapacity = chooseGrowCapacity(this.distinct + 1, this.minLoadFactor, this.maxLoadFactor);
-            this.rehash(newCapacity);
-        }
-
-        return true;
-    }
-    
-    remove(key, noRehash) {
-        const i = this.indexOfKey(key);
-        if (i < 0) return false;
-
-        this.state[i] = REMOVED;
-        this.distinct--;
-
-        if (!noRehash) this.maybeShrinkCapacity();
-
-        return true;
-    }
-
-    delete(key, noRehash) {
-        const i = this.indexOfKey(key);
-        if (i < 0) return false;
-
-        this.state[i] = FREE;
-        this.distinct--;
-
-        if (!noRehash) this.maybeShrinkCapacity();
-
-        return true;
-    }
-
-    maybeShrinkCapacity() {
-        if (this.distinct < this.lowWaterMark) {
-            const newCapacity = chooseShrinkCapacity(this.distinct, this.minLoadFactor, this.maxLoadFactor);
-            this.rehash(newCapacity);
-        }
-    }
-
-    containsKey(key) {
-        return this.indexOfKey(key) >= 0;
-    }
-
-    indexOfKey(key) {
-        const table = this.table;
-        const state = this.state;
-        const length = this.table.length;
-
-        const hash = key & 0x7fffffff;
-        let i = hash % length;
-        let decrement = hash % (length - 2);
-        if (decrement === 0) decrement = 1;
-
-        while (state[i] !== FREE && (state[i] === REMOVED || table[i] !== key)) {
-            i -= decrement;
-            if (i < 0) i += length;
-        }
-
-        if (state[i] === FREE) return -1;
-        return i;
-    }
-
-    containsValue(value) {
-        return this.indexOfValue(value) >= 0;
-    }
-
-    indexOfValue(value) {
-        const values = this.values;
-        const state = this.state;
-
-        for (var i = 0; i < state.length; i++) {
-            if (state[i] === FULL && values[i] === value) {
-                return i;
-            }
-        }
-
-        return -1;
-    }
-
-    indexOfInsertion(key) {
-        const table = this.table;
-        const state = this.state;
-        const length = table.length;
-
-
-        const hash = key & 0x7fffffff;
-        let i = hash % length;
-        let decrement = hash % (length - 2);
-        if (decrement === 0) decrement = 1;
-
-        while (state[i] === FULL && table[i] !== key) {
-            i -= decrement;
-            if (i < 0) i += length;
-        }
-
-        if (state[i] === REMOVED) {
-            const j = i;
-            while (state[i] !== FREE && (state[i] === REMOVED || table[i] !== key)) {
-                i -= decrement;
-                if (i < 0) i += length;
-            }
-            if (state[i] === FREE) i = j;
-        }
-
-        if (state[i] === FULL) {
-            return -i - 1;
-        }
-
-        return i;
-    }
-
-    ensureCapacity(minCapacity) {
-        if (this.table.length < minCapacity) {
-            const newCapacity = nextPrime(minCapacity);
-            this.rehash(newCapacity);
-        }
-    }
-
-    rehash(newCapacity) {
-        const oldCapacity = this.table.length;
-
-        if (newCapacity <= this.distinct) throw new Error('Unexpected');
-
-        const oldTable = this.table;
-        const oldValues = this.values;
-        const oldState = this.state;
-
-        const newTable = newArray(newCapacity, 0);
-        const newValues = newArray(newCapacity, 0);
-        const newState = newArray(newCapacity, 0);
-
-        this.lowWaterMark = chooseLowWaterMark(newCapacity, this.minLoadFactor);
-        this.highWaterMark = chooseHighWaterMark(newCapacity, this.maxLoadFactor);
-
-        this.table = newTable;
-        this.values = newValues;
-        this.state = newState;
-        this.freeEntries = newCapacity - this.distinct;
-
-        for (var i = 0; i < oldCapacity; i++) {
-            if (oldState[i] === FULL) {
-                var element = oldTable[i];
-                var index = this.indexOfInsertion(element);
-                newTable[index] = element;
-                newValues[index] = oldValues[i];
-                newState[index] = FULL;
-            }
-        }
-    }
-
-    forEachKey(callback) {
-        for (var i = 0; i < this.state.length; i++) {
-            if (this.state[i] === FULL) {
-                if (!callback(this.table[i])) return false;
-            }
-        }
-        return true;
-    }
-
-    forEachValue(callback) {
-        for (var i = 0; i < this.state.length; i++) {
-            if (this.state[i] === FULL) {
-                if (!callback(this.values[i])) return false;
-            }
-        }
-        return true;
-    }
-
-    forEachPair(callback) {
-        for (var i = 0; i < this.state.length; i++) {
-            if (this.state[i] === FULL) {
-                if (!callback(this.table[i], this.values[i])) return false;
-            }
-        }
-        return true;
-    }
-}
-
-module.exports = HashTable;
-
-function chooseLowWaterMark(capacity, minLoad) {
-    return (capacity * minLoad) | 0;
-}
-
-function chooseHighWaterMark(capacity, maxLoad) {
-    return Math.min(capacity - 2, (capacity * maxLoad) | 0);
-}
-
-function chooseGrowCapacity(size, minLoad, maxLoad) {
-    return nextPrime(Math.max(size + 1, (4 * size / (3 * minLoad + maxLoad)) | 0));
-}
-
-function chooseShrinkCapacity(size, minLoad, maxLoad) {
-    return nextPrime(Math.max(size + 1, (4 * size / (minLoad + 3 * maxLoad)) | 0));
-}
-
-
-/***/ }),
-/* 101 */
-/***/ (function(module, exports, __webpack_require__) {
-
-const binarySearch = __webpack_require__(25);
-const sortAsc = __webpack_require__(51).asc;
-
-const largestPrime = 0x7fffffff;
-
-const primeNumbers = [
-    //chunk #0
-    largestPrime, // 2^31-1
-
-    //chunk #1
-    5, 11, 23, 47, 97, 197, 397, 797, 1597, 3203, 6421, 12853, 25717, 51437, 102877, 205759,
-    411527, 823117, 1646237, 3292489, 6584983, 13169977, 26339969, 52679969, 105359939,
-    210719881, 421439783, 842879579, 1685759167,
-
-    //chunk #2
-    433, 877, 1759, 3527, 7057, 14143, 28289, 56591, 113189, 226379, 452759, 905551, 1811107,
-    3622219, 7244441, 14488931, 28977863, 57955739, 115911563, 231823147, 463646329, 927292699,
-    1854585413,
-
-    //chunk #3
-    953, 1907, 3821, 7643, 15287, 30577, 61169, 122347, 244703, 489407, 978821, 1957651, 3915341,
-    7830701, 15661423, 31322867, 62645741, 125291483, 250582987, 501165979, 1002331963,
-    2004663929,
-
-    //chunk #4
-    1039, 2081, 4177, 8363, 16729, 33461, 66923, 133853, 267713, 535481, 1070981, 2141977, 4283963,
-    8567929, 17135863, 34271747, 68543509, 137087021, 274174111, 548348231, 1096696463,
-
-    //chunk #5
-    31, 67, 137, 277, 557, 1117, 2237, 4481, 8963, 17929, 35863, 71741, 143483, 286973, 573953,
-    1147921, 2295859, 4591721, 9183457, 18366923, 36733847, 73467739, 146935499, 293871013,
-    587742049, 1175484103,
-
-    //chunk #6
-    599, 1201, 2411, 4831, 9677, 19373, 38747, 77509, 155027, 310081, 620171, 1240361, 2480729,
-    4961459, 9922933, 19845871, 39691759, 79383533, 158767069, 317534141, 635068283, 1270136683,
-
-    //chunk #7
-    311, 631, 1277, 2557, 5119, 10243, 20507, 41017, 82037, 164089, 328213, 656429, 1312867,
-    2625761, 5251529, 10503061, 21006137, 42012281, 84024581, 168049163, 336098327, 672196673,
-    1344393353,
-
-    //chunk #8
-    3, 7, 17, 37, 79, 163, 331, 673, 1361, 2729, 5471, 10949, 21911, 43853, 87719, 175447, 350899,
-    701819, 1403641, 2807303, 5614657, 11229331, 22458671, 44917381, 89834777, 179669557,
-    359339171, 718678369, 1437356741,
-
-    //chunk #9
-    43, 89, 179, 359, 719, 1439, 2879, 5779, 11579, 23159, 46327, 92657, 185323, 370661, 741337,
-    1482707, 2965421, 5930887, 11861791, 23723597, 47447201, 94894427, 189788857, 379577741,
-    759155483, 1518310967,
-
-    //chunk #10
-    379, 761, 1523, 3049, 6101, 12203, 24407, 48817, 97649, 195311, 390647, 781301, 1562611,
-    3125257, 6250537, 12501169, 25002389, 50004791, 100009607, 200019221, 400038451, 800076929,
-    1600153859,
-
-    //chunk #11
-    13, 29, 59, 127, 257, 521, 1049, 2099, 4201, 8419, 16843, 33703, 67409, 134837, 269683,
-    539389, 1078787, 2157587, 4315183, 8630387, 17260781, 34521589, 69043189, 138086407,
-    276172823, 552345671, 1104691373,
-
-    //chunk #12
-    19, 41, 83, 167, 337, 677,
-    1361, 2729, 5471, 10949, 21911, 43853, 87719, 175447, 350899,
-    701819, 1403641, 2807303, 5614657, 11229331, 22458671, 44917381, 89834777, 179669557,
-    359339171, 718678369, 1437356741,
-
-    //chunk #13
-    53, 107, 223, 449, 907, 1823, 3659, 7321, 14653, 29311, 58631, 117269,
-    234539, 469099, 938207, 1876417, 3752839, 7505681, 15011389, 30022781,
-    60045577, 120091177, 240182359, 480364727, 960729461, 1921458943
-];
-
-primeNumbers.sort(sortAsc);
-
-function nextPrime(value) {
-    let index = binarySearch(primeNumbers, value, sortAsc);
-    if (index < 0) {
-        index = ~index;
-    }
-    return primeNumbers[index];
-}
-
-exports.nextPrime = nextPrime;
-exports.largestPrime = largestPrime;
-
-
-/***/ }),
-/* 102 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-const euclidean = __webpack_require__(39);
-const ClusterLeaf = __webpack_require__(41);
-const Cluster = __webpack_require__(15);
-const distanceMatrix = __webpack_require__(95);
-
-/**
- * @private
- * @param cluster1
- * @param cluster2
- * @param disFun
- * @returns {number}
- */
-function simpleLink(cluster1, cluster2, disFun) {
-    var m = 10e100;
-    for (var i = 0; i < cluster1.length; i++) {
-        for (var j = 0; j < cluster2.length; j++) {
-            var d = disFun[cluster1[i]][ cluster2[j]];
-            m = Math.min(d, m);
-        }
-    }
-    return m;
-}
-
-/**
- * @private
- * @param cluster1
- * @param cluster2
- * @param disFun
- * @returns {number}
- */
-function completeLink(cluster1, cluster2, disFun) {
-    var m = -1;
-    for (var i = 0; i < cluster1.length; i++) {
-        for (var j = 0; j < cluster2.length; j++) {
-            var d = disFun[cluster1[i]][ cluster2[j]];
-            m = Math.max(d, m);
-        }
-    }
-    return m;
-}
-
-/**
- * @private
- * @param cluster1
- * @param cluster2
- * @param disFun
- * @returns {number}
- */
-function averageLink(cluster1, cluster2, disFun) {
-    var m = 0;
-    for (var i = 0; i < cluster1.length; i++) {
-        for (var j = 0; j < cluster2.length; j++) {
-            m += disFun[cluster1[i]][ cluster2[j]];
-        }
-    }
-    return m / (cluster1.length * cluster2.length);
-}
-
-/**
- * @private
- * @param cluster1
- * @param cluster2
- * @param disFun
- * @returns {*}
- */
-function centroidLink(cluster1, cluster2, disFun) {
-    var dist = new Array(cluster1.length * cluster2.length);
-    for (var i = 0; i < cluster1.length; i++) {
-        for (var j = 0; j < cluster2.length; j++) {
-            dist[i * cluster2.length + j] = (disFun[cluster1[i]][ cluster2[j]]);
-        }
-    }
-    return median(dist);
-}
-
-/**
- * @private
- * @param cluster1
- * @param cluster2
- * @param disFun
- * @returns {number}
- */
-function wardLink(cluster1, cluster2, disFun) {
-    return centroidLink(cluster1, cluster2, disFun)
-        * cluster1.length * cluster2.length / (cluster1.length + cluster2.length);
-}
-
-function compareNumbers(a, b) {
-    return a - b;
-}
-
-function median(values, alreadySorted) {
-    if (alreadySorted === undefined) alreadySorted = false;
-    if (!alreadySorted) {
-        values = [].concat(values).sort(compareNumbers);
-    }
-    var l = values.length;
-    var half = Math.floor(l / 2);
-    if (l % 2 === 0) {
-        return (values[half - 1] + values[half]) * 0.5;
-    } else {
-        return values[half];
-    }
-}
-
-var defaultOptions = {
-    disFunc: euclidean,
-    kind: 'single',
-    isDistanceMatrix: false
-
-};
-
-/**
- * Continuously merge nodes that have the least dissimilarity
- * @param {Array <Array <number>>} distance - Array of points to be clustered
- * @param {json} options
- * @option isDistanceMatrix: Is the input a distance matrix?
- * @constructor
- */
-function agnes(data, options) {
-    options = Object.assign({}, defaultOptions, options);
-    var len = data.length;
-    var distance = data;//If source
-    if (!options.isDistanceMatrix) {
-        distance = distanceMatrix(data, options.disFunc);
-    }
-
-
-    // allows to use a string or a given function
-    if (typeof options.kind === 'string') {
-        switch (options.kind) {
-            case 'single':
-                options.kind = simpleLink;
-                break;
-            case 'complete':
-                options.kind = completeLink;
-                break;
-            case 'average':
-                options.kind = averageLink;
-                break;
-            case 'centroid':
-                options.kind = centroidLink;
-                break;
-            case 'ward':
-                options.kind = wardLink;
-                break;
-            default:
-                throw new RangeError('Unknown kind of similarity');
-        }
-    } else if (typeof options.kind !== 'function') {
-        throw new TypeError('Undefined kind of similarity');
-    }
-
-    var list = new Array(len);
-    for (var i = 0; i < distance.length; i++) {
-        list[i] = new ClusterLeaf(i);
-    }
-    var min = 10e5,
-        d = {},
-        dis = 0;
-
-    while (list.length > 1) {
-        // calculates the minimum distance
-        d = {};
-        min = 10e5;
-        for (var j = 0; j < list.length; j++) {
-            for (var k = j + 1; k < list.length; k++) {
-                var fdistance, sdistance;
-                if (list[j] instanceof ClusterLeaf) {
-                    fdistance = [list[j].index];
-                } else {
-                    fdistance = new Array(list[j].index.length);
-                    for (var e = 0; e < fdistance.length; e++) {
-                        fdistance[e] = list[j].index[e].index;
-                    }
-                }
-                if (list[k] instanceof ClusterLeaf) {
-                    sdistance = [list[k].index];
-                } else {
-                    sdistance = new Array(list[k].index.length);
-                    for (var f = 0; f < sdistance.length; f++) {
-                        sdistance[f] = list[k].index[f].index;
-                    }
-                }
-                dis = options.kind(fdistance, sdistance, distance).toFixed(4);
-                if (dis in d) {
-                    d[dis].push([list[j], list[k]]);
-                } else {
-                    d[dis] = [[list[j], list[k]]];
-                }
-                min = Math.min(dis, min);
-            }
-        }
-        // cluster dots
-        var dmin = d[min.toFixed(4)];
-        var clustered = new Array(dmin.length);
-        var aux,
-            count = 0;
-        while (dmin.length > 0) {
-            aux = dmin.shift();
-            for (var q = 0; q < dmin.length; q++) {
-                var int = dmin[q].filter(function (n) {
-                    //noinspection JSReferencingMutableVariableFromClosure
-                    return aux.indexOf(n) !== -1;
-                });
-                if (int.length > 0) {
-                    var diff = dmin[q].filter(function (n) {
-                        //noinspection JSReferencingMutableVariableFromClosure
-                        return aux.indexOf(n) === -1;
-                    });
-                    aux = aux.concat(diff);
-                    dmin.splice(q--, 1);
-                }
-            }
-            clustered[count++] = aux;
-        }
-        clustered.length = count;
-
-        for (var ii = 0; ii < clustered.length; ii++) {
-            var obj = new Cluster();
-            obj.children = clustered[ii].concat();
-            obj.distance = min;
-            obj.index = new Array(len);
-            var indCount = 0;
-            for (var jj = 0; jj < clustered[ii].length; jj++) {
-                if (clustered[ii][jj] instanceof ClusterLeaf) {
-                    obj.index[indCount++] = clustered[ii][jj];
-                } else {
-                    indCount += clustered[ii][jj].index.length;
-                    obj.index = clustered[ii][jj].index.concat(obj.index);
-                }
-                list.splice((list.indexOf(clustered[ii][jj])), 1);
-            }
-            obj.index.length = indCount;
-            list.push(obj);
-        }
-    }
-    return list[0];
-}
-
-module.exports = agnes;
-
-
-/***/ }),
-/* 103 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-const euclidean = __webpack_require__(39);
-const ClusterLeaf = __webpack_require__(41);
-const Cluster = __webpack_require__(15);
-
-/**
- * @private
- * @param {Array <Array <number>>} cluster1
- * @param {Array <Array <number>>} cluster2
- * @param {function} disFun
- * @returns {number}
- */
-function simpleLink(cluster1, cluster2, disFun) {
-    var m = 10e100;
-    for (var i = 0; i < cluster1.length; i++) {
-        for (var j = i; j < cluster2.length; j++) {
-            var d = disFun(cluster1[i], cluster2[j]);
-            m = Math.min(d, m);
-        }
-    }
-    return m;
-}
-
-/**
- * @private
- * @param {Array <Array <number>>} cluster1
- * @param {Array <Array <number>>} cluster2
- * @param {function} disFun
- * @returns {number}
- */
-function completeLink(cluster1, cluster2, disFun) {
-    var m = -1;
-    for (var i = 0; i < cluster1.length; i++) {
-        for (var j = i; j < cluster2.length; j++) {
-            var d = disFun(cluster1[i], cluster2[j]);
-            m = Math.max(d, m);
-        }
-    }
-    return m;
-}
-
-/**
- * @private
- * @param {Array <Array <number>>} cluster1
- * @param {Array <Array <number>>} cluster2
- * @param {function} disFun
- * @returns {number}
- */
-function averageLink(cluster1, cluster2, disFun) {
-    var m = 0;
-    for (var i = 0; i < cluster1.length; i++) {
-        for (var j = 0; j < cluster2.length; j++) {
-            m += disFun(cluster1[i], cluster2[j]);
-        }
-    }
-    return m / (cluster1.length * cluster2.length);
-}
-
-/**
- * @private
- * @param {Array <Array <number>>} cluster1
- * @param {Array <Array <number>>} cluster2
- * @param {function} disFun
- * @returns {number}
- */
-function centroidLink(cluster1, cluster2, disFun) {
-    var x1 = 0,
-        y1 = 0,
-        x2 = 0,
-        y2 = 0;
-    for (var i = 0; i < cluster1.length; i++) {
-        x1 += cluster1[i][0];
-        y1 += cluster1[i][1];
-    }
-    for (var j = 0; j < cluster2.length; j++) {
-        x2 += cluster2[j][0];
-        y2 += cluster2[j][1];
-    }
-    x1 /= cluster1.length;
-    y1 /= cluster1.length;
-    x2 /= cluster2.length;
-    y2 /= cluster2.length;
-    return disFun([x1, y1], [x2, y2]);
-}
-
-/**
- * @private
- * @param {Array <Array <number>>} cluster1
- * @param {Array <Array <number>>} cluster2
- * @param {function} disFun
- * @returns {number}
- */
-function wardLink(cluster1, cluster2, disFun) {
-    var x1 = 0,
-        y1 = 0,
-        x2 = 0,
-        y2 = 0;
-    for (var i = 0; i < cluster1.length; i++) {
-        x1 += cluster1[i][0];
-        y1 += cluster1[i][1];
-    }
-    for (var j = 0; j < cluster2.length; j++) {
-        x2 += cluster2[j][0];
-        y2 += cluster2[j][1];
-    }
-    x1 /= cluster1.length;
-    y1 /= cluster1.length;
-    x2 /= cluster2.length;
-    y2 /= cluster2.length;
-    return disFun([x1, y1], [x2, y2]) * cluster1.length * cluster2.length / (cluster1.length + cluster2.length);
-}
-
-/**
- * @private
- * Returns the most distant point and his distance
- * @param {Array <Array <number>>} splitting - Clusters to split
- * @param {Array <Array <number>>} data - Original data
- * @param {function} disFun - Distance function
- * @returns {{d: number, p: number}} - d: maximum difference between points, p: the point more distant
- */
-function diff(splitting, data, disFun) {
-    var ans = {
-        d: 0,
-        p: 0
-    };
-
-    var Ci = new Array(splitting[0].length);
-    for (var e = 0; e < splitting[0].length; e++) {
-        Ci[e] = data[splitting[0][e]];
-    }
-    var Cj = new Array(splitting[1].length);
-    for (var f = 0; f < splitting[1].length; f++) {
-        Cj[f] = data[splitting[1][f]];
-    }
-
-    var dist, ndist;
-    for (var i = 0; i < Ci.length; i++) {
-        dist = 0;
-        for (var j = 0; j < Ci.length; j++) {
-            if (i !== j) {
-                dist += disFun(Ci[i], Ci[j]);
-            }
-        }
-        dist /= (Ci.length - 1);
-        ndist = 0;
-        for (var k = 0; k < Cj.length; k++) {
-            ndist += disFun(Ci[i], Cj[k]);
-        }
-        ndist /= Cj.length;
-        if ((dist - ndist) > ans.d) {
-            ans.d = (dist - ndist);
-            ans.p = i;
-        }
-    }
-    return ans;
-}
-
-var defaultOptions = {
-    dist: euclidean,
-    kind: 'single'
-};
-
-/**
- * @private
- * Intra-cluster distance
- * @param {Array} index
- * @param {Array} data
- * @param {function} disFun
- * @returns {number}
- */
-function intrDist(index, data, disFun) {
-    var dist = 0,
-        count = 0;
-    for (var i = 0; i < index.length; i++) {
-        for (var j = i; j < index.length; j++) {
-            dist += disFun(data[index[i].index], data[index[j].index]);
-            count++;
-        }
-    }
-    return dist / count;
-}
-
-/**
- * Splits the higher level clusters
- * @param {Array <Array <number>>} data - Array of points to be clustered
- * @param {json} options
- * @constructor
- */
-function diana(data, options) {
-    options = Object.assign({}, defaultOptions, options);
-    if (typeof options.kind === 'string') {
-        switch (options.kind) {
-            case 'single':
-                options.kind = simpleLink;
-                break;
-            case 'complete':
-                options.kind = completeLink;
-                break;
-            case 'average':
-                options.kind = averageLink;
-                break;
-            case 'centroid':
-                options.kind = centroidLink;
-                break;
-            case 'ward':
-                options.kind = wardLink;
-                break;
-            default:
-                throw new RangeError('Unknown kind of similarity');
-        }
-    } else if (typeof options.kind !== 'function') {
-        throw new TypeError('Undefined kind of similarity');
-    }
-    var tree = new Cluster();
-    tree.children = new Array(data.length);
-    tree.index = new Array(data.length);
-    for (var ind = 0; ind < data.length; ind++) {
-        tree.children[ind] = new ClusterLeaf(ind);
-        tree.index[ind] = new ClusterLeaf(ind);
-    }
-
-    tree.distance = intrDist(tree.index, data, options.dist);
-    var m, M, clId,
-        dist, rebel;
-    var list = [tree];
-    while (list.length > 0) {
-        M = 0;
-        clId = 0;
-        for (var i = 0; i < list.length; i++) {
-            m = 0;
-            for (var j = 0; j < list[i].length; j++) {
-                for (var l = (j + 1); l < list[i].length; l++) {
-                    m = Math.max(options.dist(data[list[i].index[j].index], data[list[i].index[l].index]), m);
-                }
-            }
-            if (m > M) {
-                M = m;
-                clId = i;
-            }
-        }
-        M = 0;
-        if (list[clId].index.length === 2) {
-            list[clId].children = [list[clId].index[0], list[clId].index[1]];
-            list[clId].distance = options.dist(data[list[clId].index[0].index], data[list[clId].index[1].index]);
-        } else if (list[clId].index.length === 3) {
-            list[clId].children = [list[clId].index[0], list[clId].index[1], list[clId].index[2]];
-            var d = [
-                options.dist(data[list[clId].index[0].index], data[list[clId].index[1].index]),
-                options.dist(data[list[clId].index[1].index], data[list[clId].index[2].index])
-            ];
-            list[clId].distance = (d[0] + d[1]) / 2;
-        } else {
-            var C = new Cluster();
-            var sG = new Cluster();
-            var splitting = [new Array(list[clId].index.length), []];
-            for (var spl = 0; spl < splitting[0].length; spl++) {
-                splitting[0][spl] = spl;
-            }
-            for (var ii = 0; ii < splitting[0].length; ii++) {
-                dist = 0;
-                for (var jj = 0; jj < splitting[0].length; jj++) {
-                    if (ii !== jj) {
-                        dist += options.dist(data[list[clId].index[splitting[0][jj]].index], data[list[clId].index[splitting[0][ii]].index]);
-                    }
-                }
-                dist /= (splitting[0].length - 1);
-                if (dist > M) {
-                    M = dist;
-                    rebel = ii;
-                }
-            }
-            splitting[1] = [rebel];
-            splitting[0].splice(rebel, 1);
-            dist = diff(splitting, data, options.dist);
-            while (dist.d > 0) {
-                splitting[1].push(splitting[0][dist.p]);
-                splitting[0].splice(dist.p, 1);
-                dist = diff(splitting, data, options.dist);
-            }
-            var fData = new Array(splitting[0].length);
-            C.index = new Array(splitting[0].length);
-            for (var e = 0; e < fData.length; e++) {
-                fData[e] = data[list[clId].index[splitting[0][e]].index];
-                C.index[e] = list[clId].index[splitting[0][e]];
-                C.children[e] = list[clId].index[splitting[0][e]];
-            }
-            var sData = new Array(splitting[1].length);
-            sG.index = new Array(splitting[1].length);
-            for (var f = 0; f < sData.length; f++) {
-                sData[f] = data[list[clId].index[splitting[1][f]].index];
-                sG.index[f] = list[clId].index[splitting[1][f]];
-                sG.children[f] = list[clId].index[splitting[1][f]];
-            }
-            C.distance = intrDist(C.index, data, options.dist);
-            sG.distance = intrDist(sG.index, data, options.dist);
-            list.push(C);
-            list.push(sG);
-            list[clId].children = [C, sG];
-        }
-        list.splice(clId, 1);
-    }
-    return tree;
-}
-
-module.exports = diana;
-
-
-/***/ }),
-/* 104 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.agnes = __webpack_require__(102);
-exports.diana = __webpack_require__(103);
-//exports.birch = require('./birch');
-//exports.cure = require('./cure');
-//exports.chameleon = require('./chameleon');
-
-
-/***/ }),
-/* 105 */
+/* 110 */
 /***/ (function(module, exports, __webpack_require__) {
 
 'use strict;'
 /**
  * Created by acastillo on 7/7/16.
  */
-var FFTUtils = __webpack_require__(14).FFTUtils;
+var FFTUtils = __webpack_require__(109).FFTUtils;
 
 function convolutionFFT(input, kernel, opt) {
     var tmp = matrix2Array(input);
@@ -22216,13 +23225,13 @@ module.exports = {
 };
 
 /***/ }),
-/* 106 */
+/* 111 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const DisjointSet = __webpack_require__(94);
+const DisjointSet = __webpack_require__(97);
 
 const direction4X = [-1, 0];
 const direction4Y = [0, -1];
@@ -22309,7 +23318,7 @@ module.exports = ccLabeling;
 
 
 /***/ }),
-/* 107 */
+/* 112 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -22318,8 +23327,8 @@ module.exports = ccLabeling;
  * Created by acastillo on 7/7/16.
  */
 var StatArray = __webpack_require__(6).array;
-var convolution = __webpack_require__(105);
-var labeling = __webpack_require__(106);
+var convolution = __webpack_require__(110);
+var labeling = __webpack_require__(111);
 
 
 const smallFilter = [
@@ -22499,4089 +23508,7 @@ module.exports={
 
 
 /***/ }),
-/* 108 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var Matrix = __webpack_require__(3);
-
-// https://github.com/lutzroeder/Mapack/blob/master/Source/CholeskyDecomposition.cs
-function CholeskyDecomposition(value) {
-    if (!(this instanceof CholeskyDecomposition)) {
-        return new CholeskyDecomposition(value);
-    }
-    value = Matrix.checkMatrix(value);
-    if (!value.isSymmetric())
-        throw new Error('Matrix is not symmetric');
-
-    var a = value,
-        dimension = a.rows,
-        l = new Matrix(dimension, dimension),
-        positiveDefinite = true,
-        i, j, k;
-
-    for (j = 0; j < dimension; j++) {
-        var Lrowj = l[j];
-        var d = 0;
-        for (k = 0; k < j; k++) {
-            var Lrowk = l[k];
-            var s = 0;
-            for (i = 0; i < k; i++) {
-                s += Lrowk[i] * Lrowj[i];
-            }
-            Lrowj[k] = s = (a[j][k] - s) / l[k][k];
-            d = d + s * s;
-        }
-
-        d = a[j][j] - d;
-
-        positiveDefinite &= (d > 0);
-        l[j][j] = Math.sqrt(Math.max(d, 0));
-        for (k = j + 1; k < dimension; k++) {
-            l[j][k] = 0;
-        }
-    }
-
-    if (!positiveDefinite) {
-        throw new Error('Matrix is not positive definite');
-    }
-
-    this.L = l;
-}
-
-CholeskyDecomposition.prototype = {
-    get leftTriangularFactor() {
-        return this.L;
-    },
-    solve: function (value) {
-        value = Matrix.checkMatrix(value);
-
-        var l = this.L,
-            dimension = l.rows;
-
-        if (value.rows !== dimension) {
-            throw new Error('Matrix dimensions do not match');
-        }
-
-        var count = value.columns,
-            B = value.clone(),
-            i, j, k;
-
-        for (k = 0; k < dimension; k++) {
-            for (j = 0; j < count; j++) {
-                for (i = 0; i < k; i++) {
-                    B[k][j] -= B[i][j] * l[k][i];
-                }
-                B[k][j] /= l[k][k];
-            }
-        }
-
-        for (k = dimension - 1; k >= 0; k--) {
-            for (j = 0; j < count; j++) {
-                for (i = k + 1; i < dimension; i++) {
-                    B[k][j] -= B[i][j] * l[i][k];
-                }
-                B[k][j] /= l[k][k];
-            }
-        }
-
-        return B;
-    }
-};
-
-module.exports = CholeskyDecomposition;
-
-
-/***/ }),
-/* 109 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var Matrix = __webpack_require__(3);
-var hypotenuse = __webpack_require__(16).hypotenuse;
-
-// https://github.com/lutzroeder/Mapack/blob/master/Source/EigenvalueDecomposition.cs
-function EigenvalueDecomposition(matrix) {
-    if (!(this instanceof EigenvalueDecomposition)) {
-        return new EigenvalueDecomposition(matrix);
-    }
-    matrix = Matrix.checkMatrix(matrix);
-    if (!matrix.isSquare()) {
-        throw new Error('Matrix is not a square matrix');
-    }
-
-    var n = matrix.columns,
-        V = Matrix.zeros(n, n),
-        d = new Array(n),
-        e = new Array(n),
-        value = matrix,
-        i, j;
-
-    if (matrix.isSymmetric()) {
-        for (i = 0; i < n; i++) {
-            for (j = 0; j < n; j++) {
-                V[i][j] = value[i][j];
-            }
-        }
-        tred2(n, e, d, V);
-        tql2(n, e, d, V);
-    }
-    else {
-        var H = Matrix.zeros(n, n),
-            ort = new Array(n);
-        for (j = 0; j < n; j++) {
-            for (i = 0; i < n; i++) {
-                H[i][j] = value[i][j];
-            }
-        }
-        orthes(n, H, ort, V);
-        hqr2(n, e, d, V, H);
-    }
-
-    this.n = n;
-    this.e = e;
-    this.d = d;
-    this.V = V;
-}
-
-EigenvalueDecomposition.prototype = {
-    get realEigenvalues() {
-        return this.d;
-    },
-    get imaginaryEigenvalues() {
-        return this.e;
-    },
-    get eigenvectorMatrix() {
-        return this.V;
-    },
-    get diagonalMatrix() {
-        var n = this.n,
-            e = this.e,
-            d = this.d,
-            X = new Matrix(n, n),
-            i, j;
-        for (i = 0; i < n; i++) {
-            for (j = 0; j < n; j++) {
-                X[i][j] = 0;
-            }
-            X[i][i] = d[i];
-            if (e[i] > 0) {
-                X[i][i + 1] = e[i];
-            }
-            else if (e[i] < 0) {
-                X[i][i - 1] = e[i];
-            }
-        }
-        return X;
-    }
-};
-
-function tred2(n, e, d, V) {
-
-    var f, g, h, i, j, k,
-        hh, scale;
-
-    for (j = 0; j < n; j++) {
-        d[j] = V[n - 1][j];
-    }
-
-    for (i = n - 1; i > 0; i--) {
-        scale = 0;
-        h = 0;
-        for (k = 0; k < i; k++) {
-            scale = scale + Math.abs(d[k]);
-        }
-
-        if (scale === 0) {
-            e[i] = d[i - 1];
-            for (j = 0; j < i; j++) {
-                d[j] = V[i - 1][j];
-                V[i][j] = 0;
-                V[j][i] = 0;
-            }
-        } else {
-            for (k = 0; k < i; k++) {
-                d[k] /= scale;
-                h += d[k] * d[k];
-            }
-
-            f = d[i - 1];
-            g = Math.sqrt(h);
-            if (f > 0) {
-                g = -g;
-            }
-
-            e[i] = scale * g;
-            h = h - f * g;
-            d[i - 1] = f - g;
-            for (j = 0; j < i; j++) {
-                e[j] = 0;
-            }
-
-            for (j = 0; j < i; j++) {
-                f = d[j];
-                V[j][i] = f;
-                g = e[j] + V[j][j] * f;
-                for (k = j + 1; k <= i - 1; k++) {
-                    g += V[k][j] * d[k];
-                    e[k] += V[k][j] * f;
-                }
-                e[j] = g;
-            }
-
-            f = 0;
-            for (j = 0; j < i; j++) {
-                e[j] /= h;
-                f += e[j] * d[j];
-            }
-
-            hh = f / (h + h);
-            for (j = 0; j < i; j++) {
-                e[j] -= hh * d[j];
-            }
-
-            for (j = 0; j < i; j++) {
-                f = d[j];
-                g = e[j];
-                for (k = j; k <= i - 1; k++) {
-                    V[k][j] -= (f * e[k] + g * d[k]);
-                }
-                d[j] = V[i - 1][j];
-                V[i][j] = 0;
-            }
-        }
-        d[i] = h;
-    }
-
-    for (i = 0; i < n - 1; i++) {
-        V[n - 1][i] = V[i][i];
-        V[i][i] = 1;
-        h = d[i + 1];
-        if (h !== 0) {
-            for (k = 0; k <= i; k++) {
-                d[k] = V[k][i + 1] / h;
-            }
-
-            for (j = 0; j <= i; j++) {
-                g = 0;
-                for (k = 0; k <= i; k++) {
-                    g += V[k][i + 1] * V[k][j];
-                }
-                for (k = 0; k <= i; k++) {
-                    V[k][j] -= g * d[k];
-                }
-            }
-        }
-
-        for (k = 0; k <= i; k++) {
-            V[k][i + 1] = 0;
-        }
-    }
-
-    for (j = 0; j < n; j++) {
-        d[j] = V[n - 1][j];
-        V[n - 1][j] = 0;
-    }
-
-    V[n - 1][n - 1] = 1;
-    e[0] = 0;
-}
-
-function tql2(n, e, d, V) {
-
-    var g, h, i, j, k, l, m, p, r,
-        dl1, c, c2, c3, el1, s, s2,
-        iter;
-
-    for (i = 1; i < n; i++) {
-        e[i - 1] = e[i];
-    }
-
-    e[n - 1] = 0;
-
-    var f = 0,
-        tst1 = 0,
-        eps = Math.pow(2, -52);
-
-    for (l = 0; l < n; l++) {
-        tst1 = Math.max(tst1, Math.abs(d[l]) + Math.abs(e[l]));
-        m = l;
-        while (m < n) {
-            if (Math.abs(e[m]) <= eps * tst1) {
-                break;
-            }
-            m++;
-        }
-
-        if (m > l) {
-            iter = 0;
-            do {
-                iter = iter + 1;
-
-                g = d[l];
-                p = (d[l + 1] - g) / (2 * e[l]);
-                r = hypotenuse(p, 1);
-                if (p < 0) {
-                    r = -r;
-                }
-
-                d[l] = e[l] / (p + r);
-                d[l + 1] = e[l] * (p + r);
-                dl1 = d[l + 1];
-                h = g - d[l];
-                for (i = l + 2; i < n; i++) {
-                    d[i] -= h;
-                }
-
-                f = f + h;
-
-                p = d[m];
-                c = 1;
-                c2 = c;
-                c3 = c;
-                el1 = e[l + 1];
-                s = 0;
-                s2 = 0;
-                for (i = m - 1; i >= l; i--) {
-                    c3 = c2;
-                    c2 = c;
-                    s2 = s;
-                    g = c * e[i];
-                    h = c * p;
-                    r = hypotenuse(p, e[i]);
-                    e[i + 1] = s * r;
-                    s = e[i] / r;
-                    c = p / r;
-                    p = c * d[i] - s * g;
-                    d[i + 1] = h + s * (c * g + s * d[i]);
-
-                    for (k = 0; k < n; k++) {
-                        h = V[k][i + 1];
-                        V[k][i + 1] = s * V[k][i] + c * h;
-                        V[k][i] = c * V[k][i] - s * h;
-                    }
-                }
-
-                p = -s * s2 * c3 * el1 * e[l] / dl1;
-                e[l] = s * p;
-                d[l] = c * p;
-
-            }
-            while (Math.abs(e[l]) > eps * tst1);
-        }
-        d[l] = d[l] + f;
-        e[l] = 0;
-    }
-
-    for (i = 0; i < n - 1; i++) {
-        k = i;
-        p = d[i];
-        for (j = i + 1; j < n; j++) {
-            if (d[j] < p) {
-                k = j;
-                p = d[j];
-            }
-        }
-
-        if (k !== i) {
-            d[k] = d[i];
-            d[i] = p;
-            for (j = 0; j < n; j++) {
-                p = V[j][i];
-                V[j][i] = V[j][k];
-                V[j][k] = p;
-            }
-        }
-    }
-}
-
-function orthes(n, H, ort, V) {
-
-    var low = 0,
-        high = n - 1,
-        f, g, h, i, j, m,
-        scale;
-
-    for (m = low + 1; m <= high - 1; m++) {
-        scale = 0;
-        for (i = m; i <= high; i++) {
-            scale = scale + Math.abs(H[i][m - 1]);
-        }
-
-        if (scale !== 0) {
-            h = 0;
-            for (i = high; i >= m; i--) {
-                ort[i] = H[i][m - 1] / scale;
-                h += ort[i] * ort[i];
-            }
-
-            g = Math.sqrt(h);
-            if (ort[m] > 0) {
-                g = -g;
-            }
-
-            h = h - ort[m] * g;
-            ort[m] = ort[m] - g;
-
-            for (j = m; j < n; j++) {
-                f = 0;
-                for (i = high; i >= m; i--) {
-                    f += ort[i] * H[i][j];
-                }
-
-                f = f / h;
-                for (i = m; i <= high; i++) {
-                    H[i][j] -= f * ort[i];
-                }
-            }
-
-            for (i = 0; i <= high; i++) {
-                f = 0;
-                for (j = high; j >= m; j--) {
-                    f += ort[j] * H[i][j];
-                }
-
-                f = f / h;
-                for (j = m; j <= high; j++) {
-                    H[i][j] -= f * ort[j];
-                }
-            }
-
-            ort[m] = scale * ort[m];
-            H[m][m - 1] = scale * g;
-        }
-    }
-
-    for (i = 0; i < n; i++) {
-        for (j = 0; j < n; j++) {
-            V[i][j] = (i === j ? 1 : 0);
-        }
-    }
-
-    for (m = high - 1; m >= low + 1; m--) {
-        if (H[m][m - 1] !== 0) {
-            for (i = m + 1; i <= high; i++) {
-                ort[i] = H[i][m - 1];
-            }
-
-            for (j = m; j <= high; j++) {
-                g = 0;
-                for (i = m; i <= high; i++) {
-                    g += ort[i] * V[i][j];
-                }
-
-                g = (g / ort[m]) / H[m][m - 1];
-                for (i = m; i <= high; i++) {
-                    V[i][j] += g * ort[i];
-                }
-            }
-        }
-    }
-}
-
-function hqr2(nn, e, d, V, H) {
-    var n = nn - 1,
-        low = 0,
-        high = nn - 1,
-        eps = Math.pow(2, -52),
-        exshift = 0,
-        norm = 0,
-        p = 0,
-        q = 0,
-        r = 0,
-        s = 0,
-        z = 0,
-        iter = 0,
-        i, j, k, l, m, t, w, x, y,
-        ra, sa, vr, vi,
-        notlast, cdivres;
-
-    for (i = 0; i < nn; i++) {
-        if (i < low || i > high) {
-            d[i] = H[i][i];
-            e[i] = 0;
-        }
-
-        for (j = Math.max(i - 1, 0); j < nn; j++) {
-            norm = norm + Math.abs(H[i][j]);
-        }
-    }
-
-    while (n >= low) {
-        l = n;
-        while (l > low) {
-            s = Math.abs(H[l - 1][l - 1]) + Math.abs(H[l][l]);
-            if (s === 0) {
-                s = norm;
-            }
-            if (Math.abs(H[l][l - 1]) < eps * s) {
-                break;
-            }
-            l--;
-        }
-
-        if (l === n) {
-            H[n][n] = H[n][n] + exshift;
-            d[n] = H[n][n];
-            e[n] = 0;
-            n--;
-            iter = 0;
-        } else if (l === n - 1) {
-            w = H[n][n - 1] * H[n - 1][n];
-            p = (H[n - 1][n - 1] - H[n][n]) / 2;
-            q = p * p + w;
-            z = Math.sqrt(Math.abs(q));
-            H[n][n] = H[n][n] + exshift;
-            H[n - 1][n - 1] = H[n - 1][n - 1] + exshift;
-            x = H[n][n];
-
-            if (q >= 0) {
-                z = (p >= 0) ? (p + z) : (p - z);
-                d[n - 1] = x + z;
-                d[n] = d[n - 1];
-                if (z !== 0) {
-                    d[n] = x - w / z;
-                }
-                e[n - 1] = 0;
-                e[n] = 0;
-                x = H[n][n - 1];
-                s = Math.abs(x) + Math.abs(z);
-                p = x / s;
-                q = z / s;
-                r = Math.sqrt(p * p + q * q);
-                p = p / r;
-                q = q / r;
-
-                for (j = n - 1; j < nn; j++) {
-                    z = H[n - 1][j];
-                    H[n - 1][j] = q * z + p * H[n][j];
-                    H[n][j] = q * H[n][j] - p * z;
-                }
-
-                for (i = 0; i <= n; i++) {
-                    z = H[i][n - 1];
-                    H[i][n - 1] = q * z + p * H[i][n];
-                    H[i][n] = q * H[i][n] - p * z;
-                }
-
-                for (i = low; i <= high; i++) {
-                    z = V[i][n - 1];
-                    V[i][n - 1] = q * z + p * V[i][n];
-                    V[i][n] = q * V[i][n] - p * z;
-                }
-            } else {
-                d[n - 1] = x + p;
-                d[n] = x + p;
-                e[n - 1] = z;
-                e[n] = -z;
-            }
-
-            n = n - 2;
-            iter = 0;
-        } else {
-            x = H[n][n];
-            y = 0;
-            w = 0;
-            if (l < n) {
-                y = H[n - 1][n - 1];
-                w = H[n][n - 1] * H[n - 1][n];
-            }
-
-            if (iter === 10) {
-                exshift += x;
-                for (i = low; i <= n; i++) {
-                    H[i][i] -= x;
-                }
-                s = Math.abs(H[n][n - 1]) + Math.abs(H[n - 1][n - 2]);
-                x = y = 0.75 * s;
-                w = -0.4375 * s * s;
-            }
-
-            if (iter === 30) {
-                s = (y - x) / 2;
-                s = s * s + w;
-                if (s > 0) {
-                    s = Math.sqrt(s);
-                    if (y < x) {
-                        s = -s;
-                    }
-                    s = x - w / ((y - x) / 2 + s);
-                    for (i = low; i <= n; i++) {
-                        H[i][i] -= s;
-                    }
-                    exshift += s;
-                    x = y = w = 0.964;
-                }
-            }
-
-            iter = iter + 1;
-
-            m = n - 2;
-            while (m >= l) {
-                z = H[m][m];
-                r = x - z;
-                s = y - z;
-                p = (r * s - w) / H[m + 1][m] + H[m][m + 1];
-                q = H[m + 1][m + 1] - z - r - s;
-                r = H[m + 2][m + 1];
-                s = Math.abs(p) + Math.abs(q) + Math.abs(r);
-                p = p / s;
-                q = q / s;
-                r = r / s;
-                if (m === l) {
-                    break;
-                }
-                if (Math.abs(H[m][m - 1]) * (Math.abs(q) + Math.abs(r)) < eps * (Math.abs(p) * (Math.abs(H[m - 1][m - 1]) + Math.abs(z) + Math.abs(H[m + 1][m + 1])))) {
-                    break;
-                }
-                m--;
-            }
-
-            for (i = m + 2; i <= n; i++) {
-                H[i][i - 2] = 0;
-                if (i > m + 2) {
-                    H[i][i - 3] = 0;
-                }
-            }
-
-            for (k = m; k <= n - 1; k++) {
-                notlast = (k !== n - 1);
-                if (k !== m) {
-                    p = H[k][k - 1];
-                    q = H[k + 1][k - 1];
-                    r = (notlast ? H[k + 2][k - 1] : 0);
-                    x = Math.abs(p) + Math.abs(q) + Math.abs(r);
-                    if (x !== 0) {
-                        p = p / x;
-                        q = q / x;
-                        r = r / x;
-                    }
-                }
-
-                if (x === 0) {
-                    break;
-                }
-
-                s = Math.sqrt(p * p + q * q + r * r);
-                if (p < 0) {
-                    s = -s;
-                }
-
-                if (s !== 0) {
-                    if (k !== m) {
-                        H[k][k - 1] = -s * x;
-                    } else if (l !== m) {
-                        H[k][k - 1] = -H[k][k - 1];
-                    }
-
-                    p = p + s;
-                    x = p / s;
-                    y = q / s;
-                    z = r / s;
-                    q = q / p;
-                    r = r / p;
-
-                    for (j = k; j < nn; j++) {
-                        p = H[k][j] + q * H[k + 1][j];
-                        if (notlast) {
-                            p = p + r * H[k + 2][j];
-                            H[k + 2][j] = H[k + 2][j] - p * z;
-                        }
-
-                        H[k][j] = H[k][j] - p * x;
-                        H[k + 1][j] = H[k + 1][j] - p * y;
-                    }
-
-                    for (i = 0; i <= Math.min(n, k + 3); i++) {
-                        p = x * H[i][k] + y * H[i][k + 1];
-                        if (notlast) {
-                            p = p + z * H[i][k + 2];
-                            H[i][k + 2] = H[i][k + 2] - p * r;
-                        }
-
-                        H[i][k] = H[i][k] - p;
-                        H[i][k + 1] = H[i][k + 1] - p * q;
-                    }
-
-                    for (i = low; i <= high; i++) {
-                        p = x * V[i][k] + y * V[i][k + 1];
-                        if (notlast) {
-                            p = p + z * V[i][k + 2];
-                            V[i][k + 2] = V[i][k + 2] - p * r;
-                        }
-
-                        V[i][k] = V[i][k] - p;
-                        V[i][k + 1] = V[i][k + 1] - p * q;
-                    }
-                }
-            }
-        }
-    }
-
-    if (norm === 0) {
-        return;
-    }
-
-    for (n = nn - 1; n >= 0; n--) {
-        p = d[n];
-        q = e[n];
-
-        if (q === 0) {
-            l = n;
-            H[n][n] = 1;
-            for (i = n - 1; i >= 0; i--) {
-                w = H[i][i] - p;
-                r = 0;
-                for (j = l; j <= n; j++) {
-                    r = r + H[i][j] * H[j][n];
-                }
-
-                if (e[i] < 0) {
-                    z = w;
-                    s = r;
-                } else {
-                    l = i;
-                    if (e[i] === 0) {
-                        H[i][n] = (w !== 0) ? (-r / w) : (-r / (eps * norm));
-                    } else {
-                        x = H[i][i + 1];
-                        y = H[i + 1][i];
-                        q = (d[i] - p) * (d[i] - p) + e[i] * e[i];
-                        t = (x * s - z * r) / q;
-                        H[i][n] = t;
-                        H[i + 1][n] = (Math.abs(x) > Math.abs(z)) ? ((-r - w * t) / x) : ((-s - y * t) / z);
-                    }
-
-                    t = Math.abs(H[i][n]);
-                    if ((eps * t) * t > 1) {
-                        for (j = i; j <= n; j++) {
-                            H[j][n] = H[j][n] / t;
-                        }
-                    }
-                }
-            }
-        } else if (q < 0) {
-            l = n - 1;
-
-            if (Math.abs(H[n][n - 1]) > Math.abs(H[n - 1][n])) {
-                H[n - 1][n - 1] = q / H[n][n - 1];
-                H[n - 1][n] = -(H[n][n] - p) / H[n][n - 1];
-            } else {
-                cdivres = cdiv(0, -H[n - 1][n], H[n - 1][n - 1] - p, q);
-                H[n - 1][n - 1] = cdivres[0];
-                H[n - 1][n] = cdivres[1];
-            }
-
-            H[n][n - 1] = 0;
-            H[n][n] = 1;
-            for (i = n - 2; i >= 0; i--) {
-                ra = 0;
-                sa = 0;
-                for (j = l; j <= n; j++) {
-                    ra = ra + H[i][j] * H[j][n - 1];
-                    sa = sa + H[i][j] * H[j][n];
-                }
-
-                w = H[i][i] - p;
-
-                if (e[i] < 0) {
-                    z = w;
-                    r = ra;
-                    s = sa;
-                } else {
-                    l = i;
-                    if (e[i] === 0) {
-                        cdivres = cdiv(-ra, -sa, w, q);
-                        H[i][n - 1] = cdivres[0];
-                        H[i][n] = cdivres[1];
-                    } else {
-                        x = H[i][i + 1];
-                        y = H[i + 1][i];
-                        vr = (d[i] - p) * (d[i] - p) + e[i] * e[i] - q * q;
-                        vi = (d[i] - p) * 2 * q;
-                        if (vr === 0 && vi === 0) {
-                            vr = eps * norm * (Math.abs(w) + Math.abs(q) + Math.abs(x) + Math.abs(y) + Math.abs(z));
-                        }
-                        cdivres = cdiv(x * r - z * ra + q * sa, x * s - z * sa - q * ra, vr, vi);
-                        H[i][n - 1] = cdivres[0];
-                        H[i][n] = cdivres[1];
-                        if (Math.abs(x) > (Math.abs(z) + Math.abs(q))) {
-                            H[i + 1][n - 1] = (-ra - w * H[i][n - 1] + q * H[i][n]) / x;
-                            H[i + 1][n] = (-sa - w * H[i][n] - q * H[i][n - 1]) / x;
-                        } else {
-                            cdivres = cdiv(-r - y * H[i][n - 1], -s - y * H[i][n], z, q);
-                            H[i + 1][n - 1] = cdivres[0];
-                            H[i + 1][n] = cdivres[1];
-                        }
-                    }
-
-                    t = Math.max(Math.abs(H[i][n - 1]), Math.abs(H[i][n]));
-                    if ((eps * t) * t > 1) {
-                        for (j = i; j <= n; j++) {
-                            H[j][n - 1] = H[j][n - 1] / t;
-                            H[j][n] = H[j][n] / t;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    for (i = 0; i < nn; i++) {
-        if (i < low || i > high) {
-            for (j = i; j < nn; j++) {
-                V[i][j] = H[i][j];
-            }
-        }
-    }
-
-    for (j = nn - 1; j >= low; j--) {
-        for (i = low; i <= high; i++) {
-            z = 0;
-            for (k = low; k <= Math.min(j, high); k++) {
-                z = z + V[i][k] * H[k][j];
-            }
-            V[i][j] = z;
-        }
-    }
-}
-
-function cdiv(xr, xi, yr, yi) {
-    var r, d;
-    if (Math.abs(yr) > Math.abs(yi)) {
-        r = yi / yr;
-        d = yr + r * yi;
-        return [(xr + r * xi) / d, (xi - r * xr) / d];
-    }
-    else {
-        r = yr / yi;
-        d = yi + r * yr;
-        return [(r * xr + xi) / d, (r * xi - xr) / d];
-    }
-}
-
-module.exports = EigenvalueDecomposition;
-
-
-/***/ }),
-/* 110 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var Matrix = __webpack_require__(3);
-
-// https://github.com/lutzroeder/Mapack/blob/master/Source/LuDecomposition.cs
-function LuDecomposition(matrix) {
-    if (!(this instanceof LuDecomposition)) {
-        return new LuDecomposition(matrix);
-    }
-    matrix = Matrix.checkMatrix(matrix);
-
-    var lu = matrix.clone(),
-        rows = lu.rows,
-        columns = lu.columns,
-        pivotVector = new Array(rows),
-        pivotSign = 1,
-        i, j, k, p, s, t, v,
-        LUrowi, LUcolj, kmax;
-
-    for (i = 0; i < rows; i++) {
-        pivotVector[i] = i;
-    }
-
-    LUcolj = new Array(rows);
-
-    for (j = 0; j < columns; j++) {
-
-        for (i = 0; i < rows; i++) {
-            LUcolj[i] = lu[i][j];
-        }
-
-        for (i = 0; i < rows; i++) {
-            LUrowi = lu[i];
-            kmax = Math.min(i, j);
-            s = 0;
-            for (k = 0; k < kmax; k++) {
-                s += LUrowi[k] * LUcolj[k];
-            }
-            LUrowi[j] = LUcolj[i] -= s;
-        }
-
-        p = j;
-        for (i = j + 1; i < rows; i++) {
-            if (Math.abs(LUcolj[i]) > Math.abs(LUcolj[p])) {
-                p = i;
-            }
-        }
-
-        if (p !== j) {
-            for (k = 0; k < columns; k++) {
-                t = lu[p][k];
-                lu[p][k] = lu[j][k];
-                lu[j][k] = t;
-            }
-
-            v = pivotVector[p];
-            pivotVector[p] = pivotVector[j];
-            pivotVector[j] = v;
-
-            pivotSign = -pivotSign;
-        }
-
-        if (j < rows && lu[j][j] !== 0) {
-            for (i = j + 1; i < rows; i++) {
-                lu[i][j] /= lu[j][j];
-            }
-        }
-    }
-
-    this.LU = lu;
-    this.pivotVector = pivotVector;
-    this.pivotSign = pivotSign;
-}
-
-LuDecomposition.prototype = {
-    isSingular: function () {
-        var data = this.LU,
-            col = data.columns;
-        for (var j = 0; j < col; j++) {
-            if (data[j][j] === 0) {
-                return true;
-            }
-        }
-        return false;
-    },
-    get determinant() {
-        var data = this.LU;
-        if (!data.isSquare())
-            throw new Error('Matrix must be square');
-        var determinant = this.pivotSign, col = data.columns;
-        for (var j = 0; j < col; j++)
-            determinant *= data[j][j];
-        return determinant;
-    },
-    get lowerTriangularFactor() {
-        var data = this.LU,
-            rows = data.rows,
-            columns = data.columns,
-            X = new Matrix(rows, columns);
-        for (var i = 0; i < rows; i++) {
-            for (var j = 0; j < columns; j++) {
-                if (i > j) {
-                    X[i][j] = data[i][j];
-                } else if (i === j) {
-                    X[i][j] = 1;
-                } else {
-                    X[i][j] = 0;
-                }
-            }
-        }
-        return X;
-    },
-    get upperTriangularFactor() {
-        var data = this.LU,
-            rows = data.rows,
-            columns = data.columns,
-            X = new Matrix(rows, columns);
-        for (var i = 0; i < rows; i++) {
-            for (var j = 0; j < columns; j++) {
-                if (i <= j) {
-                    X[i][j] = data[i][j];
-                } else {
-                    X[i][j] = 0;
-                }
-            }
-        }
-        return X;
-    },
-    get pivotPermutationVector() {
-        return this.pivotVector.slice();
-    },
-    solve: function (value) {
-        value = Matrix.checkMatrix(value);
-
-        var lu = this.LU,
-            rows = lu.rows;
-
-        if (rows !== value.rows)
-            throw new Error('Invalid matrix dimensions');
-        if (this.isSingular())
-            throw new Error('LU matrix is singular');
-
-        var count = value.columns,
-            X = value.subMatrixRow(this.pivotVector, 0, count - 1),
-            columns = lu.columns,
-            i, j, k;
-
-        for (k = 0; k < columns; k++) {
-            for (i = k + 1; i < columns; i++) {
-                for (j = 0; j < count; j++) {
-                    X[i][j] -= X[k][j] * lu[i][k];
-                }
-            }
-        }
-        for (k = columns - 1; k >= 0; k--) {
-            for (j = 0; j < count; j++) {
-                X[k][j] /= lu[k][k];
-            }
-            for (i = 0; i < k; i++) {
-                for (j = 0; j < count; j++) {
-                    X[i][j] -= X[k][j] * lu[i][k];
-                }
-            }
-        }
-        return X;
-    }
-};
-
-module.exports = LuDecomposition;
-
-
-/***/ }),
-/* 111 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var Matrix = __webpack_require__(3);
-var hypotenuse = __webpack_require__(16).hypotenuse;
-
-//https://github.com/lutzroeder/Mapack/blob/master/Source/QrDecomposition.cs
-function QrDecomposition(value) {
-    if (!(this instanceof QrDecomposition)) {
-        return new QrDecomposition(value);
-    }
-    value = Matrix.checkMatrix(value);
-
-    var qr = value.clone(),
-        m = value.rows,
-        n = value.columns,
-        rdiag = new Array(n),
-        i, j, k, s;
-
-    for (k = 0; k < n; k++) {
-        var nrm = 0;
-        for (i = k; i < m; i++) {
-            nrm = hypotenuse(nrm, qr[i][k]);
-        }
-        if (nrm !== 0) {
-            if (qr[k][k] < 0) {
-                nrm = -nrm;
-            }
-            for (i = k; i < m; i++) {
-                qr[i][k] /= nrm;
-            }
-            qr[k][k] += 1;
-            for (j = k + 1; j < n; j++) {
-                s = 0;
-                for (i = k; i < m; i++) {
-                    s += qr[i][k] * qr[i][j];
-                }
-                s = -s / qr[k][k];
-                for (i = k; i < m; i++) {
-                    qr[i][j] += s * qr[i][k];
-                }
-            }
-        }
-        rdiag[k] = -nrm;
-    }
-
-    this.QR = qr;
-    this.Rdiag = rdiag;
-}
-
-QrDecomposition.prototype = {
-    solve: function (value) {
-        value = Matrix.checkMatrix(value);
-
-        var qr = this.QR,
-            m = qr.rows;
-
-        if (value.rows !== m)
-            throw new Error('Matrix row dimensions must agree');
-        if (!this.isFullRank())
-            throw new Error('Matrix is rank deficient');
-
-        var count = value.columns,
-            X = value.clone(),
-            n = qr.columns,
-            i, j, k, s;
-
-        for (k = 0; k < n; k++) {
-            for (j = 0; j < count; j++) {
-                s = 0;
-                for (i = k; i < m; i++) {
-                    s += qr[i][k] * X[i][j];
-                }
-                s = -s / qr[k][k];
-                for (i = k; i < m; i++) {
-                    X[i][j] += s * qr[i][k];
-                }
-            }
-        }
-        for (k = n - 1; k >= 0; k--) {
-            for (j = 0; j < count; j++) {
-                X[k][j] /= this.Rdiag[k];
-            }
-            for (i = 0; i < k; i++) {
-                for (j = 0; j < count; j++) {
-                    X[i][j] -= X[k][j] * qr[i][k];
-                }
-            }
-        }
-
-        return X.subMatrix(0, n - 1, 0, count - 1);
-    },
-    isFullRank: function () {
-        var columns = this.QR.columns;
-        for (var i = 0; i < columns; i++) {
-            if (this.Rdiag[i] === 0) {
-                return false;
-            }
-        }
-        return true;
-    },
-    get upperTriangularFactor() {
-        var qr = this.QR,
-            n = qr.columns,
-            X = new Matrix(n, n),
-            i, j;
-        for (i = 0; i < n; i++) {
-            for (j = 0; j < n; j++) {
-                if (i < j) {
-                    X[i][j] = qr[i][j];
-                } else if (i === j) {
-                    X[i][j] = this.Rdiag[i];
-                } else {
-                    X[i][j] = 0;
-                }
-            }
-        }
-        return X;
-    },
-    get orthogonalFactor() {
-        var qr = this.QR,
-            rows = qr.rows,
-            columns = qr.columns,
-            X = new Matrix(rows, columns),
-            i, j, k, s;
-
-        for (k = columns - 1; k >= 0; k--) {
-            for (i = 0; i < rows; i++) {
-                X[i][k] = 0;
-            }
-            X[k][k] = 1;
-            for (j = k; j < columns; j++) {
-                if (qr[k][k] !== 0) {
-                    s = 0;
-                    for (i = k; i < rows; i++) {
-                        s += qr[i][k] * X[i][j];
-                    }
-
-                    s = -s / qr[k][k];
-
-                    for (i = k; i < rows; i++) {
-                        X[i][j] += s * qr[i][k];
-                    }
-                }
-            }
-        }
-        return X;
-    }
-};
-
-module.exports = QrDecomposition;
-
-
-/***/ }),
-/* 112 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var Matrix = __webpack_require__(3);
-var hypotenuse = __webpack_require__(16).hypotenuse;
-
-// https://github.com/lutzroeder/Mapack/blob/master/Source/SingularValueDecomposition.cs
-function SingularValueDecomposition(value, options) {
-    if (!(this instanceof SingularValueDecomposition)) {
-        return new SingularValueDecomposition(value, options);
-    }
-    value = Matrix.checkMatrix(value);
-
-    options = options || {};
-
-    var a = value.clone(),
-        m = value.rows,
-        n = value.columns,
-        nu = Math.min(m, n);
-
-    var wantu = true, wantv = true;
-    if (options.computeLeftSingularVectors === false)
-        wantu = false;
-    if (options.computeRightSingularVectors === false)
-        wantv = false;
-    var autoTranspose = options.autoTranspose === true;
-
-    var swapped = false;
-    if (m < n) {
-        if (!autoTranspose) {
-            console.warn('Computing SVD on a matrix with more columns than rows. Consider enabling autoTranspose');
-        } else {
-            a = a.transpose();
-            m = a.rows;
-            n = a.columns;
-            swapped = true;
-            var aux = wantu;
-            wantu = wantv;
-            wantv = aux;
-        }
-    }
-
-    var s = new Array(Math.min(m + 1, n)),
-        U = Matrix.zeros(m, nu),
-        V = Matrix.zeros(n, n),
-        e = new Array(n),
-        work = new Array(m);
-
-    var nct = Math.min(m - 1, n);
-    var nrt = Math.max(0, Math.min(n - 2, m));
-
-    var i, j, k, p, t, ks, f, cs, sn, max, kase,
-        scale, sp, spm1, epm1, sk, ek, b, c, shift, g;
-
-    for (k = 0, max = Math.max(nct, nrt); k < max; k++) {
-        if (k < nct) {
-            s[k] = 0;
-            for (i = k; i < m; i++) {
-                s[k] = hypotenuse(s[k], a[i][k]);
-            }
-            if (s[k] !== 0) {
-                if (a[k][k] < 0) {
-                    s[k] = -s[k];
-                }
-                for (i = k; i < m; i++) {
-                    a[i][k] /= s[k];
-                }
-                a[k][k] += 1;
-            }
-            s[k] = -s[k];
-        }
-
-        for (j = k + 1; j < n; j++) {
-            if ((k < nct) && (s[k] !== 0)) {
-                t = 0;
-                for (i = k; i < m; i++) {
-                    t += a[i][k] * a[i][j];
-                }
-                t = -t / a[k][k];
-                for (i = k; i < m; i++) {
-                    a[i][j] += t * a[i][k];
-                }
-            }
-            e[j] = a[k][j];
-        }
-
-        if (wantu && (k < nct)) {
-            for (i = k; i < m; i++) {
-                U[i][k] = a[i][k];
-            }
-        }
-
-        if (k < nrt) {
-            e[k] = 0;
-            for (i = k + 1; i < n; i++) {
-                e[k] = hypotenuse(e[k], e[i]);
-            }
-            if (e[k] !== 0) {
-                if (e[k + 1] < 0)
-                    e[k] = -e[k];
-                for (i = k + 1; i < n; i++) {
-                    e[i] /= e[k];
-                }
-                e[k + 1] += 1;
-            }
-            e[k] = -e[k];
-            if ((k + 1 < m) && (e[k] !== 0)) {
-                for (i = k + 1; i < m; i++) {
-                    work[i] = 0;
-                }
-                for (j = k + 1; j < n; j++) {
-                    for (i = k + 1; i < m; i++) {
-                        work[i] += e[j] * a[i][j];
-                    }
-                }
-                for (j = k + 1; j < n; j++) {
-                    t = -e[j] / e[k + 1];
-                    for (i = k + 1; i < m; i++) {
-                        a[i][j] += t * work[i];
-                    }
-                }
-            }
-            if (wantv) {
-                for (i = k + 1; i < n; i++) {
-                    V[i][k] = e[i];
-                }
-            }
-        }
-    }
-
-    p = Math.min(n, m + 1);
-    if (nct < n) {
-        s[nct] = a[nct][nct];
-    }
-    if (m < p) {
-        s[p - 1] = 0;
-    }
-    if (nrt + 1 < p) {
-        e[nrt] = a[nrt][p - 1];
-    }
-    e[p - 1] = 0;
-
-    if (wantu) {
-        for (j = nct; j < nu; j++) {
-            for (i = 0; i < m; i++) {
-                U[i][j] = 0;
-            }
-            U[j][j] = 1;
-        }
-        for (k = nct - 1; k >= 0; k--) {
-            if (s[k] !== 0) {
-                for (j = k + 1; j < nu; j++) {
-                    t = 0;
-                    for (i = k; i < m; i++) {
-                        t += U[i][k] * U[i][j];
-                    }
-                    t = -t / U[k][k];
-                    for (i = k; i < m; i++) {
-                        U[i][j] += t * U[i][k];
-                    }
-                }
-                for (i = k; i < m; i++) {
-                    U[i][k] = -U[i][k];
-                }
-                U[k][k] = 1 + U[k][k];
-                for (i = 0; i < k - 1; i++) {
-                    U[i][k] = 0;
-                }
-            } else {
-                for (i = 0; i < m; i++) {
-                    U[i][k] = 0;
-                }
-                U[k][k] = 1;
-            }
-        }
-    }
-
-    if (wantv) {
-        for (k = n - 1; k >= 0; k--) {
-            if ((k < nrt) && (e[k] !== 0)) {
-                for (j = k + 1; j < n; j++) {
-                    t = 0;
-                    for (i = k + 1; i < n; i++) {
-                        t += V[i][k] * V[i][j];
-                    }
-                    t = -t / V[k + 1][k];
-                    for (i = k + 1; i < n; i++) {
-                        V[i][j] += t * V[i][k];
-                    }
-                }
-            }
-            for (i = 0; i < n; i++) {
-                V[i][k] = 0;
-            }
-            V[k][k] = 1;
-        }
-    }
-
-    var pp = p - 1,
-        iter = 0,
-        eps = Math.pow(2, -52);
-    while (p > 0) {
-        for (k = p - 2; k >= -1; k--) {
-            if (k === -1) {
-                break;
-            }
-            if (Math.abs(e[k]) <= eps * (Math.abs(s[k]) + Math.abs(s[k + 1]))) {
-                e[k] = 0;
-                break;
-            }
-        }
-        if (k === p - 2) {
-            kase = 4;
-        } else {
-            for (ks = p - 1; ks >= k; ks--) {
-                if (ks === k) {
-                    break;
-                }
-                t = (ks !== p ? Math.abs(e[ks]) : 0) + (ks !== k + 1 ? Math.abs(e[ks - 1]) : 0);
-                if (Math.abs(s[ks]) <= eps * t) {
-                    s[ks] = 0;
-                    break;
-                }
-            }
-            if (ks === k) {
-                kase = 3;
-            } else if (ks === p - 1) {
-                kase = 1;
-            } else {
-                kase = 2;
-                k = ks;
-            }
-        }
-
-        k++;
-
-        switch (kase) {
-            case 1: {
-                f = e[p - 2];
-                e[p - 2] = 0;
-                for (j = p - 2; j >= k; j--) {
-                    t = hypotenuse(s[j], f);
-                    cs = s[j] / t;
-                    sn = f / t;
-                    s[j] = t;
-                    if (j !== k) {
-                        f = -sn * e[j - 1];
-                        e[j - 1] = cs * e[j - 1];
-                    }
-                    if (wantv) {
-                        for (i = 0; i < n; i++) {
-                            t = cs * V[i][j] + sn * V[i][p - 1];
-                            V[i][p - 1] = -sn * V[i][j] + cs * V[i][p - 1];
-                            V[i][j] = t;
-                        }
-                    }
-                }
-                break;
-            }
-            case 2 : {
-                f = e[k - 1];
-                e[k - 1] = 0;
-                for (j = k; j < p; j++) {
-                    t = hypotenuse(s[j], f);
-                    cs = s[j] / t;
-                    sn = f / t;
-                    s[j] = t;
-                    f = -sn * e[j];
-                    e[j] = cs * e[j];
-                    if (wantu) {
-                        for (i = 0; i < m; i++) {
-                            t = cs * U[i][j] + sn * U[i][k - 1];
-                            U[i][k - 1] = -sn * U[i][j] + cs * U[i][k - 1];
-                            U[i][j] = t;
-                        }
-                    }
-                }
-                break;
-            }
-            case 3 : {
-                scale = Math.max(Math.max(Math.max(Math.max(Math.abs(s[p - 1]), Math.abs(s[p - 2])), Math.abs(e[p - 2])), Math.abs(s[k])), Math.abs(e[k]));
-                sp = s[p - 1] / scale;
-                spm1 = s[p - 2] / scale;
-                epm1 = e[p - 2] / scale;
-                sk = s[k] / scale;
-                ek = e[k] / scale;
-                b = ((spm1 + sp) * (spm1 - sp) + epm1 * epm1) / 2;
-                c = (sp * epm1) * (sp * epm1);
-                shift = 0;
-                if ((b !== 0) || (c !== 0)) {
-                    shift = Math.sqrt(b * b + c);
-                    if (b < 0) {
-                        shift = -shift;
-                    }
-                    shift = c / (b + shift);
-                }
-                f = (sk + sp) * (sk - sp) + shift;
-                g = sk * ek;
-                for (j = k; j < p - 1; j++) {
-                    t = hypotenuse(f, g);
-                    cs = f / t;
-                    sn = g / t;
-                    if (j !== k) {
-                        e[j - 1] = t;
-                    }
-                    f = cs * s[j] + sn * e[j];
-                    e[j] = cs * e[j] - sn * s[j];
-                    g = sn * s[j + 1];
-                    s[j + 1] = cs * s[j + 1];
-                    if (wantv) {
-                        for (i = 0; i < n; i++) {
-                            t = cs * V[i][j] + sn * V[i][j + 1];
-                            V[i][j + 1] = -sn * V[i][j] + cs * V[i][j + 1];
-                            V[i][j] = t;
-                        }
-                    }
-                    t = hypotenuse(f, g);
-                    cs = f / t;
-                    sn = g / t;
-                    s[j] = t;
-                    f = cs * e[j] + sn * s[j + 1];
-                    s[j + 1] = -sn * e[j] + cs * s[j + 1];
-                    g = sn * e[j + 1];
-                    e[j + 1] = cs * e[j + 1];
-                    if (wantu && (j < m - 1)) {
-                        for (i = 0; i < m; i++) {
-                            t = cs * U[i][j] + sn * U[i][j + 1];
-                            U[i][j + 1] = -sn * U[i][j] + cs * U[i][j + 1];
-                            U[i][j] = t;
-                        }
-                    }
-                }
-                e[p - 2] = f;
-                iter = iter + 1;
-                break;
-            }
-            case 4: {
-                if (s[k] <= 0) {
-                    s[k] = (s[k] < 0 ? -s[k] : 0);
-                    if (wantv) {
-                        for (i = 0; i <= pp; i++) {
-                            V[i][k] = -V[i][k];
-                        }
-                    }
-                }
-                while (k < pp) {
-                    if (s[k] >= s[k + 1]) {
-                        break;
-                    }
-                    t = s[k];
-                    s[k] = s[k + 1];
-                    s[k + 1] = t;
-                    if (wantv && (k < n - 1)) {
-                        for (i = 0; i < n; i++) {
-                            t = V[i][k + 1];
-                            V[i][k + 1] = V[i][k];
-                            V[i][k] = t;
-                        }
-                    }
-                    if (wantu && (k < m - 1)) {
-                        for (i = 0; i < m; i++) {
-                            t = U[i][k + 1];
-                            U[i][k + 1] = U[i][k];
-                            U[i][k] = t;
-                        }
-                    }
-                    k++;
-                }
-                iter = 0;
-                p--;
-                break;
-            }
-        }
-    }
-
-    if (swapped) {
-        var tmp = V;
-        V = U;
-        U = tmp;
-    }
-
-    this.m = m;
-    this.n = n;
-    this.s = s;
-    this.U = U;
-    this.V = V;
-}
-
-SingularValueDecomposition.prototype = {
-    get condition() {
-        return this.s[0] / this.s[Math.min(this.m, this.n) - 1];
-    },
-    get norm2() {
-        return this.s[0];
-    },
-    get rank() {
-        var eps = Math.pow(2, -52),
-            tol = Math.max(this.m, this.n) * this.s[0] * eps,
-            r = 0,
-            s = this.s;
-        for (var i = 0, ii = s.length; i < ii; i++) {
-            if (s[i] > tol) {
-                r++;
-            }
-        }
-        return r;
-    },
-    get diagonal() {
-        return this.s;
-    },
-    // https://github.com/accord-net/framework/blob/development/Sources/Accord.Math/Decompositions/SingularValueDecomposition.cs
-    get threshold() {
-        return (Math.pow(2, -52) / 2) * Math.max(this.m, this.n) * this.s[0];
-    },
-    get leftSingularVectors() {
-        return this.U;
-    },
-    get rightSingularVectors() {
-        return this.V;
-    },
-    get diagonalMatrix() {
-        return Matrix.diag(this.s);
-    },
-    solve: function (value) {
-
-        var Y = value,
-            e = this.threshold,
-            scols = this.s.length,
-            Ls = Matrix.zeros(scols, scols),
-            i;
-
-        for (i = 0; i < scols; i++) {
-            if (Math.abs(this.s[i]) <= e) {
-                Ls[i][i] = 0;
-            } else {
-                Ls[i][i] = 1 / this.s[i];
-            }
-        }
-
-
-        var VL = this.V.mmul(Ls),
-            vrows = this.V.rows,
-            urows = this.U.rows,
-            VLU = Matrix.zeros(vrows, urows),
-            j, k, sum;
-
-        for (i = 0; i < vrows; i++) {
-            for (j = 0; j < urows; j++) {
-                sum = 0;
-                for (k = 0; k < scols; k++) {
-                    sum += VL[i][k] * this.U[j][k];
-                }
-                VLU[i][j] = sum;
-            }
-        }
-
-        return VLU.mmul(Y);
-    },
-    solveForDiagonal: function (value) {
-        return this.solve(Matrix.diag(value));
-    },
-    inverse: function () {
-        var e = this.threshold,
-            vrows = this.V.rows,
-            vcols = this.V.columns,
-            X = new Matrix(vrows, this.s.length),
-            i, j;
-
-        for (i = 0; i < vrows; i++) {
-            for (j = 0; j < vcols; j++) {
-                if (Math.abs(this.s[j]) > e) {
-                    X[i][j] = this.V[i][j] / this.s[j];
-                } else {
-                    X[i][j] = 0;
-                }
-            }
-        }
-
-        var urows = this.U.rows,
-            ucols = this.U.columns,
-            Y = new Matrix(vrows, urows),
-            k, sum;
-
-        for (i = 0; i < vrows; i++) {
-            for (j = 0; j < urows; j++) {
-                sum = 0;
-                for (k = 0; k < ucols; k++) {
-                    sum += X[i][k] * this.U[j][k];
-                }
-                Y[i][j] = sum;
-            }
-        }
-
-        return Y;
-    }
-};
-
-module.exports = SingularValueDecomposition;
-
-
-/***/ }),
 /* 113 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var Matrix = __webpack_require__(3);
-
-var SingularValueDecomposition = __webpack_require__(112);
-var EigenvalueDecomposition = __webpack_require__(109);
-var LuDecomposition = __webpack_require__(110);
-var QrDecomposition = __webpack_require__(111);
-var CholeskyDecomposition = __webpack_require__(108);
-
-function inverse(matrix) {
-    return solve(matrix, Matrix.eye(matrix.rows));
-}
-
-Matrix.prototype.inverse = function () {
-    return inverse(this);
-};
-
-function solve(leftHandSide, rightHandSide) {
-    return leftHandSide.isSquare() ? new LuDecomposition(leftHandSide).solve(rightHandSide) : new QrDecomposition(leftHandSide).solve(rightHandSide);
-}
-
-Matrix.prototype.solve = function (other) {
-    return solve(this, other);
-};
-
-module.exports = {
-    SingularValueDecomposition: SingularValueDecomposition,
-    SVD: SingularValueDecomposition,
-    EigenvalueDecomposition: EigenvalueDecomposition,
-    EVD: EigenvalueDecomposition,
-    LuDecomposition: LuDecomposition,
-    LU: LuDecomposition,
-    QrDecomposition: QrDecomposition,
-    QR: QrDecomposition,
-    CholeskyDecomposition: CholeskyDecomposition,
-    CHO: CholeskyDecomposition,
-    inverse: inverse,
-    solve: solve
-};
-
-
-/***/ }),
-/* 114 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
- * Created by acastillo on 8/5/15.
- */
-var Matrix = __webpack_require__(7);
-var math = __webpack_require__(42);
-
-var DEBUG = false;
-/** Levenberg Marquardt curve-fitting: minimize sum of weighted squared residuals
- ----------  INPUT  VARIABLES  -----------
- func   = function of n independent variables, 't', and m parameters, 'p',
- returning the simulated model: y_hat = func(t,p,c)
- p      = n-vector of initial guess of parameter values
- t      = m-vectors or matrix of independent variables (used as arg to func)
- y_dat  = m-vectors or matrix of data to be fit by func(t,p)
- weight = weighting vector for least squares fit ( weight >= 0 ) ...
- inverse of the standard measurement errors
- Default:  sqrt(d.o.f. / ( y_dat' * y_dat ))
- dp     = fractional increment of 'p' for numerical derivatives
- dp(j)>0 central differences calculated
- dp(j)<0 one sided 'backwards' differences calculated
- dp(j)=0 sets corresponding partials to zero; i.e. holds p(j) fixed
- Default:  0.001;
- p_min  = n-vector of lower bounds for parameter values
- p_max  = n-vector of upper bounds for parameter values
- c      = an optional matrix of values passed to func(t,p,c)
- opts   = vector of algorithmic parameters
- parameter    defaults    meaning
- opts(1)  =  prnt            3        >1 intermediate results; >2 plots
- opts(2)  =  MaxIter      10*Npar     maximum number of iterations
- opts(3)  =  epsilon_1       1e-3     convergence tolerance for gradient
- opts(4)  =  epsilon_2       1e-3     convergence tolerance for parameters
- opts(5)  =  epsilon_3       1e-3     convergence tolerance for Chi-square
- opts(6)  =  epsilon_4       1e-2     determines acceptance of a L-M step
- opts(7)  =  lambda_0        1e-2     initial value of L-M paramter
- opts(8)  =  lambda_UP_fac   11       factor for increasing lambda
- opts(9)  =  lambda_DN_fac    9       factor for decreasing lambda
- opts(10) =  Update_Type      1       1: Levenberg-Marquardt lambda update
- 2: Quadratic update
- 3: Nielsen's lambda update equations
-
- ----------  OUTPUT  VARIABLES  -----------
- p       = least-squares optimal estimate of the parameter values
- X2      = Chi squared criteria
- sigma_p = asymptotic standard error of the parameters
- sigma_y = asymptotic standard error of the curve-fit
- corr    = correlation matrix of the parameters
- R_sq    = R-squared cofficient of multiple determination
- cvg_hst = convergence history
-
- Henri Gavin, Dept. Civil & Environ. Engineering, Duke Univ. 22 Sep 2013
- modified from: http://octave.sourceforge.net/optim/function/leasqr.html
- using references by
- Press, et al., Numerical Recipes, Cambridge Univ. Press, 1992, Chapter 15.
- Sam Roweis       http://www.cs.toronto.edu/~roweis/notes/lm.pdf
- Manolis Lourakis http://www.ics.forth.gr/~lourakis/levmar/levmar.pdf
- Hans Nielson     http://www2.imm.dtu.dk/~hbn/publ/TR9905.ps
- Mathworks        optimization toolbox reference manual
- K. Madsen, H.B., Nielsen, and O. Tingleff
- http://www2.imm.dtu.dk/pubdb/views/edoc_download.php/3215/pdf/imm3215.pdf
- */
-var LM = {
-
-    optimize: function(func,p,t,y_dat,weight,dp,p_min,p_max,c,opts){
-
-        var tensor_parameter = 0;			// set to 1 of parameter is a tensor
-
-        var iteration  = 0;			// iteration counter
-        //func_calls = 0;			// running count of function evaluations
-
-        if((typeof p[0])!="object"){
-            for(var i=0;i< p.length;i++){
-                p[i]=[p[i]];
-            }
-
-        }
-        //p = p(:); y_dat = y_dat(:);		// make column vectors
-        var i,k;
-        var eps = 2^-52;
-        var Npar   = p.length;//length(p); 			// number of parameters
-        var Npnt   = y_dat.length;//length(y_dat);		// number of data points
-        var p_old  = Matrix.zeros(Npar,1);		// previous set of parameters
-        var y_old  = Matrix.zeros(Npnt,1);		// previous model, y_old = y_hat(t;p_old)
-        var X2     = 1e-2/eps;			// a really big initial Chi-sq value
-        var X2_old = 1e-2/eps;			// a really big initial Chi-sq value
-        var J =  Matrix.zeros(Npnt,Npar);
-
-
-        if (t.length != y_dat.length) {
-            console.log('lm.m error: the length of t must equal the length of y_dat');
-
-            length_t = t.length;
-            length_y_dat = y_dat.length;
-            var X2 = 0, corr = 0, sigma_p = 0, sigma_y = 0, R_sq = 0, cvg_hist = 0;
-            if (!tensor_parameter) {
-                return;
-            }
-        }
-
-        weight = weight||Math.sqrt((Npnt-Npar+1)/(math.multiply(math.transpose(y_dat),y_dat)));
-        dp = dp || 0.001;
-        p_min   = p_min || math.multiply(Math.abs(p),-100);
-        p_max   = p_max || math.multiply(Math.abs(p),100);
-        c = c || 1;
-        // Algorithmic Paramters
-        //prnt MaxIter  eps1  eps2  epx3  eps4  lam0  lamUP lamDN UpdateType
-        opts = opts ||[  3,10*Npar, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2, 11, 9, 1 ];
-
-        var prnt          = opts[0];	// >1 intermediate results; >2 plots
-        var MaxIter       = opts[1];	// maximum number of iterations
-        var epsilon_1     = opts[2];	// convergence tolerance for gradient
-        var epsilon_2     = opts[3];	// convergence tolerance for parameter
-        var epsilon_3     = opts[4];	// convergence tolerance for Chi-square
-        var epsilon_4     = opts[5];	// determines acceptance of a L-M step
-        var lambda_0      = opts[6];	// initial value of damping paramter, lambda
-        var lambda_UP_fac = opts[7];	// factor for increasing lambda
-        var lambda_DN_fac = opts[8];	// factor for decreasing lambda
-        var Update_Type   = opts[9];	// 1: Levenberg-Marquardt lambda update
-        // 2: Quadratic update
-        // 3: Nielsen's lambda update equations
-
-        if ( tensor_parameter && prnt == 3 ) prnt = 2;
-
-
-        if(!dp.length || dp.length == 1){
-            var dp_array = new Array(Npar);
-            for(var i=0;i<Npar;i++)
-                dp_array[i]=[dp];
-            dp=dp_array;
-        }
-
-        // indices of the parameters to be fit
-        var idx   = [];
-        for(i=0;i<dp.length;i++){
-            if(dp[i][0]!=0){
-                idx.push(i);
-            }
-        }
-
-        var Nfit = idx.length;			// number of parameters to fit
-        var stop = false;				// termination flag
-
-        var weight_sq = null;
-        //console.log(weight);
-        if ( !weight.length || weight.length < Npnt )	{
-            // squared weighting vector
-            //weight_sq = ( weight(1)*ones(Npnt,1) ).^2;
-            //console.log("weight[0] "+typeof weight[0]);
-            var tmp = math.multiply(Matrix.ones(Npnt,1),weight[0]);
-            weight_sq = math.dotMultiply(tmp,tmp);
-        }
-        else{
-            //weight_sq = (weight(:)).^2;
-            weight_sq = math.dotMultiply(weight,weight);
-        }
-
-
-        // initialize Jacobian with finite difference calculation
-        //console.log("J "+weight_sq);
-        var result = this.lm_matx(func,t,p_old,y_old,1,J,p,y_dat,weight_sq,dp,c);
-        var JtWJ = result.JtWJ,JtWdy=result.JtWdy,X2=result.Chi_sq,y_hat=result.y_hat,J=result.J;
-        //[JtWJ,JtWdy,X2,y_hat,J] = this.lm_matx(func,t,p_old,y_old,1,J,p,y_dat,weight_sq,dp,c);
-        //console.log(JtWJ);
-
-        if ( Math.max(Math.abs(JtWdy)) < epsilon_1 ){
-            console.log(' *** Your Initial Guess is Extremely Close to Optimal ***')
-            console.log(' *** epsilon_1 = ', epsilon_1);
-            stop = true;
-        }
-
-
-        switch(Update_Type){
-            case 1: // Marquardt: init'l lambda
-                lambda  = lambda_0;
-                break;
-            default:    // Quadratic and Nielsen
-                lambda  = lambda_0 * Math.max(math.diag(JtWJ));
-                nu=2;
-        }
-        //console.log(X2);
-        X2_old = X2; // previous value of X2
-        //console.log(MaxIter+" "+Npar);
-        //var cvg_hst = Matrix.ones(MaxIter,Npar+3);		// initialize convergence history
-        var h = null;
-        while ( !stop && iteration <= MaxIter ) {		// --- Main Loop
-            iteration = iteration + 1;
-            // incremental change in parameters
-            switch(Update_Type){
-                case 1:					// Marquardt
-                    //h = ( JtWJ + lambda * math.diag(math.diag(JtWJ)) ) \ JtWdy;
-                    //h = math.multiply(math.inv(JtWdy),math.add(JtWJ,math.multiply(lambda,math.diag(math.diag(Npar)))));
-                    h = math.solve(math.add(JtWJ,math.multiply(math.diag(math.diag(JtWJ)),lambda)),JtWdy);
-                    break;
-                default:					// Quadratic and Nielsen
-                    //h = ( JtWJ + lambda * math.eye(Npar) ) \ JtWdy;
-
-                    h = math.solve(math.add(JtWJ,math.multiply( Matrix.eye(Npar),lambda)),JtWdy);
-            }
-
-            /*for(var k=0;k< h.length;k++){
-             h[k]=[h[k]];
-             }*/
-            //console.log("h "+h);
-            //h=math.matrix(h);
-            //  big = max(abs(h./p)) > 2;
-            //this is a big step
-            // --- Are parameters [p+h] much better than [p] ?
-            var hidx = new Array(idx.length);
-            for(k=0;k<idx.length;k++){
-                hidx[k]=h[idx[k]];
-            }
-            var p_try = math.add(p, hidx);// update the [idx] elements
-
-            for(k=0;k<p_try.length;k++){
-                p_try[k][0]=Math.min(Math.max(p_min[k][0],p_try[k][0]),p_max[k][0]);
-            }
-            // p_try = Math.min(Math.max(p_min,p_try),p_max);           // apply constraints
-
-            var delta_y = math.subtract(y_dat, func(t,p_try,c));       // residual error using p_try
-            //func_calls = func_calls + 1;
-            //X2_try = delta_y' * ( delta_y .* weight_sq );  // Chi-squared error criteria
-
-            var X2_try = math.multiply(math.transpose(delta_y),math.dotMultiply(delta_y,weight_sq));
-
-            if ( Update_Type == 2 ){  			  // Quadratic
-                //    One step of quadratic line update in the h direction for minimum X2
-                //var alpha =  JtWdy'*h / ( (X2_try - X2)/2 + 2*JtWdy'*h ) ;
-                var JtWdy_th = math.multiply(math.transpose(JtWdy),h);
-                var alpha =  math.multiply(JtWdy_th,math.inv(math.add(math.multiply(math.subtract(X2_try - X2),1/2)),math.multiply(JtWdy_th,2)));//JtWdy'*h / ( (X2_try - X2)/2 + 2*JtWdy'*h ) ;
-
-                h = math.multiply(alpha, h);
-                for(var k=0;k<idx.length;k++){
-                    hidx[k]=h[idx[k]];
-                }
-
-                p_try = math.add(p ,hidx);                     // update only [idx] elements
-                p_try = math.min(math.max(p_min,p_try),p_max);          // apply constraints
-
-                delta_y = math.subtract(y_dat, func(t,p_try,c));      // residual error using p_try
-                // func_calls = func_calls + 1;
-                //X2_try = delta_y' * ( delta_y .* weight_sq ); // Chi-squared error criteria
-                X2_try = math.multiply(math.transpose(delta_y), mat.dotMultiply(delta_y, weight_sq));
-            }
-
-            //rho = (X2 - X2_try) / ( 2*h' * (lambda * h + JtWdy) ); // Nielsen
-            var rho = (X2-X2_try)/math.multiply(math.multiply(math.transpose(h),2),math.add(math.multiply(lambda, h),JtWdy));
-            //console.log("rho "+rho);
-            if ( rho > epsilon_4 ) {		// it IS significantly better
-                //console.log("Here");
-                dX2 = X2 - X2_old;
-                X2_old = X2;
-                p_old = p;
-                y_old = y_hat;
-                p = p_try;			// accept p_try
-
-                result = this.lm_matx(func, t, p_old, y_old, dX2, J, p, y_dat, weight_sq, dp, c);
-                JtWJ = result.JtWJ,JtWdy=result.JtWdy,X2=result.Chi_sq,y_hat=result.y_hat,J=result.J;
-                // decrease lambda ==> Gauss-Newton method
-
-                switch (Update_Type) {
-                    case 1:							// Levenberg
-                        lambda = Math.max(lambda / lambda_DN_fac, 1.e-7);
-                        break;
-                    case 2:							// Quadratic
-                        lambda = Math.max(lambda / (1 + alpha), 1.e-7);
-                        break;
-                    case 3:							// Nielsen
-                        lambda = math.multiply(Math.max(1 / 3, 1 - (2 * rho - 1) ^ 3),lambda);
-                        nu = 2;
-                        break;
-                }
-            }
-            else {					// it IS NOT better
-                X2 = X2_old;			// do not accept p_try
-                if (iteration%(2 * Npar)==0) {	// rank-1 update of Jacobian
-                    result = this.lm_matx(func, t, p_old, y_old, -1, J, p, y_dat, weight_sq, dp, c);
-                    JtWJ = result.JtWJ,JtWdy=result.JtWdy,dX2=result.Chi_sq,y_hat=result.y_hat,J=result.J;
-                }
-
-                // increase lambda  ==> gradient descent method
-                switch (Update_Type) {
-                    case 1:							// Levenberg
-                        lambda = Math.min(lambda * lambda_UP_fac, 1.e7);
-                        break;
-                    case 2:							// Quadratic
-                        lambda = lambda + Math.abs((X2_try - X2) / 2 / alpha);
-                        break;
-                    case 3:						// Nielsen
-                        lambda = lambda * nu;
-                        nu = 2 * nu;
-                        break;
-                }
-            }
-        }// --- End of Main Loop
-
-        // --- convergence achieved, find covariance and confidence intervals
-
-        // equal weights for paramter error analysis
-        weight_sq = math.multiply(math.multiply(math.transpose(delta_y),delta_y), Matrix.ones(Npnt,1));
-
-        weight_sq.apply(function(i,j){
-            weight_sq[i][j] = (Npnt-Nfit+1)/weight_sq[i][j];
-        });
-        //console.log(weight_sq);
-        result = this.lm_matx(func,t,p_old,y_old,-1,J,p,y_dat,weight_sq,dp,c);
-        JtWJ = result.JtWJ,JtWdy=result.JtWdy,X2=result.Chi_sq,y_hat=result.y_hat,J=result.J;
-
-        /*if nargout > 2				// standard error of parameters
-         covar = inv(JtWJ);
-         sigma_p = sqrt(diag(covar));
-         end
-
-         if nargout > 3				// standard error of the fit
-         //  sigma_y = sqrt(diag(J * covar * J'));	// slower version of below
-         sigma_y = zeros(Npnt,1);
-         for i=1:Npnt
-         sigma_y(i) = J(i,:) * covar * J(i,:)';
-         end
-         sigma_y = sqrt(sigma_y);
-         end
-
-         if nargout > 4				// parameter correlation matrix
-         corr = covar ./ [sigma_p*sigma_p'];
-         end
-
-         if nargout > 5				// coefficient of multiple determination
-         R_sq = corrcoef([y_dat y_hat]);
-         R_sq = R_sq(1,2).^2;
-         end
-
-         if nargout > 6				// convergence history
-         cvg_hst = cvg_hst(1:iteration,:);
-         end*/
-
-        // endfunction  # ---------------------------------------------------------- LM
-
-        return { p:p, X2:X2};
-    },
-
-    lm_FD_J:function(func,t,p,y,dp,c) {
-        // J = lm_FD_J(func,t,p,y,{dp},{c})
-        //
-        // partial derivatives (Jacobian) dy/dp for use with lm.m
-        // computed via Finite Differences
-        // Requires n or 2n function evaluations, n = number of nonzero values of dp
-        // -------- INPUT VARIABLES ---------
-        // func = function of independent variables, 't', and parameters, 'p',
-        //        returning the simulated model: y_hat = func(t,p,c)
-        // t  = m-vector of independent variables (used as arg to func)
-        // p  = n-vector of current parameter values
-        // y  = func(t,p,c) n-vector initialised by user before each call to lm_FD_J
-        // dp = fractional increment of p for numerical derivatives
-        //      dp(j)>0 central differences calculated
-        //      dp(j)<0 one sided differences calculated
-        //      dp(j)=0 sets corresponding partials to zero; i.e. holds p(j) fixed
-        //      Default:  0.001;
-        // c  = optional vector of constants passed to y_hat = func(t,p,c)
-        //---------- OUTPUT VARIABLES -------
-        // J  = Jacobian Matrix J(i,j)=dy(i)/dp(j)	i=1:n; j=1:m
-
-        //   Henri Gavin, Dept. Civil & Environ. Engineering, Duke Univ. November 2005
-        //   modified from: ftp://fly.cnuce.cnr.it/pub/software/octave/leasqr/
-        //   Press, et al., Numerical Recipes, Cambridge Univ. Press, 1992, Chapter 15.
-
-        var m = y.length;			// number of data points
-        var n = p.length;			// number of parameters
-
-        dp = dp || math.multiply( Matrix.ones(n, 1), 0.001);
-
-        var ps = p.clone();//JSON.parse(JSON.stringify(p));
-        //var ps = $.extend(true, [], p);
-        var J = new Matrix(m,n), del =new Array(n);         // initialize Jacobian to Zero
-
-        for (var j = 0;j < n; j++) {
-            //console.log(j+" "+dp[j]+" "+p[j]+" "+ps[j]+" "+del[j]);
-            del[j] = dp[j]*(1+Math.abs(p[j][0]));  // parameter perturbation
-            p[j] = [ps[j][0]+del[j]];	      // perturb parameter p(j)
-            //console.log(j+" "+dp[j]+" "+p[j]+" "+ps[j]+" "+del[j]);
-
-            if (del[j] != 0){
-                y1 = func(t, p, c);
-                //func_calls = func_calls + 1;
-                if (dp[j][0] < 0) {		// backwards difference
-                    //J(:,j) = math.dotDivide(math.subtract(y1, y),del[j]);//. / del[j];
-                    //console.log(del[j]);
-                    //console.log(y);
-                    var column = math.dotDivide(math.subtract(y1, y),del[j]);
-                    for(var k=0;k< m;k++){
-                        J[k][j]=column[k][0];
-                    }
-                    //console.log(column);
-                }
-                else{
-                    p[j][0] = ps[j][0] - del[j];
-                    //J(:,j) = (y1 - feval(func, t, p, c)). / (2. * del[j]);
-                    var column = math.dotDivide(math.subtract(y1,func(t,p,c)),2*del[j]);
-                    for(var k=0;k< m;k++){
-                        J[k][j]=column[k][0];
-                    }
-
-                }			// central difference, additional func call
-            }
-
-            p[j] = ps[j];		// restore p(j)
-
-        }
-        //console.log("lm_FD_J: "+ JSON.stringify(J));
-        return J;
-
-    },
-
-    // endfunction # -------------------------------------------------- LM_FD_J
-    lm_Broyden_J: function(p_old,y_old,J,p,y){
-        // J = lm_Broyden_J(p_old,y_old,J,p,y)
-        // carry out a rank-1 update to the Jacobian matrix using Broyden's equation
-        //---------- INPUT VARIABLES -------
-        // p_old = previous set of parameters
-        // y_old = model evaluation at previous set of parameters, y_hat(t;p_old)
-        // J  = current version of the Jacobian matrix
-        // p     = current  set of parameters
-        // y     = model evaluation at current  set of parameters, y_hat(t;p)
-        //---------- OUTPUT VARIABLES -------
-        // J = rank-1 update to Jacobian Matrix J(i,j)=dy(i)/dp(j)	i=1:n; j=1:m
-        //console.log(p+" X "+ p_old)
-        var h  = math.subtract(p, p_old);
-
-        //console.log("hhh "+h);
-        var h_t = math.transpose(h);
-        h_t.div(math.multiply(h_t,h));
-
-        //console.log(h_t);
-        //J = J + ( y - y_old - J*h )*h' / (h'*h);	// Broyden rank-1 update eq'n
-        J = math.add(J, math.multiply(math.subtract(y, math.add(y_old,math.multiply(J,h))),h_t));
-        return J;
-        // endfunction # ---------------------------------------------- LM_Broyden_J
-    },
-
-    lm_matx : function (func,t,p_old,y_old,dX2,J,p,y_dat,weight_sq,dp,c,iteration){
-        // [JtWJ,JtWdy,Chi_sq,y_hat,J] = this.lm_matx(func,t,p_old,y_old,dX2,J,p,y_dat,weight_sq,{da},{c})
-        //
-        // Evaluate the linearized fitting matrix, JtWJ, and vector JtWdy,
-        // and calculate the Chi-squared error function, Chi_sq
-        // Used by Levenberg-Marquard algorithm, lm.m
-        // -------- INPUT VARIABLES ---------
-        // func   = function ofpn independent variables, p, and m parameters, p,
-        //         returning the simulated model: y_hat = func(t,p,c)
-        // t      = m-vectors or matrix of independent variables (used as arg to func)
-        // p_old  = n-vector of previous parameter values
-        // y_old  = m-vector of previous model ... y_old = y_hat(t;p_old);
-        // dX2    = previous change in Chi-squared criteria
-        // J   = m-by-n Jacobian of model, y_hat, with respect to parameters, p
-        // p      = n-vector of current  parameter values
-        // y_dat  = n-vector of data to be fit by func(t,p,c)
-        // weight_sq = square of the weighting vector for least squares fit ...
-        //	    inverse of the standard measurement errors
-        // dp     = fractional increment of 'p' for numerical derivatives
-        //          dp(j)>0 central differences calculated
-        //          dp(j)<0 one sided differences calculated
-        //          dp(j)=0 sets corresponding partials to zero; i.e. holds p(j) fixed
-        //          Default:  0.001;
-        // c      = optional vector of constants passed to y_hat = func(t,p,c)
-        //---------- OUTPUT VARIABLES -------
-        // JtWJ	 = linearized Hessian matrix (inverse of covariance matrix)
-        // JtWdy   = linearized fitting vector
-        // Chi_sq = Chi-squared criteria: weighted sum of the squared residuals WSSR
-        // y_hat  = model evaluated with parameters 'p'
-        // J   = m-by-n Jacobian of model, y_hat, with respect to parameters, p
-
-        //   Henri Gavin, Dept. Civil & Environ. Engineering, Duke Univ. November 2005
-        //   modified from: ftp://fly.cnuce.cnr.it/pub/software/octave/leasqr/
-        //   Press, et al., Numerical Recipes, Cambridge Univ. Press, 1992, Chapter 15.
-
-
-        var Npnt = y_dat.length;		// number of data points
-        var Npar = p.length;		// number of parameters
-
-        dp = dp || 0.001;
-
-
-        //var JtWJ = new Matrix.zeros(Npar);
-        //var JtWdy  = new Matrix.zeros(Npar,1);
-
-        var y_hat = func(t,p,c);	// evaluate model using parameters 'p'
-        //func_calls = func_calls + 1;
-        //console.log(J);
-        if ( (iteration%(2*Npar))==0 || dX2 > 0 ) {
-            //console.log("Par");
-            J = this.lm_FD_J(func, t, p, y_hat, dp, c);		// finite difference
-        }
-        else{
-            //console.log("ImPar");
-            J = this.lm_Broyden_J(p_old, y_old, J, p, y_hat); // rank-1 update
-        }
-        var delta_y = math.subtract(y_dat, y_hat);	// residual error between model and data
-        //console.log(delta_y[0][0]);
-        //console.log(delta_y.rows+" "+delta_y.columns+" "+JSON.stringify(weight_sq));
-        //var Chi_sq = delta_y' * ( delta_y .* weight_sq ); 	// Chi-squared error criteria
-        var Chi_sq = math.multiply(math.transpose(delta_y),math.dotMultiply(delta_y,weight_sq));
-        //JtWJ  = J' * ( J .* ( weight_sq * ones(1,Npar) ) );
-        var Jt = math.transpose(J);
-
-        //console.log(weight_sq);
-
-        var JtWJ = math.multiply(Jt, math.dotMultiply(J,math.multiply(weight_sq, Matrix.ones(1,Npar))));
-
-        //JtWdy = J' * ( weight_sq .* delta_y );
-        var JtWdy = math.multiply(Jt, math.dotMultiply(weight_sq,delta_y));
-
-
-        return {JtWJ:JtWJ,JtWdy:JtWdy,Chi_sq:Chi_sq,y_hat:y_hat,J:J};
-        // endfunction  # ------------------------------------------------------ LM_MATX
-    }
-
-
-
-};
-
-module.exports = LM;
-
-/***/ }),
-/* 115 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = __webpack_require__(114);
-module.exports.Matrix = __webpack_require__(7);
-module.exports.Matrix.algebra = __webpack_require__(42);
-
-
-/***/ }),
-/* 116 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var LM = __webpack_require__(115);
-var math = LM.Matrix.algebra;
-var Matrix = __webpack_require__(7);
-
-/**
- * This function calculates the spectrum as a sum of lorentzian functions. The Lorentzian
- * parameters are divided in 3 batches. 1st: centers; 2nd: heights; 3th: widths;
- * @param t Ordinate values
- * @param p Lorentzian parameters
- * @param c Constant parameters(Not used)
- * @returns {*}
- */
-function sumOfLorentzians(t,p,c){
-    var nL = p.length/3,factor,i, j,p2, cols = t.rows;
-    var result = Matrix.zeros(t.length,1);
-
-    for(i=0;i<nL;i++){
-        p2 = Math.pow(p[i+nL*2][0]/2,2);
-        factor = p[i+nL][0]*p2;
-        for(j=0;j<cols;j++){
-            result[j][0]+=factor/(Math.pow(t[j][0]-p[i][0],2)+p2);
-        }
-    }
-    return result;
-}
-
-/**
- * This function calculates the spectrum as a sum of gaussian functions. The Gaussian
- * parameters are divided in 3 batches. 1st: centers; 2nd: height; 3th: std's;
- * @param t Ordinate values
- * @param p Gaussian parameters
- * @param c Constant parameters(Not used)
- * @returns {*}
- */
-function sumOfGaussians(t,p,c){
-    var nL = p.length/3,factor,i, j, cols = t.rows;
-    var result = Matrix.zeros(t.length,1);
-
-    for(i=0;i<nL;i++){
-        factor = p[i+nL*2][0]*p[i+nL*2][0]/2;
-        for(j=0;j<cols;j++){
-            result[j][0]+=p[i+nL][0]*Math.exp(-(t[i][0]-p[i][0])*(t[i][0]-p[i][0])/factor);
-        }
-    }
-    return result;
-}
-/**
- * Single 4 parameter lorentzian function
- * @param t Ordinate values
- * @param p Lorentzian parameters
- * @param c Constant parameters(Not used)
- * @returns {*}
- */
-function singleLorentzian(t,p,c){
-    var factor = p[1][0]*Math.pow(p[2][0]/2,2);
-    var rows = t.rows;
-    var result = new Matrix(t.rows, t.columns);
-    for(var i=0;i<rows;i++){
-        result[i][0]=factor/(Math.pow(t[i][0]-p[0][0],2)+Math.pow(p[2][0]/2,2));
-    }
-    return result;
-}
-
-/**
- * Single 3 parameter gaussian function
- * @param t Ordinate values
- * @param p Gaussian parameters [mean, height, std]
- * @param c Constant parameters(Not used)
- * @returns {*}
- */
-function singleGaussian(t,p,c){
-    var factor2 = p[2][0]*p[2][0]/2;
-    var rows = t.rows;
-    var result = new Matrix(t.rows, t.columns);
-    for(var i=0;i<rows;i++){
-        result[i][0]=p[1][0]*Math.exp(-(t[i][0]-p[0][0])*(t[i][0]-p[0][0])/factor2);
-    }
-    return result;
-}
-
-/**
- * * Fits a set of points to a Lorentzian function. Returns the center of the peak, the width at half height, and the height of the signal.
- * @param data,[y]
- * @returns {*[]}
- */
-function optimizeSingleLorentzian(xy, peak, opts) {
-    opts = opts || {};
-    var xy2 = parseData(xy, opts.percentage||0);
-
-    if(xy2===null||xy2[0].rows<3){
-        return null; //Cannot run an optimization with less than 3 points
-    }
-
-    var t = xy2[0];
-    var y_data = xy2[1];
-    var maxY = xy2[2];
-    var nbPoints = t.rows, i;
-
-    var weight = [nbPoints / Math.sqrt(y_data.dot(y_data))];
-
-    var opts=Object.create(opts.LMOptions || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ]);
-    //var opts = [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ];
-    var consts = [ ];
-    var dt = Math.abs(t[0][0]-t[1][0]);// optional vector of constants
-    var dx = new Matrix([[-dt/10000],[-1e-3],[-dt/10000]]);//-Math.abs(t[0][0]-t[1][0])/100;
-    var p_init = new Matrix([[peak.x],[1],[peak.width]]);
-    var p_min = new Matrix([[peak.x-dt],[0.75],[peak.width/4]]);
-    var p_max = new Matrix([[peak.x+dt],[1.25],[peak.width*4]]);
-
-    var p_fit = LM.optimize(singleLorentzian,p_init,t,y_data,weight,dx,p_min,p_max,consts,opts);
-
-
-    p_fit = p_fit.p;
-    return [p_fit[0],[p_fit[1][0]*maxY],p_fit[2]];
-
-}
-
-/**
- * Fits a set of points to a gaussian bell. Returns the mean of the peak, the std and the height of the signal.
- * @param data,[y]
- * @returns {*[]}
- */
-function optimizeSingleGaussian(xy, peak, opts) {
-    opts = opts || {};
-    var xy2 = parseData(xy, opts.percentage||0);
-
-    if(xy2===null||xy2[0].rows<3){
-        return null; //Cannot run an optimization with less than 3 points
-    }
-
-    var t = xy2[0];
-    var y_data = xy2[1];
-    var maxY = xy2[2];
-
-    var nbPoints = t.rows, i;
-
-
-
-    var weight = [nbPoints / Math.sqrt(y_data.dot(y_data))];
-
-    var opts=Object.create(opts.LMOptions || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ]);
-    //var opts = [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ];
-    var consts = [ ];                         // optional vector of constants
-    var dt = Math.abs(t[0][0]-t[1][0]);
-    var dx = new Matrix([[-dt/10000],[-1e-3],[-dt/10000]]);//-Math.abs(t[0][0]-t[1][0])/100;
-
-    var dx = new Matrix([[-Math.abs(t[0][0]-t[1][0])/1000],[-1e-3],[-peak.width/1000]]);
-    var p_init = new Matrix([[peak.x],[1],[peak.width]]);
-    var p_min = new Matrix([[peak.x-dt],[0.75],[peak.width/4]]);
-    var p_max = new Matrix([[peak.x+dt],[1.25],[peak.width*4]]);
-    //var p_min = new Matrix([[peak.x-peak.width/4],[0.75],[peak.width/3]]);
-    //var p_max = new Matrix([[peak.x+peak.width/4],[1.25],[peak.width*3]]);
-
-    var p_fit = LM.optimize(singleGaussian,p_init,t,y_data,weight,dx,p_min,p_max,consts,opts);
-    p_fit = p_fit.p;
-    return [p_fit[0],[p_fit[1][0]*maxY],p_fit[2]];
-}
-
-/*
- peaks on group should sorted
- */
-function optimizeLorentzianTrain(xy, group, opts){
-    var xy2 = parseData(xy);
-    //console.log(xy2[0].rows);
-    if(xy2===null||xy2[0].rows<3){
-        return null; //Cannot run an optimization with less than 3 points
-    }
-
-    var t = xy2[0];
-    var y_data = xy2[1];
-    var maxY = xy2[2];
-    var currentIndex = 0;
-    var nbPoints = t.length;
-    var nextX;
-    var tI, yI, maxY;
-    var result=[], current;
-    for(var i=0; i<group.length;i++){
-        nextX = group[i].x-group[i].width*4;
-        //console.log(group[i]);
-        while(t[currentIndex++]<nextX&&currentIndex<nbPoints);
-        nextX = group[i].x+group[i].width*4;
-        tI = [];
-        yI = [];
-        while(t[currentIndex]<=nextX&&currentIndex<nbPoints){
-            tI.push(t[currentIndex][0]);
-            yI.push(y_data[currentIndex][0]*maxY);
-            currentIndex++;
-        }
-
-        current=optimizeSingleLorentzian([tI, yI], group[i], opts);
-        if(current){
-            result.push({"x":current[0][0],"y":current[1][0],"width":current[2][0],"opt":true});
-        }
-        else{
-            result.push({"x":group[i].x,"y":group[i].y,"width":group[i].width,"opt":false});
-        }
-    }
-
-    return result;
-
-}
-
-function optimizeGaussianTrain(xy, group, opts){
-    var xy2 = parseData(xy);
-    //console.log(xy2[0].rows);
-    if(xy2===null||xy2[0].rows<3){
-        return null; //Cannot run an optimization with less than 3 points
-    }
-
-    var t = xy2[0];
-    var y_data = xy2[1];
-    var maxY = xy2[2];
-    var currentIndex = 0;
-    var nbPoints = t.length;
-    var nextX;
-    var tI, yI, maxY;
-    var result=[], current;
-    for(var i=0; i<group.length;i++){
-        nextX = group[i].x-group[i].width*4;
-        //console.log(group[i]);
-        while(t[currentIndex++]<nextX&&currentIndex<nbPoints);
-        nextX = group[i].x+group[i].width*4;
-        tI = [];
-        yI = [];
-        while(t[currentIndex]<=nextX&&currentIndex<nbPoints){
-            tI.push(t[currentIndex][0]);
-            yI.push(y_data[currentIndex][0]*maxY);
-            currentIndex++;
-        }
-
-        current=optimizeSingleGaussian([tI, yI], group[i], opts);
-        if(current){
-            result.push({"x":current[0][0],"y":current[1][0],"width":current[2][0],"opt":true});
-        }
-        else{
-            result.push({"x":group[i].x,"y":group[i].y,"width":group[i].width,"opt":false});
-        }
-    }
-
-    return result;
-}
-
-
-
-/**
- *
- * @param xy A two column matrix containing the x and y data to be fitted
- * @param group A set of initial lorentzian parameters to be optimized [center, heigth, half_width_at_half_height]
- * @returns {Array} A set of final lorentzian parameters [center, heigth, hwhh*2]
- */
-function optimizeLorentzianSum(xy, group, opts){
-    var xy2 = parseData(xy);
-
-    if(xy2===null||xy2[0].rows<3){
-        return null; //Cannot run an optimization with less than 3 points
-    }
-
-    var t = xy2[0];
-    var y_data = xy2[1];
-    var maxY = xy2[2];
-    var nbPoints = t.rows, i;
-
-    var weight = [nbPoints / math.sqrt(y_data.dot(y_data))];
-    var opts=Object.create(opts || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2, 11, 9, 1 ]);
-    var consts = [ ];// optional vector of constants
-
-    var nL = group.length;
-    var p_init = new Matrix(nL*3,1);
-    var p_min =  new Matrix(nL*3,1);
-    var p_max =  new Matrix(nL*3,1);
-    var dx = new Matrix(nL*3,1);
-    var dt = Math.abs(t[0][0]-t[1][0]);
-    for( i=0;i<nL;i++){
-        p_init[i][0] = group[i].x;
-        p_init[i+nL][0] = 1;
-        p_init[i+2*nL][0] = group[i].width;
-
-        p_min[i][0] = group[i].x-dt;//-group[i].width/4;
-        p_min[i+nL][0] = 0;
-        p_min[i+2*nL][0] = group[i].width/4;
-
-        p_max[i][0] = group[i].x+dt;//+group[i].width/4;
-        p_max[i+nL][0] = 1.5;
-        p_max[i+2*nL][0] = group[i].width*4;
-
-        dx[i][0] = -dt/1000;
-        dx[i+nL][0] = -1e-3;
-        dx[i+2*nL][0] = -dt/1000;
-    }
-
-    var dx = -Math.abs(t[0][0]-t[1][0])/10000;
-    var p_fit = LM.optimize(sumOfLorentzians, p_init, t, y_data, weight, dx, p_min, p_max, consts, opts);
-    p_fit=p_fit.p;
-    //Put back the result in the correct format
-    var result = new Array(nL);
-    for( i=0;i<nL;i++){
-        result[i]=[p_fit[i],[p_fit[i+nL][0]*maxY],p_fit[i+2*nL]];
-    }
-
-    return result;
-
-}
-
-/**
- *
- * @param xy A two column matrix containing the x and y data to be fitted
- * @param group A set of initial lorentzian parameters to be optimized [center, heigth, half_width_at_half_height]
- * @returns {Array} A set of final lorentzian parameters [center, heigth, hwhh*2]
- */
-function optimizeGaussianSum(xy, group, opts){
-    var xy2 = parseData(xy);
-
-    if(xy2===null||xy2[0].rows<3){
-        return null; //Cannot run an optimization with less than 3 points
-    }
-
-    var t = xy2[0];
-    var y_data = xy2[1];
-    var maxY = xy2[2];
-    var nbPoints = t.rows,i;
-
-    var weight = new Matrix(nbPoints,1);//[nbPoints / math.sqrt(y_data.dot(y_data))];
-    var k = nbPoints / math.sqrt(y_data.dot(y_data));
-    for(i=0;i<nbPoints;i++){
-        weight[i][0]=k;///(y_data[i][0]);
-        //weight[i][0]=k*(2-y_data[i][0]);
-    }
-
-    var opts=Object.create(opts || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        2 ]);
-    //var opts=[  3,    100, 1e-5, 1e-6, 1e-6, 1e-6, 1e-6,    11,    9,        1 ];
-    var consts = [ ];// optional vector of constants
-
-    var nL = group.length;
-    var p_init = new Matrix(nL*3,1);
-    var p_min =  new Matrix(nL*3,1);
-    var p_max =  new Matrix(nL*3,1);
-    var dx = new Matrix(nL*3,1);
-    var dt = Math.abs(t[0][0]-t[1][0]);
-    for( i=0;i<nL;i++){
-        p_init[i][0] = group[i].x;
-        p_init[i+nL][0] = group[i].y/maxY;
-        p_init[i+2*nL][0] = group[i].width;
-
-        p_min[i][0] = group[i].x-dt;
-        p_min[i+nL][0] = group[i].y*0.8/maxY;
-        p_min[i+2*nL][0] = group[i].width/2;
-
-        p_max[i][0] = group[i].x+dt;
-        p_max[i+nL][0] = group[i].y*1.2/maxY;
-        p_max[i+2*nL][0] = group[i].width*2;
-
-        dx[i][0] = -dt/1000;
-        dx[i+nL][0] = -1e-3;
-        dx[i+2*nL][0] = -dt/1000;
-    }
-    //console.log(t);
-    var p_fit = LM.optimize(sumOfLorentzians,p_init,t,y_data,weight,dx,p_min,p_max,consts,opts);
-    p_fit = p_fit.p;
-    //Put back the result in the correct format
-    var result = new Array(nL);
-    for( i=0;i<nL;i++){
-        result[i]=[p_fit[i],[p_fit[i+nL][0]*maxY],p_fit[i+2*nL]];
-    }
-
-    return result;
-
-}
-/**
- *
- * Converts the given input to the required x, y column matrices. y data is normalized to max(y)=1
- * @param xy
- * @returns {*[]}
- */
-function parseData(xy, threshold){
-    var nbSeries = xy.length;
-    var t = null;
-    var y_data = null, x,y;
-    var maxY = 0, i,j;
-
-    if(nbSeries==2){
-        //Looks like row wise matrix [x,y]
-        var nbPoints = xy[0].length;
-        //if(nbPoints<3)
-        //    throw new Exception(nbPoints);
-        //else{
-        t = new Array(nbPoints);//new Matrix(nbPoints,1);
-        y_data = new Array(nbPoints);//new Matrix(nbPoints,1);
-        x = xy[0];
-        y = xy[1];
-        if(typeof x[0] === "number"){
-            for(i=0;i<nbPoints;i++){
-                t[i]=x[i];
-                y_data[i]=y[i];
-                if(y[i]>maxY)
-                    maxY = y[i];
-            }
-        }
-        else{
-            //It is a colum matrix
-            if(typeof x[0] === "object"){
-                for(i=0;i<nbPoints;i++){
-                    t[i]=x[i][0];
-                    y_data[i]=y[i][0];
-                    if(y[i][0]>maxY)
-                        maxY = y[i][0];
-                }
-            }
-
-        }
-
-        //}
-    }
-    else{
-        //Looks like a column wise matrix [[x],[y]]
-        var nbPoints = nbSeries;
-        //if(nbPoints<3)
-        //    throw new SizeException(nbPoints);
-        //else {
-        t = new Array(nbPoints);//new Matrix(nbPoints, 1);
-        y_data = new Array(nbPoints);//new Matrix(nbPoints, 1);
-        for (i = 0; i < nbPoints; i++) {
-            t[i] = xy[i][0];
-            y_data[i] = xy[i][1];
-            if(y_data[i]>maxY)
-                maxY = y_data[i];
-        }
-        //}
-    }
-    for (i = 0; i < nbPoints; i++) {
-        y_data[i]/=maxY;
-    }
-    if(threshold){
-        for (i = nbPoints-1; i >=0; i--) {
-            if(y_data[i]<threshold) {
-                y_data.splice(i,1);
-                t.splice(i,1);
-            }
-        }
-    }
-    if(t.length>0)
-        return [(new Matrix([t])).transpose(),(new Matrix([y_data])).transpose(),maxY];
-    return null;
-}
-
-function sizeException(nbPoints) {
-    return new RangeError("Not enough points to perform the optimization: "+nbPoints +"< 3");
-}
-
-module.exports.optimizeSingleLorentzian = optimizeSingleLorentzian;
-module.exports.optimizeLorentzianSum = optimizeLorentzianSum;
-module.exports.optimizeSingleGaussian = optimizeSingleGaussian;
-module.exports.optimizeGaussianSum = optimizeGaussianSum;
-module.exports.singleGaussian = singleGaussian;
-module.exports.singleLorentzian = singleLorentzian;
-module.exports.optimizeGaussianTrain = optimizeGaussianTrain;
-module.exports.optimizeLorentzianTrain = optimizeLorentzianTrain;
-
-/***/ }),
-/* 117 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.array = __webpack_require__(43);
-exports.matrix = __webpack_require__(118);
-
-
-/***/ }),
-/* 118 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var arrayStat = __webpack_require__(43);
-
-// https://github.com/accord-net/framework/blob/development/Sources/Accord.Statistics/Tools.cs
-
-function entropy(matrix, eps) {
-    if (typeof(eps) === 'undefined') {
-        eps = 0;
-    }
-    var sum = 0,
-        l1 = matrix.length,
-        l2 = matrix[0].length;
-    for (var i = 0; i < l1; i++) {
-        for (var j = 0; j < l2; j++) {
-            sum += matrix[i][j] * Math.log(matrix[i][j] + eps);
-        }
-    }
-    return -sum;
-}
-
-function mean(matrix, dimension) {
-    if (typeof(dimension) === 'undefined') {
-        dimension = 0;
-    }
-    var rows = matrix.length,
-        cols = matrix[0].length,
-        theMean, N, i, j;
-
-    if (dimension === -1) {
-        theMean = [0];
-        N = rows * cols;
-        for (i = 0; i < rows; i++) {
-            for (j = 0; j < cols; j++) {
-                theMean[0] += matrix[i][j];
-            }
-        }
-        theMean[0] /= N;
-    } else if (dimension === 0) {
-        theMean = new Array(cols);
-        N = rows;
-        for (j = 0; j < cols; j++) {
-            theMean[j] = 0;
-            for (i = 0; i < rows; i++) {
-                theMean[j] += matrix[i][j];
-            }
-            theMean[j] /= N;
-        }
-    } else if (dimension === 1) {
-        theMean = new Array(rows);
-        N = cols;
-        for (j = 0; j < rows; j++) {
-            theMean[j] = 0;
-            for (i = 0; i < cols; i++) {
-                theMean[j] += matrix[j][i];
-            }
-            theMean[j] /= N;
-        }
-    } else {
-        throw new Error('Invalid dimension');
-    }
-    return theMean;
-}
-
-function standardDeviation(matrix, means, unbiased) {
-    var vari = variance(matrix, means, unbiased), l = vari.length;
-    for (var i = 0; i < l; i++) {
-        vari[i] = Math.sqrt(vari[i]);
-    }
-    return vari;
-}
-
-function variance(matrix, means, unbiased) {
-    if (typeof(unbiased) === 'undefined') {
-        unbiased = true;
-    }
-    means = means || mean(matrix);
-    var rows = matrix.length;
-    if (rows === 0) return [];
-    var cols = matrix[0].length;
-    var vari = new Array(cols);
-
-    for (var j = 0; j < cols; j++) {
-        var sum1 = 0, sum2 = 0, x = 0;
-        for (var i = 0; i < rows; i++) {
-            x = matrix[i][j] - means[j];
-            sum1 += x;
-            sum2 += x * x;
-        }
-        if (unbiased) {
-            vari[j] = (sum2 - ((sum1 * sum1) / rows)) / (rows - 1);
-        } else {
-            vari[j] = (sum2 - ((sum1 * sum1) / rows)) / rows;
-        }
-    }
-    return vari;
-}
-
-function median(matrix) {
-    var rows = matrix.length, cols = matrix[0].length;
-    var medians = new Array(cols);
-
-    for (var i = 0; i < cols; i++) {
-        var data = new Array(rows);
-        for (var j = 0; j < rows; j++) {
-            data[j] = matrix[j][i];
-        }
-        data.sort();
-        var N = data.length;
-        if (N % 2 === 0) {
-            medians[i] = (data[N / 2] + data[(N / 2) - 1]) * 0.5;
-        } else {
-            medians[i] = data[Math.floor(N / 2)];
-        }
-    }
-    return medians;
-}
-
-function mode(matrix) {
-    var rows = matrix.length,
-        cols = matrix[0].length,
-        modes = new Array(cols),
-        i, j;
-    for (i = 0; i < cols; i++) {
-        var itemCount = new Array(rows);
-        for (var k = 0; k < rows; k++) {
-            itemCount[k] = 0;
-        }
-        var itemArray = new Array(rows);
-        var count = 0;
-
-        for (j = 0; j < rows; j++) {
-            var index = itemArray.indexOf(matrix[j][i]);
-            if (index >= 0) {
-                itemCount[index]++;
-            } else {
-                itemArray[count] = matrix[j][i];
-                itemCount[count] = 1;
-                count++;
-            }
-        }
-
-        var maxValue = 0, maxIndex = 0;
-        for (j = 0; j < count; j++) {
-            if (itemCount[j] > maxValue) {
-                maxValue = itemCount[j];
-                maxIndex = j;
-            }
-        }
-
-        modes[i] = itemArray[maxIndex];
-    }
-    return modes;
-}
-
-function skewness(matrix, unbiased) {
-    if (typeof(unbiased) === 'undefined') unbiased = true;
-    var means = mean(matrix);
-    var n = matrix.length, l = means.length;
-    var skew = new Array(l);
-
-    for (var j = 0; j < l; j++) {
-        var s2 = 0, s3 = 0;
-        for (var i = 0; i < n; i++) {
-            var dev = matrix[i][j] - means[j];
-            s2 += dev * dev;
-            s3 += dev * dev * dev;
-        }
-
-        var m2 = s2 / n;
-        var m3 = s3 / n;
-        var g = m3 / Math.pow(m2, 3 / 2);
-
-        if (unbiased) {
-            var a = Math.sqrt(n * (n - 1));
-            var b = n - 2;
-            skew[j] = (a / b) * g;
-        } else {
-            skew[j] = g;
-        }
-    }
-    return skew;
-}
-
-function kurtosis(matrix, unbiased) {
-    if (typeof(unbiased) === 'undefined') unbiased = true;
-    var means = mean(matrix);
-    var n = matrix.length, m = matrix[0].length;
-    var kurt = new Array(m);
-
-    for (var j = 0; j < m; j++) {
-        var s2 = 0, s4 = 0;
-        for (var i = 0; i < n; i++) {
-            var dev = matrix[i][j] - means[j];
-            s2 += dev * dev;
-            s4 += dev * dev * dev * dev;
-        }
-        var m2 = s2 / n;
-        var m4 = s4 / n;
-
-        if (unbiased) {
-            var v = s2 / (n - 1);
-            var a = (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3));
-            var b = s4 / (v * v);
-            var c = ((n - 1) * (n - 1)) / ((n - 2) * (n - 3));
-            kurt[j] = a * b - 3 * c;
-        } else {
-            kurt[j] = m4 / (m2 * m2) - 3;
-        }
-    }
-    return kurt;
-}
-
-function standardError(matrix) {
-    var samples = matrix.length;
-    var standardDeviations = standardDeviation(matrix), l = standardDeviations.length;
-    var standardErrors = new Array(l);
-    var sqrtN = Math.sqrt(samples);
-
-    for (var i = 0; i < l; i++) {
-        standardErrors[i] = standardDeviations[i] / sqrtN;
-    }
-    return standardErrors;
-}
-
-function covariance(matrix, dimension) {
-    return scatter(matrix, undefined, dimension);
-}
-
-function scatter(matrix, divisor, dimension) {
-    if (typeof(dimension) === 'undefined') {
-        dimension = 0;
-    }
-    if (typeof(divisor) === 'undefined') {
-        if (dimension === 0) {
-            divisor = matrix.length - 1;
-        } else if (dimension === 1) {
-            divisor = matrix[0].length - 1;
-        }
-    }
-    var means = mean(matrix, dimension),
-        rows = matrix.length;
-    if (rows === 0) {
-        return [[]];
-    }
-    var cols = matrix[0].length,
-        cov, i, j, s, k;
-
-    if (dimension === 0) {
-        cov = new Array(cols);
-        for (i = 0; i < cols; i++) {
-            cov[i] = new Array(cols);
-        }
-        for (i = 0; i < cols; i++) {
-            for (j = i; j < cols; j++) {
-                s = 0;
-                for (k = 0; k < rows; k++) {
-                    s += (matrix[k][j] - means[j]) * (matrix[k][i] - means[i]);
-                }
-                s /= divisor;
-                cov[i][j] = s;
-                cov[j][i] = s;
-            }
-        }
-    } else if (dimension === 1) {
-        cov = new Array(rows);
-        for (i = 0; i < rows; i++) {
-            cov[i] = new Array(rows);
-        }
-        for (i = 0; i < rows; i++) {
-            for (j = i; j < rows; j++) {
-                s = 0;
-                for (k = 0; k < cols; k++) {
-                    s += (matrix[j][k] - means[j]) * (matrix[i][k] - means[i]);
-                }
-                s /= divisor;
-                cov[i][j] = s;
-                cov[j][i] = s;
-            }
-        }
-    } else {
-        throw new Error('Invalid dimension');
-    }
-
-    return cov;
-}
-
-function correlation(matrix) {
-    var means = mean(matrix),
-        standardDeviations = standardDeviation(matrix, true, means),
-        scores = zScores(matrix, means, standardDeviations),
-        rows = matrix.length,
-        cols = matrix[0].length,
-        i, j;
-
-    var cor = new Array(cols);
-    for (i = 0; i < cols; i++) {
-        cor[i] = new Array(cols);
-    }
-    for (i = 0; i < cols; i++) {
-        for (j = i; j < cols; j++) {
-            var c = 0;
-            for (var k = 0, l = scores.length; k < l; k++) {
-                c += scores[k][j] * scores[k][i];
-            }
-            c /= rows - 1;
-            cor[i][j] = c;
-            cor[j][i] = c;
-        }
-    }
-    return cor;
-}
-
-function zScores(matrix, means, standardDeviations) {
-    means = means || mean(matrix);
-    if (typeof(standardDeviations) === 'undefined') standardDeviations = standardDeviation(matrix, true, means);
-    return standardize(center(matrix, means, false), standardDeviations, true);
-}
-
-function center(matrix, means, inPlace) {
-    means = means || mean(matrix);
-    var result = matrix,
-        l = matrix.length,
-        i, j, jj;
-
-    if (!inPlace) {
-        result = new Array(l);
-        for (i = 0; i < l; i++) {
-            result[i] = new Array(matrix[i].length);
-        }
-    }
-
-    for (i = 0; i < l; i++) {
-        var row = result[i];
-        for (j = 0, jj = row.length; j < jj; j++) {
-            row[j] = matrix[i][j] - means[j];
-        }
-    }
-    return result;
-}
-
-function standardize(matrix, standardDeviations, inPlace) {
-    if (typeof(standardDeviations) === 'undefined') standardDeviations = standardDeviation(matrix);
-    var result = matrix,
-        l = matrix.length,
-        i, j, jj;
-
-    if (!inPlace) {
-        result = new Array(l);
-        for (i = 0; i < l; i++) {
-            result[i] = new Array(matrix[i].length);
-        }
-    }
-
-    for (i = 0; i < l; i++) {
-        var resultRow = result[i];
-        var sourceRow = matrix[i];
-        for (j = 0, jj = resultRow.length; j < jj; j++) {
-            if (standardDeviations[j] !== 0 && !isNaN(standardDeviations[j])) {
-                resultRow[j] = sourceRow[j] / standardDeviations[j];
-            }
-        }
-    }
-    return result;
-}
-
-function weightedVariance(matrix, weights) {
-    var means = mean(matrix);
-    var rows = matrix.length;
-    if (rows === 0) return [];
-    var cols = matrix[0].length;
-    var vari = new Array(cols);
-
-    for (var j = 0; j < cols; j++) {
-        var sum = 0;
-        var a = 0, b = 0;
-
-        for (var i = 0; i < rows; i++) {
-            var z = matrix[i][j] - means[j];
-            var w = weights[i];
-
-            sum += w * (z * z);
-            b += w;
-            a += w * w;
-        }
-
-        vari[j] = sum * (b / (b * b - a));
-    }
-
-    return vari;
-}
-
-function weightedMean(matrix, weights, dimension) {
-    if (typeof(dimension) === 'undefined') {
-        dimension = 0;
-    }
-    var rows = matrix.length;
-    if (rows === 0) return [];
-    var cols = matrix[0].length,
-        means, i, ii, j, w, row;
-
-    if (dimension === 0) {
-        means = new Array(cols);
-        for (i = 0; i < cols; i++) {
-            means[i] = 0;
-        }
-        for (i = 0; i < rows; i++) {
-            row = matrix[i];
-            w = weights[i];
-            for (j = 0; j < cols; j++) {
-                means[j] += row[j] * w;
-            }
-        }
-    } else if (dimension === 1) {
-        means = new Array(rows);
-        for (i = 0; i < rows; i++) {
-            means[i] = 0;
-        }
-        for (j = 0; j < rows; j++) {
-            row = matrix[j];
-            w = weights[j];
-            for (i = 0; i < cols; i++) {
-                means[j] += row[i] * w;
-            }
-        }
-    } else {
-        throw new Error('Invalid dimension');
-    }
-
-    var weightSum = arrayStat.sum(weights);
-    if (weightSum !== 0) {
-        for (i = 0, ii = means.length; i < ii; i++) {
-            means[i] /= weightSum;
-        }
-    }
-    return means;
-}
-
-function weightedCovariance(matrix, weights, means, dimension) {
-    dimension = dimension || 0;
-    means = means || weightedMean(matrix, weights, dimension);
-    var s1 = 0, s2 = 0;
-    for (var i = 0, ii = weights.length; i < ii; i++) {
-        s1 += weights[i];
-        s2 += weights[i] * weights[i];
-    }
-    var factor = s1 / (s1 * s1 - s2);
-    return weightedScatter(matrix, weights, means, factor, dimension);
-}
-
-function weightedScatter(matrix, weights, means, factor, dimension) {
-    dimension = dimension || 0;
-    means = means || weightedMean(matrix, weights, dimension);
-    if (typeof(factor) === 'undefined') {
-        factor = 1;
-    }
-    var rows = matrix.length;
-    if (rows === 0) {
-        return [[]];
-    }
-    var cols = matrix[0].length,
-        cov, i, j, k, s;
-
-    if (dimension === 0) {
-        cov = new Array(cols);
-        for (i = 0; i < cols; i++) {
-            cov[i] = new Array(cols);
-        }
-        for (i = 0; i < cols; i++) {
-            for (j = i; j < cols; j++) {
-                s = 0;
-                for (k = 0; k < rows; k++) {
-                    s += weights[k] * (matrix[k][j] - means[j]) * (matrix[k][i] - means[i]);
-                }
-                cov[i][j] = s * factor;
-                cov[j][i] = s * factor;
-            }
-        }
-    } else if (dimension === 1) {
-        cov = new Array(rows);
-        for (i = 0; i < rows; i++) {
-            cov[i] = new Array(rows);
-        }
-        for (i = 0; i < rows; i++) {
-            for (j = i; j < rows; j++) {
-                s = 0;
-                for (k = 0; k < cols; k++) {
-                    s += weights[k] * (matrix[j][k] - means[j]) * (matrix[i][k] - means[i]);
-                }
-                cov[i][j] = s * factor;
-                cov[j][i] = s * factor;
-            }
-        }
-    } else {
-        throw new Error('Invalid dimension');
-    }
-
-    return cov;
-}
-
-module.exports = {
-    entropy: entropy,
-    mean: mean,
-    standardDeviation: standardDeviation,
-    variance: variance,
-    median: median,
-    mode: mode,
-    skewness: skewness,
-    kurtosis: kurtosis,
-    standardError: standardError,
-    covariance: covariance,
-    scatter: scatter,
-    correlation: correlation,
-    zScores: zScores,
-    center: center,
-    standardize: standardize,
-    weightedVariance: weightedVariance,
-    weightedMean: weightedMean,
-    weightedCovariance: weightedCovariance,
-    weightedScatter: weightedScatter
-};
-
-
-/***/ }),
-/* 119 */
-/***/ (function(module, exports, __webpack_require__) {
-
-//Code translate from Pascal source in http://pubs.acs.org/doi/pdf/10.1021/ac00205a007
-var extend = __webpack_require__(28);
-var stat = __webpack_require__(117);
-
-var defaultOptions = {
-    windowSize: 9,
-    derivative: 0,
-    polynomial: 3,
-};
-
-
-function SavitzkyGolay(data, h, options) {
-    options = extend({}, defaultOptions, options);
-
-    if ((options.windowSize % 2 === 0) || (options.windowSize < 5) || !(Number.isInteger(options.windowSize)))
-            throw new RangeError('Invalid window size (should be odd and at least 5 integer number)')
-
-
-    if (options.windowSize>data.length)
-        throw new RangeError('Window size is higher than the data length '+options.windowSize+">"+data.length);
-    if ((options.derivative < 0) || !(Number.isInteger(options.derivative)))
-        throw new RangeError('Derivative should be a positive integer');
-    if ((options.polynomial < 1) || !(Number.isInteger(options.polynomial)))
-        throw new RangeError('Polynomial should be a positive integer');
-    if (options.polynomial >= 6)
-        console.warn('You should not use polynomial grade higher than 5 if you are' +
-            ' not sure that your data arises from such a model. Possible polynomial oscillation problems');
-
-    var windowSize = options.windowSize;
-
-    var half = Math.floor(windowSize/2);
-    var np = data.length;
-    var ans = new Array(np);
-    var weights = fullWeights(windowSize,options.polynomial,options.derivative);
-    var hs = 0;
-    var constantH = true;
-    if( Object.prototype.toString.call( h ) === '[object Array]' ) {
-        constantH = false;
-    }
-    else{
-        hs = Math.pow(h, options.derivative);
-    }
-    //console.log("Constant h: "+constantH);
-    //For the borders
-    for(var i=0;i<half;i++){
-        var wg1=weights[half-i-1];
-        var wg2=weights[half+i+1];
-        var d1 = 0,d2=0;
-        for (var l = 0; l < windowSize; l++){
-            d1 += wg1[l] * data[l];
-            d2 += wg2[l] * data[np-windowSize+l-1];
-        }
-        if(constantH){
-            ans[half-i-1] = d1/hs;
-            ans[np-half+i] = d2/hs;
-        }
-        else{
-            hs = getHs(h,half-i-1,half, options.derivative);
-            ans[half-i-1] = d1/hs;
-            hs = getHs(h,np-half+i,half, options.derivative);
-            ans[np-half+i] = d2/hs;
-        }
-    }
-    //For the internal points
-    var wg = weights[half];
-    for(var i=windowSize;i<np+1;i++){
-        var d = 0;
-        for (var l = 0; l < windowSize; l++)
-            d += wg[l] * data[l+i-windowSize];
-        if(!constantH)
-            hs = getHs(h,i-half-1,half, options.derivative);
-        ans[i-half-1] = d/hs;
-    }
-    return ans;
-}
-
-function getHs(h,center,half,derivative){
-    var hs = 0;
-    var count = 0;
-    for(var i=center-half;i<center+half;i++){
-        if(i>=0 && i < h.length-1){
-            hs+= (h[i+1]-h[i]);
-            count++;
-        }
-    }
-    return Math.pow(hs/count,derivative);
-}
-
-function GramPoly(i,m,k,s){
-    var Grampoly = 0;
-    if(k>0){
-        Grampoly = (4*k-2)/(k*(2*m-k+1))*(i*GramPoly(i,m,k-1,s) +
-            s*GramPoly(i,m,k-1,s-1)) - ((k-1)*(2*m+k))/(k*(2*m-k+1))*GramPoly(i,m,k-2,s);
-    }
-    else{
-        if(k==0&&s==0){
-            Grampoly=1;
-        }
-        else{
-            Grampoly=0;
-        }
-    }
-    //console.log(Grampoly);
-    return Grampoly;
-}
-
-function GenFact(a,b){
-    var gf=1;
-    if(a>=b){
-        for(var j=a-b+1;j<=a;j++){
-            gf*=j;
-        }
-    }
-    return gf;
-}
-
-function Weight(i,t,m,n,s){
-    var sum=0;
-    for(var k=0;k<=n;k++){
-        //console.log(k);
-        sum+=(2*k+1)*(GenFact(2*m,k)/GenFact(2*m+k+1,k+1))*GramPoly(i,m,k,0)*GramPoly(t,m,k,s)
-    }
-    return sum;
-}
-
-/**
- *
- * @param m  Number of points
- * @param n  Polynomial grade
- * @param s  Derivative
- */
-function fullWeights(m,n,s){
-    var weights = new Array(m);
-    var np = Math.floor(m/2);
-    for(var t=-np;t<=np;t++){
-        weights[t+np] = new Array(m);
-        for(var j=-np;j<=np;j++){
-            weights[t+np][j+np]=Weight(j,t,np,n,s);
-        }
-    }
-    return weights;
-}
-
-/*function entropy(data,h,options){
-    var trend = SavitzkyGolay(data,h,trendOptions);
-    var copy = new Array(data.length);
-    var sum = 0;
-    var max = 0;
-    for(var i=0;i<data.length;i++){
-        copy[i] = data[i]-trend[i];
-    }
-
-    sum/=data.length;
-    console.log(sum+" "+max);
-    console.log(stat.array.standardDeviation(copy));
-    console.log(Math.abs(stat.array.mean(copy))/stat.array.standardDeviation(copy));
-    return sum;
-
-}
-
-
-
-function guessWindowSize(data, h){
-    console.log("entropy "+entropy(data,h,trendOptions));
-    return 5;
-}
-*/
-module.exports = SavitzkyGolay;
- 
-
-
-/***/ }),
-/* 120 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var arrayStat = __webpack_require__(46);
-
-function compareNumbers(a, b) {
-    return a - b;
-}
-
-exports.max = function max(matrix) {
-    var max = -Infinity;
-    for (var i = 0; i < matrix.length; i++) {
-        for (var j = 0; j < matrix[i].length; j++) {
-            if (matrix[i][j] > max) max = matrix[i][j];
-        }
-    }
-    return max;
-};
-
-exports.min = function min(matrix) {
-    var min = Infinity;
-    for (var i = 0; i < matrix.length; i++) {
-        for (var j = 0; j < matrix[i].length; j++) {
-            if (matrix[i][j] < min) min = matrix[i][j];
-        }
-    }
-    return min;
-};
-
-exports.minMax = function minMax(matrix) {
-    var min = Infinity;
-    var max = -Infinity;
-    for (var i = 0; i < matrix.length; i++) {
-        for (var j = 0; j < matrix[i].length; j++) {
-            if (matrix[i][j] < min) min = matrix[i][j];
-            if (matrix[i][j] > max) max = matrix[i][j];
-        }
-    }
-    return {
-        min:min,
-        max:max
-    };
-};
-
-exports.entropy = function entropy(matrix, eps) {
-    if (typeof (eps) === 'undefined') {
-        eps = 0;
-    }
-    var sum = 0,
-        l1 = matrix.length,
-        l2 = matrix[0].length;
-    for (var i = 0; i < l1; i++) {
-        for (var j = 0; j < l2; j++) {
-            sum += matrix[i][j] * Math.log(matrix[i][j] + eps);
-        }
-    }
-    return -sum;
-};
-
-exports.mean = function mean(matrix, dimension) {
-    if (typeof (dimension) === 'undefined') {
-        dimension = 0;
-    }
-    var rows = matrix.length,
-        cols = matrix[0].length,
-        theMean, N, i, j;
-
-    if (dimension === -1) {
-        theMean = [0];
-        N = rows * cols;
-        for (i = 0; i < rows; i++) {
-            for (j = 0; j < cols; j++) {
-                theMean[0] += matrix[i][j];
-            }
-        }
-        theMean[0] /= N;
-    } else if (dimension === 0) {
-        theMean = new Array(cols);
-        N = rows;
-        for (j = 0; j < cols; j++) {
-            theMean[j] = 0;
-            for (i = 0; i < rows; i++) {
-                theMean[j] += matrix[i][j];
-            }
-            theMean[j] /= N;
-        }
-    } else if (dimension === 1) {
-        theMean = new Array(rows);
-        N = cols;
-        for (j = 0; j < rows; j++) {
-            theMean[j] = 0;
-            for (i = 0; i < cols; i++) {
-                theMean[j] += matrix[j][i];
-            }
-            theMean[j] /= N;
-        }
-    } else {
-        throw new Error('Invalid dimension');
-    }
-    return theMean;
-};
-
-exports.sum = function sum(matrix, dimension) {
-    if (typeof (dimension) === 'undefined') {
-        dimension = 0;
-    }
-    var rows = matrix.length,
-        cols = matrix[0].length,
-        theSum, i, j;
-
-    if (dimension === -1) {
-        theSum = [0];
-        for (i = 0; i < rows; i++) {
-            for (j = 0; j < cols; j++) {
-                theSum[0] += matrix[i][j];
-            }
-        }
-    } else if (dimension === 0) {
-        theSum = new Array(cols);
-        for (j = 0; j < cols; j++) {
-            theSum[j] = 0;
-            for (i = 0; i < rows; i++) {
-                theSum[j] += matrix[i][j];
-            }
-        }
-    } else if (dimension === 1) {
-        theSum = new Array(rows);
-        for (j = 0; j < rows; j++) {
-            theSum[j] = 0;
-            for (i = 0; i < cols; i++) {
-                theSum[j] += matrix[j][i];
-            }
-        }
-    } else {
-        throw new Error('Invalid dimension');
-    }
-    return theSum;
-};
-
-exports.product = function product(matrix, dimension) {
-    if (typeof (dimension) === 'undefined') {
-        dimension = 0;
-    }
-    var rows = matrix.length,
-        cols = matrix[0].length,
-        theProduct, i, j;
-
-    if (dimension === -1) {
-        theProduct = [1];
-        for (i = 0; i < rows; i++) {
-            for (j = 0; j < cols; j++) {
-                theProduct[0] *= matrix[i][j];
-            }
-        }
-    } else if (dimension === 0) {
-        theProduct = new Array(cols);
-        for (j = 0; j < cols; j++) {
-            theProduct[j] = 1;
-            for (i = 0; i < rows; i++) {
-                theProduct[j] *= matrix[i][j];
-            }
-        }
-    } else if (dimension === 1) {
-        theProduct = new Array(rows);
-        for (j = 0; j < rows; j++) {
-            theProduct[j] = 1;
-            for (i = 0; i < cols; i++) {
-                theProduct[j] *= matrix[j][i];
-            }
-        }
-    } else {
-        throw new Error('Invalid dimension');
-    }
-    return theProduct;
-};
-
-exports.standardDeviation = function standardDeviation(matrix, means, unbiased) {
-    var vari = exports.variance(matrix, means, unbiased), l = vari.length;
-    for (var i = 0; i < l; i++) {
-        vari[i] = Math.sqrt(vari[i]);
-    }
-    return vari;
-};
-
-exports.variance = function variance(matrix, means, unbiased) {
-    if (typeof (unbiased) === 'undefined') {
-        unbiased = true;
-    }
-    means = means || exports.mean(matrix);
-    var rows = matrix.length;
-    if (rows === 0) return [];
-    var cols = matrix[0].length;
-    var vari = new Array(cols);
-
-    for (var j = 0; j < cols; j++) {
-        var sum1 = 0, sum2 = 0, x = 0;
-        for (var i = 0; i < rows; i++) {
-            x = matrix[i][j] - means[j];
-            sum1 += x;
-            sum2 += x * x;
-        }
-        if (unbiased) {
-            vari[j] = (sum2 - ((sum1 * sum1) / rows)) / (rows - 1);
-        } else {
-            vari[j] = (sum2 - ((sum1 * sum1) / rows)) / rows;
-        }
-    }
-    return vari;
-};
-
-exports.median = function median(matrix) {
-    var rows = matrix.length, cols = matrix[0].length;
-    var medians = new Array(cols);
-
-    for (var i = 0; i < cols; i++) {
-        var data = new Array(rows);
-        for (var j = 0; j < rows; j++) {
-            data[j] = matrix[j][i];
-        }
-        data.sort(compareNumbers);
-        var N = data.length;
-        if (N % 2 === 0) {
-            medians[i] = (data[N / 2] + data[(N / 2) - 1]) * 0.5;
-        } else {
-            medians[i] = data[Math.floor(N / 2)];
-        }
-    }
-    return medians;
-};
-
-exports.mode = function mode(matrix) {
-    var rows = matrix.length,
-        cols = matrix[0].length,
-        modes = new Array(cols),
-        i, j;
-    for (i = 0; i < cols; i++) {
-        var itemCount = new Array(rows);
-        for (var k = 0; k < rows; k++) {
-            itemCount[k] = 0;
-        }
-        var itemArray = new Array(rows);
-        var count = 0;
-
-        for (j = 0; j < rows; j++) {
-            var index = itemArray.indexOf(matrix[j][i]);
-            if (index >= 0) {
-                itemCount[index]++;
-            } else {
-                itemArray[count] = matrix[j][i];
-                itemCount[count] = 1;
-                count++;
-            }
-        }
-
-        var maxValue = 0, maxIndex = 0;
-        for (j = 0; j < count; j++) {
-            if (itemCount[j] > maxValue) {
-                maxValue = itemCount[j];
-                maxIndex = j;
-            }
-        }
-
-        modes[i] = itemArray[maxIndex];
-    }
-    return modes;
-};
-
-exports.skewness = function skewness(matrix, unbiased) {
-    if (typeof (unbiased) === 'undefined') unbiased = true;
-    var means = exports.mean(matrix);
-    var n = matrix.length, l = means.length;
-    var skew = new Array(l);
-
-    for (var j = 0; j < l; j++) {
-        var s2 = 0, s3 = 0;
-        for (var i = 0; i < n; i++) {
-            var dev = matrix[i][j] - means[j];
-            s2 += dev * dev;
-            s3 += dev * dev * dev;
-        }
-
-        var m2 = s2 / n;
-        var m3 = s3 / n;
-        var g = m3 / Math.pow(m2, 3 / 2);
-
-        if (unbiased) {
-            var a = Math.sqrt(n * (n - 1));
-            var b = n - 2;
-            skew[j] = (a / b) * g;
-        } else {
-            skew[j] = g;
-        }
-    }
-    return skew;
-};
-
-exports.kurtosis = function kurtosis(matrix, unbiased) {
-    if (typeof (unbiased) === 'undefined') unbiased = true;
-    var means = exports.mean(matrix);
-    var n = matrix.length, m = matrix[0].length;
-    var kurt = new Array(m);
-
-    for (var j = 0; j < m; j++) {
-        var s2 = 0, s4 = 0;
-        for (var i = 0; i < n; i++) {
-            var dev = matrix[i][j] - means[j];
-            s2 += dev * dev;
-            s4 += dev * dev * dev * dev;
-        }
-        var m2 = s2 / n;
-        var m4 = s4 / n;
-
-        if (unbiased) {
-            var v = s2 / (n - 1);
-            var a = (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3));
-            var b = s4 / (v * v);
-            var c = ((n - 1) * (n - 1)) / ((n - 2) * (n - 3));
-            kurt[j] = a * b - 3 * c;
-        } else {
-            kurt[j] = m4 / (m2 * m2) - 3;
-        }
-    }
-    return kurt;
-};
-
-exports.standardError = function standardError(matrix) {
-    var samples = matrix.length;
-    var standardDeviations = exports.standardDeviation(matrix);
-    var l = standardDeviations.length;
-    var standardErrors = new Array(l);
-    var sqrtN = Math.sqrt(samples);
-
-    for (var i = 0; i < l; i++) {
-        standardErrors[i] = standardDeviations[i] / sqrtN;
-    }
-    return standardErrors;
-};
-
-exports.covariance = function covariance(matrix, dimension) {
-    return exports.scatter(matrix, undefined, dimension);
-};
-
-exports.scatter = function scatter(matrix, divisor, dimension) {
-    if (typeof (dimension) === 'undefined') {
-        dimension = 0;
-    }
-    if (typeof (divisor) === 'undefined') {
-        if (dimension === 0) {
-            divisor = matrix.length - 1;
-        } else if (dimension === 1) {
-            divisor = matrix[0].length - 1;
-        }
-    }
-    var means = exports.mean(matrix, dimension);
-    var rows = matrix.length;
-    if (rows === 0) {
-        return [[]];
-    }
-    var cols = matrix[0].length,
-        cov, i, j, s, k;
-
-    if (dimension === 0) {
-        cov = new Array(cols);
-        for (i = 0; i < cols; i++) {
-            cov[i] = new Array(cols);
-        }
-        for (i = 0; i < cols; i++) {
-            for (j = i; j < cols; j++) {
-                s = 0;
-                for (k = 0; k < rows; k++) {
-                    s += (matrix[k][j] - means[j]) * (matrix[k][i] - means[i]);
-                }
-                s /= divisor;
-                cov[i][j] = s;
-                cov[j][i] = s;
-            }
-        }
-    } else if (dimension === 1) {
-        cov = new Array(rows);
-        for (i = 0; i < rows; i++) {
-            cov[i] = new Array(rows);
-        }
-        for (i = 0; i < rows; i++) {
-            for (j = i; j < rows; j++) {
-                s = 0;
-                for (k = 0; k < cols; k++) {
-                    s += (matrix[j][k] - means[j]) * (matrix[i][k] - means[i]);
-                }
-                s /= divisor;
-                cov[i][j] = s;
-                cov[j][i] = s;
-            }
-        }
-    } else {
-        throw new Error('Invalid dimension');
-    }
-
-    return cov;
-};
-
-exports.correlation = function correlation(matrix) {
-    var means = exports.mean(matrix),
-        standardDeviations = exports.standardDeviation(matrix, true, means),
-        scores = exports.zScores(matrix, means, standardDeviations),
-        rows = matrix.length,
-        cols = matrix[0].length,
-        i, j;
-
-    var cor = new Array(cols);
-    for (i = 0; i < cols; i++) {
-        cor[i] = new Array(cols);
-    }
-    for (i = 0; i < cols; i++) {
-        for (j = i; j < cols; j++) {
-            var c = 0;
-            for (var k = 0, l = scores.length; k < l; k++) {
-                c += scores[k][j] * scores[k][i];
-            }
-            c /= rows - 1;
-            cor[i][j] = c;
-            cor[j][i] = c;
-        }
-    }
-    return cor;
-};
-
-exports.zScores = function zScores(matrix, means, standardDeviations) {
-    means = means || exports.mean(matrix);
-    if (typeof (standardDeviations) === 'undefined') standardDeviations = exports.standardDeviation(matrix, true, means);
-    return exports.standardize(exports.center(matrix, means, false), standardDeviations, true);
-};
-
-exports.center = function center(matrix, means, inPlace) {
-    means = means || exports.mean(matrix);
-    var result = matrix,
-        l = matrix.length,
-        i, j, jj;
-
-    if (!inPlace) {
-        result = new Array(l);
-        for (i = 0; i < l; i++) {
-            result[i] = new Array(matrix[i].length);
-        }
-    }
-
-    for (i = 0; i < l; i++) {
-        var row = result[i];
-        for (j = 0, jj = row.length; j < jj; j++) {
-            row[j] = matrix[i][j] - means[j];
-        }
-    }
-    return result;
-};
-
-exports.standardize = function standardize(matrix, standardDeviations, inPlace) {
-    if (typeof (standardDeviations) === 'undefined') standardDeviations = exports.standardDeviation(matrix);
-    var result = matrix,
-        l = matrix.length,
-        i, j, jj;
-
-    if (!inPlace) {
-        result = new Array(l);
-        for (i = 0; i < l; i++) {
-            result[i] = new Array(matrix[i].length);
-        }
-    }
-
-    for (i = 0; i < l; i++) {
-        var resultRow = result[i];
-        var sourceRow = matrix[i];
-        for (j = 0, jj = resultRow.length; j < jj; j++) {
-            if (standardDeviations[j] !== 0 && !isNaN(standardDeviations[j])) {
-                resultRow[j] = sourceRow[j] / standardDeviations[j];
-            }
-        }
-    }
-    return result;
-};
-
-exports.weightedVariance = function weightedVariance(matrix, weights) {
-    var means = exports.mean(matrix);
-    var rows = matrix.length;
-    if (rows === 0) return [];
-    var cols = matrix[0].length;
-    var vari = new Array(cols);
-
-    for (var j = 0; j < cols; j++) {
-        var sum = 0;
-        var a = 0, b = 0;
-
-        for (var i = 0; i < rows; i++) {
-            var z = matrix[i][j] - means[j];
-            var w = weights[i];
-
-            sum += w * (z * z);
-            b += w;
-            a += w * w;
-        }
-
-        vari[j] = sum * (b / (b * b - a));
-    }
-
-    return vari;
-};
-
-exports.weightedMean = function weightedMean(matrix, weights, dimension) {
-    if (typeof (dimension) === 'undefined') {
-        dimension = 0;
-    }
-    var rows = matrix.length;
-    if (rows === 0) return [];
-    var cols = matrix[0].length,
-        means, i, ii, j, w, row;
-
-    if (dimension === 0) {
-        means = new Array(cols);
-        for (i = 0; i < cols; i++) {
-            means[i] = 0;
-        }
-        for (i = 0; i < rows; i++) {
-            row = matrix[i];
-            w = weights[i];
-            for (j = 0; j < cols; j++) {
-                means[j] += row[j] * w;
-            }
-        }
-    } else if (dimension === 1) {
-        means = new Array(rows);
-        for (i = 0; i < rows; i++) {
-            means[i] = 0;
-        }
-        for (j = 0; j < rows; j++) {
-            row = matrix[j];
-            w = weights[j];
-            for (i = 0; i < cols; i++) {
-                means[j] += row[i] * w;
-            }
-        }
-    } else {
-        throw new Error('Invalid dimension');
-    }
-
-    var weightSum = arrayStat.sum(weights);
-    if (weightSum !== 0) {
-        for (i = 0, ii = means.length; i < ii; i++) {
-            means[i] /= weightSum;
-        }
-    }
-    return means;
-};
-
-exports.weightedCovariance = function weightedCovariance(matrix, weights, means, dimension) {
-    dimension = dimension || 0;
-    means = means || exports.weightedMean(matrix, weights, dimension);
-    var s1 = 0, s2 = 0;
-    for (var i = 0, ii = weights.length; i < ii; i++) {
-        s1 += weights[i];
-        s2 += weights[i] * weights[i];
-    }
-    var factor = s1 / (s1 * s1 - s2);
-    return exports.weightedScatter(matrix, weights, means, factor, dimension);
-};
-
-exports.weightedScatter = function weightedScatter(matrix, weights, means, factor, dimension) {
-    dimension = dimension || 0;
-    means = means || exports.weightedMean(matrix, weights, dimension);
-    if (typeof (factor) === 'undefined') {
-        factor = 1;
-    }
-    var rows = matrix.length;
-    if (rows === 0) {
-        return [[]];
-    }
-    var cols = matrix[0].length,
-        cov, i, j, k, s;
-
-    if (dimension === 0) {
-        cov = new Array(cols);
-        for (i = 0; i < cols; i++) {
-            cov[i] = new Array(cols);
-        }
-        for (i = 0; i < cols; i++) {
-            for (j = i; j < cols; j++) {
-                s = 0;
-                for (k = 0; k < rows; k++) {
-                    s += weights[k] * (matrix[k][j] - means[j]) * (matrix[k][i] - means[i]);
-                }
-                cov[i][j] = s * factor;
-                cov[j][i] = s * factor;
-            }
-        }
-    } else if (dimension === 1) {
-        cov = new Array(rows);
-        for (i = 0; i < rows; i++) {
-            cov[i] = new Array(rows);
-        }
-        for (i = 0; i < rows; i++) {
-            for (j = i; j < rows; j++) {
-                s = 0;
-                for (k = 0; k < cols; k++) {
-                    s += weights[k] * (matrix[j][k] - means[j]) * (matrix[i][k] - means[i]);
-                }
-                cov[i][j] = s * factor;
-                cov[j][i] = s * factor;
-            }
-        }
-    } else {
-        throw new Error('Invalid dimension');
-    }
-
-    return cov;
-};
-
-
-/***/ }),
-/* 121 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26678,14 +23605,14 @@ module.exports = CholeskyDecomposition;
 
 
 /***/ }),
-/* 122 */
+/* 114 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 const Matrix = __webpack_require__(1).Matrix;
-const util = __webpack_require__(18);
+const util = __webpack_require__(15);
 const hypotenuse = util.hypotenuse;
 const getFilled2DArray = util.getFilled2DArray;
 
@@ -27465,14 +24392,14 @@ module.exports = EigenvalueDecomposition;
 
 
 /***/ }),
-/* 123 */
+/* 115 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 var Matrix = __webpack_require__(1).Matrix;
-var hypotenuse = __webpack_require__(18).hypotenuse;
+var hypotenuse = __webpack_require__(15).hypotenuse;
 
 //https://github.com/lutzroeder/Mapack/blob/master/Source/QrDecomposition.cs
 function QrDecomposition(value) {
@@ -27624,7 +24551,7 @@ module.exports = QrDecomposition;
 
 
 /***/ }),
-/* 124 */
+/* 116 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27632,11 +24559,11 @@ module.exports = QrDecomposition;
 
 var Matrix = __webpack_require__(1).Matrix;
 
-var SingularValueDecomposition = __webpack_require__(49);
-var EigenvalueDecomposition = __webpack_require__(122);
-var LuDecomposition = __webpack_require__(48);
-var QrDecomposition = __webpack_require__(123);
-var CholeskyDecomposition = __webpack_require__(121);
+var SingularValueDecomposition = __webpack_require__(45);
+var EigenvalueDecomposition = __webpack_require__(114);
+var LuDecomposition = __webpack_require__(44);
+var QrDecomposition = __webpack_require__(115);
+var CholeskyDecomposition = __webpack_require__(113);
 
 function inverse(matrix) {
     matrix = Matrix.checkMatrix(matrix);
@@ -27693,7 +24620,7 @@ module.exports = {
 
 
 /***/ }),
-/* 125 */
+/* 117 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27705,13 +24632,13 @@ if (!Symbol.species) {
 
 
 /***/ }),
-/* 126 */
+/* 118 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var BaseView = __webpack_require__(4);
+var BaseView = __webpack_require__(3);
 
 class MatrixColumnView extends BaseView {
     constructor(matrix, column) {
@@ -27733,13 +24660,13 @@ module.exports = MatrixColumnView;
 
 
 /***/ }),
-/* 127 */
+/* 119 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var BaseView = __webpack_require__(4);
+var BaseView = __webpack_require__(3);
 
 class MatrixFlipColumnView extends BaseView {
     constructor(matrix) {
@@ -27760,13 +24687,13 @@ module.exports = MatrixFlipColumnView;
 
 
 /***/ }),
-/* 128 */
+/* 120 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var BaseView = __webpack_require__(4);
+var BaseView = __webpack_require__(3);
 
 class MatrixFlipRowView extends BaseView {
     constructor(matrix) {
@@ -27787,13 +24714,13 @@ module.exports = MatrixFlipRowView;
 
 
 /***/ }),
-/* 129 */
+/* 121 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var BaseView = __webpack_require__(4);
+var BaseView = __webpack_require__(3);
 
 class MatrixRowView extends BaseView {
     constructor(matrix, row) {
@@ -27815,14 +24742,14 @@ module.exports = MatrixRowView;
 
 
 /***/ }),
-/* 130 */
+/* 122 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var BaseView = __webpack_require__(4);
-var util = __webpack_require__(8);
+var BaseView = __webpack_require__(3);
+var util = __webpack_require__(7);
 
 class MatrixSelectionView extends BaseView {
     constructor(matrix, rowIndices, columnIndices) {
@@ -27846,14 +24773,14 @@ module.exports = MatrixSelectionView;
 
 
 /***/ }),
-/* 131 */
+/* 123 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var BaseView = __webpack_require__(4);
-var util = __webpack_require__(8);
+var BaseView = __webpack_require__(3);
+var util = __webpack_require__(7);
 
 class MatrixSubView extends BaseView {
     constructor(matrix, startRow, endRow, startColumn, endColumn) {
@@ -27877,13 +24804,13 @@ module.exports = MatrixSubView;
 
 
 /***/ }),
-/* 132 */
+/* 124 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var BaseView = __webpack_require__(4);
+var BaseView = __webpack_require__(3);
 
 class MatrixTransposeView extends BaseView {
     constructor(matrix) {
@@ -27904,16 +24831,4098 @@ module.exports = MatrixTransposeView;
 
 
 /***/ }),
+/* 125 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
+ * Created by acastillo on 8/5/15.
+ */
+var Matrix = __webpack_require__(8);
+var math = __webpack_require__(46);
+
+var DEBUG = false;
+/** Levenberg Marquardt curve-fitting: minimize sum of weighted squared residuals
+ ----------  INPUT  VARIABLES  -----------
+ func   = function of n independent variables, 't', and m parameters, 'p',
+ returning the simulated model: y_hat = func(t,p,c)
+ p      = n-vector of initial guess of parameter values
+ t      = m-vectors or matrix of independent variables (used as arg to func)
+ y_dat  = m-vectors or matrix of data to be fit by func(t,p)
+ weight = weighting vector for least squares fit ( weight >= 0 ) ...
+ inverse of the standard measurement errors
+ Default:  sqrt(d.o.f. / ( y_dat' * y_dat ))
+ dp     = fractional increment of 'p' for numerical derivatives
+ dp(j)>0 central differences calculated
+ dp(j)<0 one sided 'backwards' differences calculated
+ dp(j)=0 sets corresponding partials to zero; i.e. holds p(j) fixed
+ Default:  0.001;
+ p_min  = n-vector of lower bounds for parameter values
+ p_max  = n-vector of upper bounds for parameter values
+ c      = an optional matrix of values passed to func(t,p,c)
+ opts   = vector of algorithmic parameters
+ parameter    defaults    meaning
+ opts(1)  =  prnt            3        >1 intermediate results; >2 plots
+ opts(2)  =  MaxIter      10*Npar     maximum number of iterations
+ opts(3)  =  epsilon_1       1e-3     convergence tolerance for gradient
+ opts(4)  =  epsilon_2       1e-3     convergence tolerance for parameters
+ opts(5)  =  epsilon_3       1e-3     convergence tolerance for Chi-square
+ opts(6)  =  epsilon_4       1e-2     determines acceptance of a L-M step
+ opts(7)  =  lambda_0        1e-2     initial value of L-M paramter
+ opts(8)  =  lambda_UP_fac   11       factor for increasing lambda
+ opts(9)  =  lambda_DN_fac    9       factor for decreasing lambda
+ opts(10) =  Update_Type      1       1: Levenberg-Marquardt lambda update
+ 2: Quadratic update
+ 3: Nielsen's lambda update equations
+
+ ----------  OUTPUT  VARIABLES  -----------
+ p       = least-squares optimal estimate of the parameter values
+ X2      = Chi squared criteria
+ sigma_p = asymptotic standard error of the parameters
+ sigma_y = asymptotic standard error of the curve-fit
+ corr    = correlation matrix of the parameters
+ R_sq    = R-squared cofficient of multiple determination
+ cvg_hst = convergence history
+
+ Henri Gavin, Dept. Civil & Environ. Engineering, Duke Univ. 22 Sep 2013
+ modified from: http://octave.sourceforge.net/optim/function/leasqr.html
+ using references by
+ Press, et al., Numerical Recipes, Cambridge Univ. Press, 1992, Chapter 15.
+ Sam Roweis       http://www.cs.toronto.edu/~roweis/notes/lm.pdf
+ Manolis Lourakis http://www.ics.forth.gr/~lourakis/levmar/levmar.pdf
+ Hans Nielson     http://www2.imm.dtu.dk/~hbn/publ/TR9905.ps
+ Mathworks        optimization toolbox reference manual
+ K. Madsen, H.B., Nielsen, and O. Tingleff
+ http://www2.imm.dtu.dk/pubdb/views/edoc_download.php/3215/pdf/imm3215.pdf
+ */
+var LM = {
+
+    optimize: function(func,p,t,y_dat,weight,dp,p_min,p_max,c,opts){
+
+        var tensor_parameter = 0;			// set to 1 of parameter is a tensor
+
+        var iteration  = 0;			// iteration counter
+        //func_calls = 0;			// running count of function evaluations
+
+        if((typeof p[0])!="object"){
+            for(var i=0;i< p.length;i++){
+                p[i]=[p[i]];
+            }
+
+        }
+        //p = p(:); y_dat = y_dat(:);		// make column vectors
+        var i,k;
+        var eps = 2^-52;
+        var Npar   = p.length;//length(p); 			// number of parameters
+        var Npnt   = y_dat.length;//length(y_dat);		// number of data points
+        var p_old  = Matrix.zeros(Npar,1);		// previous set of parameters
+        var y_old  = Matrix.zeros(Npnt,1);		// previous model, y_old = y_hat(t;p_old)
+        var X2     = 1e-2/eps;			// a really big initial Chi-sq value
+        var X2_old = 1e-2/eps;			// a really big initial Chi-sq value
+        var J =  Matrix.zeros(Npnt,Npar);
+
+
+        if (t.length != y_dat.length) {
+            console.log('lm.m error: the length of t must equal the length of y_dat');
+
+            length_t = t.length;
+            length_y_dat = y_dat.length;
+            var X2 = 0, corr = 0, sigma_p = 0, sigma_y = 0, R_sq = 0, cvg_hist = 0;
+            if (!tensor_parameter) {
+                return;
+            }
+        }
+
+        weight = weight||Math.sqrt((Npnt-Npar+1)/(math.multiply(math.transpose(y_dat),y_dat)));
+        dp = dp || 0.001;
+        p_min   = p_min || math.multiply(Math.abs(p),-100);
+        p_max   = p_max || math.multiply(Math.abs(p),100);
+        c = c || 1;
+        // Algorithmic Paramters
+        //prnt MaxIter  eps1  eps2  epx3  eps4  lam0  lamUP lamDN UpdateType
+        opts = opts ||[  3,10*Npar, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2, 11, 9, 1 ];
+
+        var prnt          = opts[0];	// >1 intermediate results; >2 plots
+        var MaxIter       = opts[1];	// maximum number of iterations
+        var epsilon_1     = opts[2];	// convergence tolerance for gradient
+        var epsilon_2     = opts[3];	// convergence tolerance for parameter
+        var epsilon_3     = opts[4];	// convergence tolerance for Chi-square
+        var epsilon_4     = opts[5];	// determines acceptance of a L-M step
+        var lambda_0      = opts[6];	// initial value of damping paramter, lambda
+        var lambda_UP_fac = opts[7];	// factor for increasing lambda
+        var lambda_DN_fac = opts[8];	// factor for decreasing lambda
+        var Update_Type   = opts[9];	// 1: Levenberg-Marquardt lambda update
+        // 2: Quadratic update
+        // 3: Nielsen's lambda update equations
+
+        if ( tensor_parameter && prnt == 3 ) prnt = 2;
+
+
+        if(!dp.length || dp.length == 1){
+            var dp_array = new Array(Npar);
+            for(var i=0;i<Npar;i++)
+                dp_array[i]=[dp];
+            dp=dp_array;
+        }
+
+        // indices of the parameters to be fit
+        var idx   = [];
+        for(i=0;i<dp.length;i++){
+            if(dp[i][0]!=0){
+                idx.push(i);
+            }
+        }
+
+        var Nfit = idx.length;			// number of parameters to fit
+        var stop = false;				// termination flag
+
+        var weight_sq = null;
+        //console.log(weight);
+        if ( !weight.length || weight.length < Npnt )	{
+            // squared weighting vector
+            //weight_sq = ( weight(1)*ones(Npnt,1) ).^2;
+            //console.log("weight[0] "+typeof weight[0]);
+            var tmp = math.multiply(Matrix.ones(Npnt,1),weight[0]);
+            weight_sq = math.dotMultiply(tmp,tmp);
+        }
+        else{
+            //weight_sq = (weight(:)).^2;
+            weight_sq = math.dotMultiply(weight,weight);
+        }
+
+
+        // initialize Jacobian with finite difference calculation
+        //console.log("J "+weight_sq);
+        var result = this.lm_matx(func,t,p_old,y_old,1,J,p,y_dat,weight_sq,dp,c);
+        var JtWJ = result.JtWJ,JtWdy=result.JtWdy,X2=result.Chi_sq,y_hat=result.y_hat,J=result.J;
+        //[JtWJ,JtWdy,X2,y_hat,J] = this.lm_matx(func,t,p_old,y_old,1,J,p,y_dat,weight_sq,dp,c);
+        //console.log(JtWJ);
+
+        if ( Math.max(Math.abs(JtWdy)) < epsilon_1 ){
+            console.log(' *** Your Initial Guess is Extremely Close to Optimal ***')
+            console.log(' *** epsilon_1 = ', epsilon_1);
+            stop = true;
+        }
+
+
+        switch(Update_Type){
+            case 1: // Marquardt: init'l lambda
+                lambda  = lambda_0;
+                break;
+            default:    // Quadratic and Nielsen
+                lambda  = lambda_0 * Math.max(math.diag(JtWJ));
+                nu=2;
+        }
+        //console.log(X2);
+        X2_old = X2; // previous value of X2
+        //console.log(MaxIter+" "+Npar);
+        //var cvg_hst = Matrix.ones(MaxIter,Npar+3);		// initialize convergence history
+        var h = null;
+        while ( !stop && iteration <= MaxIter ) {		// --- Main Loop
+            iteration = iteration + 1;
+            // incremental change in parameters
+            switch(Update_Type){
+                case 1:					// Marquardt
+                    //h = ( JtWJ + lambda * math.diag(math.diag(JtWJ)) ) \ JtWdy;
+                    //h = math.multiply(math.inv(JtWdy),math.add(JtWJ,math.multiply(lambda,math.diag(math.diag(Npar)))));
+                    h = math.solve(math.add(JtWJ,math.multiply(math.diag(math.diag(JtWJ)),lambda)),JtWdy);
+                    break;
+                default:					// Quadratic and Nielsen
+                    //h = ( JtWJ + lambda * math.eye(Npar) ) \ JtWdy;
+
+                    h = math.solve(math.add(JtWJ,math.multiply( Matrix.eye(Npar),lambda)),JtWdy);
+            }
+
+            /*for(var k=0;k< h.length;k++){
+             h[k]=[h[k]];
+             }*/
+            //console.log("h "+h);
+            //h=math.matrix(h);
+            //  big = max(abs(h./p)) > 2;
+            //this is a big step
+            // --- Are parameters [p+h] much better than [p] ?
+            var hidx = new Array(idx.length);
+            for(k=0;k<idx.length;k++){
+                hidx[k]=h[idx[k]];
+            }
+            var p_try = math.add(p, hidx);// update the [idx] elements
+
+            for(k=0;k<p_try.length;k++){
+                p_try[k][0]=Math.min(Math.max(p_min[k][0],p_try[k][0]),p_max[k][0]);
+            }
+            // p_try = Math.min(Math.max(p_min,p_try),p_max);           // apply constraints
+
+            var delta_y = math.subtract(y_dat, func(t,p_try,c));       // residual error using p_try
+            //func_calls = func_calls + 1;
+            //X2_try = delta_y' * ( delta_y .* weight_sq );  // Chi-squared error criteria
+
+            var X2_try = math.multiply(math.transpose(delta_y),math.dotMultiply(delta_y,weight_sq));
+
+            if ( Update_Type == 2 ){  			  // Quadratic
+                //    One step of quadratic line update in the h direction for minimum X2
+                //var alpha =  JtWdy'*h / ( (X2_try - X2)/2 + 2*JtWdy'*h ) ;
+                var JtWdy_th = math.multiply(math.transpose(JtWdy),h);
+                var alpha =  math.multiply(JtWdy_th,math.inv(math.add(math.multiply(math.subtract(X2_try - X2),1/2)),math.multiply(JtWdy_th,2)));//JtWdy'*h / ( (X2_try - X2)/2 + 2*JtWdy'*h ) ;
+
+                h = math.multiply(alpha, h);
+                for(var k=0;k<idx.length;k++){
+                    hidx[k]=h[idx[k]];
+                }
+
+                p_try = math.add(p ,hidx);                     // update only [idx] elements
+                p_try = math.min(math.max(p_min,p_try),p_max);          // apply constraints
+
+                delta_y = math.subtract(y_dat, func(t,p_try,c));      // residual error using p_try
+                // func_calls = func_calls + 1;
+                //X2_try = delta_y' * ( delta_y .* weight_sq ); // Chi-squared error criteria
+                X2_try = math.multiply(math.transpose(delta_y), mat.dotMultiply(delta_y, weight_sq));
+            }
+
+            //rho = (X2 - X2_try) / ( 2*h' * (lambda * h + JtWdy) ); // Nielsen
+            var rho = (X2-X2_try)/math.multiply(math.multiply(math.transpose(h),2),math.add(math.multiply(lambda, h),JtWdy));
+            //console.log("rho "+rho);
+            if ( rho > epsilon_4 ) {		// it IS significantly better
+                //console.log("Here");
+                dX2 = X2 - X2_old;
+                X2_old = X2;
+                p_old = p;
+                y_old = y_hat;
+                p = p_try;			// accept p_try
+
+                result = this.lm_matx(func, t, p_old, y_old, dX2, J, p, y_dat, weight_sq, dp, c);
+                JtWJ = result.JtWJ,JtWdy=result.JtWdy,X2=result.Chi_sq,y_hat=result.y_hat,J=result.J;
+                // decrease lambda ==> Gauss-Newton method
+
+                switch (Update_Type) {
+                    case 1:							// Levenberg
+                        lambda = Math.max(lambda / lambda_DN_fac, 1.e-7);
+                        break;
+                    case 2:							// Quadratic
+                        lambda = Math.max(lambda / (1 + alpha), 1.e-7);
+                        break;
+                    case 3:							// Nielsen
+                        lambda = math.multiply(Math.max(1 / 3, 1 - (2 * rho - 1) ^ 3),lambda);
+                        nu = 2;
+                        break;
+                }
+            }
+            else {					// it IS NOT better
+                X2 = X2_old;			// do not accept p_try
+                if (iteration%(2 * Npar)==0) {	// rank-1 update of Jacobian
+                    result = this.lm_matx(func, t, p_old, y_old, -1, J, p, y_dat, weight_sq, dp, c);
+                    JtWJ = result.JtWJ,JtWdy=result.JtWdy,dX2=result.Chi_sq,y_hat=result.y_hat,J=result.J;
+                }
+
+                // increase lambda  ==> gradient descent method
+                switch (Update_Type) {
+                    case 1:							// Levenberg
+                        lambda = Math.min(lambda * lambda_UP_fac, 1.e7);
+                        break;
+                    case 2:							// Quadratic
+                        lambda = lambda + Math.abs((X2_try - X2) / 2 / alpha);
+                        break;
+                    case 3:						// Nielsen
+                        lambda = lambda * nu;
+                        nu = 2 * nu;
+                        break;
+                }
+            }
+        }// --- End of Main Loop
+
+        // --- convergence achieved, find covariance and confidence intervals
+
+        // equal weights for paramter error analysis
+        weight_sq = math.multiply(math.multiply(math.transpose(delta_y),delta_y), Matrix.ones(Npnt,1));
+
+        weight_sq.apply(function(i,j){
+            weight_sq[i][j] = (Npnt-Nfit+1)/weight_sq[i][j];
+        });
+        //console.log(weight_sq);
+        result = this.lm_matx(func,t,p_old,y_old,-1,J,p,y_dat,weight_sq,dp,c);
+        JtWJ = result.JtWJ,JtWdy=result.JtWdy,X2=result.Chi_sq,y_hat=result.y_hat,J=result.J;
+
+        /*if nargout > 2				// standard error of parameters
+         covar = inv(JtWJ);
+         sigma_p = sqrt(diag(covar));
+         end
+
+         if nargout > 3				// standard error of the fit
+         //  sigma_y = sqrt(diag(J * covar * J'));	// slower version of below
+         sigma_y = zeros(Npnt,1);
+         for i=1:Npnt
+         sigma_y(i) = J(i,:) * covar * J(i,:)';
+         end
+         sigma_y = sqrt(sigma_y);
+         end
+
+         if nargout > 4				// parameter correlation matrix
+         corr = covar ./ [sigma_p*sigma_p'];
+         end
+
+         if nargout > 5				// coefficient of multiple determination
+         R_sq = corrcoef([y_dat y_hat]);
+         R_sq = R_sq(1,2).^2;
+         end
+
+         if nargout > 6				// convergence history
+         cvg_hst = cvg_hst(1:iteration,:);
+         end*/
+
+        // endfunction  # ---------------------------------------------------------- LM
+
+        return { p:p, X2:X2};
+    },
+
+    lm_FD_J:function(func,t,p,y,dp,c) {
+        // J = lm_FD_J(func,t,p,y,{dp},{c})
+        //
+        // partial derivatives (Jacobian) dy/dp for use with lm.m
+        // computed via Finite Differences
+        // Requires n or 2n function evaluations, n = number of nonzero values of dp
+        // -------- INPUT VARIABLES ---------
+        // func = function of independent variables, 't', and parameters, 'p',
+        //        returning the simulated model: y_hat = func(t,p,c)
+        // t  = m-vector of independent variables (used as arg to func)
+        // p  = n-vector of current parameter values
+        // y  = func(t,p,c) n-vector initialised by user before each call to lm_FD_J
+        // dp = fractional increment of p for numerical derivatives
+        //      dp(j)>0 central differences calculated
+        //      dp(j)<0 one sided differences calculated
+        //      dp(j)=0 sets corresponding partials to zero; i.e. holds p(j) fixed
+        //      Default:  0.001;
+        // c  = optional vector of constants passed to y_hat = func(t,p,c)
+        //---------- OUTPUT VARIABLES -------
+        // J  = Jacobian Matrix J(i,j)=dy(i)/dp(j)	i=1:n; j=1:m
+
+        //   Henri Gavin, Dept. Civil & Environ. Engineering, Duke Univ. November 2005
+        //   modified from: ftp://fly.cnuce.cnr.it/pub/software/octave/leasqr/
+        //   Press, et al., Numerical Recipes, Cambridge Univ. Press, 1992, Chapter 15.
+
+        var m = y.length;			// number of data points
+        var n = p.length;			// number of parameters
+
+        dp = dp || math.multiply( Matrix.ones(n, 1), 0.001);
+
+        var ps = p.clone();//JSON.parse(JSON.stringify(p));
+        //var ps = $.extend(true, [], p);
+        var J = new Matrix(m,n), del =new Array(n);         // initialize Jacobian to Zero
+
+        for (var j = 0;j < n; j++) {
+            //console.log(j+" "+dp[j]+" "+p[j]+" "+ps[j]+" "+del[j]);
+            del[j] = dp[j]*(1+Math.abs(p[j][0]));  // parameter perturbation
+            p[j] = [ps[j][0]+del[j]];	      // perturb parameter p(j)
+            //console.log(j+" "+dp[j]+" "+p[j]+" "+ps[j]+" "+del[j]);
+
+            if (del[j] != 0){
+                y1 = func(t, p, c);
+                //func_calls = func_calls + 1;
+                if (dp[j][0] < 0) {		// backwards difference
+                    //J(:,j) = math.dotDivide(math.subtract(y1, y),del[j]);//. / del[j];
+                    //console.log(del[j]);
+                    //console.log(y);
+                    var column = math.dotDivide(math.subtract(y1, y),del[j]);
+                    for(var k=0;k< m;k++){
+                        J[k][j]=column[k][0];
+                    }
+                    //console.log(column);
+                }
+                else{
+                    p[j][0] = ps[j][0] - del[j];
+                    //J(:,j) = (y1 - feval(func, t, p, c)). / (2. * del[j]);
+                    var column = math.dotDivide(math.subtract(y1,func(t,p,c)),2*del[j]);
+                    for(var k=0;k< m;k++){
+                        J[k][j]=column[k][0];
+                    }
+
+                }			// central difference, additional func call
+            }
+
+            p[j] = ps[j];		// restore p(j)
+
+        }
+        //console.log("lm_FD_J: "+ JSON.stringify(J));
+        return J;
+
+    },
+
+    // endfunction # -------------------------------------------------- LM_FD_J
+    lm_Broyden_J: function(p_old,y_old,J,p,y){
+        // J = lm_Broyden_J(p_old,y_old,J,p,y)
+        // carry out a rank-1 update to the Jacobian matrix using Broyden's equation
+        //---------- INPUT VARIABLES -------
+        // p_old = previous set of parameters
+        // y_old = model evaluation at previous set of parameters, y_hat(t;p_old)
+        // J  = current version of the Jacobian matrix
+        // p     = current  set of parameters
+        // y     = model evaluation at current  set of parameters, y_hat(t;p)
+        //---------- OUTPUT VARIABLES -------
+        // J = rank-1 update to Jacobian Matrix J(i,j)=dy(i)/dp(j)	i=1:n; j=1:m
+        //console.log(p+" X "+ p_old)
+        var h  = math.subtract(p, p_old);
+
+        //console.log("hhh "+h);
+        var h_t = math.transpose(h);
+        h_t.div(math.multiply(h_t,h));
+
+        //console.log(h_t);
+        //J = J + ( y - y_old - J*h )*h' / (h'*h);	// Broyden rank-1 update eq'n
+        J = math.add(J, math.multiply(math.subtract(y, math.add(y_old,math.multiply(J,h))),h_t));
+        return J;
+        // endfunction # ---------------------------------------------- LM_Broyden_J
+    },
+
+    lm_matx : function (func,t,p_old,y_old,dX2,J,p,y_dat,weight_sq,dp,c,iteration){
+        // [JtWJ,JtWdy,Chi_sq,y_hat,J] = this.lm_matx(func,t,p_old,y_old,dX2,J,p,y_dat,weight_sq,{da},{c})
+        //
+        // Evaluate the linearized fitting matrix, JtWJ, and vector JtWdy,
+        // and calculate the Chi-squared error function, Chi_sq
+        // Used by Levenberg-Marquard algorithm, lm.m
+        // -------- INPUT VARIABLES ---------
+        // func   = function ofpn independent variables, p, and m parameters, p,
+        //         returning the simulated model: y_hat = func(t,p,c)
+        // t      = m-vectors or matrix of independent variables (used as arg to func)
+        // p_old  = n-vector of previous parameter values
+        // y_old  = m-vector of previous model ... y_old = y_hat(t;p_old);
+        // dX2    = previous change in Chi-squared criteria
+        // J   = m-by-n Jacobian of model, y_hat, with respect to parameters, p
+        // p      = n-vector of current  parameter values
+        // y_dat  = n-vector of data to be fit by func(t,p,c)
+        // weight_sq = square of the weighting vector for least squares fit ...
+        //	    inverse of the standard measurement errors
+        // dp     = fractional increment of 'p' for numerical derivatives
+        //          dp(j)>0 central differences calculated
+        //          dp(j)<0 one sided differences calculated
+        //          dp(j)=0 sets corresponding partials to zero; i.e. holds p(j) fixed
+        //          Default:  0.001;
+        // c      = optional vector of constants passed to y_hat = func(t,p,c)
+        //---------- OUTPUT VARIABLES -------
+        // JtWJ	 = linearized Hessian matrix (inverse of covariance matrix)
+        // JtWdy   = linearized fitting vector
+        // Chi_sq = Chi-squared criteria: weighted sum of the squared residuals WSSR
+        // y_hat  = model evaluated with parameters 'p'
+        // J   = m-by-n Jacobian of model, y_hat, with respect to parameters, p
+
+        //   Henri Gavin, Dept. Civil & Environ. Engineering, Duke Univ. November 2005
+        //   modified from: ftp://fly.cnuce.cnr.it/pub/software/octave/leasqr/
+        //   Press, et al., Numerical Recipes, Cambridge Univ. Press, 1992, Chapter 15.
+
+
+        var Npnt = y_dat.length;		// number of data points
+        var Npar = p.length;		// number of parameters
+
+        dp = dp || 0.001;
+
+
+        //var JtWJ = new Matrix.zeros(Npar);
+        //var JtWdy  = new Matrix.zeros(Npar,1);
+
+        var y_hat = func(t,p,c);	// evaluate model using parameters 'p'
+        //func_calls = func_calls + 1;
+        //console.log(J);
+        if ( (iteration%(2*Npar))==0 || dX2 > 0 ) {
+            //console.log("Par");
+            J = this.lm_FD_J(func, t, p, y_hat, dp, c);		// finite difference
+        }
+        else{
+            //console.log("ImPar");
+            J = this.lm_Broyden_J(p_old, y_old, J, p, y_hat); // rank-1 update
+        }
+        var delta_y = math.subtract(y_dat, y_hat);	// residual error between model and data
+        //console.log(delta_y[0][0]);
+        //console.log(delta_y.rows+" "+delta_y.columns+" "+JSON.stringify(weight_sq));
+        //var Chi_sq = delta_y' * ( delta_y .* weight_sq ); 	// Chi-squared error criteria
+        var Chi_sq = math.multiply(math.transpose(delta_y),math.dotMultiply(delta_y,weight_sq));
+        //JtWJ  = J' * ( J .* ( weight_sq * ones(1,Npar) ) );
+        var Jt = math.transpose(J);
+
+        //console.log(weight_sq);
+
+        var JtWJ = math.multiply(Jt, math.dotMultiply(J,math.multiply(weight_sq, Matrix.ones(1,Npar))));
+
+        //JtWdy = J' * ( weight_sq .* delta_y );
+        var JtWdy = math.multiply(Jt, math.dotMultiply(weight_sq,delta_y));
+
+
+        return {JtWJ:JtWJ,JtWdy:JtWdy,Chi_sq:Chi_sq,y_hat:y_hat,J:J};
+        // endfunction  # ------------------------------------------------------ LM_MATX
+    }
+
+
+
+};
+
+module.exports = LM;
+
+/***/ }),
+/* 126 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = __webpack_require__(125);
+module.exports.Matrix = __webpack_require__(8);
+module.exports.Matrix.algebra = __webpack_require__(46);
+
+
+/***/ }),
+/* 127 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var Matrix = __webpack_require__(4);
+
+// https://github.com/lutzroeder/Mapack/blob/master/Source/CholeskyDecomposition.cs
+function CholeskyDecomposition(value) {
+    if (!(this instanceof CholeskyDecomposition)) {
+        return new CholeskyDecomposition(value);
+    }
+    value = Matrix.checkMatrix(value);
+    if (!value.isSymmetric())
+        throw new Error('Matrix is not symmetric');
+
+    var a = value,
+        dimension = a.rows,
+        l = new Matrix(dimension, dimension),
+        positiveDefinite = true,
+        i, j, k;
+
+    for (j = 0; j < dimension; j++) {
+        var Lrowj = l[j];
+        var d = 0;
+        for (k = 0; k < j; k++) {
+            var Lrowk = l[k];
+            var s = 0;
+            for (i = 0; i < k; i++) {
+                s += Lrowk[i] * Lrowj[i];
+            }
+            Lrowj[k] = s = (a[j][k] - s) / l[k][k];
+            d = d + s * s;
+        }
+
+        d = a[j][j] - d;
+
+        positiveDefinite &= (d > 0);
+        l[j][j] = Math.sqrt(Math.max(d, 0));
+        for (k = j + 1; k < dimension; k++) {
+            l[j][k] = 0;
+        }
+    }
+
+    if (!positiveDefinite) {
+        throw new Error('Matrix is not positive definite');
+    }
+
+    this.L = l;
+}
+
+CholeskyDecomposition.prototype = {
+    get leftTriangularFactor() {
+        return this.L;
+    },
+    solve: function (value) {
+        value = Matrix.checkMatrix(value);
+
+        var l = this.L,
+            dimension = l.rows;
+
+        if (value.rows !== dimension) {
+            throw new Error('Matrix dimensions do not match');
+        }
+
+        var count = value.columns,
+            B = value.clone(),
+            i, j, k;
+
+        for (k = 0; k < dimension; k++) {
+            for (j = 0; j < count; j++) {
+                for (i = 0; i < k; i++) {
+                    B[k][j] -= B[i][j] * l[k][i];
+                }
+                B[k][j] /= l[k][k];
+            }
+        }
+
+        for (k = dimension - 1; k >= 0; k--) {
+            for (j = 0; j < count; j++) {
+                for (i = k + 1; i < dimension; i++) {
+                    B[k][j] -= B[i][j] * l[i][k];
+                }
+                B[k][j] /= l[k][k];
+            }
+        }
+
+        return B;
+    }
+};
+
+module.exports = CholeskyDecomposition;
+
+
+/***/ }),
+/* 128 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var Matrix = __webpack_require__(4);
+var hypotenuse = __webpack_require__(17).hypotenuse;
+
+// https://github.com/lutzroeder/Mapack/blob/master/Source/EigenvalueDecomposition.cs
+function EigenvalueDecomposition(matrix) {
+    if (!(this instanceof EigenvalueDecomposition)) {
+        return new EigenvalueDecomposition(matrix);
+    }
+    matrix = Matrix.checkMatrix(matrix);
+    if (!matrix.isSquare()) {
+        throw new Error('Matrix is not a square matrix');
+    }
+
+    var n = matrix.columns,
+        V = Matrix.zeros(n, n),
+        d = new Array(n),
+        e = new Array(n),
+        value = matrix,
+        i, j;
+
+    if (matrix.isSymmetric()) {
+        for (i = 0; i < n; i++) {
+            for (j = 0; j < n; j++) {
+                V[i][j] = value[i][j];
+            }
+        }
+        tred2(n, e, d, V);
+        tql2(n, e, d, V);
+    }
+    else {
+        var H = Matrix.zeros(n, n),
+            ort = new Array(n);
+        for (j = 0; j < n; j++) {
+            for (i = 0; i < n; i++) {
+                H[i][j] = value[i][j];
+            }
+        }
+        orthes(n, H, ort, V);
+        hqr2(n, e, d, V, H);
+    }
+
+    this.n = n;
+    this.e = e;
+    this.d = d;
+    this.V = V;
+}
+
+EigenvalueDecomposition.prototype = {
+    get realEigenvalues() {
+        return this.d;
+    },
+    get imaginaryEigenvalues() {
+        return this.e;
+    },
+    get eigenvectorMatrix() {
+        return this.V;
+    },
+    get diagonalMatrix() {
+        var n = this.n,
+            e = this.e,
+            d = this.d,
+            X = new Matrix(n, n),
+            i, j;
+        for (i = 0; i < n; i++) {
+            for (j = 0; j < n; j++) {
+                X[i][j] = 0;
+            }
+            X[i][i] = d[i];
+            if (e[i] > 0) {
+                X[i][i + 1] = e[i];
+            }
+            else if (e[i] < 0) {
+                X[i][i - 1] = e[i];
+            }
+        }
+        return X;
+    }
+};
+
+function tred2(n, e, d, V) {
+
+    var f, g, h, i, j, k,
+        hh, scale;
+
+    for (j = 0; j < n; j++) {
+        d[j] = V[n - 1][j];
+    }
+
+    for (i = n - 1; i > 0; i--) {
+        scale = 0;
+        h = 0;
+        for (k = 0; k < i; k++) {
+            scale = scale + Math.abs(d[k]);
+        }
+
+        if (scale === 0) {
+            e[i] = d[i - 1];
+            for (j = 0; j < i; j++) {
+                d[j] = V[i - 1][j];
+                V[i][j] = 0;
+                V[j][i] = 0;
+            }
+        } else {
+            for (k = 0; k < i; k++) {
+                d[k] /= scale;
+                h += d[k] * d[k];
+            }
+
+            f = d[i - 1];
+            g = Math.sqrt(h);
+            if (f > 0) {
+                g = -g;
+            }
+
+            e[i] = scale * g;
+            h = h - f * g;
+            d[i - 1] = f - g;
+            for (j = 0; j < i; j++) {
+                e[j] = 0;
+            }
+
+            for (j = 0; j < i; j++) {
+                f = d[j];
+                V[j][i] = f;
+                g = e[j] + V[j][j] * f;
+                for (k = j + 1; k <= i - 1; k++) {
+                    g += V[k][j] * d[k];
+                    e[k] += V[k][j] * f;
+                }
+                e[j] = g;
+            }
+
+            f = 0;
+            for (j = 0; j < i; j++) {
+                e[j] /= h;
+                f += e[j] * d[j];
+            }
+
+            hh = f / (h + h);
+            for (j = 0; j < i; j++) {
+                e[j] -= hh * d[j];
+            }
+
+            for (j = 0; j < i; j++) {
+                f = d[j];
+                g = e[j];
+                for (k = j; k <= i - 1; k++) {
+                    V[k][j] -= (f * e[k] + g * d[k]);
+                }
+                d[j] = V[i - 1][j];
+                V[i][j] = 0;
+            }
+        }
+        d[i] = h;
+    }
+
+    for (i = 0; i < n - 1; i++) {
+        V[n - 1][i] = V[i][i];
+        V[i][i] = 1;
+        h = d[i + 1];
+        if (h !== 0) {
+            for (k = 0; k <= i; k++) {
+                d[k] = V[k][i + 1] / h;
+            }
+
+            for (j = 0; j <= i; j++) {
+                g = 0;
+                for (k = 0; k <= i; k++) {
+                    g += V[k][i + 1] * V[k][j];
+                }
+                for (k = 0; k <= i; k++) {
+                    V[k][j] -= g * d[k];
+                }
+            }
+        }
+
+        for (k = 0; k <= i; k++) {
+            V[k][i + 1] = 0;
+        }
+    }
+
+    for (j = 0; j < n; j++) {
+        d[j] = V[n - 1][j];
+        V[n - 1][j] = 0;
+    }
+
+    V[n - 1][n - 1] = 1;
+    e[0] = 0;
+}
+
+function tql2(n, e, d, V) {
+
+    var g, h, i, j, k, l, m, p, r,
+        dl1, c, c2, c3, el1, s, s2,
+        iter;
+
+    for (i = 1; i < n; i++) {
+        e[i - 1] = e[i];
+    }
+
+    e[n - 1] = 0;
+
+    var f = 0,
+        tst1 = 0,
+        eps = Math.pow(2, -52);
+
+    for (l = 0; l < n; l++) {
+        tst1 = Math.max(tst1, Math.abs(d[l]) + Math.abs(e[l]));
+        m = l;
+        while (m < n) {
+            if (Math.abs(e[m]) <= eps * tst1) {
+                break;
+            }
+            m++;
+        }
+
+        if (m > l) {
+            iter = 0;
+            do {
+                iter = iter + 1;
+
+                g = d[l];
+                p = (d[l + 1] - g) / (2 * e[l]);
+                r = hypotenuse(p, 1);
+                if (p < 0) {
+                    r = -r;
+                }
+
+                d[l] = e[l] / (p + r);
+                d[l + 1] = e[l] * (p + r);
+                dl1 = d[l + 1];
+                h = g - d[l];
+                for (i = l + 2; i < n; i++) {
+                    d[i] -= h;
+                }
+
+                f = f + h;
+
+                p = d[m];
+                c = 1;
+                c2 = c;
+                c3 = c;
+                el1 = e[l + 1];
+                s = 0;
+                s2 = 0;
+                for (i = m - 1; i >= l; i--) {
+                    c3 = c2;
+                    c2 = c;
+                    s2 = s;
+                    g = c * e[i];
+                    h = c * p;
+                    r = hypotenuse(p, e[i]);
+                    e[i + 1] = s * r;
+                    s = e[i] / r;
+                    c = p / r;
+                    p = c * d[i] - s * g;
+                    d[i + 1] = h + s * (c * g + s * d[i]);
+
+                    for (k = 0; k < n; k++) {
+                        h = V[k][i + 1];
+                        V[k][i + 1] = s * V[k][i] + c * h;
+                        V[k][i] = c * V[k][i] - s * h;
+                    }
+                }
+
+                p = -s * s2 * c3 * el1 * e[l] / dl1;
+                e[l] = s * p;
+                d[l] = c * p;
+
+            }
+            while (Math.abs(e[l]) > eps * tst1);
+        }
+        d[l] = d[l] + f;
+        e[l] = 0;
+    }
+
+    for (i = 0; i < n - 1; i++) {
+        k = i;
+        p = d[i];
+        for (j = i + 1; j < n; j++) {
+            if (d[j] < p) {
+                k = j;
+                p = d[j];
+            }
+        }
+
+        if (k !== i) {
+            d[k] = d[i];
+            d[i] = p;
+            for (j = 0; j < n; j++) {
+                p = V[j][i];
+                V[j][i] = V[j][k];
+                V[j][k] = p;
+            }
+        }
+    }
+}
+
+function orthes(n, H, ort, V) {
+
+    var low = 0,
+        high = n - 1,
+        f, g, h, i, j, m,
+        scale;
+
+    for (m = low + 1; m <= high - 1; m++) {
+        scale = 0;
+        for (i = m; i <= high; i++) {
+            scale = scale + Math.abs(H[i][m - 1]);
+        }
+
+        if (scale !== 0) {
+            h = 0;
+            for (i = high; i >= m; i--) {
+                ort[i] = H[i][m - 1] / scale;
+                h += ort[i] * ort[i];
+            }
+
+            g = Math.sqrt(h);
+            if (ort[m] > 0) {
+                g = -g;
+            }
+
+            h = h - ort[m] * g;
+            ort[m] = ort[m] - g;
+
+            for (j = m; j < n; j++) {
+                f = 0;
+                for (i = high; i >= m; i--) {
+                    f += ort[i] * H[i][j];
+                }
+
+                f = f / h;
+                for (i = m; i <= high; i++) {
+                    H[i][j] -= f * ort[i];
+                }
+            }
+
+            for (i = 0; i <= high; i++) {
+                f = 0;
+                for (j = high; j >= m; j--) {
+                    f += ort[j] * H[i][j];
+                }
+
+                f = f / h;
+                for (j = m; j <= high; j++) {
+                    H[i][j] -= f * ort[j];
+                }
+            }
+
+            ort[m] = scale * ort[m];
+            H[m][m - 1] = scale * g;
+        }
+    }
+
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            V[i][j] = (i === j ? 1 : 0);
+        }
+    }
+
+    for (m = high - 1; m >= low + 1; m--) {
+        if (H[m][m - 1] !== 0) {
+            for (i = m + 1; i <= high; i++) {
+                ort[i] = H[i][m - 1];
+            }
+
+            for (j = m; j <= high; j++) {
+                g = 0;
+                for (i = m; i <= high; i++) {
+                    g += ort[i] * V[i][j];
+                }
+
+                g = (g / ort[m]) / H[m][m - 1];
+                for (i = m; i <= high; i++) {
+                    V[i][j] += g * ort[i];
+                }
+            }
+        }
+    }
+}
+
+function hqr2(nn, e, d, V, H) {
+    var n = nn - 1,
+        low = 0,
+        high = nn - 1,
+        eps = Math.pow(2, -52),
+        exshift = 0,
+        norm = 0,
+        p = 0,
+        q = 0,
+        r = 0,
+        s = 0,
+        z = 0,
+        iter = 0,
+        i, j, k, l, m, t, w, x, y,
+        ra, sa, vr, vi,
+        notlast, cdivres;
+
+    for (i = 0; i < nn; i++) {
+        if (i < low || i > high) {
+            d[i] = H[i][i];
+            e[i] = 0;
+        }
+
+        for (j = Math.max(i - 1, 0); j < nn; j++) {
+            norm = norm + Math.abs(H[i][j]);
+        }
+    }
+
+    while (n >= low) {
+        l = n;
+        while (l > low) {
+            s = Math.abs(H[l - 1][l - 1]) + Math.abs(H[l][l]);
+            if (s === 0) {
+                s = norm;
+            }
+            if (Math.abs(H[l][l - 1]) < eps * s) {
+                break;
+            }
+            l--;
+        }
+
+        if (l === n) {
+            H[n][n] = H[n][n] + exshift;
+            d[n] = H[n][n];
+            e[n] = 0;
+            n--;
+            iter = 0;
+        } else if (l === n - 1) {
+            w = H[n][n - 1] * H[n - 1][n];
+            p = (H[n - 1][n - 1] - H[n][n]) / 2;
+            q = p * p + w;
+            z = Math.sqrt(Math.abs(q));
+            H[n][n] = H[n][n] + exshift;
+            H[n - 1][n - 1] = H[n - 1][n - 1] + exshift;
+            x = H[n][n];
+
+            if (q >= 0) {
+                z = (p >= 0) ? (p + z) : (p - z);
+                d[n - 1] = x + z;
+                d[n] = d[n - 1];
+                if (z !== 0) {
+                    d[n] = x - w / z;
+                }
+                e[n - 1] = 0;
+                e[n] = 0;
+                x = H[n][n - 1];
+                s = Math.abs(x) + Math.abs(z);
+                p = x / s;
+                q = z / s;
+                r = Math.sqrt(p * p + q * q);
+                p = p / r;
+                q = q / r;
+
+                for (j = n - 1; j < nn; j++) {
+                    z = H[n - 1][j];
+                    H[n - 1][j] = q * z + p * H[n][j];
+                    H[n][j] = q * H[n][j] - p * z;
+                }
+
+                for (i = 0; i <= n; i++) {
+                    z = H[i][n - 1];
+                    H[i][n - 1] = q * z + p * H[i][n];
+                    H[i][n] = q * H[i][n] - p * z;
+                }
+
+                for (i = low; i <= high; i++) {
+                    z = V[i][n - 1];
+                    V[i][n - 1] = q * z + p * V[i][n];
+                    V[i][n] = q * V[i][n] - p * z;
+                }
+            } else {
+                d[n - 1] = x + p;
+                d[n] = x + p;
+                e[n - 1] = z;
+                e[n] = -z;
+            }
+
+            n = n - 2;
+            iter = 0;
+        } else {
+            x = H[n][n];
+            y = 0;
+            w = 0;
+            if (l < n) {
+                y = H[n - 1][n - 1];
+                w = H[n][n - 1] * H[n - 1][n];
+            }
+
+            if (iter === 10) {
+                exshift += x;
+                for (i = low; i <= n; i++) {
+                    H[i][i] -= x;
+                }
+                s = Math.abs(H[n][n - 1]) + Math.abs(H[n - 1][n - 2]);
+                x = y = 0.75 * s;
+                w = -0.4375 * s * s;
+            }
+
+            if (iter === 30) {
+                s = (y - x) / 2;
+                s = s * s + w;
+                if (s > 0) {
+                    s = Math.sqrt(s);
+                    if (y < x) {
+                        s = -s;
+                    }
+                    s = x - w / ((y - x) / 2 + s);
+                    for (i = low; i <= n; i++) {
+                        H[i][i] -= s;
+                    }
+                    exshift += s;
+                    x = y = w = 0.964;
+                }
+            }
+
+            iter = iter + 1;
+
+            m = n - 2;
+            while (m >= l) {
+                z = H[m][m];
+                r = x - z;
+                s = y - z;
+                p = (r * s - w) / H[m + 1][m] + H[m][m + 1];
+                q = H[m + 1][m + 1] - z - r - s;
+                r = H[m + 2][m + 1];
+                s = Math.abs(p) + Math.abs(q) + Math.abs(r);
+                p = p / s;
+                q = q / s;
+                r = r / s;
+                if (m === l) {
+                    break;
+                }
+                if (Math.abs(H[m][m - 1]) * (Math.abs(q) + Math.abs(r)) < eps * (Math.abs(p) * (Math.abs(H[m - 1][m - 1]) + Math.abs(z) + Math.abs(H[m + 1][m + 1])))) {
+                    break;
+                }
+                m--;
+            }
+
+            for (i = m + 2; i <= n; i++) {
+                H[i][i - 2] = 0;
+                if (i > m + 2) {
+                    H[i][i - 3] = 0;
+                }
+            }
+
+            for (k = m; k <= n - 1; k++) {
+                notlast = (k !== n - 1);
+                if (k !== m) {
+                    p = H[k][k - 1];
+                    q = H[k + 1][k - 1];
+                    r = (notlast ? H[k + 2][k - 1] : 0);
+                    x = Math.abs(p) + Math.abs(q) + Math.abs(r);
+                    if (x !== 0) {
+                        p = p / x;
+                        q = q / x;
+                        r = r / x;
+                    }
+                }
+
+                if (x === 0) {
+                    break;
+                }
+
+                s = Math.sqrt(p * p + q * q + r * r);
+                if (p < 0) {
+                    s = -s;
+                }
+
+                if (s !== 0) {
+                    if (k !== m) {
+                        H[k][k - 1] = -s * x;
+                    } else if (l !== m) {
+                        H[k][k - 1] = -H[k][k - 1];
+                    }
+
+                    p = p + s;
+                    x = p / s;
+                    y = q / s;
+                    z = r / s;
+                    q = q / p;
+                    r = r / p;
+
+                    for (j = k; j < nn; j++) {
+                        p = H[k][j] + q * H[k + 1][j];
+                        if (notlast) {
+                            p = p + r * H[k + 2][j];
+                            H[k + 2][j] = H[k + 2][j] - p * z;
+                        }
+
+                        H[k][j] = H[k][j] - p * x;
+                        H[k + 1][j] = H[k + 1][j] - p * y;
+                    }
+
+                    for (i = 0; i <= Math.min(n, k + 3); i++) {
+                        p = x * H[i][k] + y * H[i][k + 1];
+                        if (notlast) {
+                            p = p + z * H[i][k + 2];
+                            H[i][k + 2] = H[i][k + 2] - p * r;
+                        }
+
+                        H[i][k] = H[i][k] - p;
+                        H[i][k + 1] = H[i][k + 1] - p * q;
+                    }
+
+                    for (i = low; i <= high; i++) {
+                        p = x * V[i][k] + y * V[i][k + 1];
+                        if (notlast) {
+                            p = p + z * V[i][k + 2];
+                            V[i][k + 2] = V[i][k + 2] - p * r;
+                        }
+
+                        V[i][k] = V[i][k] - p;
+                        V[i][k + 1] = V[i][k + 1] - p * q;
+                    }
+                }
+            }
+        }
+    }
+
+    if (norm === 0) {
+        return;
+    }
+
+    for (n = nn - 1; n >= 0; n--) {
+        p = d[n];
+        q = e[n];
+
+        if (q === 0) {
+            l = n;
+            H[n][n] = 1;
+            for (i = n - 1; i >= 0; i--) {
+                w = H[i][i] - p;
+                r = 0;
+                for (j = l; j <= n; j++) {
+                    r = r + H[i][j] * H[j][n];
+                }
+
+                if (e[i] < 0) {
+                    z = w;
+                    s = r;
+                } else {
+                    l = i;
+                    if (e[i] === 0) {
+                        H[i][n] = (w !== 0) ? (-r / w) : (-r / (eps * norm));
+                    } else {
+                        x = H[i][i + 1];
+                        y = H[i + 1][i];
+                        q = (d[i] - p) * (d[i] - p) + e[i] * e[i];
+                        t = (x * s - z * r) / q;
+                        H[i][n] = t;
+                        H[i + 1][n] = (Math.abs(x) > Math.abs(z)) ? ((-r - w * t) / x) : ((-s - y * t) / z);
+                    }
+
+                    t = Math.abs(H[i][n]);
+                    if ((eps * t) * t > 1) {
+                        for (j = i; j <= n; j++) {
+                            H[j][n] = H[j][n] / t;
+                        }
+                    }
+                }
+            }
+        } else if (q < 0) {
+            l = n - 1;
+
+            if (Math.abs(H[n][n - 1]) > Math.abs(H[n - 1][n])) {
+                H[n - 1][n - 1] = q / H[n][n - 1];
+                H[n - 1][n] = -(H[n][n] - p) / H[n][n - 1];
+            } else {
+                cdivres = cdiv(0, -H[n - 1][n], H[n - 1][n - 1] - p, q);
+                H[n - 1][n - 1] = cdivres[0];
+                H[n - 1][n] = cdivres[1];
+            }
+
+            H[n][n - 1] = 0;
+            H[n][n] = 1;
+            for (i = n - 2; i >= 0; i--) {
+                ra = 0;
+                sa = 0;
+                for (j = l; j <= n; j++) {
+                    ra = ra + H[i][j] * H[j][n - 1];
+                    sa = sa + H[i][j] * H[j][n];
+                }
+
+                w = H[i][i] - p;
+
+                if (e[i] < 0) {
+                    z = w;
+                    r = ra;
+                    s = sa;
+                } else {
+                    l = i;
+                    if (e[i] === 0) {
+                        cdivres = cdiv(-ra, -sa, w, q);
+                        H[i][n - 1] = cdivres[0];
+                        H[i][n] = cdivres[1];
+                    } else {
+                        x = H[i][i + 1];
+                        y = H[i + 1][i];
+                        vr = (d[i] - p) * (d[i] - p) + e[i] * e[i] - q * q;
+                        vi = (d[i] - p) * 2 * q;
+                        if (vr === 0 && vi === 0) {
+                            vr = eps * norm * (Math.abs(w) + Math.abs(q) + Math.abs(x) + Math.abs(y) + Math.abs(z));
+                        }
+                        cdivres = cdiv(x * r - z * ra + q * sa, x * s - z * sa - q * ra, vr, vi);
+                        H[i][n - 1] = cdivres[0];
+                        H[i][n] = cdivres[1];
+                        if (Math.abs(x) > (Math.abs(z) + Math.abs(q))) {
+                            H[i + 1][n - 1] = (-ra - w * H[i][n - 1] + q * H[i][n]) / x;
+                            H[i + 1][n] = (-sa - w * H[i][n] - q * H[i][n - 1]) / x;
+                        } else {
+                            cdivres = cdiv(-r - y * H[i][n - 1], -s - y * H[i][n], z, q);
+                            H[i + 1][n - 1] = cdivres[0];
+                            H[i + 1][n] = cdivres[1];
+                        }
+                    }
+
+                    t = Math.max(Math.abs(H[i][n - 1]), Math.abs(H[i][n]));
+                    if ((eps * t) * t > 1) {
+                        for (j = i; j <= n; j++) {
+                            H[j][n - 1] = H[j][n - 1] / t;
+                            H[j][n] = H[j][n] / t;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    for (i = 0; i < nn; i++) {
+        if (i < low || i > high) {
+            for (j = i; j < nn; j++) {
+                V[i][j] = H[i][j];
+            }
+        }
+    }
+
+    for (j = nn - 1; j >= low; j--) {
+        for (i = low; i <= high; i++) {
+            z = 0;
+            for (k = low; k <= Math.min(j, high); k++) {
+                z = z + V[i][k] * H[k][j];
+            }
+            V[i][j] = z;
+        }
+    }
+}
+
+function cdiv(xr, xi, yr, yi) {
+    var r, d;
+    if (Math.abs(yr) > Math.abs(yi)) {
+        r = yi / yr;
+        d = yr + r * yi;
+        return [(xr + r * xi) / d, (xi - r * xr) / d];
+    }
+    else {
+        r = yr / yi;
+        d = yi + r * yr;
+        return [(r * xr + xi) / d, (r * xi - xr) / d];
+    }
+}
+
+module.exports = EigenvalueDecomposition;
+
+
+/***/ }),
+/* 129 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var Matrix = __webpack_require__(4);
+
+// https://github.com/lutzroeder/Mapack/blob/master/Source/LuDecomposition.cs
+function LuDecomposition(matrix) {
+    if (!(this instanceof LuDecomposition)) {
+        return new LuDecomposition(matrix);
+    }
+    matrix = Matrix.checkMatrix(matrix);
+
+    var lu = matrix.clone(),
+        rows = lu.rows,
+        columns = lu.columns,
+        pivotVector = new Array(rows),
+        pivotSign = 1,
+        i, j, k, p, s, t, v,
+        LUrowi, LUcolj, kmax;
+
+    for (i = 0; i < rows; i++) {
+        pivotVector[i] = i;
+    }
+
+    LUcolj = new Array(rows);
+
+    for (j = 0; j < columns; j++) {
+
+        for (i = 0; i < rows; i++) {
+            LUcolj[i] = lu[i][j];
+        }
+
+        for (i = 0; i < rows; i++) {
+            LUrowi = lu[i];
+            kmax = Math.min(i, j);
+            s = 0;
+            for (k = 0; k < kmax; k++) {
+                s += LUrowi[k] * LUcolj[k];
+            }
+            LUrowi[j] = LUcolj[i] -= s;
+        }
+
+        p = j;
+        for (i = j + 1; i < rows; i++) {
+            if (Math.abs(LUcolj[i]) > Math.abs(LUcolj[p])) {
+                p = i;
+            }
+        }
+
+        if (p !== j) {
+            for (k = 0; k < columns; k++) {
+                t = lu[p][k];
+                lu[p][k] = lu[j][k];
+                lu[j][k] = t;
+            }
+
+            v = pivotVector[p];
+            pivotVector[p] = pivotVector[j];
+            pivotVector[j] = v;
+
+            pivotSign = -pivotSign;
+        }
+
+        if (j < rows && lu[j][j] !== 0) {
+            for (i = j + 1; i < rows; i++) {
+                lu[i][j] /= lu[j][j];
+            }
+        }
+    }
+
+    this.LU = lu;
+    this.pivotVector = pivotVector;
+    this.pivotSign = pivotSign;
+}
+
+LuDecomposition.prototype = {
+    isSingular: function () {
+        var data = this.LU,
+            col = data.columns;
+        for (var j = 0; j < col; j++) {
+            if (data[j][j] === 0) {
+                return true;
+            }
+        }
+        return false;
+    },
+    get determinant() {
+        var data = this.LU;
+        if (!data.isSquare())
+            throw new Error('Matrix must be square');
+        var determinant = this.pivotSign, col = data.columns;
+        for (var j = 0; j < col; j++)
+            determinant *= data[j][j];
+        return determinant;
+    },
+    get lowerTriangularFactor() {
+        var data = this.LU,
+            rows = data.rows,
+            columns = data.columns,
+            X = new Matrix(rows, columns);
+        for (var i = 0; i < rows; i++) {
+            for (var j = 0; j < columns; j++) {
+                if (i > j) {
+                    X[i][j] = data[i][j];
+                } else if (i === j) {
+                    X[i][j] = 1;
+                } else {
+                    X[i][j] = 0;
+                }
+            }
+        }
+        return X;
+    },
+    get upperTriangularFactor() {
+        var data = this.LU,
+            rows = data.rows,
+            columns = data.columns,
+            X = new Matrix(rows, columns);
+        for (var i = 0; i < rows; i++) {
+            for (var j = 0; j < columns; j++) {
+                if (i <= j) {
+                    X[i][j] = data[i][j];
+                } else {
+                    X[i][j] = 0;
+                }
+            }
+        }
+        return X;
+    },
+    get pivotPermutationVector() {
+        return this.pivotVector.slice();
+    },
+    solve: function (value) {
+        value = Matrix.checkMatrix(value);
+
+        var lu = this.LU,
+            rows = lu.rows;
+
+        if (rows !== value.rows)
+            throw new Error('Invalid matrix dimensions');
+        if (this.isSingular())
+            throw new Error('LU matrix is singular');
+
+        var count = value.columns,
+            X = value.subMatrixRow(this.pivotVector, 0, count - 1),
+            columns = lu.columns,
+            i, j, k;
+
+        for (k = 0; k < columns; k++) {
+            for (i = k + 1; i < columns; i++) {
+                for (j = 0; j < count; j++) {
+                    X[i][j] -= X[k][j] * lu[i][k];
+                }
+            }
+        }
+        for (k = columns - 1; k >= 0; k--) {
+            for (j = 0; j < count; j++) {
+                X[k][j] /= lu[k][k];
+            }
+            for (i = 0; i < k; i++) {
+                for (j = 0; j < count; j++) {
+                    X[i][j] -= X[k][j] * lu[i][k];
+                }
+            }
+        }
+        return X;
+    }
+};
+
+module.exports = LuDecomposition;
+
+
+/***/ }),
+/* 130 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var Matrix = __webpack_require__(4);
+var hypotenuse = __webpack_require__(17).hypotenuse;
+
+//https://github.com/lutzroeder/Mapack/blob/master/Source/QrDecomposition.cs
+function QrDecomposition(value) {
+    if (!(this instanceof QrDecomposition)) {
+        return new QrDecomposition(value);
+    }
+    value = Matrix.checkMatrix(value);
+
+    var qr = value.clone(),
+        m = value.rows,
+        n = value.columns,
+        rdiag = new Array(n),
+        i, j, k, s;
+
+    for (k = 0; k < n; k++) {
+        var nrm = 0;
+        for (i = k; i < m; i++) {
+            nrm = hypotenuse(nrm, qr[i][k]);
+        }
+        if (nrm !== 0) {
+            if (qr[k][k] < 0) {
+                nrm = -nrm;
+            }
+            for (i = k; i < m; i++) {
+                qr[i][k] /= nrm;
+            }
+            qr[k][k] += 1;
+            for (j = k + 1; j < n; j++) {
+                s = 0;
+                for (i = k; i < m; i++) {
+                    s += qr[i][k] * qr[i][j];
+                }
+                s = -s / qr[k][k];
+                for (i = k; i < m; i++) {
+                    qr[i][j] += s * qr[i][k];
+                }
+            }
+        }
+        rdiag[k] = -nrm;
+    }
+
+    this.QR = qr;
+    this.Rdiag = rdiag;
+}
+
+QrDecomposition.prototype = {
+    solve: function (value) {
+        value = Matrix.checkMatrix(value);
+
+        var qr = this.QR,
+            m = qr.rows;
+
+        if (value.rows !== m)
+            throw new Error('Matrix row dimensions must agree');
+        if (!this.isFullRank())
+            throw new Error('Matrix is rank deficient');
+
+        var count = value.columns,
+            X = value.clone(),
+            n = qr.columns,
+            i, j, k, s;
+
+        for (k = 0; k < n; k++) {
+            for (j = 0; j < count; j++) {
+                s = 0;
+                for (i = k; i < m; i++) {
+                    s += qr[i][k] * X[i][j];
+                }
+                s = -s / qr[k][k];
+                for (i = k; i < m; i++) {
+                    X[i][j] += s * qr[i][k];
+                }
+            }
+        }
+        for (k = n - 1; k >= 0; k--) {
+            for (j = 0; j < count; j++) {
+                X[k][j] /= this.Rdiag[k];
+            }
+            for (i = 0; i < k; i++) {
+                for (j = 0; j < count; j++) {
+                    X[i][j] -= X[k][j] * qr[i][k];
+                }
+            }
+        }
+
+        return X.subMatrix(0, n - 1, 0, count - 1);
+    },
+    isFullRank: function () {
+        var columns = this.QR.columns;
+        for (var i = 0; i < columns; i++) {
+            if (this.Rdiag[i] === 0) {
+                return false;
+            }
+        }
+        return true;
+    },
+    get upperTriangularFactor() {
+        var qr = this.QR,
+            n = qr.columns,
+            X = new Matrix(n, n),
+            i, j;
+        for (i = 0; i < n; i++) {
+            for (j = 0; j < n; j++) {
+                if (i < j) {
+                    X[i][j] = qr[i][j];
+                } else if (i === j) {
+                    X[i][j] = this.Rdiag[i];
+                } else {
+                    X[i][j] = 0;
+                }
+            }
+        }
+        return X;
+    },
+    get orthogonalFactor() {
+        var qr = this.QR,
+            rows = qr.rows,
+            columns = qr.columns,
+            X = new Matrix(rows, columns),
+            i, j, k, s;
+
+        for (k = columns - 1; k >= 0; k--) {
+            for (i = 0; i < rows; i++) {
+                X[i][k] = 0;
+            }
+            X[k][k] = 1;
+            for (j = k; j < columns; j++) {
+                if (qr[k][k] !== 0) {
+                    s = 0;
+                    for (i = k; i < rows; i++) {
+                        s += qr[i][k] * X[i][j];
+                    }
+
+                    s = -s / qr[k][k];
+
+                    for (i = k; i < rows; i++) {
+                        X[i][j] += s * qr[i][k];
+                    }
+                }
+            }
+        }
+        return X;
+    }
+};
+
+module.exports = QrDecomposition;
+
+
+/***/ }),
+/* 131 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var Matrix = __webpack_require__(4);
+var hypotenuse = __webpack_require__(17).hypotenuse;
+
+// https://github.com/lutzroeder/Mapack/blob/master/Source/SingularValueDecomposition.cs
+function SingularValueDecomposition(value, options) {
+    if (!(this instanceof SingularValueDecomposition)) {
+        return new SingularValueDecomposition(value, options);
+    }
+    value = Matrix.checkMatrix(value);
+
+    options = options || {};
+
+    var a = value.clone(),
+        m = value.rows,
+        n = value.columns,
+        nu = Math.min(m, n);
+
+    var wantu = true, wantv = true;
+    if (options.computeLeftSingularVectors === false)
+        wantu = false;
+    if (options.computeRightSingularVectors === false)
+        wantv = false;
+    var autoTranspose = options.autoTranspose === true;
+
+    var swapped = false;
+    if (m < n) {
+        if (!autoTranspose) {
+            console.warn('Computing SVD on a matrix with more columns than rows. Consider enabling autoTranspose');
+        } else {
+            a = a.transpose();
+            m = a.rows;
+            n = a.columns;
+            swapped = true;
+            var aux = wantu;
+            wantu = wantv;
+            wantv = aux;
+        }
+    }
+
+    var s = new Array(Math.min(m + 1, n)),
+        U = Matrix.zeros(m, nu),
+        V = Matrix.zeros(n, n),
+        e = new Array(n),
+        work = new Array(m);
+
+    var nct = Math.min(m - 1, n);
+    var nrt = Math.max(0, Math.min(n - 2, m));
+
+    var i, j, k, p, t, ks, f, cs, sn, max, kase,
+        scale, sp, spm1, epm1, sk, ek, b, c, shift, g;
+
+    for (k = 0, max = Math.max(nct, nrt); k < max; k++) {
+        if (k < nct) {
+            s[k] = 0;
+            for (i = k; i < m; i++) {
+                s[k] = hypotenuse(s[k], a[i][k]);
+            }
+            if (s[k] !== 0) {
+                if (a[k][k] < 0) {
+                    s[k] = -s[k];
+                }
+                for (i = k; i < m; i++) {
+                    a[i][k] /= s[k];
+                }
+                a[k][k] += 1;
+            }
+            s[k] = -s[k];
+        }
+
+        for (j = k + 1; j < n; j++) {
+            if ((k < nct) && (s[k] !== 0)) {
+                t = 0;
+                for (i = k; i < m; i++) {
+                    t += a[i][k] * a[i][j];
+                }
+                t = -t / a[k][k];
+                for (i = k; i < m; i++) {
+                    a[i][j] += t * a[i][k];
+                }
+            }
+            e[j] = a[k][j];
+        }
+
+        if (wantu && (k < nct)) {
+            for (i = k; i < m; i++) {
+                U[i][k] = a[i][k];
+            }
+        }
+
+        if (k < nrt) {
+            e[k] = 0;
+            for (i = k + 1; i < n; i++) {
+                e[k] = hypotenuse(e[k], e[i]);
+            }
+            if (e[k] !== 0) {
+                if (e[k + 1] < 0)
+                    e[k] = -e[k];
+                for (i = k + 1; i < n; i++) {
+                    e[i] /= e[k];
+                }
+                e[k + 1] += 1;
+            }
+            e[k] = -e[k];
+            if ((k + 1 < m) && (e[k] !== 0)) {
+                for (i = k + 1; i < m; i++) {
+                    work[i] = 0;
+                }
+                for (j = k + 1; j < n; j++) {
+                    for (i = k + 1; i < m; i++) {
+                        work[i] += e[j] * a[i][j];
+                    }
+                }
+                for (j = k + 1; j < n; j++) {
+                    t = -e[j] / e[k + 1];
+                    for (i = k + 1; i < m; i++) {
+                        a[i][j] += t * work[i];
+                    }
+                }
+            }
+            if (wantv) {
+                for (i = k + 1; i < n; i++) {
+                    V[i][k] = e[i];
+                }
+            }
+        }
+    }
+
+    p = Math.min(n, m + 1);
+    if (nct < n) {
+        s[nct] = a[nct][nct];
+    }
+    if (m < p) {
+        s[p - 1] = 0;
+    }
+    if (nrt + 1 < p) {
+        e[nrt] = a[nrt][p - 1];
+    }
+    e[p - 1] = 0;
+
+    if (wantu) {
+        for (j = nct; j < nu; j++) {
+            for (i = 0; i < m; i++) {
+                U[i][j] = 0;
+            }
+            U[j][j] = 1;
+        }
+        for (k = nct - 1; k >= 0; k--) {
+            if (s[k] !== 0) {
+                for (j = k + 1; j < nu; j++) {
+                    t = 0;
+                    for (i = k; i < m; i++) {
+                        t += U[i][k] * U[i][j];
+                    }
+                    t = -t / U[k][k];
+                    for (i = k; i < m; i++) {
+                        U[i][j] += t * U[i][k];
+                    }
+                }
+                for (i = k; i < m; i++) {
+                    U[i][k] = -U[i][k];
+                }
+                U[k][k] = 1 + U[k][k];
+                for (i = 0; i < k - 1; i++) {
+                    U[i][k] = 0;
+                }
+            } else {
+                for (i = 0; i < m; i++) {
+                    U[i][k] = 0;
+                }
+                U[k][k] = 1;
+            }
+        }
+    }
+
+    if (wantv) {
+        for (k = n - 1; k >= 0; k--) {
+            if ((k < nrt) && (e[k] !== 0)) {
+                for (j = k + 1; j < n; j++) {
+                    t = 0;
+                    for (i = k + 1; i < n; i++) {
+                        t += V[i][k] * V[i][j];
+                    }
+                    t = -t / V[k + 1][k];
+                    for (i = k + 1; i < n; i++) {
+                        V[i][j] += t * V[i][k];
+                    }
+                }
+            }
+            for (i = 0; i < n; i++) {
+                V[i][k] = 0;
+            }
+            V[k][k] = 1;
+        }
+    }
+
+    var pp = p - 1,
+        iter = 0,
+        eps = Math.pow(2, -52);
+    while (p > 0) {
+        for (k = p - 2; k >= -1; k--) {
+            if (k === -1) {
+                break;
+            }
+            if (Math.abs(e[k]) <= eps * (Math.abs(s[k]) + Math.abs(s[k + 1]))) {
+                e[k] = 0;
+                break;
+            }
+        }
+        if (k === p - 2) {
+            kase = 4;
+        } else {
+            for (ks = p - 1; ks >= k; ks--) {
+                if (ks === k) {
+                    break;
+                }
+                t = (ks !== p ? Math.abs(e[ks]) : 0) + (ks !== k + 1 ? Math.abs(e[ks - 1]) : 0);
+                if (Math.abs(s[ks]) <= eps * t) {
+                    s[ks] = 0;
+                    break;
+                }
+            }
+            if (ks === k) {
+                kase = 3;
+            } else if (ks === p - 1) {
+                kase = 1;
+            } else {
+                kase = 2;
+                k = ks;
+            }
+        }
+
+        k++;
+
+        switch (kase) {
+            case 1: {
+                f = e[p - 2];
+                e[p - 2] = 0;
+                for (j = p - 2; j >= k; j--) {
+                    t = hypotenuse(s[j], f);
+                    cs = s[j] / t;
+                    sn = f / t;
+                    s[j] = t;
+                    if (j !== k) {
+                        f = -sn * e[j - 1];
+                        e[j - 1] = cs * e[j - 1];
+                    }
+                    if (wantv) {
+                        for (i = 0; i < n; i++) {
+                            t = cs * V[i][j] + sn * V[i][p - 1];
+                            V[i][p - 1] = -sn * V[i][j] + cs * V[i][p - 1];
+                            V[i][j] = t;
+                        }
+                    }
+                }
+                break;
+            }
+            case 2 : {
+                f = e[k - 1];
+                e[k - 1] = 0;
+                for (j = k; j < p; j++) {
+                    t = hypotenuse(s[j], f);
+                    cs = s[j] / t;
+                    sn = f / t;
+                    s[j] = t;
+                    f = -sn * e[j];
+                    e[j] = cs * e[j];
+                    if (wantu) {
+                        for (i = 0; i < m; i++) {
+                            t = cs * U[i][j] + sn * U[i][k - 1];
+                            U[i][k - 1] = -sn * U[i][j] + cs * U[i][k - 1];
+                            U[i][j] = t;
+                        }
+                    }
+                }
+                break;
+            }
+            case 3 : {
+                scale = Math.max(Math.max(Math.max(Math.max(Math.abs(s[p - 1]), Math.abs(s[p - 2])), Math.abs(e[p - 2])), Math.abs(s[k])), Math.abs(e[k]));
+                sp = s[p - 1] / scale;
+                spm1 = s[p - 2] / scale;
+                epm1 = e[p - 2] / scale;
+                sk = s[k] / scale;
+                ek = e[k] / scale;
+                b = ((spm1 + sp) * (spm1 - sp) + epm1 * epm1) / 2;
+                c = (sp * epm1) * (sp * epm1);
+                shift = 0;
+                if ((b !== 0) || (c !== 0)) {
+                    shift = Math.sqrt(b * b + c);
+                    if (b < 0) {
+                        shift = -shift;
+                    }
+                    shift = c / (b + shift);
+                }
+                f = (sk + sp) * (sk - sp) + shift;
+                g = sk * ek;
+                for (j = k; j < p - 1; j++) {
+                    t = hypotenuse(f, g);
+                    cs = f / t;
+                    sn = g / t;
+                    if (j !== k) {
+                        e[j - 1] = t;
+                    }
+                    f = cs * s[j] + sn * e[j];
+                    e[j] = cs * e[j] - sn * s[j];
+                    g = sn * s[j + 1];
+                    s[j + 1] = cs * s[j + 1];
+                    if (wantv) {
+                        for (i = 0; i < n; i++) {
+                            t = cs * V[i][j] + sn * V[i][j + 1];
+                            V[i][j + 1] = -sn * V[i][j] + cs * V[i][j + 1];
+                            V[i][j] = t;
+                        }
+                    }
+                    t = hypotenuse(f, g);
+                    cs = f / t;
+                    sn = g / t;
+                    s[j] = t;
+                    f = cs * e[j] + sn * s[j + 1];
+                    s[j + 1] = -sn * e[j] + cs * s[j + 1];
+                    g = sn * e[j + 1];
+                    e[j + 1] = cs * e[j + 1];
+                    if (wantu && (j < m - 1)) {
+                        for (i = 0; i < m; i++) {
+                            t = cs * U[i][j] + sn * U[i][j + 1];
+                            U[i][j + 1] = -sn * U[i][j] + cs * U[i][j + 1];
+                            U[i][j] = t;
+                        }
+                    }
+                }
+                e[p - 2] = f;
+                iter = iter + 1;
+                break;
+            }
+            case 4: {
+                if (s[k] <= 0) {
+                    s[k] = (s[k] < 0 ? -s[k] : 0);
+                    if (wantv) {
+                        for (i = 0; i <= pp; i++) {
+                            V[i][k] = -V[i][k];
+                        }
+                    }
+                }
+                while (k < pp) {
+                    if (s[k] >= s[k + 1]) {
+                        break;
+                    }
+                    t = s[k];
+                    s[k] = s[k + 1];
+                    s[k + 1] = t;
+                    if (wantv && (k < n - 1)) {
+                        for (i = 0; i < n; i++) {
+                            t = V[i][k + 1];
+                            V[i][k + 1] = V[i][k];
+                            V[i][k] = t;
+                        }
+                    }
+                    if (wantu && (k < m - 1)) {
+                        for (i = 0; i < m; i++) {
+                            t = U[i][k + 1];
+                            U[i][k + 1] = U[i][k];
+                            U[i][k] = t;
+                        }
+                    }
+                    k++;
+                }
+                iter = 0;
+                p--;
+                break;
+            }
+        }
+    }
+
+    if (swapped) {
+        var tmp = V;
+        V = U;
+        U = tmp;
+    }
+
+    this.m = m;
+    this.n = n;
+    this.s = s;
+    this.U = U;
+    this.V = V;
+}
+
+SingularValueDecomposition.prototype = {
+    get condition() {
+        return this.s[0] / this.s[Math.min(this.m, this.n) - 1];
+    },
+    get norm2() {
+        return this.s[0];
+    },
+    get rank() {
+        var eps = Math.pow(2, -52),
+            tol = Math.max(this.m, this.n) * this.s[0] * eps,
+            r = 0,
+            s = this.s;
+        for (var i = 0, ii = s.length; i < ii; i++) {
+            if (s[i] > tol) {
+                r++;
+            }
+        }
+        return r;
+    },
+    get diagonal() {
+        return this.s;
+    },
+    // https://github.com/accord-net/framework/blob/development/Sources/Accord.Math/Decompositions/SingularValueDecomposition.cs
+    get threshold() {
+        return (Math.pow(2, -52) / 2) * Math.max(this.m, this.n) * this.s[0];
+    },
+    get leftSingularVectors() {
+        return this.U;
+    },
+    get rightSingularVectors() {
+        return this.V;
+    },
+    get diagonalMatrix() {
+        return Matrix.diag(this.s);
+    },
+    solve: function (value) {
+
+        var Y = value,
+            e = this.threshold,
+            scols = this.s.length,
+            Ls = Matrix.zeros(scols, scols),
+            i;
+
+        for (i = 0; i < scols; i++) {
+            if (Math.abs(this.s[i]) <= e) {
+                Ls[i][i] = 0;
+            } else {
+                Ls[i][i] = 1 / this.s[i];
+            }
+        }
+
+
+        var VL = this.V.mmul(Ls),
+            vrows = this.V.rows,
+            urows = this.U.rows,
+            VLU = Matrix.zeros(vrows, urows),
+            j, k, sum;
+
+        for (i = 0; i < vrows; i++) {
+            for (j = 0; j < urows; j++) {
+                sum = 0;
+                for (k = 0; k < scols; k++) {
+                    sum += VL[i][k] * this.U[j][k];
+                }
+                VLU[i][j] = sum;
+            }
+        }
+
+        return VLU.mmul(Y);
+    },
+    solveForDiagonal: function (value) {
+        return this.solve(Matrix.diag(value));
+    },
+    inverse: function () {
+        var e = this.threshold,
+            vrows = this.V.rows,
+            vcols = this.V.columns,
+            X = new Matrix(vrows, this.s.length),
+            i, j;
+
+        for (i = 0; i < vrows; i++) {
+            for (j = 0; j < vcols; j++) {
+                if (Math.abs(this.s[j]) > e) {
+                    X[i][j] = this.V[i][j] / this.s[j];
+                } else {
+                    X[i][j] = 0;
+                }
+            }
+        }
+
+        var urows = this.U.rows,
+            ucols = this.U.columns,
+            Y = new Matrix(vrows, urows),
+            k, sum;
+
+        for (i = 0; i < vrows; i++) {
+            for (j = 0; j < urows; j++) {
+                sum = 0;
+                for (k = 0; k < ucols; k++) {
+                    sum += X[i][k] * this.U[j][k];
+                }
+                Y[i][j] = sum;
+            }
+        }
+
+        return Y;
+    }
+};
+
+module.exports = SingularValueDecomposition;
+
+
+/***/ }),
+/* 132 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var Matrix = __webpack_require__(4);
+
+var SingularValueDecomposition = __webpack_require__(131);
+var EigenvalueDecomposition = __webpack_require__(128);
+var LuDecomposition = __webpack_require__(129);
+var QrDecomposition = __webpack_require__(130);
+var CholeskyDecomposition = __webpack_require__(127);
+
+function inverse(matrix) {
+    return solve(matrix, Matrix.eye(matrix.rows));
+}
+
+Matrix.prototype.inverse = function () {
+    return inverse(this);
+};
+
+function solve(leftHandSide, rightHandSide) {
+    return leftHandSide.isSquare() ? new LuDecomposition(leftHandSide).solve(rightHandSide) : new QrDecomposition(leftHandSide).solve(rightHandSide);
+}
+
+Matrix.prototype.solve = function (other) {
+    return solve(this, other);
+};
+
+module.exports = {
+    SingularValueDecomposition: SingularValueDecomposition,
+    SVD: SingularValueDecomposition,
+    EigenvalueDecomposition: EigenvalueDecomposition,
+    EVD: EigenvalueDecomposition,
+    LuDecomposition: LuDecomposition,
+    LU: LuDecomposition,
+    QrDecomposition: QrDecomposition,
+    QR: QrDecomposition,
+    CholeskyDecomposition: CholeskyDecomposition,
+    CHO: CholeskyDecomposition,
+    inverse: inverse,
+    solve: solve
+};
+
+
+/***/ }),
 /* 133 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const Matrix = __webpack_require__(19);
-const newArray = __webpack_require__(17);
-const simpleClustering = __webpack_require__(44);
-const hlClust = __webpack_require__(104);
+var LM = __webpack_require__(126);
+var math = LM.Matrix.algebra;
+var Matrix = __webpack_require__(8);
+
+/**
+ * This function calculates the spectrum as a sum of lorentzian functions. The Lorentzian
+ * parameters are divided in 3 batches. 1st: centers; 2nd: heights; 3th: widths;
+ * @param t Ordinate values
+ * @param p Lorentzian parameters
+ * @param c Constant parameters(Not used)
+ * @returns {*}
+ */
+function sumOfLorentzians(t,p,c){
+    var nL = p.length/3,factor,i, j,p2, cols = t.rows;
+    var result = Matrix.zeros(t.length,1);
+
+    for(i=0;i<nL;i++){
+        p2 = Math.pow(p[i+nL*2][0]/2,2);
+        factor = p[i+nL][0]*p2;
+        for(j=0;j<cols;j++){
+            result[j][0]+=factor/(Math.pow(t[j][0]-p[i][0],2)+p2);
+        }
+    }
+    return result;
+}
+
+/**
+ * This function calculates the spectrum as a sum of gaussian functions. The Gaussian
+ * parameters are divided in 3 batches. 1st: centers; 2nd: height; 3th: std's;
+ * @param t Ordinate values
+ * @param p Gaussian parameters
+ * @param c Constant parameters(Not used)
+ * @returns {*}
+ */
+function sumOfGaussians(t,p,c){
+    var nL = p.length/3,factor,i, j, cols = t.rows;
+    var result = Matrix.zeros(t.length,1);
+
+    for(i=0;i<nL;i++){
+        factor = p[i+nL*2][0]*p[i+nL*2][0]/2;
+        for(j=0;j<cols;j++){
+            result[j][0]+=p[i+nL][0]*Math.exp(-(t[i][0]-p[i][0])*(t[i][0]-p[i][0])/factor);
+        }
+    }
+    return result;
+}
+/**
+ * Single 4 parameter lorentzian function
+ * @param t Ordinate values
+ * @param p Lorentzian parameters
+ * @param c Constant parameters(Not used)
+ * @returns {*}
+ */
+function singleLorentzian(t,p,c){
+    var factor = p[1][0]*Math.pow(p[2][0]/2,2);
+    var rows = t.rows;
+    var result = new Matrix(t.rows, t.columns);
+    for(var i=0;i<rows;i++){
+        result[i][0]=factor/(Math.pow(t[i][0]-p[0][0],2)+Math.pow(p[2][0]/2,2));
+    }
+    return result;
+}
+
+/**
+ * Single 3 parameter gaussian function
+ * @param t Ordinate values
+ * @param p Gaussian parameters [mean, height, std]
+ * @param c Constant parameters(Not used)
+ * @returns {*}
+ */
+function singleGaussian(t,p,c){
+    var factor2 = p[2][0]*p[2][0]/2;
+    var rows = t.rows;
+    var result = new Matrix(t.rows, t.columns);
+    for(var i=0;i<rows;i++){
+        result[i][0]=p[1][0]*Math.exp(-(t[i][0]-p[0][0])*(t[i][0]-p[0][0])/factor2);
+    }
+    return result;
+}
+
+/**
+ * * Fits a set of points to a Lorentzian function. Returns the center of the peak, the width at half height, and the height of the signal.
+ * @param data,[y]
+ * @returns {*[]}
+ */
+function optimizeSingleLorentzian(xy, peak, opts) {
+    opts = opts || {};
+    var xy2 = parseData(xy, opts.percentage||0);
+
+    if(xy2===null||xy2[0].rows<3){
+        return null; //Cannot run an optimization with less than 3 points
+    }
+
+    var t = xy2[0];
+    var y_data = xy2[1];
+    var maxY = xy2[2];
+    var nbPoints = t.rows, i;
+
+    var weight = [nbPoints / Math.sqrt(y_data.dot(y_data))];
+
+    var opts=Object.create(opts.LMOptions || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ]);
+    //var opts = [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ];
+    var consts = [ ];
+    var dt = Math.abs(t[0][0]-t[1][0]);// optional vector of constants
+    var dx = new Matrix([[-dt/10000],[-1e-3],[-dt/10000]]);//-Math.abs(t[0][0]-t[1][0])/100;
+    var p_init = new Matrix([[peak.x],[1],[peak.width]]);
+    var p_min = new Matrix([[peak.x-dt],[0.75],[peak.width/4]]);
+    var p_max = new Matrix([[peak.x+dt],[1.25],[peak.width*4]]);
+
+    var p_fit = LM.optimize(singleLorentzian,p_init,t,y_data,weight,dx,p_min,p_max,consts,opts);
+
+
+    p_fit = p_fit.p;
+    return [p_fit[0],[p_fit[1][0]*maxY],p_fit[2]];
+
+}
+
+/**
+ * Fits a set of points to a gaussian bell. Returns the mean of the peak, the std and the height of the signal.
+ * @param data,[y]
+ * @returns {*[]}
+ */
+function optimizeSingleGaussian(xy, peak, opts) {
+    opts = opts || {};
+    var xy2 = parseData(xy, opts.percentage||0);
+
+    if(xy2===null||xy2[0].rows<3){
+        return null; //Cannot run an optimization with less than 3 points
+    }
+
+    var t = xy2[0];
+    var y_data = xy2[1];
+    var maxY = xy2[2];
+
+    var nbPoints = t.rows, i;
+
+
+
+    var weight = [nbPoints / Math.sqrt(y_data.dot(y_data))];
+
+    var opts=Object.create(opts.LMOptions || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ]);
+    //var opts = [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        1 ];
+    var consts = [ ];                         // optional vector of constants
+    var dt = Math.abs(t[0][0]-t[1][0]);
+    var dx = new Matrix([[-dt/10000],[-1e-3],[-dt/10000]]);//-Math.abs(t[0][0]-t[1][0])/100;
+
+    var dx = new Matrix([[-Math.abs(t[0][0]-t[1][0])/1000],[-1e-3],[-peak.width/1000]]);
+    var p_init = new Matrix([[peak.x],[1],[peak.width]]);
+    var p_min = new Matrix([[peak.x-dt],[0.75],[peak.width/4]]);
+    var p_max = new Matrix([[peak.x+dt],[1.25],[peak.width*4]]);
+    //var p_min = new Matrix([[peak.x-peak.width/4],[0.75],[peak.width/3]]);
+    //var p_max = new Matrix([[peak.x+peak.width/4],[1.25],[peak.width*3]]);
+
+    var p_fit = LM.optimize(singleGaussian,p_init,t,y_data,weight,dx,p_min,p_max,consts,opts);
+    p_fit = p_fit.p;
+    return [p_fit[0],[p_fit[1][0]*maxY],p_fit[2]];
+}
+
+/*
+ peaks on group should sorted
+ */
+function optimizeLorentzianTrain(xy, group, opts){
+    var xy2 = parseData(xy);
+    //console.log(xy2[0].rows);
+    if(xy2===null||xy2[0].rows<3){
+        return null; //Cannot run an optimization with less than 3 points
+    }
+
+    var t = xy2[0];
+    var y_data = xy2[1];
+    var maxY = xy2[2];
+    var currentIndex = 0;
+    var nbPoints = t.length;
+    var nextX;
+    var tI, yI, maxY;
+    var result=[], current;
+    for(var i=0; i<group.length;i++){
+        nextX = group[i].x-group[i].width*4;
+        //console.log(group[i]);
+        while(t[currentIndex++]<nextX&&currentIndex<nbPoints);
+        nextX = group[i].x+group[i].width*4;
+        tI = [];
+        yI = [];
+        while(t[currentIndex]<=nextX&&currentIndex<nbPoints){
+            tI.push(t[currentIndex][0]);
+            yI.push(y_data[currentIndex][0]*maxY);
+            currentIndex++;
+        }
+
+        current=optimizeSingleLorentzian([tI, yI], group[i], opts);
+        if(current){
+            result.push({"x":current[0][0],"y":current[1][0],"width":current[2][0],"opt":true});
+        }
+        else{
+            result.push({"x":group[i].x,"y":group[i].y,"width":group[i].width,"opt":false});
+        }
+    }
+
+    return result;
+
+}
+
+function optimizeGaussianTrain(xy, group, opts){
+    var xy2 = parseData(xy);
+    //console.log(xy2[0].rows);
+    if(xy2===null||xy2[0].rows<3){
+        return null; //Cannot run an optimization with less than 3 points
+    }
+
+    var t = xy2[0];
+    var y_data = xy2[1];
+    var maxY = xy2[2];
+    var currentIndex = 0;
+    var nbPoints = t.length;
+    var nextX;
+    var tI, yI, maxY;
+    var result=[], current;
+    for(var i=0; i<group.length;i++){
+        nextX = group[i].x-group[i].width*4;
+        //console.log(group[i]);
+        while(t[currentIndex++]<nextX&&currentIndex<nbPoints);
+        nextX = group[i].x+group[i].width*4;
+        tI = [];
+        yI = [];
+        while(t[currentIndex]<=nextX&&currentIndex<nbPoints){
+            tI.push(t[currentIndex][0]);
+            yI.push(y_data[currentIndex][0]*maxY);
+            currentIndex++;
+        }
+
+        current=optimizeSingleGaussian([tI, yI], group[i], opts);
+        if(current){
+            result.push({"x":current[0][0],"y":current[1][0],"width":current[2][0],"opt":true});
+        }
+        else{
+            result.push({"x":group[i].x,"y":group[i].y,"width":group[i].width,"opt":false});
+        }
+    }
+
+    return result;
+}
+
+
+
+/**
+ *
+ * @param xy A two column matrix containing the x and y data to be fitted
+ * @param group A set of initial lorentzian parameters to be optimized [center, heigth, half_width_at_half_height]
+ * @returns {Array} A set of final lorentzian parameters [center, heigth, hwhh*2]
+ */
+function optimizeLorentzianSum(xy, group, opts){
+    var xy2 = parseData(xy);
+
+    if(xy2===null||xy2[0].rows<3){
+        return null; //Cannot run an optimization with less than 3 points
+    }
+
+    var t = xy2[0];
+    var y_data = xy2[1];
+    var maxY = xy2[2];
+    var nbPoints = t.rows, i;
+
+    var weight = [nbPoints / math.sqrt(y_data.dot(y_data))];
+    var opts=Object.create(opts || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2, 11, 9, 1 ]);
+    var consts = [ ];// optional vector of constants
+
+    var nL = group.length;
+    var p_init = new Matrix(nL*3,1);
+    var p_min =  new Matrix(nL*3,1);
+    var p_max =  new Matrix(nL*3,1);
+    var dx = new Matrix(nL*3,1);
+    var dt = Math.abs(t[0][0]-t[1][0]);
+    for( i=0;i<nL;i++){
+        p_init[i][0] = group[i].x;
+        p_init[i+nL][0] = 1;
+        p_init[i+2*nL][0] = group[i].width;
+
+        p_min[i][0] = group[i].x-dt;//-group[i].width/4;
+        p_min[i+nL][0] = 0;
+        p_min[i+2*nL][0] = group[i].width/4;
+
+        p_max[i][0] = group[i].x+dt;//+group[i].width/4;
+        p_max[i+nL][0] = 1.5;
+        p_max[i+2*nL][0] = group[i].width*4;
+
+        dx[i][0] = -dt/1000;
+        dx[i+nL][0] = -1e-3;
+        dx[i+2*nL][0] = -dt/1000;
+    }
+
+    var dx = -Math.abs(t[0][0]-t[1][0])/10000;
+    var p_fit = LM.optimize(sumOfLorentzians, p_init, t, y_data, weight, dx, p_min, p_max, consts, opts);
+    p_fit=p_fit.p;
+    //Put back the result in the correct format
+    var result = new Array(nL);
+    for( i=0;i<nL;i++){
+        result[i]=[p_fit[i],[p_fit[i+nL][0]*maxY],p_fit[i+2*nL]];
+    }
+
+    return result;
+
+}
+
+/**
+ *
+ * @param xy A two column matrix containing the x and y data to be fitted
+ * @param group A set of initial lorentzian parameters to be optimized [center, heigth, half_width_at_half_height]
+ * @returns {Array} A set of final lorentzian parameters [center, heigth, hwhh*2]
+ */
+function optimizeGaussianSum(xy, group, opts){
+    var xy2 = parseData(xy);
+
+    if(xy2===null||xy2[0].rows<3){
+        return null; //Cannot run an optimization with less than 3 points
+    }
+
+    var t = xy2[0];
+    var y_data = xy2[1];
+    var maxY = xy2[2];
+    var nbPoints = t.rows,i;
+
+    var weight = new Matrix(nbPoints,1);//[nbPoints / math.sqrt(y_data.dot(y_data))];
+    var k = nbPoints / math.sqrt(y_data.dot(y_data));
+    for(i=0;i<nbPoints;i++){
+        weight[i][0]=k;///(y_data[i][0]);
+        //weight[i][0]=k*(2-y_data[i][0]);
+    }
+
+    var opts=Object.create(opts || [  3,    100, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2,    11,    9,        2 ]);
+    //var opts=[  3,    100, 1e-5, 1e-6, 1e-6, 1e-6, 1e-6,    11,    9,        1 ];
+    var consts = [ ];// optional vector of constants
+
+    var nL = group.length;
+    var p_init = new Matrix(nL*3,1);
+    var p_min =  new Matrix(nL*3,1);
+    var p_max =  new Matrix(nL*3,1);
+    var dx = new Matrix(nL*3,1);
+    var dt = Math.abs(t[0][0]-t[1][0]);
+    for( i=0;i<nL;i++){
+        p_init[i][0] = group[i].x;
+        p_init[i+nL][0] = group[i].y/maxY;
+        p_init[i+2*nL][0] = group[i].width;
+
+        p_min[i][0] = group[i].x-dt;
+        p_min[i+nL][0] = group[i].y*0.8/maxY;
+        p_min[i+2*nL][0] = group[i].width/2;
+
+        p_max[i][0] = group[i].x+dt;
+        p_max[i+nL][0] = group[i].y*1.2/maxY;
+        p_max[i+2*nL][0] = group[i].width*2;
+
+        dx[i][0] = -dt/1000;
+        dx[i+nL][0] = -1e-3;
+        dx[i+2*nL][0] = -dt/1000;
+    }
+    //console.log(t);
+    var p_fit = LM.optimize(sumOfLorentzians,p_init,t,y_data,weight,dx,p_min,p_max,consts,opts);
+    p_fit = p_fit.p;
+    //Put back the result in the correct format
+    var result = new Array(nL);
+    for( i=0;i<nL;i++){
+        result[i]=[p_fit[i],[p_fit[i+nL][0]*maxY],p_fit[i+2*nL]];
+    }
+
+    return result;
+
+}
+/**
+ *
+ * Converts the given input to the required x, y column matrices. y data is normalized to max(y)=1
+ * @param xy
+ * @returns {*[]}
+ */
+function parseData(xy, threshold){
+    var nbSeries = xy.length;
+    var t = null;
+    var y_data = null, x,y;
+    var maxY = 0, i,j;
+
+    if(nbSeries==2){
+        //Looks like row wise matrix [x,y]
+        var nbPoints = xy[0].length;
+        //if(nbPoints<3)
+        //    throw new Exception(nbPoints);
+        //else{
+        t = new Array(nbPoints);//new Matrix(nbPoints,1);
+        y_data = new Array(nbPoints);//new Matrix(nbPoints,1);
+        x = xy[0];
+        y = xy[1];
+        if(typeof x[0] === "number"){
+            for(i=0;i<nbPoints;i++){
+                t[i]=x[i];
+                y_data[i]=y[i];
+                if(y[i]>maxY)
+                    maxY = y[i];
+            }
+        }
+        else{
+            //It is a colum matrix
+            if(typeof x[0] === "object"){
+                for(i=0;i<nbPoints;i++){
+                    t[i]=x[i][0];
+                    y_data[i]=y[i][0];
+                    if(y[i][0]>maxY)
+                        maxY = y[i][0];
+                }
+            }
+
+        }
+
+        //}
+    }
+    else{
+        //Looks like a column wise matrix [[x],[y]]
+        var nbPoints = nbSeries;
+        //if(nbPoints<3)
+        //    throw new SizeException(nbPoints);
+        //else {
+        t = new Array(nbPoints);//new Matrix(nbPoints, 1);
+        y_data = new Array(nbPoints);//new Matrix(nbPoints, 1);
+        for (i = 0; i < nbPoints; i++) {
+            t[i] = xy[i][0];
+            y_data[i] = xy[i][1];
+            if(y_data[i]>maxY)
+                maxY = y_data[i];
+        }
+        //}
+    }
+    for (i = 0; i < nbPoints; i++) {
+        y_data[i]/=maxY;
+    }
+    if(threshold){
+        for (i = nbPoints-1; i >=0; i--) {
+            if(y_data[i]<threshold) {
+                y_data.splice(i,1);
+                t.splice(i,1);
+            }
+        }
+    }
+    if(t.length>0)
+        return [(new Matrix([t])).transpose(),(new Matrix([y_data])).transpose(),maxY];
+    return null;
+}
+
+function sizeException(nbPoints) {
+    return new RangeError("Not enough points to perform the optimization: "+nbPoints +"< 3");
+}
+
+module.exports.optimizeSingleLorentzian = optimizeSingleLorentzian;
+module.exports.optimizeLorentzianSum = optimizeLorentzianSum;
+module.exports.optimizeSingleGaussian = optimizeSingleGaussian;
+module.exports.optimizeGaussianSum = optimizeGaussianSum;
+module.exports.singleGaussian = singleGaussian;
+module.exports.singleLorentzian = singleLorentzian;
+module.exports.optimizeGaussianTrain = optimizeGaussianTrain;
+module.exports.optimizeLorentzianTrain = optimizeLorentzianTrain;
+
+/***/ }),
+/* 134 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.array = __webpack_require__(47);
+exports.matrix = __webpack_require__(135);
+
+
+/***/ }),
+/* 135 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var arrayStat = __webpack_require__(47);
+
+// https://github.com/accord-net/framework/blob/development/Sources/Accord.Statistics/Tools.cs
+
+function entropy(matrix, eps) {
+    if (typeof(eps) === 'undefined') {
+        eps = 0;
+    }
+    var sum = 0,
+        l1 = matrix.length,
+        l2 = matrix[0].length;
+    for (var i = 0; i < l1; i++) {
+        for (var j = 0; j < l2; j++) {
+            sum += matrix[i][j] * Math.log(matrix[i][j] + eps);
+        }
+    }
+    return -sum;
+}
+
+function mean(matrix, dimension) {
+    if (typeof(dimension) === 'undefined') {
+        dimension = 0;
+    }
+    var rows = matrix.length,
+        cols = matrix[0].length,
+        theMean, N, i, j;
+
+    if (dimension === -1) {
+        theMean = [0];
+        N = rows * cols;
+        for (i = 0; i < rows; i++) {
+            for (j = 0; j < cols; j++) {
+                theMean[0] += matrix[i][j];
+            }
+        }
+        theMean[0] /= N;
+    } else if (dimension === 0) {
+        theMean = new Array(cols);
+        N = rows;
+        for (j = 0; j < cols; j++) {
+            theMean[j] = 0;
+            for (i = 0; i < rows; i++) {
+                theMean[j] += matrix[i][j];
+            }
+            theMean[j] /= N;
+        }
+    } else if (dimension === 1) {
+        theMean = new Array(rows);
+        N = cols;
+        for (j = 0; j < rows; j++) {
+            theMean[j] = 0;
+            for (i = 0; i < cols; i++) {
+                theMean[j] += matrix[j][i];
+            }
+            theMean[j] /= N;
+        }
+    } else {
+        throw new Error('Invalid dimension');
+    }
+    return theMean;
+}
+
+function standardDeviation(matrix, means, unbiased) {
+    var vari = variance(matrix, means, unbiased), l = vari.length;
+    for (var i = 0; i < l; i++) {
+        vari[i] = Math.sqrt(vari[i]);
+    }
+    return vari;
+}
+
+function variance(matrix, means, unbiased) {
+    if (typeof(unbiased) === 'undefined') {
+        unbiased = true;
+    }
+    means = means || mean(matrix);
+    var rows = matrix.length;
+    if (rows === 0) return [];
+    var cols = matrix[0].length;
+    var vari = new Array(cols);
+
+    for (var j = 0; j < cols; j++) {
+        var sum1 = 0, sum2 = 0, x = 0;
+        for (var i = 0; i < rows; i++) {
+            x = matrix[i][j] - means[j];
+            sum1 += x;
+            sum2 += x * x;
+        }
+        if (unbiased) {
+            vari[j] = (sum2 - ((sum1 * sum1) / rows)) / (rows - 1);
+        } else {
+            vari[j] = (sum2 - ((sum1 * sum1) / rows)) / rows;
+        }
+    }
+    return vari;
+}
+
+function median(matrix) {
+    var rows = matrix.length, cols = matrix[0].length;
+    var medians = new Array(cols);
+
+    for (var i = 0; i < cols; i++) {
+        var data = new Array(rows);
+        for (var j = 0; j < rows; j++) {
+            data[j] = matrix[j][i];
+        }
+        data.sort();
+        var N = data.length;
+        if (N % 2 === 0) {
+            medians[i] = (data[N / 2] + data[(N / 2) - 1]) * 0.5;
+        } else {
+            medians[i] = data[Math.floor(N / 2)];
+        }
+    }
+    return medians;
+}
+
+function mode(matrix) {
+    var rows = matrix.length,
+        cols = matrix[0].length,
+        modes = new Array(cols),
+        i, j;
+    for (i = 0; i < cols; i++) {
+        var itemCount = new Array(rows);
+        for (var k = 0; k < rows; k++) {
+            itemCount[k] = 0;
+        }
+        var itemArray = new Array(rows);
+        var count = 0;
+
+        for (j = 0; j < rows; j++) {
+            var index = itemArray.indexOf(matrix[j][i]);
+            if (index >= 0) {
+                itemCount[index]++;
+            } else {
+                itemArray[count] = matrix[j][i];
+                itemCount[count] = 1;
+                count++;
+            }
+        }
+
+        var maxValue = 0, maxIndex = 0;
+        for (j = 0; j < count; j++) {
+            if (itemCount[j] > maxValue) {
+                maxValue = itemCount[j];
+                maxIndex = j;
+            }
+        }
+
+        modes[i] = itemArray[maxIndex];
+    }
+    return modes;
+}
+
+function skewness(matrix, unbiased) {
+    if (typeof(unbiased) === 'undefined') unbiased = true;
+    var means = mean(matrix);
+    var n = matrix.length, l = means.length;
+    var skew = new Array(l);
+
+    for (var j = 0; j < l; j++) {
+        var s2 = 0, s3 = 0;
+        for (var i = 0; i < n; i++) {
+            var dev = matrix[i][j] - means[j];
+            s2 += dev * dev;
+            s3 += dev * dev * dev;
+        }
+
+        var m2 = s2 / n;
+        var m3 = s3 / n;
+        var g = m3 / Math.pow(m2, 3 / 2);
+
+        if (unbiased) {
+            var a = Math.sqrt(n * (n - 1));
+            var b = n - 2;
+            skew[j] = (a / b) * g;
+        } else {
+            skew[j] = g;
+        }
+    }
+    return skew;
+}
+
+function kurtosis(matrix, unbiased) {
+    if (typeof(unbiased) === 'undefined') unbiased = true;
+    var means = mean(matrix);
+    var n = matrix.length, m = matrix[0].length;
+    var kurt = new Array(m);
+
+    for (var j = 0; j < m; j++) {
+        var s2 = 0, s4 = 0;
+        for (var i = 0; i < n; i++) {
+            var dev = matrix[i][j] - means[j];
+            s2 += dev * dev;
+            s4 += dev * dev * dev * dev;
+        }
+        var m2 = s2 / n;
+        var m4 = s4 / n;
+
+        if (unbiased) {
+            var v = s2 / (n - 1);
+            var a = (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3));
+            var b = s4 / (v * v);
+            var c = ((n - 1) * (n - 1)) / ((n - 2) * (n - 3));
+            kurt[j] = a * b - 3 * c;
+        } else {
+            kurt[j] = m4 / (m2 * m2) - 3;
+        }
+    }
+    return kurt;
+}
+
+function standardError(matrix) {
+    var samples = matrix.length;
+    var standardDeviations = standardDeviation(matrix), l = standardDeviations.length;
+    var standardErrors = new Array(l);
+    var sqrtN = Math.sqrt(samples);
+
+    for (var i = 0; i < l; i++) {
+        standardErrors[i] = standardDeviations[i] / sqrtN;
+    }
+    return standardErrors;
+}
+
+function covariance(matrix, dimension) {
+    return scatter(matrix, undefined, dimension);
+}
+
+function scatter(matrix, divisor, dimension) {
+    if (typeof(dimension) === 'undefined') {
+        dimension = 0;
+    }
+    if (typeof(divisor) === 'undefined') {
+        if (dimension === 0) {
+            divisor = matrix.length - 1;
+        } else if (dimension === 1) {
+            divisor = matrix[0].length - 1;
+        }
+    }
+    var means = mean(matrix, dimension),
+        rows = matrix.length;
+    if (rows === 0) {
+        return [[]];
+    }
+    var cols = matrix[0].length,
+        cov, i, j, s, k;
+
+    if (dimension === 0) {
+        cov = new Array(cols);
+        for (i = 0; i < cols; i++) {
+            cov[i] = new Array(cols);
+        }
+        for (i = 0; i < cols; i++) {
+            for (j = i; j < cols; j++) {
+                s = 0;
+                for (k = 0; k < rows; k++) {
+                    s += (matrix[k][j] - means[j]) * (matrix[k][i] - means[i]);
+                }
+                s /= divisor;
+                cov[i][j] = s;
+                cov[j][i] = s;
+            }
+        }
+    } else if (dimension === 1) {
+        cov = new Array(rows);
+        for (i = 0; i < rows; i++) {
+            cov[i] = new Array(rows);
+        }
+        for (i = 0; i < rows; i++) {
+            for (j = i; j < rows; j++) {
+                s = 0;
+                for (k = 0; k < cols; k++) {
+                    s += (matrix[j][k] - means[j]) * (matrix[i][k] - means[i]);
+                }
+                s /= divisor;
+                cov[i][j] = s;
+                cov[j][i] = s;
+            }
+        }
+    } else {
+        throw new Error('Invalid dimension');
+    }
+
+    return cov;
+}
+
+function correlation(matrix) {
+    var means = mean(matrix),
+        standardDeviations = standardDeviation(matrix, true, means),
+        scores = zScores(matrix, means, standardDeviations),
+        rows = matrix.length,
+        cols = matrix[0].length,
+        i, j;
+
+    var cor = new Array(cols);
+    for (i = 0; i < cols; i++) {
+        cor[i] = new Array(cols);
+    }
+    for (i = 0; i < cols; i++) {
+        for (j = i; j < cols; j++) {
+            var c = 0;
+            for (var k = 0, l = scores.length; k < l; k++) {
+                c += scores[k][j] * scores[k][i];
+            }
+            c /= rows - 1;
+            cor[i][j] = c;
+            cor[j][i] = c;
+        }
+    }
+    return cor;
+}
+
+function zScores(matrix, means, standardDeviations) {
+    means = means || mean(matrix);
+    if (typeof(standardDeviations) === 'undefined') standardDeviations = standardDeviation(matrix, true, means);
+    return standardize(center(matrix, means, false), standardDeviations, true);
+}
+
+function center(matrix, means, inPlace) {
+    means = means || mean(matrix);
+    var result = matrix,
+        l = matrix.length,
+        i, j, jj;
+
+    if (!inPlace) {
+        result = new Array(l);
+        for (i = 0; i < l; i++) {
+            result[i] = new Array(matrix[i].length);
+        }
+    }
+
+    for (i = 0; i < l; i++) {
+        var row = result[i];
+        for (j = 0, jj = row.length; j < jj; j++) {
+            row[j] = matrix[i][j] - means[j];
+        }
+    }
+    return result;
+}
+
+function standardize(matrix, standardDeviations, inPlace) {
+    if (typeof(standardDeviations) === 'undefined') standardDeviations = standardDeviation(matrix);
+    var result = matrix,
+        l = matrix.length,
+        i, j, jj;
+
+    if (!inPlace) {
+        result = new Array(l);
+        for (i = 0; i < l; i++) {
+            result[i] = new Array(matrix[i].length);
+        }
+    }
+
+    for (i = 0; i < l; i++) {
+        var resultRow = result[i];
+        var sourceRow = matrix[i];
+        for (j = 0, jj = resultRow.length; j < jj; j++) {
+            if (standardDeviations[j] !== 0 && !isNaN(standardDeviations[j])) {
+                resultRow[j] = sourceRow[j] / standardDeviations[j];
+            }
+        }
+    }
+    return result;
+}
+
+function weightedVariance(matrix, weights) {
+    var means = mean(matrix);
+    var rows = matrix.length;
+    if (rows === 0) return [];
+    var cols = matrix[0].length;
+    var vari = new Array(cols);
+
+    for (var j = 0; j < cols; j++) {
+        var sum = 0;
+        var a = 0, b = 0;
+
+        for (var i = 0; i < rows; i++) {
+            var z = matrix[i][j] - means[j];
+            var w = weights[i];
+
+            sum += w * (z * z);
+            b += w;
+            a += w * w;
+        }
+
+        vari[j] = sum * (b / (b * b - a));
+    }
+
+    return vari;
+}
+
+function weightedMean(matrix, weights, dimension) {
+    if (typeof(dimension) === 'undefined') {
+        dimension = 0;
+    }
+    var rows = matrix.length;
+    if (rows === 0) return [];
+    var cols = matrix[0].length,
+        means, i, ii, j, w, row;
+
+    if (dimension === 0) {
+        means = new Array(cols);
+        for (i = 0; i < cols; i++) {
+            means[i] = 0;
+        }
+        for (i = 0; i < rows; i++) {
+            row = matrix[i];
+            w = weights[i];
+            for (j = 0; j < cols; j++) {
+                means[j] += row[j] * w;
+            }
+        }
+    } else if (dimension === 1) {
+        means = new Array(rows);
+        for (i = 0; i < rows; i++) {
+            means[i] = 0;
+        }
+        for (j = 0; j < rows; j++) {
+            row = matrix[j];
+            w = weights[j];
+            for (i = 0; i < cols; i++) {
+                means[j] += row[i] * w;
+            }
+        }
+    } else {
+        throw new Error('Invalid dimension');
+    }
+
+    var weightSum = arrayStat.sum(weights);
+    if (weightSum !== 0) {
+        for (i = 0, ii = means.length; i < ii; i++) {
+            means[i] /= weightSum;
+        }
+    }
+    return means;
+}
+
+function weightedCovariance(matrix, weights, means, dimension) {
+    dimension = dimension || 0;
+    means = means || weightedMean(matrix, weights, dimension);
+    var s1 = 0, s2 = 0;
+    for (var i = 0, ii = weights.length; i < ii; i++) {
+        s1 += weights[i];
+        s2 += weights[i] * weights[i];
+    }
+    var factor = s1 / (s1 * s1 - s2);
+    return weightedScatter(matrix, weights, means, factor, dimension);
+}
+
+function weightedScatter(matrix, weights, means, factor, dimension) {
+    dimension = dimension || 0;
+    means = means || weightedMean(matrix, weights, dimension);
+    if (typeof(factor) === 'undefined') {
+        factor = 1;
+    }
+    var rows = matrix.length;
+    if (rows === 0) {
+        return [[]];
+    }
+    var cols = matrix[0].length,
+        cov, i, j, k, s;
+
+    if (dimension === 0) {
+        cov = new Array(cols);
+        for (i = 0; i < cols; i++) {
+            cov[i] = new Array(cols);
+        }
+        for (i = 0; i < cols; i++) {
+            for (j = i; j < cols; j++) {
+                s = 0;
+                for (k = 0; k < rows; k++) {
+                    s += weights[k] * (matrix[k][j] - means[j]) * (matrix[k][i] - means[i]);
+                }
+                cov[i][j] = s * factor;
+                cov[j][i] = s * factor;
+            }
+        }
+    } else if (dimension === 1) {
+        cov = new Array(rows);
+        for (i = 0; i < rows; i++) {
+            cov[i] = new Array(rows);
+        }
+        for (i = 0; i < rows; i++) {
+            for (j = i; j < rows; j++) {
+                s = 0;
+                for (k = 0; k < cols; k++) {
+                    s += weights[k] * (matrix[j][k] - means[j]) * (matrix[i][k] - means[i]);
+                }
+                cov[i][j] = s * factor;
+                cov[j][i] = s * factor;
+            }
+        }
+    } else {
+        throw new Error('Invalid dimension');
+    }
+
+    return cov;
+}
+
+module.exports = {
+    entropy: entropy,
+    mean: mean,
+    standardDeviation: standardDeviation,
+    variance: variance,
+    median: median,
+    mode: mode,
+    skewness: skewness,
+    kurtosis: kurtosis,
+    standardError: standardError,
+    covariance: covariance,
+    scatter: scatter,
+    correlation: correlation,
+    zScores: zScores,
+    center: center,
+    standardize: standardize,
+    weightedVariance: weightedVariance,
+    weightedMean: weightedMean,
+    weightedCovariance: weightedCovariance,
+    weightedScatter: weightedScatter
+};
+
+
+/***/ }),
+/* 136 */
+/***/ (function(module, exports, __webpack_require__) {
+
+//Code translate from Pascal source in http://pubs.acs.org/doi/pdf/10.1021/ac00205a007
+var extend = __webpack_require__(27);
+var stat = __webpack_require__(134);
+
+var defaultOptions = {
+    windowSize: 9,
+    derivative: 0,
+    polynomial: 3,
+};
+
+
+function SavitzkyGolay(data, h, options) {
+    options = extend({}, defaultOptions, options);
+
+    if ((options.windowSize % 2 === 0) || (options.windowSize < 5) || !(Number.isInteger(options.windowSize)))
+            throw new RangeError('Invalid window size (should be odd and at least 5 integer number)')
+
+
+    if (options.windowSize>data.length)
+        throw new RangeError('Window size is higher than the data length '+options.windowSize+">"+data.length);
+    if ((options.derivative < 0) || !(Number.isInteger(options.derivative)))
+        throw new RangeError('Derivative should be a positive integer');
+    if ((options.polynomial < 1) || !(Number.isInteger(options.polynomial)))
+        throw new RangeError('Polynomial should be a positive integer');
+    if (options.polynomial >= 6)
+        console.warn('You should not use polynomial grade higher than 5 if you are' +
+            ' not sure that your data arises from such a model. Possible polynomial oscillation problems');
+
+    var windowSize = options.windowSize;
+
+    var half = Math.floor(windowSize/2);
+    var np = data.length;
+    var ans = new Array(np);
+    var weights = fullWeights(windowSize,options.polynomial,options.derivative);
+    var hs = 0;
+    var constantH = true;
+    if( Object.prototype.toString.call( h ) === '[object Array]' ) {
+        constantH = false;
+    }
+    else{
+        hs = Math.pow(h, options.derivative);
+    }
+    //console.log("Constant h: "+constantH);
+    //For the borders
+    for(var i=0;i<half;i++){
+        var wg1=weights[half-i-1];
+        var wg2=weights[half+i+1];
+        var d1 = 0,d2=0;
+        for (var l = 0; l < windowSize; l++){
+            d1 += wg1[l] * data[l];
+            d2 += wg2[l] * data[np-windowSize+l-1];
+        }
+        if(constantH){
+            ans[half-i-1] = d1/hs;
+            ans[np-half+i] = d2/hs;
+        }
+        else{
+            hs = getHs(h,half-i-1,half, options.derivative);
+            ans[half-i-1] = d1/hs;
+            hs = getHs(h,np-half+i,half, options.derivative);
+            ans[np-half+i] = d2/hs;
+        }
+    }
+    //For the internal points
+    var wg = weights[half];
+    for(var i=windowSize;i<np+1;i++){
+        var d = 0;
+        for (var l = 0; l < windowSize; l++)
+            d += wg[l] * data[l+i-windowSize];
+        if(!constantH)
+            hs = getHs(h,i-half-1,half, options.derivative);
+        ans[i-half-1] = d/hs;
+    }
+    return ans;
+}
+
+function getHs(h,center,half,derivative){
+    var hs = 0;
+    var count = 0;
+    for(var i=center-half;i<center+half;i++){
+        if(i>=0 && i < h.length-1){
+            hs+= (h[i+1]-h[i]);
+            count++;
+        }
+    }
+    return Math.pow(hs/count,derivative);
+}
+
+function GramPoly(i,m,k,s){
+    var Grampoly = 0;
+    if(k>0){
+        Grampoly = (4*k-2)/(k*(2*m-k+1))*(i*GramPoly(i,m,k-1,s) +
+            s*GramPoly(i,m,k-1,s-1)) - ((k-1)*(2*m+k))/(k*(2*m-k+1))*GramPoly(i,m,k-2,s);
+    }
+    else{
+        if(k==0&&s==0){
+            Grampoly=1;
+        }
+        else{
+            Grampoly=0;
+        }
+    }
+    //console.log(Grampoly);
+    return Grampoly;
+}
+
+function GenFact(a,b){
+    var gf=1;
+    if(a>=b){
+        for(var j=a-b+1;j<=a;j++){
+            gf*=j;
+        }
+    }
+    return gf;
+}
+
+function Weight(i,t,m,n,s){
+    var sum=0;
+    for(var k=0;k<=n;k++){
+        //console.log(k);
+        sum+=(2*k+1)*(GenFact(2*m,k)/GenFact(2*m+k+1,k+1))*GramPoly(i,m,k,0)*GramPoly(t,m,k,s)
+    }
+    return sum;
+}
+
+/**
+ *
+ * @param m  Number of points
+ * @param n  Polynomial grade
+ * @param s  Derivative
+ */
+function fullWeights(m,n,s){
+    var weights = new Array(m);
+    var np = Math.floor(m/2);
+    for(var t=-np;t<=np;t++){
+        weights[t+np] = new Array(m);
+        for(var j=-np;j<=np;j++){
+            weights[t+np][j+np]=Weight(j,t,np,n,s);
+        }
+    }
+    return weights;
+}
+
+/*function entropy(data,h,options){
+    var trend = SavitzkyGolay(data,h,trendOptions);
+    var copy = new Array(data.length);
+    var sum = 0;
+    var max = 0;
+    for(var i=0;i<data.length;i++){
+        copy[i] = data[i]-trend[i];
+    }
+
+    sum/=data.length;
+    console.log(sum+" "+max);
+    console.log(stat.array.standardDeviation(copy));
+    console.log(Math.abs(stat.array.mean(copy))/stat.array.standardDeviation(copy));
+    return sum;
+
+}
+
+
+
+function guessWindowSize(data, h){
+    console.log("entropy "+entropy(data,h,trendOptions));
+    return 5;
+}
+*/
+module.exports = SavitzkyGolay;
+ 
+
+
+/***/ }),
+/* 137 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var arrayStat = __webpack_require__(50);
+
+function compareNumbers(a, b) {
+    return a - b;
+}
+
+exports.max = function max(matrix) {
+    var max = -Infinity;
+    for (var i = 0; i < matrix.length; i++) {
+        for (var j = 0; j < matrix[i].length; j++) {
+            if (matrix[i][j] > max) max = matrix[i][j];
+        }
+    }
+    return max;
+};
+
+exports.min = function min(matrix) {
+    var min = Infinity;
+    for (var i = 0; i < matrix.length; i++) {
+        for (var j = 0; j < matrix[i].length; j++) {
+            if (matrix[i][j] < min) min = matrix[i][j];
+        }
+    }
+    return min;
+};
+
+exports.minMax = function minMax(matrix) {
+    var min = Infinity;
+    var max = -Infinity;
+    for (var i = 0; i < matrix.length; i++) {
+        for (var j = 0; j < matrix[i].length; j++) {
+            if (matrix[i][j] < min) min = matrix[i][j];
+            if (matrix[i][j] > max) max = matrix[i][j];
+        }
+    }
+    return {
+        min:min,
+        max:max
+    };
+};
+
+exports.entropy = function entropy(matrix, eps) {
+    if (typeof (eps) === 'undefined') {
+        eps = 0;
+    }
+    var sum = 0,
+        l1 = matrix.length,
+        l2 = matrix[0].length;
+    for (var i = 0; i < l1; i++) {
+        for (var j = 0; j < l2; j++) {
+            sum += matrix[i][j] * Math.log(matrix[i][j] + eps);
+        }
+    }
+    return -sum;
+};
+
+exports.mean = function mean(matrix, dimension) {
+    if (typeof (dimension) === 'undefined') {
+        dimension = 0;
+    }
+    var rows = matrix.length,
+        cols = matrix[0].length,
+        theMean, N, i, j;
+
+    if (dimension === -1) {
+        theMean = [0];
+        N = rows * cols;
+        for (i = 0; i < rows; i++) {
+            for (j = 0; j < cols; j++) {
+                theMean[0] += matrix[i][j];
+            }
+        }
+        theMean[0] /= N;
+    } else if (dimension === 0) {
+        theMean = new Array(cols);
+        N = rows;
+        for (j = 0; j < cols; j++) {
+            theMean[j] = 0;
+            for (i = 0; i < rows; i++) {
+                theMean[j] += matrix[i][j];
+            }
+            theMean[j] /= N;
+        }
+    } else if (dimension === 1) {
+        theMean = new Array(rows);
+        N = cols;
+        for (j = 0; j < rows; j++) {
+            theMean[j] = 0;
+            for (i = 0; i < cols; i++) {
+                theMean[j] += matrix[j][i];
+            }
+            theMean[j] /= N;
+        }
+    } else {
+        throw new Error('Invalid dimension');
+    }
+    return theMean;
+};
+
+exports.sum = function sum(matrix, dimension) {
+    if (typeof (dimension) === 'undefined') {
+        dimension = 0;
+    }
+    var rows = matrix.length,
+        cols = matrix[0].length,
+        theSum, i, j;
+
+    if (dimension === -1) {
+        theSum = [0];
+        for (i = 0; i < rows; i++) {
+            for (j = 0; j < cols; j++) {
+                theSum[0] += matrix[i][j];
+            }
+        }
+    } else if (dimension === 0) {
+        theSum = new Array(cols);
+        for (j = 0; j < cols; j++) {
+            theSum[j] = 0;
+            for (i = 0; i < rows; i++) {
+                theSum[j] += matrix[i][j];
+            }
+        }
+    } else if (dimension === 1) {
+        theSum = new Array(rows);
+        for (j = 0; j < rows; j++) {
+            theSum[j] = 0;
+            for (i = 0; i < cols; i++) {
+                theSum[j] += matrix[j][i];
+            }
+        }
+    } else {
+        throw new Error('Invalid dimension');
+    }
+    return theSum;
+};
+
+exports.product = function product(matrix, dimension) {
+    if (typeof (dimension) === 'undefined') {
+        dimension = 0;
+    }
+    var rows = matrix.length,
+        cols = matrix[0].length,
+        theProduct, i, j;
+
+    if (dimension === -1) {
+        theProduct = [1];
+        for (i = 0; i < rows; i++) {
+            for (j = 0; j < cols; j++) {
+                theProduct[0] *= matrix[i][j];
+            }
+        }
+    } else if (dimension === 0) {
+        theProduct = new Array(cols);
+        for (j = 0; j < cols; j++) {
+            theProduct[j] = 1;
+            for (i = 0; i < rows; i++) {
+                theProduct[j] *= matrix[i][j];
+            }
+        }
+    } else if (dimension === 1) {
+        theProduct = new Array(rows);
+        for (j = 0; j < rows; j++) {
+            theProduct[j] = 1;
+            for (i = 0; i < cols; i++) {
+                theProduct[j] *= matrix[j][i];
+            }
+        }
+    } else {
+        throw new Error('Invalid dimension');
+    }
+    return theProduct;
+};
+
+exports.standardDeviation = function standardDeviation(matrix, means, unbiased) {
+    var vari = exports.variance(matrix, means, unbiased), l = vari.length;
+    for (var i = 0; i < l; i++) {
+        vari[i] = Math.sqrt(vari[i]);
+    }
+    return vari;
+};
+
+exports.variance = function variance(matrix, means, unbiased) {
+    if (typeof (unbiased) === 'undefined') {
+        unbiased = true;
+    }
+    means = means || exports.mean(matrix);
+    var rows = matrix.length;
+    if (rows === 0) return [];
+    var cols = matrix[0].length;
+    var vari = new Array(cols);
+
+    for (var j = 0; j < cols; j++) {
+        var sum1 = 0, sum2 = 0, x = 0;
+        for (var i = 0; i < rows; i++) {
+            x = matrix[i][j] - means[j];
+            sum1 += x;
+            sum2 += x * x;
+        }
+        if (unbiased) {
+            vari[j] = (sum2 - ((sum1 * sum1) / rows)) / (rows - 1);
+        } else {
+            vari[j] = (sum2 - ((sum1 * sum1) / rows)) / rows;
+        }
+    }
+    return vari;
+};
+
+exports.median = function median(matrix) {
+    var rows = matrix.length, cols = matrix[0].length;
+    var medians = new Array(cols);
+
+    for (var i = 0; i < cols; i++) {
+        var data = new Array(rows);
+        for (var j = 0; j < rows; j++) {
+            data[j] = matrix[j][i];
+        }
+        data.sort(compareNumbers);
+        var N = data.length;
+        if (N % 2 === 0) {
+            medians[i] = (data[N / 2] + data[(N / 2) - 1]) * 0.5;
+        } else {
+            medians[i] = data[Math.floor(N / 2)];
+        }
+    }
+    return medians;
+};
+
+exports.mode = function mode(matrix) {
+    var rows = matrix.length,
+        cols = matrix[0].length,
+        modes = new Array(cols),
+        i, j;
+    for (i = 0; i < cols; i++) {
+        var itemCount = new Array(rows);
+        for (var k = 0; k < rows; k++) {
+            itemCount[k] = 0;
+        }
+        var itemArray = new Array(rows);
+        var count = 0;
+
+        for (j = 0; j < rows; j++) {
+            var index = itemArray.indexOf(matrix[j][i]);
+            if (index >= 0) {
+                itemCount[index]++;
+            } else {
+                itemArray[count] = matrix[j][i];
+                itemCount[count] = 1;
+                count++;
+            }
+        }
+
+        var maxValue = 0, maxIndex = 0;
+        for (j = 0; j < count; j++) {
+            if (itemCount[j] > maxValue) {
+                maxValue = itemCount[j];
+                maxIndex = j;
+            }
+        }
+
+        modes[i] = itemArray[maxIndex];
+    }
+    return modes;
+};
+
+exports.skewness = function skewness(matrix, unbiased) {
+    if (typeof (unbiased) === 'undefined') unbiased = true;
+    var means = exports.mean(matrix);
+    var n = matrix.length, l = means.length;
+    var skew = new Array(l);
+
+    for (var j = 0; j < l; j++) {
+        var s2 = 0, s3 = 0;
+        for (var i = 0; i < n; i++) {
+            var dev = matrix[i][j] - means[j];
+            s2 += dev * dev;
+            s3 += dev * dev * dev;
+        }
+
+        var m2 = s2 / n;
+        var m3 = s3 / n;
+        var g = m3 / Math.pow(m2, 3 / 2);
+
+        if (unbiased) {
+            var a = Math.sqrt(n * (n - 1));
+            var b = n - 2;
+            skew[j] = (a / b) * g;
+        } else {
+            skew[j] = g;
+        }
+    }
+    return skew;
+};
+
+exports.kurtosis = function kurtosis(matrix, unbiased) {
+    if (typeof (unbiased) === 'undefined') unbiased = true;
+    var means = exports.mean(matrix);
+    var n = matrix.length, m = matrix[0].length;
+    var kurt = new Array(m);
+
+    for (var j = 0; j < m; j++) {
+        var s2 = 0, s4 = 0;
+        for (var i = 0; i < n; i++) {
+            var dev = matrix[i][j] - means[j];
+            s2 += dev * dev;
+            s4 += dev * dev * dev * dev;
+        }
+        var m2 = s2 / n;
+        var m4 = s4 / n;
+
+        if (unbiased) {
+            var v = s2 / (n - 1);
+            var a = (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3));
+            var b = s4 / (v * v);
+            var c = ((n - 1) * (n - 1)) / ((n - 2) * (n - 3));
+            kurt[j] = a * b - 3 * c;
+        } else {
+            kurt[j] = m4 / (m2 * m2) - 3;
+        }
+    }
+    return kurt;
+};
+
+exports.standardError = function standardError(matrix) {
+    var samples = matrix.length;
+    var standardDeviations = exports.standardDeviation(matrix);
+    var l = standardDeviations.length;
+    var standardErrors = new Array(l);
+    var sqrtN = Math.sqrt(samples);
+
+    for (var i = 0; i < l; i++) {
+        standardErrors[i] = standardDeviations[i] / sqrtN;
+    }
+    return standardErrors;
+};
+
+exports.covariance = function covariance(matrix, dimension) {
+    return exports.scatter(matrix, undefined, dimension);
+};
+
+exports.scatter = function scatter(matrix, divisor, dimension) {
+    if (typeof (dimension) === 'undefined') {
+        dimension = 0;
+    }
+    if (typeof (divisor) === 'undefined') {
+        if (dimension === 0) {
+            divisor = matrix.length - 1;
+        } else if (dimension === 1) {
+            divisor = matrix[0].length - 1;
+        }
+    }
+    var means = exports.mean(matrix, dimension);
+    var rows = matrix.length;
+    if (rows === 0) {
+        return [[]];
+    }
+    var cols = matrix[0].length,
+        cov, i, j, s, k;
+
+    if (dimension === 0) {
+        cov = new Array(cols);
+        for (i = 0; i < cols; i++) {
+            cov[i] = new Array(cols);
+        }
+        for (i = 0; i < cols; i++) {
+            for (j = i; j < cols; j++) {
+                s = 0;
+                for (k = 0; k < rows; k++) {
+                    s += (matrix[k][j] - means[j]) * (matrix[k][i] - means[i]);
+                }
+                s /= divisor;
+                cov[i][j] = s;
+                cov[j][i] = s;
+            }
+        }
+    } else if (dimension === 1) {
+        cov = new Array(rows);
+        for (i = 0; i < rows; i++) {
+            cov[i] = new Array(rows);
+        }
+        for (i = 0; i < rows; i++) {
+            for (j = i; j < rows; j++) {
+                s = 0;
+                for (k = 0; k < cols; k++) {
+                    s += (matrix[j][k] - means[j]) * (matrix[i][k] - means[i]);
+                }
+                s /= divisor;
+                cov[i][j] = s;
+                cov[j][i] = s;
+            }
+        }
+    } else {
+        throw new Error('Invalid dimension');
+    }
+
+    return cov;
+};
+
+exports.correlation = function correlation(matrix) {
+    var means = exports.mean(matrix),
+        standardDeviations = exports.standardDeviation(matrix, true, means),
+        scores = exports.zScores(matrix, means, standardDeviations),
+        rows = matrix.length,
+        cols = matrix[0].length,
+        i, j;
+
+    var cor = new Array(cols);
+    for (i = 0; i < cols; i++) {
+        cor[i] = new Array(cols);
+    }
+    for (i = 0; i < cols; i++) {
+        for (j = i; j < cols; j++) {
+            var c = 0;
+            for (var k = 0, l = scores.length; k < l; k++) {
+                c += scores[k][j] * scores[k][i];
+            }
+            c /= rows - 1;
+            cor[i][j] = c;
+            cor[j][i] = c;
+        }
+    }
+    return cor;
+};
+
+exports.zScores = function zScores(matrix, means, standardDeviations) {
+    means = means || exports.mean(matrix);
+    if (typeof (standardDeviations) === 'undefined') standardDeviations = exports.standardDeviation(matrix, true, means);
+    return exports.standardize(exports.center(matrix, means, false), standardDeviations, true);
+};
+
+exports.center = function center(matrix, means, inPlace) {
+    means = means || exports.mean(matrix);
+    var result = matrix,
+        l = matrix.length,
+        i, j, jj;
+
+    if (!inPlace) {
+        result = new Array(l);
+        for (i = 0; i < l; i++) {
+            result[i] = new Array(matrix[i].length);
+        }
+    }
+
+    for (i = 0; i < l; i++) {
+        var row = result[i];
+        for (j = 0, jj = row.length; j < jj; j++) {
+            row[j] = matrix[i][j] - means[j];
+        }
+    }
+    return result;
+};
+
+exports.standardize = function standardize(matrix, standardDeviations, inPlace) {
+    if (typeof (standardDeviations) === 'undefined') standardDeviations = exports.standardDeviation(matrix);
+    var result = matrix,
+        l = matrix.length,
+        i, j, jj;
+
+    if (!inPlace) {
+        result = new Array(l);
+        for (i = 0; i < l; i++) {
+            result[i] = new Array(matrix[i].length);
+        }
+    }
+
+    for (i = 0; i < l; i++) {
+        var resultRow = result[i];
+        var sourceRow = matrix[i];
+        for (j = 0, jj = resultRow.length; j < jj; j++) {
+            if (standardDeviations[j] !== 0 && !isNaN(standardDeviations[j])) {
+                resultRow[j] = sourceRow[j] / standardDeviations[j];
+            }
+        }
+    }
+    return result;
+};
+
+exports.weightedVariance = function weightedVariance(matrix, weights) {
+    var means = exports.mean(matrix);
+    var rows = matrix.length;
+    if (rows === 0) return [];
+    var cols = matrix[0].length;
+    var vari = new Array(cols);
+
+    for (var j = 0; j < cols; j++) {
+        var sum = 0;
+        var a = 0, b = 0;
+
+        for (var i = 0; i < rows; i++) {
+            var z = matrix[i][j] - means[j];
+            var w = weights[i];
+
+            sum += w * (z * z);
+            b += w;
+            a += w * w;
+        }
+
+        vari[j] = sum * (b / (b * b - a));
+    }
+
+    return vari;
+};
+
+exports.weightedMean = function weightedMean(matrix, weights, dimension) {
+    if (typeof (dimension) === 'undefined') {
+        dimension = 0;
+    }
+    var rows = matrix.length;
+    if (rows === 0) return [];
+    var cols = matrix[0].length,
+        means, i, ii, j, w, row;
+
+    if (dimension === 0) {
+        means = new Array(cols);
+        for (i = 0; i < cols; i++) {
+            means[i] = 0;
+        }
+        for (i = 0; i < rows; i++) {
+            row = matrix[i];
+            w = weights[i];
+            for (j = 0; j < cols; j++) {
+                means[j] += row[j] * w;
+            }
+        }
+    } else if (dimension === 1) {
+        means = new Array(rows);
+        for (i = 0; i < rows; i++) {
+            means[i] = 0;
+        }
+        for (j = 0; j < rows; j++) {
+            row = matrix[j];
+            w = weights[j];
+            for (i = 0; i < cols; i++) {
+                means[j] += row[i] * w;
+            }
+        }
+    } else {
+        throw new Error('Invalid dimension');
+    }
+
+    var weightSum = arrayStat.sum(weights);
+    if (weightSum !== 0) {
+        for (i = 0, ii = means.length; i < ii; i++) {
+            means[i] /= weightSum;
+        }
+    }
+    return means;
+};
+
+exports.weightedCovariance = function weightedCovariance(matrix, weights, means, dimension) {
+    dimension = dimension || 0;
+    means = means || exports.weightedMean(matrix, weights, dimension);
+    var s1 = 0, s2 = 0;
+    for (var i = 0, ii = weights.length; i < ii; i++) {
+        s1 += weights[i];
+        s2 += weights[i] * weights[i];
+    }
+    var factor = s1 / (s1 * s1 - s2);
+    return exports.weightedScatter(matrix, weights, means, factor, dimension);
+};
+
+exports.weightedScatter = function weightedScatter(matrix, weights, means, factor, dimension) {
+    dimension = dimension || 0;
+    means = means || exports.weightedMean(matrix, weights, dimension);
+    if (typeof (factor) === 'undefined') {
+        factor = 1;
+    }
+    var rows = matrix.length;
+    if (rows === 0) {
+        return [[]];
+    }
+    var cols = matrix[0].length,
+        cov, i, j, k, s;
+
+    if (dimension === 0) {
+        cov = new Array(cols);
+        for (i = 0; i < cols; i++) {
+            cov[i] = new Array(cols);
+        }
+        for (i = 0; i < cols; i++) {
+            for (j = i; j < cols; j++) {
+                s = 0;
+                for (k = 0; k < rows; k++) {
+                    s += weights[k] * (matrix[k][j] - means[j]) * (matrix[k][i] - means[i]);
+                }
+                cov[i][j] = s * factor;
+                cov[j][i] = s * factor;
+            }
+        }
+    } else if (dimension === 1) {
+        cov = new Array(rows);
+        for (i = 0; i < rows; i++) {
+            cov[i] = new Array(rows);
+        }
+        for (i = 0; i < rows; i++) {
+            for (j = i; j < rows; j++) {
+                s = 0;
+                for (k = 0; k < cols; k++) {
+                    s += weights[k] * (matrix[j][k] - means[j]) * (matrix[i][k] - means[i]);
+                }
+                cov[i][j] = s * factor;
+                cov[j][i] = s * factor;
+            }
+        }
+    } else {
+        throw new Error('Invalid dimension');
+    }
+
+    return cov;
+};
+
+
+/***/ }),
+/* 138 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+const Matrix = __webpack_require__(16);
+const newArray = __webpack_require__(18);
+const simpleClustering = __webpack_require__(48);
+const hlClust = __webpack_require__(107);
 
 class SpinSystem {
     constructor(chemicalShifts, couplingConstants, multiplicity) {
@@ -28181,13 +29190,13 @@ module.exports = SpinSystem;
 
 
 /***/ }),
-/* 134 */
+/* 139 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const SparseMatrix = __webpack_require__(45);
+const SparseMatrix = __webpack_require__(49);
 
 function createPauli(mult) {
     const spin = (mult - 1) / 2;
@@ -28229,19 +29238,19 @@ module.exports = getPauli;
 
 
 /***/ }),
-/* 135 */
+/* 140 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const Matrix = __webpack_require__(19);
-const SparseMatrix = __webpack_require__(45);
-const binarySearch = __webpack_require__(25);
-const sortAsc = __webpack_require__(51).asc;
-const newArray = __webpack_require__(17);
+const Matrix = __webpack_require__(16);
+const SparseMatrix = __webpack_require__(49);
+const binarySearch = __webpack_require__(24);
+const sortAsc = __webpack_require__(52).asc;
+const newArray = __webpack_require__(18);
 
-const getPauli = __webpack_require__(134);
+const getPauli = __webpack_require__(139);
 
 const smallValue = 1e-2;
 
@@ -28529,13 +29538,13 @@ module.exports = simulate1d;
 
 
 /***/ }),
-/* 136 */
+/* 141 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const Matrix = __webpack_require__(19);
+const Matrix = __webpack_require__(16);
 
 let defOptions = {'H': {frequency: 400, lineWidth: 10}, 'C': {frequency: 100, lineWidth: 10}};
 
@@ -28626,7 +29635,7 @@ module.exports = simule2DNmrSpectrum;
 
 
 /***/ }),
-/* 137 */
+/* 142 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28637,7 +29646,7 @@ module.exports = Number.isNaN || function (x) {
 
 
 /***/ }),
-/* 138 */
+/* 143 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28646,9 +29655,9 @@ module.exports = Number.isNaN || function (x) {
 
 var assign    = __webpack_require__(2).assign;
 
-var deflate   = __webpack_require__(139);
-var inflate   = __webpack_require__(140);
-var constants = __webpack_require__(54);
+var deflate   = __webpack_require__(144);
+var inflate   = __webpack_require__(145);
+var constants = __webpack_require__(55);
 
 var pako = {};
 
@@ -28658,18 +29667,18 @@ module.exports = pako;
 
 
 /***/ }),
-/* 139 */
+/* 144 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 
-var zlib_deflate = __webpack_require__(141);
+var zlib_deflate = __webpack_require__(146);
 var utils        = __webpack_require__(2);
-var strings      = __webpack_require__(52);
-var msg          = __webpack_require__(20);
-var ZStream      = __webpack_require__(56);
+var strings      = __webpack_require__(53);
+var msg          = __webpack_require__(19);
+var ZStream      = __webpack_require__(57);
 
 var toString = Object.prototype.toString;
 
@@ -29065,20 +30074,20 @@ exports.gzip = gzip;
 
 
 /***/ }),
-/* 140 */
+/* 145 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 
-var zlib_inflate = __webpack_require__(144);
+var zlib_inflate = __webpack_require__(149);
 var utils        = __webpack_require__(2);
-var strings      = __webpack_require__(52);
-var c            = __webpack_require__(54);
-var msg          = __webpack_require__(20);
-var ZStream      = __webpack_require__(56);
-var GZheader     = __webpack_require__(142);
+var strings      = __webpack_require__(53);
+var c            = __webpack_require__(55);
+var msg          = __webpack_require__(19);
+var ZStream      = __webpack_require__(57);
+var GZheader     = __webpack_require__(147);
 
 var toString = Object.prototype.toString;
 
@@ -29490,17 +30499,36 @@ exports.ungzip  = inflate;
 
 
 /***/ }),
-/* 141 */
+/* 146 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
+
 var utils   = __webpack_require__(2);
-var trees   = __webpack_require__(146);
-var adler32 = __webpack_require__(53);
-var crc32   = __webpack_require__(55);
-var msg     = __webpack_require__(20);
+var trees   = __webpack_require__(151);
+var adler32 = __webpack_require__(54);
+var crc32   = __webpack_require__(56);
+var msg     = __webpack_require__(19);
 
 /* Public constants ==========================================================*/
 /* ===========================================================================*/
@@ -31352,12 +32380,30 @@ exports.deflateTune = deflateTune;
 
 
 /***/ }),
-/* 142 */
+/* 147 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 
 function GZheader() {
   /* true if compressed data believed to be text */
@@ -31399,11 +32445,30 @@ module.exports = GZheader;
 
 
 /***/ }),
-/* 143 */
+/* 148 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
+
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 
 // See state defs from inflate.js
 var BAD = 30;       /* got a data error -- remain here until reset */
@@ -31732,18 +32797,36 @@ module.exports = function inflate_fast(strm, start) {
 
 
 /***/ }),
-/* 144 */
+/* 149 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 
 var utils         = __webpack_require__(2);
-var adler32       = __webpack_require__(53);
-var crc32         = __webpack_require__(55);
-var inflate_fast  = __webpack_require__(143);
-var inflate_table = __webpack_require__(145);
+var adler32       = __webpack_require__(54);
+var crc32         = __webpack_require__(56);
+var inflate_fast  = __webpack_require__(148);
+var inflate_table = __webpack_require__(150);
 
 var CODES = 0;
 var LENS = 1;
@@ -33277,12 +34360,30 @@ exports.inflateUndermine = inflateUndermine;
 
 
 /***/ }),
-/* 145 */
+/* 150 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 
 var utils = __webpack_require__(2);
 
@@ -33609,12 +34710,30 @@ module.exports = function inflate_table(type, lens, lens_index, codes, table, ta
 
 
 /***/ }),
-/* 146 */
+/* 151 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 
 var utils = __webpack_require__(2);
 
@@ -34818,7 +35937,7 @@ exports._tr_align = _tr_align;
 
 
 /***/ }),
-/* 147 */
+/* 152 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -34991,6 +36110,10 @@ process.off = noop;
 process.removeListener = noop;
 process.removeAllListeners = noop;
 process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
 
 process.binding = function (name) {
     throw new Error('process.binding is not supported');
@@ -35004,7 +36127,7 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 148 */
+/* 153 */
 /***/ (function(module, exports) {
 
 if (typeof Object.create === 'function') {
@@ -35033,7 +36156,7 @@ if (typeof Object.create === 'function') {
 
 
 /***/ }),
-/* 149 */
+/* 154 */
 /***/ (function(module, exports) {
 
 module.exports = function isBuffer(arg) {
@@ -35044,7 +36167,7 @@ module.exports = function isBuffer(arg) {
 }
 
 /***/ }),
-/* 150 */
+/* 155 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global, process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -35572,7 +36695,7 @@ function isPrimitive(arg) {
 }
 exports.isPrimitive = isPrimitive;
 
-exports.isBuffer = __webpack_require__(149);
+exports.isBuffer = __webpack_require__(154);
 
 function objectToString(o) {
   return Object.prototype.toString.call(o);
@@ -35616,7 +36739,7 @@ exports.log = function() {
  *     prototype.
  * @param {function} superCtor Constructor function to inherit prototype from.
  */
-exports.inherits = __webpack_require__(148);
+exports.inherits = __webpack_require__(153);
 
 exports._extend = function(origin, add) {
   // Don't do anything if add isn't an object
@@ -35634,15 +36757,15 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(57), __webpack_require__(147)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(58), __webpack_require__(152)))
 
 /***/ }),
-/* 151 */
+/* 156 */
 /***/ (function(module, exports) {
 
 module.exports = {
 	"name": "spectra-data",
-	"version": "3.0.4",
+	"version": "3.0.5",
 	"description": "spectra-data project - manipulate spectra",
 	"keywords": [
 		"spectra-data",
@@ -35663,7 +36786,7 @@ module.exports = {
 	"scripts": {
 		"eslint": "eslint src test --cache",
 		"eslint-fix": "npm run eslint -- --fix",
-		"test": "npm run test-mocha",
+		"test": "npm run test-mocha && npm run eslint",
 		"test-mocha": "mocha --require should --reporter mocha-better-spec-reporter --recursive src/**/__tests__/**/*.js",
 		"build": "cheminfo build"
 	},
@@ -35674,6 +36797,7 @@ module.exports = {
 		"eslint-plugin-no-only-tests": "^1.1.0",
 		"mocha": "^3.1.2",
 		"mocha-better-spec-reporter": "^3.0.1",
+		"nmr-predictor": "https://github.com/cheminfo-js/nmr-predictor/",
 		"should": "^11.1.1"
 	},
 	"dependencies": {
@@ -35681,6 +36805,7 @@ module.exports = {
 		"jcampconverter": "^2.4.5",
 		"ml-array-utils": "^0.3.0",
 		"ml-curve-fitting": "0.0.7",
+		"ml-fft": "^1.3.5",
 		"ml-gsd": "^2.0.1",
 		"ml-matrix-peaks-finder": "^0.2.1",
 		"ml-simple-clustering": "0.1.0",
@@ -35688,18 +36813,6 @@ module.exports = {
 		"nmr-simulation": "^1.0.0"
 	}
 };
-
-/***/ }),
-/* 152 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.SD = __webpack_require__(9);
-exports.NMR = __webpack_require__(58);
-exports.NMR2D = __webpack_require__(59);
-exports.Ranges = __webpack_require__(21);
 
 /***/ })
 /******/ ]);
