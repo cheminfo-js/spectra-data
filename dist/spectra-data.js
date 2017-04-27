@@ -2998,7 +2998,7 @@ class SD {
         return [this.getX(index), max];
     }
 
-    /** TODO: should be modifed, this is same that getParamInt and getParam
+    /** TODO: should be modifed, this is same that getParamInt and getParameter
      * Get the value of the parameter. If it is null, will set up a default value
      * @param {string} name - The parameter name
      * @param {*} defvalue - The default value
@@ -14834,7 +14834,7 @@ function fourierTransform(spectraData) {
     //TODO For Alejandro
     //Now we can try to apply the FFt on the second dimension
     if (spectraData.is2D()) {
-        //var mode = spectraData.getParam('.ACQUISITION SCHEME');
+        //var mode = spectraData.getParameter('.ACQUISITION SCHEME');
         /*switch (mode) {
             case 1://"State-TPP"
                 break;
@@ -14899,7 +14899,7 @@ function phaseCorrection(spectraData, phi0, phi1) {
     var nbPoints = spectraData.getNbPoints();
     var reData = spectraData.getYData(0);
     var imData = spectraData.getYData(1);
-    //var corrections = spectraData.getParam("corrections");
+    //var corrections = spectraData.getParameter("corrections");
 
     //for(var k=0;k<corrections.length;k++){
     //    Point2D phi = corrections.elementAt(k);
@@ -15292,7 +15292,7 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
     if (userDefinedParams !== null) {
         for (var i = userDefinedParams.length - 1; i >= 0; i--) {
             if (spectraData.containsParam(userDefinedParams[i])) {
-                outString += '##' + userDefinedParams[i] + '= ' + spectraData.getParam(userDefinedParams[i], '') + CRLF;
+                outString += '##' + userDefinedParams[i] + '= ' + spectraData.getParameter(userDefinedParams[i], '') + CRLF;
             }
         }
     }
@@ -15404,7 +15404,7 @@ function simpleHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams)
     if (userDefinedParams !== null) {
         for (var i = userDefinedParams.length - 1; i >= 0; i--) {
             if (spectraData.containsParam(userDefinedParams[i])) {
-                outString += '##' + userDefinedParams[i] + '= ' + spectraData.getParam(userDefinedParams[i], '') + CRLF;
+                outString += '##' + userDefinedParams[i] + '= ' + spectraData.getParameter(userDefinedParams[i], '') + CRLF;
             }
         }
     }

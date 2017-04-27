@@ -2,6 +2,7 @@
 
 const utils = require('./utils');
 const SD = require('../SD');
+const NMR = require('../NMR');
 
 class SpectraDataSet extends Array {
     constructor(sds) {
@@ -20,18 +21,22 @@ class SpectraDataSet extends Array {
     /**
      * Return an SpectraDataSet instance from an Array of text that contain the information
      * @param {array} arrayData - array of objects with parameters as a object and data as text.
+     * @param {object} options - object with units and another options of NMR.fromXY function.
      * @return {SpectraDataSet}
      */
-    static fromText(arrayData) {
-        // console.log(arrayData)
-        var output = new Array(arrayData.length);
+    static fromText(arrayData, options) {
+        let output = new Array(arrayData.length);
         for (let i = 0; i < arrayData.length; i++) {
             let parameters = arrayData[i].parameters || {};
             let text = arrayData[i].data || '';
-            output[i] = parameters;
-            output[i].data = utils.getDataFromText(text);
+            let xyData = utils.getDataFromText(text);
+            let spectrum = NMR.fromXY(xyData.x, xyData.y, options);
+            for (let key in parameters) {
+                spectrum.setParameter(key, parameters[key]);
+            }
+            output[i] = spectrum;
         }
-        return new this(output);
+        return new SpectraDataSet(output);
     }
 
 
@@ -42,18 +47,21 @@ class SpectraDataSet extends Array {
      * @return {SpectraDataSet}
      */
     static fromJcamp(arrayData, options) {
-        options = Object.assign({}, {keepSpectra: true, keepRecordsRegExp: /^.+$/}, options, {xy: true});
+        options = Object.assign({}, {keepSpectra: true, keepRecordsRegExp: /^.+$/, keepImaginary: false}, options, {xy: true});
         var output = new Array(arrayData.length);
-        for (let i = 0; i < arrayData.length; i++) {
-            var parameters = arrayData[i].parameters || {};
-            var jcamp = arrayData[i].data || '';
-            var spectrum = SD.fromJcamp(jcamp, options);
-            console.log(spectrum.sd)
-            output[i] = parameters;
-            let xyData = spectrum.sd.spectra[0].data[0];
-            output[i].data = {x: xyData.x, y: xyData.y};
+        for (let i = 0, len = arrayData.length; i < len; i++) {
+            let parameters = arrayData[i].parameters || {};
+            let jcamp = arrayData[i].data || '';
+            let spectrum = SD.fromJcamp(jcamp, options);
+            for (let key in parameters) {
+                spectrum.setParameter(key, parameters[key]);
+            }
+            if (!options.keepImaginary) {
+                spectrum.sd.spectra.splice(1);
+            }
+            output[i] = spectrum;
         }
-        return new this(output);
+        return new SpectraDataSet(output);
     }
 
     /**
@@ -65,8 +73,7 @@ class SpectraDataSet extends Array {
     setParameter(category, value, index) {
         if (typeof category === 'string') {
             index = index || 0;
-            let element = this[index];
-            element[category] = value;
+            this[index].setParameter(category, value);
         }
     }
 
@@ -74,12 +81,12 @@ class SpectraDataSet extends Array {
      * return a property of the element requiered
      * @param {string} category - name of the property
      * @param {number} index - index of the element where the property will be set
-     * @returns {*}
+     * @return {*}
      */
     getParameter(category, index) {
         index = index || 0;
-        let element = this[index];
-        return element[category];
+        let element = this[index].getParameter(category);
+        return element;
     }
 
     /**
@@ -87,16 +94,20 @@ class SpectraDataSet extends Array {
      * @param {string} jcamp - jcamp with the data
      * @param {object} parameters - parameters that will be set for the new element
      * @param {object} options - options to jcampconverter
-     * @returns {SpectraDataSet}
+     * @return {SpectraDataSet}
      */
-    pushJcamp(jcamp, parameters, options) {
+    pushJcamp(jcamp, options) {
         jcamp = jcamp || '';
-        parameters = parameters || {};
-        options = Object.assign({}, {keepSpectra: true, keepRecordsRegExp: /^.+$/}, options, {xy: true});
+        let parameters = options.parameters || {};
+        options = Object.assign({}, {keepSpectra: true, keepRecordsRegExp: /^.+$/, keepImaginary: false}, options, {xy: true});
         let spectrum = SD.fromJcamp(jcamp, options);
-        let xyData = spectrum.sd.spectra[0].data[0];
-        parameters.data = {x: xyData.x, y: xyData.y};
-        this.push(parameters);
+        for (let key in parameters) {
+            spectrum.setParameter(key, parameters[key]);
+        }
+        if (!options.keepImaginary) {
+            spectrum.sd.spectra.splice(1);
+        }
+        this.push(spectrum);
         return this;
     }
 
@@ -104,14 +115,27 @@ class SpectraDataSet extends Array {
      * add a element to spectraDataSet instance
      * @param {string} text - string with the data
      * @param {object} parameters - parameters that will be set for the new element
-     * @returns {SpectraDataSet}
+     * @return {SpectraDataSet}
      */
-    pushText(text, parameters) {
+    pushText(text, options) {
         text = text || '';
-        parameters = parameters || {};
-        parameters.data = utils.getDataFromText(text);
-        this.push(parameters);
+        let parameters = options.parameters || {};
+        let xyData = utils.getDataFromText(text);
+        let spectrum = NMR.fromXY(xyData.x, xyData.y, options);
+        for (let key in parameters) {
+            spectrum.setParameter(key, parameters[key]);
+        }
+        this.push(spectrum);
         return this;
+    }
+
+    clone() {
+        var sdsCopy = new Array(this.length);
+        let copy = JSON.parse(JSON.stringify(this));
+        for (let i = sdsCopy.length - 1; i >= 0; i--) {
+            sdsCopy[i] = new SD(copy[i].sd);
+        }
+        return new SpectraDataSet(sdsCopy);
     }
 }
 

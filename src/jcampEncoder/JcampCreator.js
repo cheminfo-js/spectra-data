@@ -232,7 +232,7 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
         for (var i = userDefinedParams.length - 1; i >= 0; i--) {
             if (spectraData.containsParam(userDefinedParams[i])) {
                 outString += '##' + userDefinedParams[i] + '= '
-                + spectraData.getParam(userDefinedParams[i], '') + CRLF;
+                + spectraData.getParameter(userDefinedParams[i], '') + CRLF;
             }
         }
     }
@@ -347,7 +347,7 @@ function simpleHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams)
         for (var i = userDefinedParams.length - 1; i >= 0; i--) {
             if (spectraData.containsParam(userDefinedParams[i])) {
                 outString += '##' + userDefinedParams[i] + '= '
-                + spectraData.getParam(userDefinedParams[i], '') + CRLF;
+                + spectraData.getParameter(userDefinedParams[i], '') + CRLF;
             }
         }
     }

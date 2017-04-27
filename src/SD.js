@@ -508,23 +508,16 @@ class SD {
      * @param {number} value - value with which to fill
      */
     fill(from, to, value) {
-        var tmp, start, end, x, y;
-        if (from > to) {
-            tmp = from;
-            from = to;
-            to = tmp;
-        }
-
         for (var i = 0; i < this.getNbSubSpectra(); i++) {
             this.setActiveElement(i);
-            x = this.getXData();
-            y = this.getYData();
-            start = this.unitsToArrayPoint(from);
-            end = this.unitsToArrayPoint(to);
+            let x = this.getXData();
+            let y = this.getYData();
+            let start = this.unitsToArrayPoint(from);
+            let end = this.unitsToArrayPoint(to);
             if (start > end) {
-                tmp = start;
-                start = end;
-                end = tmp;
+                start = start + end;
+                end = start - end;
+                start = start - end;
             }
             if (start < 0) {
                 start = 0;
@@ -532,7 +525,6 @@ class SD {
             if (end >= this.getNbPoints) {
                 end = this.getNbPoints - 1;
             }
-
             if (typeof value !== 'number') {
                 y.splice(start, end - start);
                 x.splice(start, end - start);
@@ -590,7 +582,7 @@ class SD {
         return [this.getX(index), max];
     }
 
-    /** TODO: should be modifed, this is same that getParamInt and getParam
+    /** TODO: should be modifed, this is same that getParamInt and getParameter
      * Get the value of the parameter. If it is null, will set up a default value
      * @param {string} name - The parameter name
      * @param {*} defvalue - The default value
@@ -639,7 +631,7 @@ class SD {
      * @param {*} defvalue - The default value
      * @return {*}
      */
-    getParam(name, defvalue) {
+    getParameter(name, defvalue) {
         var value = this.sd.info[name];
         if (!value) {
             value = defvalue;
@@ -648,15 +640,26 @@ class SD {
     }
 
     /**
+     * Set the value of the parameter
+     * @param {string} name - The parameter name
+     * @param {*} defvalue - The default value
+     * @return {*}
+     */
+    setParameter(name, value) {
+        this.sd.info[name] = value;
+    }
+
+    /**
      * True if the spectrum.info contains the given parameter
      * @param {string} name - The parameter name
      * @return {boolean}
      */
     containsParam(name) {
+        var output = false;
         if (this.sd.info[name]) {
-            return true;
+            output = true;
         }
-        return false;
+        return output;
     }
 
     /**
