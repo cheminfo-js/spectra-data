@@ -2678,7 +2678,7 @@ class SD {
     /**
      *  Returns an array containing the x values of the spectrum
      * @param {number} i sub-spectrum Default:activeSpectrum
-     * @return {array}
+     * @return {Array}
      */
     getXData(i) {
         return this.getSpectrumData(i).x;
@@ -2687,7 +2687,7 @@ class SD {
     /**
      * This function returns a double array containing the values with the intensities for the current sub-spectrum.
      * @param {number} i sub-spectrum Default:activeSpectrum
-     * @return {array}
+     * @return {Array}
      */
     getYData(i) {
         return this.getSpectrumData(i).y;
@@ -3071,7 +3071,7 @@ class SD {
 
     /**
      * Return the y elements of the current spectrum. Same as getYData. Kept for backward compatibility.
-     * @return {array}
+     * @return {Array}
      */
     getSpectraDataY() {
         return this.getYData();
@@ -3079,7 +3079,7 @@ class SD {
 
     /**
      * Return the x elements of the current spectrum. Same as getXData. Kept for backward compatibility.
-     * @return {array}
+     * @return {Array}
      */
     getSpectraDataX() {
         return this.getXData();
@@ -3126,7 +3126,7 @@ class SD {
 
     /**
      * This function return the integral values for certains ranges at specific SD instance .
-     * @param {array} ranges - array of objects ranges
+     * @param {Array} ranges - array of objects ranges
      * @param {object} options - option such as nH for normalization, if it is nH is zero the integral value returned is absolute value
      */
     updateIntegrals(ranges, options) {
@@ -4627,7 +4627,7 @@ class Ranges extends Array {
             result[i] = {
                 from: prediction.delta - width,
                 to: prediction.delta + width,
-                integral: 1,
+                integral: prediction.integral,
                 signal: [predictions[diaIDs[0]]]
             };
 
@@ -4641,11 +4641,13 @@ class Ranges extends Array {
                 result[i].integral++;
             }
         }
+
         //2. Merge the overlaping ranges
         for (i = 0; i < result.length; i++) {
             result[i]._highlight = result[i].signal[0].diaIDs;
             center = (result[i].from + result[i].to) / 2;
             width = Math.abs(result[i].from - result[i].to);
+            //result[i].multiplicity = result[i].signal[0].multiplicity;
             for (j = result.length - 1; j > i; j--) {
                 //Does it overlap?
                 if (Math.abs(center - (result[j].from + result[j].to) / 2) <= Math.abs(width + Math.abs(result[j].from - result[j].to)) / 2) {
@@ -4654,6 +4656,9 @@ class Ranges extends Array {
                     result[i].to = Math.max(result[i].to, result[j].to);
                     result[i].integral = result[i].integral + result[j].integral;
                     result[i]._highlight.push(result[j].signal[0].diaIDs[0]);
+                    result[j].signal.forEach(a => {
+                        result[i].signal.push(a);
+                    });
                     result.splice(j, 1);
                     j = result.length - 1;
                     center = (result[i].from + result[i].to) / 2;
@@ -4743,7 +4748,7 @@ class Ranges extends Array {
 
     /**
      * This function return the peaks of a Ranges instance into an array
-     * @return {array}
+     * @return {Array}
      */
     getPeakList() {
         var peaks = [];
@@ -4772,8 +4777,8 @@ class Ranges extends Array {
 
     /**
      * Return an array of deltas and multiplicity for an index database
-     * @options {array} options
-     * @return {array} [{delta, multiplicity},...]
+     * @options {Array} options
+     * @return {Array} [{delta, multiplicity},...]
      */
     toIndex(options) {
         var index = [];
