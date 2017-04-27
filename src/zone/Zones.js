@@ -109,7 +109,7 @@ class Zones extends Array {
     /**
      * This function return Ranges instance from a SD instance
      * @param {SD} spectrum - SD instance
-     * @param {object} opt - options object to extractPeaks function
+     * @param {Object} opt - options object to extractPeaks function
      * @returns {Ranges}
      */
     static fromSpectrum(spectrum, opt) {

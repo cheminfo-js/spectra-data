@@ -272,7 +272,7 @@ class SD {
     /**
      *  Returns an array containing the x values of the spectrum
      * @param {number} i sub-spectrum Default:activeSpectrum
-     * @return {array}
+     * @return {Array}
      */
     getXData(i) {
         return this.getSpectrumData(i).x;
@@ -281,7 +281,7 @@ class SD {
     /**
      * This function returns a double array containing the values with the intensities for the current sub-spectrum.
      * @param {number} i sub-spectrum Default:activeSpectrum
-     * @return {array}
+     * @return {Array}
      */
     getYData(i) {
         return this.getSpectrumData(i).y;
@@ -661,7 +661,7 @@ class SD {
 
     /**
      * Return the y elements of the current spectrum. Same as getYData. Kept for backward compatibility.
-     * @return {array}
+     * @return {Array}
      */
     getSpectraDataY() {
         return this.getYData();
@@ -669,7 +669,7 @@ class SD {
 
     /**
      * Return the x elements of the current spectrum. Same as getXData. Kept for backward compatibility.
-     * @return {array}
+     * @return {Array}
      */
     getSpectraDataX() {
         return this.getXData();
@@ -716,7 +716,7 @@ class SD {
 
     /**
      * This function return the integral values for certains ranges at specific SD instance .
-     * @param {array} ranges - array of objects ranges
+     * @param {Array} ranges - array of objects ranges
      * @param {object} options - option such as nH for normalization, if it is nH is zero the integral value returned is absolute value
      */
     updateIntegrals(ranges, options) {

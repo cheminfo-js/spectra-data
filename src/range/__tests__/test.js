@@ -13,6 +13,8 @@ const prediction = [{'atomIDs': ['8'], 'diaIDs': ['did@`@fTfYea`H`@GzP`HeT'], 'i
     {'atomIDs': ['14'], 'diaIDs': ['did@`@fTeeYnh@H@GzP`HeT'], 'integral': 1, 'delta': 2.237, 'atomLabel': 'H', 'multiplicity': 'm', 'j': []}, {'atomIDs': ['15'], 'diaIDs': ['did@`@fTeeYnh@H@GzP`HeT'], 'integral': 1, 'delta': 2.237, 'atomLabel': 'H', 'multiplicity': 'm', 'j': []}, {'atomIDs': ['16'], 'diaIDs': ['did@`@fTeeYnh@H@GzP`HeT'],
         'integral': 1, 'delta': 2.237, 'atomLabel': 'H', 'multiplicity': 'm', 'j': []}, {'atomIDs': ['17'], 'diaIDs': ['did@`@fTeeYnh@H@GzP`HeT'], 'integral': 1, 'delta': 2.237, 'atomLabel': 'H', 'multiplicity': 'm', 'j': []}];
 
+const ethylbenzenePrediction = [{'atomIDs': ['15', '16', '17'], 'diaIDs': ['did@`@fTeYWaj@@@GzP`HeT'], 'integral': 3, 'delta': 0.992, 'atomLabel': 'H', 'j': [{'assignment': '13', 'diaID': 'did@`@fTf[Waj@@bJ@_iB@bUP', 'coupling': 7.392, 'multiplicity': 'd'}, {'assignment': '14', 'diaID': 'did@`@fTf[Waj@@bJ@_iB@bUP', 'coupling': 7.392, 'multiplicity': 'd'}], '_highlight': ['did@`@fTeYWaj@@@GzP`HeT']}, {'atomIDs': ['13', '14'], 'diaIDs': ['did@`@fTf[Waj@@bJ@_iB@bUP'], 'integral': 2, 'delta': 2.653, 'atomLabel': 'H', 'j': [{'assignment': '15', 'diaID': 'did@`@fTeYWaj@@@GzP`HeT', 'coupling': 7.392, 'multiplicity': 'd'}, {'assignment': '16', 'diaID': 'did@`@fTeYWaj@@@GzP`HeT', 'coupling': 7.392, 'multiplicity': 'd'}, {'assignment': '17', 'diaID': 'did@`@fTeYWaj@@@GzP`HeT', 'coupling': 7.392, 'multiplicity': 'd'}], '_highlight': ['did@`@fTf[Waj@@bJ@_iB@bUP']}, {'atomIDs': ['9', '10'], 'diaIDs': ['did@`@fTfYUn`HH@GzP`HeT'], 'integral': 2, 'delta': 7.162, 'atomLabel': 'H', 'j': [{'assignment': '8', 'diaID': 'did@`@f\\bbRaih@J@A~dHBIU@', 'coupling': 7.758, 'multiplicity': 'd'}, {'assignment': '11', 'diaID': 'did@`@f\\bbRaih@J@A~dHBIU@', 'coupling': 0.507, 'multiplicity': 'd'}, {'assignment': '12', 'diaID': 'did@`@fTfUvf`@h@GzP`HeT', 'coupling': 1.292, 'multiplicity': 'd'}], '_highlight': ['did@`@fTfYUn`HH@GzP`HeT']}, {'atomIDs': ['12'], 'diaIDs': ['did@`@fTfUvf`@h@GzP`HeT'], 'integral': 1, 'delta': 7.196, 'atomLabel': 'H', 'j': [{'assignment': '8', 'diaID': 'did@`@f\\bbRaih@J@A~dHBIU@', 'coupling': 7.718, 'multiplicity': 'd'}, {'assignment': '9', 'diaID': 'did@`@fTfYUn`HH@GzP`HeT', 'coupling': 1.292, 'multiplicity': 'd'}, {'assignment': '10', 'diaID': 'did@`@fTfYUn`HH@GzP`HeT', 'coupling': 1.293, 'multiplicity': 'd'}, {'assignment': '11', 'diaID': 'did@`@f\\bbRaih@J@A~dHBIU@', 'coupling': 7.718, 'multiplicity': 'd'}], '_highlight': ['did@`@fTfUvf`@h@GzP`HeT']}, {'atomIDs': ['8', '11'], 'diaIDs': ['did@`@f\\bbRaih@J@A~dHBIU@'], 'integral': 2, 'delta': 7.26, 'atomLabel': 'H', 'j': [{'assignment': '9', 'diaID': 'did@`@fTfYUn`HH@GzP`HeT', 'coupling': 7.758, 'multiplicity': 'd'}, {'assignment': '10', 'diaID': 'did@`@fTfYUn`HH@GzP`HeT', 'coupling': 0.507, 'multiplicity': 'd'}, {'assignment': '12', 'diaID': 'did@`@fTfUvf`@h@GzP`HeT', 'coupling': 7.718, 'multiplicity': 'd'}], '_highlight': ['did@`@f\\bbRaih@J@A~dHBIU@']}];
+
 var ranges = new Ranges(peakPicking2);
 
 var singleRange = [{from: 0.9, to: 1.1, integral: 1}];
@@ -117,6 +119,36 @@ describe('toIndex Test Case from differents sources', function () {
         index.length.should.eql(10);
         index[0].delta.should.eql(6.853);
         index[0].multiplicity.should.eql('t');
+        // var index = range.toIndex({tolerance: 0.05, compactPattern: true});
+        // index[0].multiplicity.should.equal('t') // at the moment I don't know where is the problem
+    });
+
+    it('compactPatterns', function () {
+        var range = Ranges.fromPrediction(ethylbenzenePrediction, {lineWidth: 1});
+
+        range.length.should.eql(4);
+        range.compactPatterns({tolerance: 0.05, compactPattern: true});
+        range.forEach(a => {
+            if (a.multiplicity !== 'm') {
+                a.multiplicity = a.signal[0].multiplicity;
+            }
+        });
+
+        range[0].multiplicity.should.eql('t');
+        range[0].integral.should.eql(3);
+        range[0].signal.length.should.eql(1);
+        range[1].multiplicity.should.eql('q');
+        range[1].integral.should.eql(2);
+        range[1].signal.length.should.eql(1);
+        range[2].multiplicity.should.eql('m');
+        range[2].integral.should.eql(3);
+        range[2].signal.length.should.eql(2);
+        range[3].multiplicity.should.eql('dt');
+        range[3].integral.should.eql(2);
+        range[3].signal.length.should.eql(1);
+        ///range[0].multiplicity.should.eql('t');
+       // index[0].delta.should.eql(6.853);
+       // index[0].multiplicity.should.eql('t');
         // var index = range.toIndex({tolerance: 0.05, compactPattern: true});
         // index[0].multiplicity.should.equal('t') // at the moment I don't know where is the problem
     });
