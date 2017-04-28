@@ -36526,7 +36526,7 @@ function hasOwnProperty(obj, prop) {
 
 module.exports = {
 	"name": "spectra-data",
-	"version": "3.0.5",
+	"version": "3.0.6",
 	"description": "spectra-data project - manipulate spectra",
 	"keywords": [
 		"spectra-data",
