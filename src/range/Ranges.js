@@ -252,14 +252,17 @@ class Ranges extends Array {
 
 
     /**
-     * Returns the multiplet in the compact format
-     * @param {object} options
-     * @private
+     * Joins coupling constants
+     * @param {object} [options]
+     * @param {number} [options.tolerance=0.05]
      */
-    compactPatterns(options) {
+    compactPatterns(options = {}) {
+        var {
+            tolerance = 0.05
+        } = options;
         this.forEach(range => {
             range.signal.forEach(signal => {
-                signal.multiplicity = compactPattern(signal, options);
+                signal.multiplicity = compactPattern(signal, tolerance);
             });
         });
     }
@@ -273,16 +276,13 @@ class Ranges extends Array {
 module.exports = Ranges;
 
 
-function compactPattern(signal, options) {
-    var {
-        jc = signal.j,
-        cont = 1,
-        pattern = '',
-        tolerance = options.tolerance || 0.05,
-        newNmrJs = [],
-        diaIDs = [],
-        atoms = []
-    } = options;
+function compactPattern(signal, tolerance) {
+    var jc = signal.j;
+    var cont = 1;
+    var pattern = '';
+    var newNmrJs = [];
+    var diaIDs = [];
+    var atoms = [];
     if (jc && jc.length > 0) {
         jc.sort(function (a, b) {
             return a.coupling - b.coupling;
@@ -300,8 +300,8 @@ function compactPattern(signal, options) {
                 atoms.push(jc[i].assignment);
             } else {
                 let jTemp = {
-                    'coupling': Math.abs(jc[i].coupling),
-                    'multiplicity': patterns[cont]
+                    coupling: Math.abs(jc[i].coupling),
+                    multiplicity: patterns[cont]
                 };
                 if (diaIDs.length > 0) {
                     jTemp.diaID = diaIDs;
@@ -322,9 +322,8 @@ function compactPattern(signal, options) {
             }
         }
         let jTemp = {
-            'coupling': Math.abs(jc[i].coupling),
-
-            'multiplicity': patterns[cont]
+            coupling: Math.abs(jc[i].coupling),
+            multiplicity: patterns[cont]
         };
         if (diaIDs.length > 0) {
             jTemp.diaID = diaIDs;
