@@ -1,3 +1,5 @@
 extends: 'eslint-config-cheminfo'
 env:
   mocha: true
+rules:
+  valid-jsdoc: error
