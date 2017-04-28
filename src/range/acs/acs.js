@@ -1,7 +1,4 @@
 'use strict';
-
-const getMultiplicityFromSignal = require('../getMultiplicityFromSignal');
-
 /**
  * nbDecimalsDelta : default depends nucleus H, F: 2 otherwise 1
  * nbDecimalsJ : default depends nucleus H, F: 1, otherwise 0
@@ -11,7 +8,7 @@ const getMultiplicityFromSignal = require('../getMultiplicityFromSignal');
  * detailSeparator : ', '
  */
 
-
+const joinCoupling = require('../utils').joinCoupling;
 var globalOptions = {
     h: {
         nucleus: '1H',
@@ -147,7 +144,7 @@ function pushIntegral(range, parenthesis, options) {
 }
 
 function pushMultiplicityFromSignal(signal, parenthesis) {
-    let multiplicity = getMultiplicityFromSignal(signal);
+    let multiplicity = signal.multiplicity || joinCoupling(signal, 0.05);
     if (multiplicity.length > 0) parenthesis.push(multiplicity);
 }
 

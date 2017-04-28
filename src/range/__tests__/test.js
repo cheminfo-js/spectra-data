@@ -109,8 +109,8 @@ describe('toIndex Test Case from differents sources', function () {
         var index = range.toIndex({tolerance: 0.05, compactPattern: false});
         index[0].delta.should.greaterThan(7.5);
         index[0].multiplicity.should.eql('br s');
-        // var index = range.toIndex({tolerance: 0.05, compactPattern: true});
-        // index[0].multiplicity.should.equal('s'); // because inside of peakPicking information don't exist a j array for this signal. It shows us that compactPattern function need to be modified
+        // var index = range.toIndex({tolerance: 0.05, joinCoupling: true});
+        // index[0].multiplicity.should.equal('s'); // because inside of peakPicking information don't exist a j array for this signal. It shows us that joinCoupling function need to be modified
     });
 
     it('from Prediction', function () {
@@ -121,11 +121,11 @@ describe('toIndex Test Case from differents sources', function () {
         index[0].multiplicity.should.eql('m');
     });
 
-    it('compactPatterns', function () {
+    it('joinCouplings', function () {
         var range = Ranges.fromPrediction(ethylbenzenePrediction, {lineWidth: 1});
 
         range.length.should.eql(4);
-        range.compactPatterns({tolerance: 0.05, compactPattern: true});
+        range.joinCouplings({tolerance: 0.05, compactPattern: true});
         range.forEach(a => {
             if (a.multiplicity !== 'm') {
                 a.multiplicity = a.signal[0].multiplicity;
@@ -141,14 +141,9 @@ describe('toIndex Test Case from differents sources', function () {
         range[2].multiplicity.should.eql('m');
         range[2].integral.should.eql(3);
         range[2].signal.length.should.eql(2);
-        range[3].multiplicity.should.eql('dt');
+        range[3].multiplicity.should.eql('td');
         range[3].integral.should.eql(2);
         range[3].signal.length.should.eql(1);
-        ///range[0].multiplicity.should.eql('t');
-       // index[0].delta.should.eql(6.853);
-       // index[0].multiplicity.should.eql('t');
-        // var index = range.toIndex({tolerance: 0.05, compactPattern: true});
-        // index[0].multiplicity.should.equal('t') // at the moment I don't know where is the problem
     });
 });
 

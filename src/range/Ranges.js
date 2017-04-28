@@ -6,9 +6,7 @@
 const acs = require('./acs/acs');
 const peak2Vector = require('./peak2Vector');
 const GUI = require('./visualizer/index');
-const patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
-const getMultiplicityFromSignal = require('./getMultiplicityFromSignal');
-
+const joinCoupling = require('./utils').joinCoupling;
 class Ranges extends Array {
 
     constructor(ranges) {
@@ -226,19 +224,19 @@ class Ranges extends Array {
 
     /**
      * Return an array of deltas and multiplicity for an index database
-     * @options {Array} options
+     * @options {object} options -
      * @return {Array} [{delta, multiplicity},...]
      */
     toIndex(options) {
         var index = [];
 
-        if (options.compactPattern || false) this.compactPatterns(options);
+        if (options.compactPattern) this.joinCouplings(options);
 
         for (var range of this) {
             if (Array.isArray(range.signal) && range.signal.length > 0) {
                 for (let s of range.signal) {
                     index.push({
-                        multiplicity: s.multiplicity || getMultiplicityFromSignal(s),
+                        multiplicity: s.multiplicity || joinCoupling(s, 0.05),
                         delta: s.delta
                     });
                 }
@@ -250,7 +248,7 @@ class Ranges extends Array {
             }
         }
         return index;
-    } //@TODO to check
+    }
 
 
     /**
@@ -258,13 +256,13 @@ class Ranges extends Array {
      * @param {object} [options]
      * @param {number} [options.tolerance=0.05]
      */
-    compactPatterns(options = {}) {
+    joinCouplings(options = {}) {
         var {
             tolerance = 0.05
         } = options;
         this.forEach(range => {
             range.signal.forEach(signal => {
-                signal.multiplicity = compactPattern(signal, tolerance);
+                signal.multiplicity = joinCoupling(signal, tolerance);
             });
         });
     }
@@ -276,70 +274,3 @@ class Ranges extends Array {
 }
 
 module.exports = Ranges;
-
-
-function compactPattern(signal, tolerance) {
-    var jc = signal.j;
-    var cont = 1;
-    var pattern = '';
-    var newNmrJs = [];
-    var diaIDs = [];
-    var atoms = [];
-    if (jc && jc.length > 0) {
-        jc.sort(function (a, b) {
-            return b.coupling - a.coupling;
-        });
-        if (jc[0].diaID) {
-            diaIDs = [jc[0].diaID];
-        }
-        if (jc[0].assignment) {
-            atoms = [jc[0].assignment];
-        }
-        for (var i = 0; i < jc.length - 1; i++) {
-            if (Math.abs(jc[i].coupling - jc[i + 1].coupling) < tolerance) {
-                cont++;
-                diaIDs.push(jc[i].diaID);
-                atoms.push(jc[i].assignment);
-            } else {
-                let jTemp = {
-                    coupling: Math.abs(jc[i].coupling),
-                    multiplicity: patterns[cont]
-                };
-                if (diaIDs.length > 0) {
-                    jTemp.diaID = diaIDs;
-                }
-                if (atoms.length > 0) {
-                    jTemp.assignment = atoms;
-                }
-                newNmrJs.push(jTemp);
-
-                pattern += patterns[cont];
-                cont = 1;
-                if (jc[0].diaID) {
-                    diaIDs = [jc[i].diaID];
-                }
-                if (jc[0].assignment) {
-                    atoms = [jc[i].assignment];
-                }
-            }
-        }
-        let jTemp = {
-            coupling: Math.abs(jc[i].coupling),
-            multiplicity: patterns[cont]
-        };
-        if (diaIDs.length > 0) {
-            jTemp.diaID = diaIDs;
-        }
-        if (atoms.length > 0) {
-            jTemp.assignment = atoms;
-        }
-        newNmrJs.push(jTemp);
-
-        pattern += patterns[cont];
-        signal.j = newNmrJs;
-
-    } else {
-        pattern = 's';
-    }
-    return pattern;
-}
