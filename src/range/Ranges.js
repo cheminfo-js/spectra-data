@@ -72,7 +72,7 @@ class Ranges extends Array {
             result[i] = {
                 from: prediction.delta - width,
                 to: prediction.delta + width,
-                integral: 1,
+                integral: prediction.integral,
                 signal: [predictions[diaIDs[0]]]
             };
 
@@ -86,11 +86,13 @@ class Ranges extends Array {
                 result[i].integral++;
             }
         }
+
         //2. Merge the overlaping ranges
         for (i = 0; i < result.length; i++) {
             result[i]._highlight = result[i].signal[0].diaIDs;
             center = (result[i].from + result[i].to) / 2;
             width = Math.abs(result[i].from - result[i].to);
+            //result[i].multiplicity = result[i].signal[0].multiplicity;
             for (j = result.length - 1; j > i; j--) {
                 //Does it overlap?
                 if (Math.abs(center - (result[j].from + result[j].to) / 2)
@@ -100,6 +102,9 @@ class Ranges extends Array {
                     result[i].to = Math.max(result[i].to, result[j].to);
                     result[i].integral = result[i].integral + result[j].integral;
                     result[i]._highlight.push(result[j].signal[0].diaIDs[0]);
+                    result[j].signal.forEach(a => {
+                        result[i].signal.push(a);
+                    });
                     result.splice(j, 1);
                     j = result.length - 1;
                     center = (result[i].from + result[i].to) / 2;
@@ -191,7 +196,7 @@ class Ranges extends Array {
 
     /**
      * This function return the peaks of a Ranges instance into an array
-     * @return {array}
+     * @return {Array}
      */
     getPeakList() {
         var peaks = [];
@@ -221,8 +226,8 @@ class Ranges extends Array {
 
     /**
      * Return an array of deltas and multiplicity for an index database
-     * @options {array} options
-     * @return {array} [{delta, multiplicity},...]
+     * @options {Array} options
+     * @return {Array} [{delta, multiplicity},...]
      */
     toIndex(options) {
         var index = [];
