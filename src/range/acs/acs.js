@@ -192,6 +192,10 @@ function formatAssignment(assignment) {
 
 function pushCoupling(signal, parenthesis, options) {
     if (Array.isArray(signal.j) && signal.j.length > 0) {
+        signal.j.sort(function (a, b) {
+            return b.coupling - a.coupling;
+        });
+
         var values = [];
         for (let j of signal.j) {
             if (j.coupling !== undefined) {
