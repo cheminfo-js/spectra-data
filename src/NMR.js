@@ -23,15 +23,18 @@ class NMR extends SD {
      * @param {object} options
      * @return {SD}
      */
-    static fromPrediction(prediction, options) {
-        const spinSystem = simulator.SpinSystem.fromPrediction(prediction);
-        let opt = Object.assign({}, options, {
+    static fromPrediction(prediction, options = {}) {
+
+        options = Object.assign({}, {
             nbPoints: 16 * 1024,
             maxClusterSize: 8,
             output: 'xy'
-        });
-        spinSystem.ensureClusterSize(opt);
-        var data = simulator.simulate1D(spinSystem, opt);
+        }, options);
+
+        const spinSystem = simulator.SpinSystem.fromPrediction(prediction);
+
+        spinSystem.ensureClusterSize(options);
+        var data = simulator.simulate1D(spinSystem, options);
         return NMR.fromXY(data.x, data.y, options);
     }
 
