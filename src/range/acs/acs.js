@@ -126,8 +126,6 @@ function pushDelta(range, acsRanges, options) {
     acsRanges.push(strings);
 }
 
-module.exports = toAcs;
-
 function getIntegral(range, options) {
     let integral = '';
     if (range.pubIntegral) {
@@ -213,3 +211,4 @@ function pushAssignment(signal, parenthesis) {
         parenthesis.push(formatAssignment(signal.assignment));
     }
 }
+module.exports = toAcs;

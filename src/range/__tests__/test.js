@@ -48,7 +48,7 @@ describe('Range tests: formating and parsing', function () {
 
 describe('Prediction to ranges', function () {
     it('10 spines with 4 ranges', function () {
-        var ranges = Ranges.fromPrediction(prediction, {lineWidth: 1});
+        var ranges = Ranges.fromSignals(prediction, {lineWidth: 1});
         ranges.length.should.eql(4);
     });
 });
@@ -114,7 +114,7 @@ describe('toIndex Test Case from differents sources', function () {
     });
 
     it('from Prediction', function () {
-        var range = Ranges.fromPrediction(prediction, {lineWidth: 1});
+        var range = Ranges.fromSignals(prediction, {lineWidth: 1});
         var index = range.toIndex({});
         index.length.should.eql(10);
         index[1].delta.should.eql(2.237);
@@ -122,7 +122,7 @@ describe('toIndex Test Case from differents sources', function () {
     });
 
     it('joinCouplings', function () {
-        var range = Ranges.fromPrediction(ethylbenzenePrediction, {lineWidth: 1});
+        var range = Ranges.fromSignals(ethylbenzenePrediction, {lineWidth: 1});
 
         range.length.should.eql(4);
         range.joinCouplings({tolerance: 0.05, compactPattern: true});

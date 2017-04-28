@@ -30,7 +30,7 @@ class Ranges extends Array {
      * @param {number} [options.frequency] - frequency to determine the [from, to] of a range
      * @return {Ranges}
      */
-    static fromPrediction(predictions, options) {
+    static fromSignals(predictions, options) {
         options = Object.assign({}, {lineWidth: 1, frequency: 400, nucleus: '1H'}, options);
         //1. Collapse all the equivalent predictions
         const nPredictions = predictions.length;

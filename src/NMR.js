@@ -23,7 +23,7 @@ class NMR extends SD {
      * @param {object} options
      * @return {SD}
      */
-    static fromPrediction(prediction, options = {}) {
+    static fromSignals(prediction, options = {}) {
 
         options = Object.assign({}, {
             nbPoints: 16 * 1024,
@@ -31,7 +31,7 @@ class NMR extends SD {
             output: 'xy'
         }, options);
 
-        const spinSystem = simulator.SpinSystem.fromPrediction(prediction);
+        const spinSystem = simulator.SpinSystem.fromSignals(prediction);
 
         spinSystem.ensureClusterSize(options);
         var data = simulator.simulate1D(spinSystem, options);
