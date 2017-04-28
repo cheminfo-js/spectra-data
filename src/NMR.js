@@ -31,7 +31,7 @@ class NMR extends SD {
             output: 'xy'
         }, options);
 
-        const spinSystem = simulator.SpinSystem.fromSignals(prediction);
+        const spinSystem = simulator.SpinSystem.fromPrediction(prediction);
 
         spinSystem.ensureClusterSize(options);
         var data = simulator.simulate1D(spinSystem, options);

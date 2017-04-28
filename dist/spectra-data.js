@@ -16,9 +16,9 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	function __webpack_require__(moduleId) {
 /******/
 /******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId]) {
+/******/ 		if(installedModules[moduleId])
 /******/ 			return installedModules[moduleId].exports;
-/******/ 		}
+/******/
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = installedModules[moduleId] = {
 /******/ 			i: moduleId,
@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 67);
+/******/ 	return __webpack_require__(__webpack_require__.s = 156);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -434,8 +434,8 @@ exports.extend = function() {
 "use strict";
 
 
-__webpack_require__(117);
-var abstractMatrix = __webpack_require__(43);
+__webpack_require__(116);
+var abstractMatrix = __webpack_require__(45);
 var util = __webpack_require__(7);
 
 class Matrix extends abstractMatrix(Array) {
@@ -691,7 +691,7 @@ exports.setTyped(TYPED_OK);
 "use strict";
 
 
-var abstractMatrix = __webpack_require__(43);
+var abstractMatrix = __webpack_require__(45);
 var Matrix = __webpack_require__(1);
 
 class BaseView extends abstractMatrix() {
@@ -2227,7 +2227,7 @@ else {
     }
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26).Buffer))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(28).Buffer))
 
 /***/ }),
 /* 6 */
@@ -2236,8 +2236,8 @@ else {
 "use strict";
 
 
-exports.array = __webpack_require__(50);
-exports.matrix = __webpack_require__(137);
+exports.array = __webpack_require__(52);
+exports.matrix = __webpack_require__(136);
 
 
 /***/ }),
@@ -2397,7 +2397,7 @@ exports.sumAll = function sumAll(matrix) {
 
 
 module.exports = __webpack_require__(4);
-module.exports.Decompositions = module.exports.DC = __webpack_require__(132);
+module.exports.Decompositions = module.exports.DC = __webpack_require__(131);
 
 
 /***/ }),
@@ -2409,14 +2409,14 @@ module.exports.Decompositions = module.exports.DC = __webpack_require__(132);
 // small note on the best way to define array
 // http://jsperf.com/lp-array-and-loops/2
 
-const StatArray = __webpack_require__(6).array;
-const ArrayUtils = __webpack_require__(37);
-const JcampConverter = __webpack_require__(28);
-const JcampCreator = __webpack_require__(68);
-const peakPicking = __webpack_require__(71);
+var StatArray = __webpack_require__(6).array;
+var ArrayUtils = __webpack_require__(39);
+var JcampConverter = __webpack_require__(30);
+var JcampCreator = __webpack_require__(69);
+var peakPicking = __webpack_require__(72);
 
-const DATACLASS_XY = 1;
-const DATACLASS_PEAK = 2;
+var DATACLASS_XY = 1;
+var DATACLASS_PEAK = 2;
 
 /**
  * Construct the object from the given sd object(output of the jcampconverter or brukerconverter filter)
@@ -2896,7 +2896,7 @@ class SD {
      * @param {number} globalShift - Distance of the shift for direct dimension.
      */
     shift(globalShift) {
-        for (let i = 0; i < this.getNbSubSpectra(); i++) {
+        for (var i = 0; i < this.getNbSubSpectra(); i++) {
             this.setActiveElement(i);
             var x = this.getSpectrumData().x;
             var length = this.getNbPoints(),
@@ -3171,12 +3171,12 @@ class SD {
             throw Error('reduceData can only apply on equidistant data');
         }
 
-        for (let i = 0; i < this.getNbSubSpectra(); i++) {
+        for (var i = 0; i < this.getNbSubSpectra(); i++) {
             this.setActiveElement(i);
             if (this.getXUnits().toLowerCase() !== 'hz') {
                 if (typeof nbPoints !== 'undefined') {
-                    let x = this.getSpectraDataX();
-                    let y = this.getSpectraDataY();
+                    var x = this.getSpectraDataX();
+                    var y = this.getSpectraDataY();
 
                     if (x[0] > x[1] && from < to) {
                         from = from + to;
@@ -3189,9 +3189,9 @@ class SD {
                     }
                     y = ArrayUtils.getEquallySpacedData(x, y, { from: from, to: to, numberOfPoints: nbPoints });
 
-                    let step = (to - from) / (y.length - 1);
+                    var step = (to - from) / (y.length - 1);
                     x = new Array(y.length).fill(from);
-                    for (let j = 0; j < y.length; j++) {
+                    for (var j = 0; j < y.length; j++) {
                         x[j] += step * j;
                     }
 
@@ -3439,7 +3439,7 @@ exports.STORE = {
     compressInputType: null,
     uncompressInputType: null
 };
-exports.DEFLATE = __webpack_require__(86);
+exports.DEFLATE = __webpack_require__(85);
 
 
 /***/ }),
@@ -3455,7 +3455,7 @@ module.exports.test = function(b){
     return Buffer.isBuffer(b);
 };
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26).Buffer))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(28).Buffer))
 
 /***/ }),
 /* 13 */
@@ -3465,16 +3465,16 @@ module.exports.test = function(b){
 
 var support = __webpack_require__(5);
 var utils = __webpack_require__(0);
-var crc32 = __webpack_require__(84);
-var signature = __webpack_require__(33);
-var defaults = __webpack_require__(32);
+var crc32 = __webpack_require__(83);
+var signature = __webpack_require__(35);
+var defaults = __webpack_require__(34);
 var base64 = __webpack_require__(10);
 var compressions = __webpack_require__(11);
-var CompressedObject = __webpack_require__(30);
+var CompressedObject = __webpack_require__(32);
 var nodeBuffer = __webpack_require__(12);
-var utf8 = __webpack_require__(36);
-var StringWriter = __webpack_require__(90);
-var Uint8ArrayWriter = __webpack_require__(91);
+var utf8 = __webpack_require__(38);
+var StringWriter = __webpack_require__(89);
+var Uint8ArrayWriter = __webpack_require__(90);
 
 /**
  * Returns the raw data of a ZipObject, decompress the content if necessary.
@@ -4341,7 +4341,7 @@ module.exports = out;
 "use strict";
 
 
-const Heap = __webpack_require__(78);
+const Heap = __webpack_require__(77);
 
 function Cluster() {
     this.children = [];
@@ -4474,7 +4474,7 @@ exports.getFilled2DArray = function (rows, columns, value) {
 
 
 module.exports = __webpack_require__(1).Matrix;
-module.exports.Decompositions = module.exports.DC = __webpack_require__(116);
+module.exports.Decompositions = module.exports.DC = __webpack_require__(115);
 
 
 /***/ }),
@@ -4521,25 +4521,6 @@ function newArray (n, value) {
 "use strict";
 
 
-// (C) 1995-2013 Jean-loup Gailly and Mark Adler
-// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
-//
-// This software is provided 'as-is', without any express or implied
-// warranty. In no event will the authors be held liable for any damages
-// arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
-// freely, subject to the following restrictions:
-//
-// 1. The origin of this software must not be misrepresented; you must not
-//   claim that you wrote the original software. If you use this software
-//   in a product, an acknowledgment in the product documentation would be
-//   appreciated but is not required.
-// 2. Altered source versions must be plainly marked as such, and must not be
-//   misrepresented as being the original software.
-// 3. This notice may not be removed or altered from any source distribution.
-
 module.exports = {
   2:      'need dictionary',     /* Z_NEED_DICT       2  */
   1:      'stream end',          /* Z_STREAM_END      1  */
@@ -4564,18 +4545,16 @@ module.exports = {
 // const peakPicking = require('../peakPicking/peakPicking');
 // const peaks2Ranges = require('../peakPicking/peaks2Ranges');
 
-const acs = __webpack_require__(74);
-const peak2Vector = __webpack_require__(75);
-const GUI = __webpack_require__(76);
-const patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
-const getMultiplicityFromSignal = __webpack_require__(23);
-
+var acs = __webpack_require__(23);
+var peak2Vector = __webpack_require__(24);
+var GUI = __webpack_require__(75);
+var joinCoupling = __webpack_require__(25).joinCoupling;
 class Ranges extends Array {
 
     constructor(ranges) {
         if (Array.isArray(ranges)) {
             super(ranges.length);
-            for (let i = 0; i < ranges.length; i++) {
+            for (var i = 0; i < ranges.length; i++) {
                 this[i] = ranges[i];
             }
         } else if (typeof ranges === 'number') {
@@ -4593,11 +4572,11 @@ class Ranges extends Array {
      * @param {number} [options.frequency] - frequency to determine the [from, to] of a range
      * @return {Ranges}
      */
-    static fromPrediction(predictions, options) {
+    static fromSignals(predictions, options) {
         options = Object.assign({}, { lineWidth: 1, frequency: 400, nucleus: '1H' }, options);
         //1. Collapse all the equivalent predictions
-        const nPredictions = predictions.length;
-        const ids = new Array(nPredictions);
+        var nPredictions = predictions.length;
+        var ids = new Array(nPredictions);
         var i, j, diaIDs, prediction, width, center, jc;
         for (i = 0; i < nPredictions; i++) {
             if (!ids[predictions[i].diaIDs[0]]) {
@@ -4606,8 +4585,8 @@ class Ranges extends Array {
                 ids[predictions[i].diaIDs[0]].push(i);
             }
         }
-        const idsKeys = Object.keys(ids);
-        const result = new Array(idsKeys.length);
+        var idsKeys = Object.keys(ids);
+        var result = new Array(idsKeys.length);
 
         for (i = 0; i < idsKeys.length; i++) {
             diaIDs = ids[idsKeys[i]];
@@ -4666,7 +4645,9 @@ class Ranges extends Array {
                 }
             }
         }
-
+        result.sort((a, b) => {
+            return a.from - b.from;
+        });
         return new Ranges(result);
     }
 
@@ -4698,13 +4679,13 @@ class Ranges extends Array {
      * @return {Ranges}
      */
     updateMultiplicity() {
-        for (let i = 0; i < this.length; i++) {
+        for (var i = 0; i < this.length; i++) {
             var range = this[i];
-            for (let j = 0; j < range.signal.length; j++) {
+            for (var j = 0; j < range.signal.length; j++) {
                 var signal = range.signal[j];
                 if (Array.isArray(signal.j) && !signal.multiplicity) {
                     signal.multiplicity = '';
-                    for (let k = 0; k < signal.j.length; k++) {
+                    for (var k = 0; k < signal.j.length; k++) {
                         signal.multiplicity += signal.j[k].multiplicity;
                     }
                 }
@@ -4739,7 +4720,7 @@ class Ranges extends Array {
 
     /**
      * This function return the peak list as a object with x and y arrays
-     * @param {object} options - See the options parameter in {@link #peak2vector} function documentation
+     * @param {bject} options - See the options parameter in {@link #peak2vector} function documentation
      * @return {object} - {x: Array, y: Array}
      */
     getVector(options) {
@@ -4777,13 +4758,13 @@ class Ranges extends Array {
 
     /**
      * Return an array of deltas and multiplicity for an index database
-     * @options {Array} options
+     * @param {object} options - options object for toIndex function
      * @return {Array} [{delta, multiplicity},...]
      */
     toIndex(options) {
         var index = [];
 
-        if (options.compactPattern || false) this.compactPatterns(options);
+        if (options.compactPattern) this.joinCouplings(options);
 
         var _iteratorNormalCompletion = true;
         var _didIteratorError = false;
@@ -4800,10 +4781,10 @@ class Ranges extends Array {
 
                     try {
                         for (var _iterator2 = range.signal[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-                            let s = _step2.value;
+                            var s = _step2.value;
 
                             index.push({
-                                multiplicity: s.multiplicity || getMultiplicityFromSignal(s),
+                                multiplicity: s.multiplicity || joinCoupling(s, 0.05),
                                 delta: s.delta
                             });
                         }
@@ -4847,100 +4828,29 @@ class Ranges extends Array {
     }
 
     /**
-     * Returns the multiplet in the compact format
-     * @param {object} options
-     * @private
+     * Joins coupling constants
+     * @param {object} [options]
+     * @param {number} [options.tolerance=0.05]
      */
-    compactPatterns(options) {
+    joinCouplings() {
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+        var _options$tolerance = options.tolerance,
+            tolerance = _options$tolerance === undefined ? 0.05 : _options$tolerance;
+
         this.forEach(range => {
             range.signal.forEach(signal => {
-                signal.multiplicity = compactPattern(signal, options);
+                signal.multiplicity = joinCoupling(signal, tolerance);
             });
         });
     }
 
     clone() {
-        let newRanges = JSON.parse(JSON.stringify(this));
+        var newRanges = JSON.parse(JSON.stringify(this));
         return new Ranges(newRanges);
     }
 }
 
 module.exports = Ranges;
-
-function compactPattern(signal, options) {
-    var _options$jc = options.jc,
-        jc = _options$jc === undefined ? signal.j : _options$jc,
-        _options$cont = options.cont,
-        cont = _options$cont === undefined ? 1 : _options$cont,
-        _options$pattern = options.pattern,
-        pattern = _options$pattern === undefined ? '' : _options$pattern,
-        _options$tolerance = options.tolerance,
-        tolerance = _options$tolerance === undefined ? options.tolerance || 0.05 : _options$tolerance,
-        _options$newNmrJs = options.newNmrJs,
-        newNmrJs = _options$newNmrJs === undefined ? [] : _options$newNmrJs,
-        _options$diaIDs = options.diaIDs,
-        diaIDs = _options$diaIDs === undefined ? [] : _options$diaIDs,
-        _options$atoms = options.atoms,
-        atoms = _options$atoms === undefined ? [] : _options$atoms;
-
-    if (jc && jc.length > 0) {
-        jc.sort(function (a, b) {
-            return a.coupling - b.coupling;
-        });
-        if (jc[0].diaID) {
-            diaIDs = [jc[0].diaID];
-        }
-        if (jc[0].assignment) {
-            atoms = [jc[0].assignment];
-        }
-        for (var i = 0; i < jc.length - 1; i++) {
-            if (Math.abs(jc[i].coupling - jc[i + 1].coupling) < tolerance) {
-                cont++;
-                diaIDs.push(jc[i].diaID);
-                atoms.push(jc[i].assignment);
-            } else {
-                let jTemp = {
-                    'coupling': Math.abs(jc[i].coupling),
-                    'multiplicity': patterns[cont]
-                };
-                if (diaIDs.length > 0) {
-                    jTemp.diaID = diaIDs;
-                }
-                if (atoms.length > 0) {
-                    jTemp.assignment = atoms;
-                }
-                newNmrJs.push(jTemp);
-
-                pattern += patterns[cont];
-                cont = 1;
-                if (jc[0].diaID) {
-                    diaIDs = [jc[i].diaID];
-                }
-                if (jc[0].assignment) {
-                    atoms = [jc[i].assignment];
-                }
-            }
-        }
-        let jTemp = {
-            'coupling': Math.abs(jc[i].coupling),
-
-            'multiplicity': patterns[cont]
-        };
-        if (diaIDs.length > 0) {
-            jTemp.diaID = diaIDs;
-        }
-        if (atoms.length > 0) {
-            jTemp.assignment = atoms;
-        }
-        newNmrJs.push(jTemp);
-
-        pattern += patterns[cont];
-        signal.j = newNmrJs;
-    } else {
-        pattern = 's';
-    }
-    return pattern;
-}
 
 /***/ }),
 /* 21 */
@@ -4949,11 +4859,11 @@ function compactPattern(signal, options) {
 "use strict";
 
 
-module.exports.fourierTransform = __webpack_require__(63);
-module.exports.zeroFilling = __webpack_require__(66);
-module.exports.apodization = __webpack_require__(61);
-module.exports.phaseCorrection = __webpack_require__(64);
-module.exports.digitalFilter = __webpack_require__(62);
+module.exports.fourierTransform = __webpack_require__(65);
+module.exports.zeroFilling = __webpack_require__(68);
+module.exports.apodization = __webpack_require__(63);
+module.exports.phaseCorrection = __webpack_require__(66);
+module.exports.digitalFilter = __webpack_require__(64);
 
 /***/ }),
 /* 22 */
@@ -5169,17 +5079,17 @@ function exist(output, properties, signal, type, symmetricSearch) {
         if (properties[i][0] === type) {
             if (distanceTo(signal, output[i], symmetricSearch) < tolerance) {
                 if (!symmetricSearch) {
-                    let shiftX = (output[i].shiftX + signal.shiftX) / 2.0;
-                    let shiftY = (output[i].shiftY + signal.shiftY) / 2.0;
+                    var shiftX = (output[i].shiftX + signal.shiftX) / 2.0;
+                    var shiftY = (output[i].shiftY + signal.shiftY) / 2.0;
                     output[i].shiftX = shiftX;
                     output[i].shiftY = shiftY;
                     signal.shiftX = shiftX;
                     signal.shiftY = shiftY;
                 } else {
-                    let shiftX = signal.shiftX;
-                    let shiftY = output[i].shiftX;
-                    output[i].shiftY = shiftX;
-                    signal.shiftY = shiftY;
+                    var _shiftX = signal.shiftX;
+                    var _shiftY = output[i].shiftX;
+                    output[i].shiftY = _shiftX;
+                    signal.shiftY = _shiftY;
                 }
                 return i;
             }
@@ -5269,63 +5179,495 @@ function alignSingleDimension(signals2D, references) {
 
 "use strict";
 
+/**
+ * nbDecimalsDelta : default depends nucleus H, F: 2 otherwise 1
+ * nbDecimalsJ : default depends nucleus H, F: 1, otherwise 0
+ * ascending : true / false
+ * format : default "AIMJ" or when 2D data is collected the default format may be "IMJA"
+ * deltaSeparator : ', '
+ * detailSeparator : ', '
+ */
 
-function getMultiplicityFromSignal(signal) {
-    let multiplicity = '';
-    if (signal.pubMultiplicity) {
-        multiplicity = signal.pubMultiplicity;
-    } else if (signal.multiplicity) {
-        multiplicity = signal.multiplicity;
-    } else if (Array.isArray(signal.j) && signal.j.length > 0) {
-        var couplings = signal.j;
-        var addSpace = false;
-        var _iteratorNormalCompletion = true;
-        var _didIteratorError = false;
-        var _iteratorError = undefined;
+var joinCoupling = __webpack_require__(25).joinCoupling;
+var globalOptions = {
+    h: {
+        nucleus: '1H',
+        nbDecimalDelta: 2,
+        nbDecimalJ: 1,
+        observedFrequency: 400
+    },
+    c: {
+        nucleus: '13C',
+        nbDecimalDelta: 1,
+        nbDecimalJ: 1,
+        observedFrequency: 100
+    },
+    f: {
+        nucleus: '19F',
+        nbDecimalDelta: 2,
+        nbDecimalJ: 1,
+        observedFrequency: 400
+    }
+};
 
+function toAcs(ranges) {
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+    var nucleus = (options.nucleus || '1H').toLowerCase().replace(/[0-9]/g, '');
+    var defaultOptions = globalOptions[nucleus];
+    options = Object.assign({}, defaultOptions, { ascending: false, format: 'IMJA' }, options);
+
+    ranges = ranges.clone();
+    if (options.ascending === true) {
+        ranges.sort((a, b) => {
+            var fromA = Math.min(a.from, a.to);
+            var fromB = Math.min(b.from, b.to);
+            return fromA - fromB;
+        });
+    }
+    var acsString = formatAcs(ranges, options);
+
+    if (acsString.length > 0) acsString += '.';
+
+    return acsString;
+}
+
+function formatAcs(ranges, options) {
+    var acs = spectroInformation(options);
+    if (acs.length === 0) acs = 'δ ';
+    var acsRanges = [];
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+        for (var _iterator = ranges[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+            var range = _step.value;
+
+            pushDelta(range, acsRanges, options);
+        }
+    } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+    } finally {
         try {
-            for (var _iterator = couplings[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                let coupling = _step.value;
+            if (!_iteratorNormalCompletion && _iterator.return) {
+                _iterator.return();
+            }
+        } finally {
+            if (_didIteratorError) {
+                throw _iteratorError;
+            }
+        }
+    }
 
-                if (coupling.multiplicity.length > 1) {
-                    multiplicity += ' ';
-                    addSpace = true;
-                } else {
-                    if (addSpace) {
-                        multiplicity += ' ';
-                        addSpace = false;
+    if (acsRanges.length > 0) {
+        return acs + acsRanges.join(', ');
+    } else {
+        return '';
+    }
+}
+
+function spectroInformation(options) {
+    var parenthesis = [];
+    var strings = formatNucleus(options.nucleus) + ' NMR';
+    if (options.solvent) {
+        parenthesis.push(formatMF(options.solvent));
+    }
+    if (options.frequencyObserved) {
+        parenthesis.push((options.frequencyObserved * 1).toFixed(0) + ' MHz');
+    }
+    if (parenthesis.length > 0) {
+        strings += ' (' + parenthesis.join(', ') + '): δ ';
+    } else {
+        strings += ': δ ';
+    }
+    return strings;
+}
+
+function pushDelta(range, acsRanges, options) {
+    var strings = '';
+    var parenthesis = [];
+    var fromTo = [range.from, range.to];
+    if (Array.isArray(range.signal) && range.signal.length > 0) {
+        var signals = range.signal;
+        if (signals.length > 1) {
+            if (options.ascending === true) {
+                signals.sort((a, b) => {
+                    return a.delta - b.delta;
+                });
+            }
+            strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
+            strings += ' (' + getIntegral(range, options);
+            var _iteratorNormalCompletion2 = true;
+            var _didIteratorError2 = false;
+            var _iteratorError2 = undefined;
+
+            try {
+                for (var _iterator2 = signals[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                    var signal = _step2.value;
+
+                    parenthesis = [];
+                    if (signal.delta !== undefined) {
+                        strings = appendSeparator(strings);
+                        strings += signal.delta.toFixed(options.nbDecimalDelta);
+                    }
+                    switchFormat({}, signal, parenthesis, options);
+                    if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
+                }
+            } catch (err) {
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                        _iterator2.return();
+                    }
+                } finally {
+                    if (_didIteratorError2) {
+                        throw _iteratorError2;
                     }
                 }
-                multiplicity += coupling.multiplicity;
+            }
+
+            strings += ')';
+        } else {
+            parenthesis = [];
+            if (signals[0].delta !== undefined) {
+                strings += signals[0].delta.toFixed(options.nbDecimalDelta);
+                switchFormat(range, signals[0], parenthesis, options);
+                if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
+            } else {
+                strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
+                switchFormat(range, signals[0], parenthesis, options);
+                if (parenthesis.length > 0) strings += ' (' + parenthesis + ')';
+            }
+        }
+    } else {
+        strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
+        switchFormat(range, [], parenthesis, options);
+        if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
+    }
+    acsRanges.push(strings);
+}
+
+function getIntegral(range, options) {
+    var integral = '';
+    if (range.pubIntegral) {
+        integral = range.pubIntegral;
+    } else if (range.integral) {
+        integral = range.integral.toFixed(0) + options.nucleus[options.nucleus.length - 1];
+    }
+    return integral;
+}
+
+function pushIntegral(range, parenthesis, options) {
+    var integral = getIntegral(range, options);
+    if (integral.length > 0) parenthesis.push(integral);
+}
+
+function pushMultiplicityFromSignal(signal, parenthesis) {
+    var multiplicity = signal.multiplicity || joinCoupling(signal, 0.05);
+    if (multiplicity.length > 0) parenthesis.push(multiplicity);
+}
+
+function switchFormat(range, signal, parenthesis, options) {
+    var _iteratorNormalCompletion3 = true;
+    var _didIteratorError3 = false;
+    var _iteratorError3 = undefined;
+
+    try {
+        for (var _iterator3 = options.format[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+            var char = _step3.value;
+
+            switch (char.toUpperCase()) {
+                case 'I':
+                    pushIntegral(range, parenthesis, options);
+                    break;
+                case 'M':
+                    pushMultiplicityFromSignal(signal, parenthesis);
+                    break;
+                case 'A':
+                    pushAssignment(signal, parenthesis);
+                    break;
+                case 'J':
+                    pushCoupling(signal, parenthesis, options);
+                    break;
+                default:
+                    throw new Error('Unknow format letter: ' + char);
+            }
+        }
+    } catch (err) {
+        _didIteratorError3 = true;
+        _iteratorError3 = err;
+    } finally {
+        try {
+            if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                _iterator3.return();
+            }
+        } finally {
+            if (_didIteratorError3) {
+                throw _iteratorError3;
+            }
+        }
+    }
+}
+
+function formatMF(mf) {
+    return mf.replace(/([0-9]+)/g, '<sub>$1</sub>');
+}
+
+function formatNucleus(nucleus) {
+    return nucleus.replace(/([0-9]+)/g, '<sup>$1</sup>');
+}
+
+function appendSeparator(strings) {
+    if (strings.length > 0 && !strings.match(/ $/) && !strings.match(/\($/)) {
+        strings += ', ';
+    }
+    return strings;
+}
+
+function formatAssignment(assignment) {
+    assignment = assignment.replace(/([0-9]+)/g, '<sub>$1</sub>');
+    assignment = assignment.replace(/\"([^\"]*)\"/g, '<i>$1</i>');
+    return assignment;
+}
+
+function pushCoupling(signal, parenthesis, options) {
+    if (Array.isArray(signal.j) && signal.j.length > 0) {
+        signal.j.sort(function (a, b) {
+            return b.coupling - a.coupling;
+        });
+
+        var values = [];
+        var _iteratorNormalCompletion4 = true;
+        var _didIteratorError4 = false;
+        var _iteratorError4 = undefined;
+
+        try {
+            for (var _iterator4 = signal.j[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                var j = _step4.value;
+
+                if (j.coupling !== undefined) {
+                    values.push(j.coupling.toFixed(options.nbDecimalJ));
+                }
             }
         } catch (err) {
-            _didIteratorError = true;
-            _iteratorError = err;
+            _didIteratorError4 = true;
+            _iteratorError4 = err;
         } finally {
             try {
-                if (!_iteratorNormalCompletion && _iterator.return) {
-                    _iterator.return();
+                if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                    _iterator4.return();
                 }
             } finally {
-                if (_didIteratorError) {
-                    throw _iteratorError;
+                if (_didIteratorError4) {
+                    throw _iteratorError4;
                 }
             }
         }
 
-        return multiplicity;
-    } else if (signal.delta) {
-        return 's';
-    } else {
-        return 'm';
+        if (values.length > 0) parenthesis.push('<i>J</i> = ' + values.join(', ') + ' Hz');
     }
-    return multiplicity;
 }
 
-module.exports = getMultiplicityFromSignal;
+function pushAssignment(signal, parenthesis) {
+    if (signal.pubAssignment) {
+        parenthesis.push(formatAssignment(signal.pubAssignment));
+    } else if (signal.assignment) {
+        parenthesis.push(formatAssignment(signal.assignment));
+    }
+}
+module.exports = toAcs;
 
 /***/ }),
 /* 24 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/**
+ * This function converts an array of peaks [{x, y, width}] in a vector equally x,y vector from a given window
+ * TODO: This function is very general and should be placed somewhere else
+ * @param {Array} peaks - List of the peaks
+ * @param {object} options - it has some options to
+ * @param {number} [options.from] - one limit of given window
+ * @param {number} [options.to] - one limit of given window
+ * @param {string} [options.fnName] - function name to generate the signals form
+ * @param {number} [options.nWidth] - width factor of signal form
+ * @param {number} [options.nbPoints] - number of points that the vector will have
+ * @return {{x: Array, y: Array}}
+ */
+
+function peak2Vector(peaks, options) {
+    options = options || {};
+    var from = options.from;
+    var to = options.to;
+    var nbPoints = options.nbPoints || 16 * 1024;
+    var fnName = options.fnName || 'gaussian';
+    var nWidth = options.nWidth || 4;
+
+    if (!from) {
+        from = Number.MAX_VALUE;
+        for (var i = 0; i < peaks.length; i++) {
+            if (peaks[i].x - peaks[i].width * nWidth < from) {
+                from = peaks[i].x - peaks[i].width * nWidth;
+            }
+        }
+    }
+
+    if (!to) {
+        to = Number.MIN_VALUE;
+        for (var _i = 0; _i < peaks.length; _i++) {
+            if (peaks[_i].x + peaks[_i].width * nWidth > to) {
+                to = peaks[_i].x + peaks[_i].width * nWidth;
+            }
+        }
+    }
+
+    var x = new Array(nbPoints);
+    var y = new Array(nbPoints);
+    var dx = (to - from) / (nbPoints - 1);
+    for (var _i2 = 0; _i2 < nbPoints; _i2++) {
+        x[_i2] = from + _i2 * dx;
+        y[_i2] = 0;
+    }
+
+    var intensity = 'intensity';
+    if (peaks[0].y) {
+        intensity = 'y';
+    }
+
+    for (var _i3 = 0; _i3 < peaks.length; _i3++) {
+        var peak = peaks[_i3];
+        if (peak.x > from && peak.x < to) {
+            var index = Math.round((peak.x - from) / dx);
+            var w = Math.round(peak.width * nWidth / dx);
+            if (fnName === 'gaussian') {
+                for (var j = index - w; j < index + w; j++) {
+                    if (j >= 0 && j < nbPoints) {
+                        y[j] += peak[intensity] * Math.exp(-0.5 * Math.pow((peak.x - x[j]) / (peak.width / 2), 2));
+                    }
+                }
+            } else {
+                var factor = peak[intensity] * Math.pow(peak.width, 2) / 4;
+                for (var _j = index - w; _j < index + w; _j++) {
+                    if (_j >= 0 && _j < nbPoints) {
+                        y[_j] += factor / (Math.pow(peak.x - x[_j], 2) + Math.pow(peak.width / 2, 2));
+                    }
+                }
+            }
+        }
+    }
+
+    return { x: x, y: y };
+}
+
+module.exports = peak2Vector;
+
+/***/ }),
+/* 25 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var acs = __webpack_require__(23);
+var patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
+
+function nmrJ(Js) {
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+    var jString = '';
+    options = Object.assign({}, { separator: ', ', nbDecimal: 2 }, options);
+    var j = void 0,
+        i = void 0;
+    for (i = 0; i < Js.length; i++) {
+        j = Js[i];
+        if (j.length > 11) {
+            j += options.separator;
+        }
+        jString += j.multiplicity + ' ' + j.coupling.toFixed(options.nbDecimal);
+    }
+    return jString;
+}
+
+function toACS(ranges, options) {
+    return acs(ranges, options);
+}
+
+function joinCoupling(signal, tolerance) {
+    var jc = signal.j;
+    var cont = 1;
+    var pattern = '';
+    var newNmrJs = [];
+    var diaIDs = [];
+    var atoms = [];
+    if (jc && jc.length > 0) {
+        jc.sort(function (a, b) {
+            return b.coupling - a.coupling;
+        });
+        if (jc[0].diaID) {
+            diaIDs = [jc[0].diaID];
+        }
+        if (jc[0].assignment) {
+            atoms = [jc[0].assignment];
+        }
+        for (var i = 0; i < jc.length - 1; i++) {
+            if (Math.abs(jc[i].coupling - jc[i + 1].coupling) < tolerance) {
+                cont++;
+                diaIDs.push(jc[i].diaID);
+                atoms.push(jc[i].assignment);
+            } else {
+                var _jTemp = {
+                    coupling: Math.abs(jc[i].coupling),
+                    multiplicity: patterns[cont]
+                };
+                if (diaIDs.length > 0) {
+                    _jTemp.diaID = diaIDs;
+                }
+                if (atoms.length > 0) {
+                    _jTemp.assignment = atoms;
+                }
+                newNmrJs.push(_jTemp);
+                if (jc[0].diaID) {
+                    diaIDs = [jc[i].diaID];
+                }
+                if (jc[0].assignment) {
+                    atoms = [jc[i].assignment];
+                }
+                pattern += patterns[cont];
+                cont = 1;
+            }
+        }
+        var jTemp = {
+            coupling: Math.abs(jc[i].coupling),
+            multiplicity: patterns[cont]
+        };
+        if (diaIDs.length > 0) {
+            jTemp.diaID = diaIDs;
+        }
+        if (atoms.length > 0) {
+            jTemp.assignment = atoms;
+        }
+        newNmrJs.push(jTemp);
+
+        pattern += patterns[cont];
+        signal.j = newNmrJs;
+    } else if (signal.delta) {
+        pattern = 's';
+    } else {
+        pattern = 'm';
+    }
+    return pattern;
+}
+
+module.exports = { toACS, nmrJ, joinCoupling };
+module.exports.peak2Vector = __webpack_require__(24);
+
+/***/ }),
+/* 26 */
 /***/ (function(module, exports) {
 
 module.exports = function(haystack, needle, comparator, low, high) {
@@ -5374,15 +5716,15 @@ module.exports = function(haystack, needle, comparator, low, high) {
 
 
 /***/ }),
-/* 25 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const Converter = __webpack_require__(28);
-const IOBuffer = __webpack_require__(81);
-const JSZip = __webpack_require__(87);
+const Converter = __webpack_require__(30);
+const IOBuffer = __webpack_require__(80);
+const JSZip = __webpack_require__(86);
 
 // constants
 var BINARY = 1;
@@ -5925,7 +6267,7 @@ module.exports =  {
 };
 
 /***/ }),
-/* 26 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5939,9 +6281,9 @@ module.exports =  {
 
 
 
-var base64 = __webpack_require__(77)
-var ieee754 = __webpack_require__(80)
-var isArray = __webpack_require__(82)
+var base64 = __webpack_require__(76)
+var ieee754 = __webpack_require__(79)
+var isArray = __webpack_require__(81)
 
 exports.Buffer = Buffer
 exports.SlowBuffer = SlowBuffer
@@ -7719,10 +8061,10 @@ function isnan (val) {
   return val !== val // eslint-disable-line no-self-compare
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(58)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(60)))
 
 /***/ }),
-/* 27 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7815,13 +8157,13 @@ module.exports = function extend() {
 
 
 /***/ }),
-/* 28 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var parseXYDataRegExp = __webpack_require__(83);
+var parseXYDataRegExp = __webpack_require__(82);
 
 
 function getConverter() {
@@ -8697,12 +9039,12 @@ module.exports = {
 
 
 /***/ }),
-/* 29 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var DataReader = __webpack_require__(31);
+var DataReader = __webpack_require__(33);
 
 function ArrayReader(data) {
     if (data) {
@@ -8755,7 +9097,7 @@ module.exports = ArrayReader;
 
 
 /***/ }),
-/* 30 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8790,7 +9132,7 @@ module.exports = CompressedObject;
 
 
 /***/ }),
-/* 31 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8905,7 +9247,7 @@ module.exports = DataReader;
 
 
 /***/ }),
-/* 32 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8923,7 +9265,7 @@ exports.dosPermissions = null;
 
 
 /***/ }),
-/* 33 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8937,12 +9279,12 @@ exports.DATA_DESCRIPTOR = "PK\x07\x08";
 
 
 /***/ }),
-/* 34 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var DataReader = __webpack_require__(31);
+var DataReader = __webpack_require__(33);
 var utils = __webpack_require__(0);
 
 function StringReader(data, optimizedBinaryString) {
@@ -8981,12 +9323,12 @@ module.exports = StringReader;
 
 
 /***/ }),
-/* 35 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var ArrayReader = __webpack_require__(29);
+var ArrayReader = __webpack_require__(31);
 
 function Uint8ArrayReader(data) {
     if (data) {
@@ -9014,7 +9356,7 @@ module.exports = Uint8ArrayReader;
 
 
 /***/ }),
-/* 36 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9228,18 +9570,18 @@ exports.utf8decode = function utf8decode(buf) {
 
 
 /***/ }),
-/* 37 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = exports = __webpack_require__(94);
+module.exports = exports = __webpack_require__(93);
 
 
-exports.getEquallySpacedData = __webpack_require__(95).getEquallySpacedData;
-exports.SNV = __webpack_require__(96).SNV;
+exports.getEquallySpacedData = __webpack_require__(94).getEquallySpacedData;
+exports.SNV = __webpack_require__(95).SNV;
 
 
 /***/ }),
-/* 38 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9262,7 +9604,7 @@ euclidean.squared = squaredEuclidean;
 
 
 /***/ }),
-/* 39 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -9499,25 +9841,25 @@ var FFT = (function(){
 
 
 /***/ }),
-/* 40 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-exports.FFTUtils = __webpack_require__(99);
-exports.FFT = __webpack_require__(39);
+exports.FFTUtils = __webpack_require__(98);
+exports.FFT = __webpack_require__(41);
 
 
 /***/ }),
-/* 41 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 const Cluster = __webpack_require__(14);
-const util = __webpack_require__(155);
+const util = __webpack_require__(154);
 
 function ClusterLeaf(index) {
     Cluster.call(this);
@@ -9532,7 +9874,7 @@ module.exports = ClusterLeaf;
 
 
 /***/ }),
-/* 42 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -9769,7 +10111,7 @@ var FFT = (function(){
 
 
 /***/ }),
-/* 43 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9777,17 +10119,17 @@ var FFT = (function(){
 
 module.exports = abstractMatrix;
 
-var LuDecomposition = __webpack_require__(44);
-var SvDecomposition = __webpack_require__(45);
-var arrayUtils = __webpack_require__(37);
+var LuDecomposition = __webpack_require__(46);
+var SvDecomposition = __webpack_require__(47);
+var arrayUtils = __webpack_require__(39);
 var util = __webpack_require__(7);
-var MatrixTransposeView = __webpack_require__(124);
-var MatrixRowView = __webpack_require__(121);
-var MatrixSubView = __webpack_require__(123);
-var MatrixSelectionView = __webpack_require__(122);
-var MatrixColumnView = __webpack_require__(118);
-var MatrixFlipRowView = __webpack_require__(120);
-var MatrixFlipColumnView = __webpack_require__(119);
+var MatrixTransposeView = __webpack_require__(123);
+var MatrixRowView = __webpack_require__(120);
+var MatrixSubView = __webpack_require__(122);
+var MatrixSelectionView = __webpack_require__(121);
+var MatrixColumnView = __webpack_require__(117);
+var MatrixFlipRowView = __webpack_require__(119);
+var MatrixFlipColumnView = __webpack_require__(118);
 
 function abstractMatrix(superCtor) {
     if (superCtor === undefined) superCtor = Object;
@@ -11594,7 +11936,7 @@ function abstractMatrix(superCtor) {
 
 
 /***/ }),
-/* 44 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11775,7 +12117,7 @@ module.exports = LuDecomposition;
 
 
 /***/ }),
-/* 45 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12296,7 +12638,7 @@ module.exports = SingularValueDecomposition;
 
 
 /***/ }),
-/* 46 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12555,7 +12897,7 @@ module.exports = {
 
 
 /***/ }),
-/* 47 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13015,7 +13357,7 @@ exports.cumulativeSum = function cumulativeSum(array) {
 
 
 /***/ }),
-/* 48 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13130,10 +13472,10 @@ function fullClusterGeneratorVector(conn){
 }
 
 /***/ }),
-/* 49 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const HashTable = __webpack_require__(103);
+const HashTable = __webpack_require__(102);
 
 class SparseMatrix {
     constructor(rows, columns, options = {}) {
@@ -13428,7 +13770,7 @@ function fillTemplateFunction(template, values) {
 
 
 /***/ }),
-/* 50 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13914,24 +14256,24 @@ exports.cumulativeSum = function cumulativeSum(array) {
 
 
 /***/ }),
-/* 51 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-exports.SpinSystem = __webpack_require__(138);
-exports.simulate1D = __webpack_require__(140);
-exports.simulate2D = __webpack_require__(141);
+exports.SpinSystem = __webpack_require__(137);
+exports.simulate1D = __webpack_require__(139);
+exports.simulate2D = __webpack_require__(140);
 
 
 /***/ }),
-/* 52 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var numberIsNan = __webpack_require__(142);
+var numberIsNan = __webpack_require__(141);
 
 function assertNum(x) {
 	if (typeof x !== 'number' || numberIsNan(x)) {
@@ -13953,7 +14295,7 @@ exports.desc = function (a, b) {
 
 
 /***/ }),
-/* 53 */
+/* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14145,7 +14487,7 @@ exports.utf8border = function (buf, max) {
 
 
 /***/ }),
-/* 54 */
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14154,25 +14496,6 @@ exports.utf8border = function (buf, max) {
 // Note: adler32 takes 12% for level 0 and 2% for level 6.
 // It doesn't worth to make additional optimizationa as in original.
 // Small size is preferable.
-
-// (C) 1995-2013 Jean-loup Gailly and Mark Adler
-// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
-//
-// This software is provided 'as-is', without any express or implied
-// warranty. In no event will the authors be held liable for any damages
-// arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
-// freely, subject to the following restrictions:
-//
-// 1. The origin of this software must not be misrepresented; you must not
-//   claim that you wrote the original software. If you use this software
-//   in a product, an acknowledgment in the product documentation would be
-//   appreciated but is not required.
-// 2. Altered source versions must be plainly marked as such, and must not be
-//   misrepresented as being the original software.
-// 3. This notice may not be removed or altered from any source distribution.
 
 function adler32(adler, buf, len, pos) {
   var s1 = (adler & 0xffff) |0,
@@ -14203,30 +14526,12 @@ module.exports = adler32;
 
 
 /***/ }),
-/* 55 */
+/* 57 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-// (C) 1995-2013 Jean-loup Gailly and Mark Adler
-// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
-//
-// This software is provided 'as-is', without any express or implied
-// warranty. In no event will the authors be held liable for any damages
-// arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
-// freely, subject to the following restrictions:
-//
-// 1. The origin of this software must not be misrepresented; you must not
-//   claim that you wrote the original software. If you use this software
-//   in a product, an acknowledgment in the product documentation would be
-//   appreciated but is not required.
-// 2. Altered source versions must be plainly marked as such, and must not be
-//   misrepresented as being the original software.
-// 3. This notice may not be removed or altered from any source distribution.
 
 module.exports = {
 
@@ -14278,7 +14583,7 @@ module.exports = {
 
 
 /***/ }),
-/* 56 */
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14288,24 +14593,6 @@ module.exports = {
 // So write code to minimize size - no pregenerated tables
 // and array tools dependencies.
 
-// (C) 1995-2013 Jean-loup Gailly and Mark Adler
-// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
-//
-// This software is provided 'as-is', without any express or implied
-// warranty. In no event will the authors be held liable for any damages
-// arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
-// freely, subject to the following restrictions:
-//
-// 1. The origin of this software must not be misrepresented; you must not
-//   claim that you wrote the original software. If you use this software
-//   in a product, an acknowledgment in the product documentation would be
-//   appreciated but is not required.
-// 2. Altered source versions must be plainly marked as such, and must not be
-//   misrepresented as being the original software.
-// 3. This notice may not be removed or altered from any source distribution.
 
 // Use ordinary array, since untyped makes no boost here
 function makeTable() {
@@ -14344,30 +14631,12 @@ module.exports = crc32;
 
 
 /***/ }),
-/* 57 */
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-// (C) 1995-2013 Jean-loup Gailly and Mark Adler
-// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
-//
-// This software is provided 'as-is', without any express or implied
-// warranty. In no event will the authors be held liable for any damages
-// arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
-// freely, subject to the following restrictions:
-//
-// 1. The origin of this software must not be misrepresented; you must not
-//   claim that you wrote the original software. If you use this software
-//   in a product, an acknowledgment in the product documentation would be
-//   appreciated but is not required.
-// 2. Altered source versions must be plainly marked as such, and must not be
-//   misrepresented as being the original software.
-// 3. This notice may not be removed or altered from any source distribution.
 
 function ZStream() {
   /* next input byte */
@@ -14398,7 +14667,7 @@ module.exports = ZStream;
 
 
 /***/ }),
-/* 58 */
+/* 60 */
 /***/ (function(module, exports) {
 
 var g;
@@ -14425,17 +14694,17 @@ module.exports = g;
 
 
 /***/ }),
-/* 59 */
+/* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const SD = __webpack_require__(9);
-const Filters = __webpack_require__(21);
-const Brukerconverter = __webpack_require__(25);
-const peaks2Ranges = __webpack_require__(73);
-const simulator = __webpack_require__(51);
+var SD = __webpack_require__(9);
+var Filters = __webpack_require__(21);
+var Brukerconverter = __webpack_require__(27);
+var peaks2Ranges = __webpack_require__(74);
+var simulator = __webpack_require__(53);
 
 /**
  * @class NMR
@@ -14450,19 +14719,24 @@ class NMR extends SD {
 
     /**
      * This function creates a SD instance from the given 1D prediction
-     * @param prediction
-     * @param options
-     * @returns {SD}
+     * @param {Array} prediction
+     * @param {object} options
+     * @return {SD}
      */
-    static fromPrediction(prediction, options) {
-        const spinSystem = simulator.SpinSystem.fromSignals(prediction);
-        let opt = Object.assign({}, options, {
+    static fromSignals(prediction) {
+        var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+
+        options = Object.assign({}, {
             nbPoints: 16 * 1024,
             maxClusterSize: 8,
             output: 'xy'
-        });
-        spinSystem.ensureClusterSize(opt);
-        var data = simulator.simulate1D(spinSystem, opt);
+        }, options);
+
+        var spinSystem = simulator.SpinSystem.fromPrediction(prediction);
+
+        spinSystem.ensureClusterSize(options);
+        var data = simulator.simulate1D(spinSystem, options);
         return NMR.fromXY(data.x, data.y, options);
     }
 
@@ -14849,19 +15123,19 @@ class NMR extends SD {
 module.exports = NMR;
 
 /***/ }),
-/* 60 */
+/* 62 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const SD = __webpack_require__(9);
-const peakPicking2D = __webpack_require__(72);
-const PeakOptimizer = __webpack_require__(22);
-const Brukerconverter = __webpack_require__(25);
-const Filters = __webpack_require__(21);
-const StatArray = __webpack_require__(6).array;
-const simule2DNmrSpectrum = __webpack_require__(51).simulate2D;
+var SD = __webpack_require__(9);
+var peakPicking2D = __webpack_require__(73);
+var PeakOptimizer = __webpack_require__(22);
+var Brukerconverter = __webpack_require__(27);
+var Filters = __webpack_require__(21);
+var StatArray = __webpack_require__(6).array;
+var simule2DNmrSpectrum = __webpack_require__(53).simulate2D;
 
 class NMR2D extends SD {
 
@@ -14871,9 +15145,9 @@ class NMR2D extends SD {
 
     /**
      * This function creates a SD instance from the given 2D prediction
-     * @param prediction
-     * @param options
-     * @returns {SD}
+     * @param {Array} prediction
+     * @param {object} options
+     * @return {SD}
      */
     static fromPrediction(prediction, options) {
         var data = simule2DNmrSpectrum(prediction, options);
@@ -14913,35 +15187,36 @@ class NMR2D extends SD {
     /**
      * This function creates a 2D spectrum from a matrix containing the independent values of the spectrum and a set
      * of options...
-     * @param data
-     * @param options
+     * @param {Array} data
+     * @param {object} options
+     * @return {*}
      */
     static fromMatrix(data, options) {
         var result = {};
         result.profiling = [];
         result.logs = [];
         var spectra = [];
-        let nbPoints = data[0].length;
+        var nbPoints = data[0].length;
         result.spectra = spectra;
         result.info = {};
-        let firstY = options.firstY || 0;
-        let lastY = options.lastY || data.length - 1;
-        let deltaY = (lastY - firstY) / (data.length - 1);
+        var firstY = options.firstY || 0;
+        var lastY = options.lastY || data.length - 1;
+        var deltaY = (lastY - firstY) / (data.length - 1);
 
-        let firstX = options.firstX || 0;
-        let lastX = options.lastX || nbPoints - 1;
-        let deltaX = (lastY - firstY) / (nbPoints - 1);
-        let x = options.x;
+        var firstX = options.firstX || 0;
+        var lastX = options.lastX || nbPoints - 1;
+        var deltaX = (lastY - firstY) / (nbPoints - 1);
+        var x = options.x;
         if (!x) {
             x = new Array(nbPoints);
-            for (let i = 0; i < nbPoints; i++) {
+            for (var i = 0; i < nbPoints; i++) {
                 x[i] = firstX + deltaX * i;
             }
         }
 
-        let observeFrequency = options.frequencyX || 400;
-        let minZ = Number.MAX_SAFE_INTEGER;
-        let maxZ = Number.MIN_SAFE_INTEGER;
+        var observeFrequency = options.frequencyX || 400;
+        var minZ = Number.MAX_SAFE_INTEGER;
+        var maxZ = Number.MIN_SAFE_INTEGER;
 
         data.forEach((y, index) => {
             var spectrum = {};
@@ -14962,7 +15237,7 @@ class NMR2D extends SD {
             result.xType = options.xType || options.nucleusX || '1H';
             spectra.push(spectrum);
 
-            let minMax = StatArray.minMax(y);
+            var minMax = StatArray.minMax(y);
             minZ = Math.min(minZ, minMax.min);
             maxZ = Math.max(maxZ, minMax.max);
         });
@@ -15224,14 +15499,14 @@ class NMR2D extends SD {
 module.exports = NMR2D;
 
 /***/ }),
-/* 61 */
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 function apodization(spectraData, parameters) {
-    let params = Object.assign({}, parameters);
+    var params = Object.assign({}, parameters);
     if (!params) {
         return spectraData;
     }
@@ -15261,16 +15536,16 @@ function apodization(spectraData, parameters) {
 module.exports = apodization;
 
 /***/ }),
-/* 62 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var rotate = __webpack_require__(65);
+var rotate = __webpack_require__(67);
 
 function digitalFilter(spectraData, options) {
-    let activeElement = spectraData.activeElement;
+    var activeElement = spectraData.activeElement;
     var nbPoints = 0;
     if (options.nbPoints) {
         nbPoints = options.nbPoints;
@@ -15301,13 +15576,13 @@ function digitalFilter(spectraData, options) {
 module.exports = digitalFilter;
 
 /***/ }),
-/* 63 */
+/* 65 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const fft = __webpack_require__(40);
+var fft = __webpack_require__(42);
 
 /**
  * This function make a fourier transformation to each FID withing a SD instance
@@ -15394,7 +15669,7 @@ function updateSpectra(spectraData, spectraType) {
 module.exports = fourierTransform;
 
 /***/ }),
-/* 64 */
+/* 66 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15461,7 +15736,7 @@ function phaseCorrection(spectraData, phi0, phi1) {
 module.exports = phaseCorrection;
 
 /***/ }),
-/* 65 */
+/* 67 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15513,6 +15788,10 @@ function rotate(array, shift) {
     }
 }
 /**
+ * Put a new value in the range
+ * @param {number} value
+ * @param {number} nbPoints
+ * @return {*}
  * @private
  */
 function putInRange(value, nbPoints) {
@@ -15528,7 +15807,7 @@ function putInRange(value, nbPoints) {
 module.exports = rotate;
 
 /***/ }),
-/* 66 */
+/* 68 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15572,29 +15851,17 @@ function zeroFilling(spectraData, zeroFillingX) {
 module.exports = zeroFilling;
 
 /***/ }),
-/* 67 */
+/* 69 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-exports.SD = __webpack_require__(9);
-exports.NMR = __webpack_require__(59);
-exports.NMR2D = __webpack_require__(60);
-exports.Ranges = __webpack_require__(20);
-
-/***/ }),
-/* 68 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-const Encoder = __webpack_require__(69);
-const Integer = { MAX_VALUE: Number.MAX_SAFE_INTEGER, MIN_VALUE: Number.MIN_SAFE_INTEGER };
-const CRLF = '\r\n';
-const version = 'Cheminfo tools ' + __webpack_require__(156).version;
-const defaultParameters = { 'encode': 'DIFDUP', 'yFactor': 1, 'type': 'SIMPLE', 'keep': [] };
+var Encoder = __webpack_require__(70);
+var Integer = { MAX_VALUE: Number.MAX_SAFE_INTEGER, MIN_VALUE: Number.MIN_SAFE_INTEGER };
+var CRLF = '\r\n';
+var version = 'Cheminfo tools ' + __webpack_require__(155).version;
+var defaultParameters = { 'encode': 'DIFDUP', 'yFactor': 1, 'type': 'SIMPLE', 'keep': [] };
 /**
  * This class converts a SpectraData object into a String that can be stored as a jcamp file.
  * The string reflects the current state of the object and not the raw data from where this
@@ -15614,16 +15881,16 @@ class JcampCreator {
      * @param {string} [options.encode = 'DIFDUP']
      * @param {number} [options.yFactor = 1]
      * @param {string} [options.type = 'SIMPLE']
-     * @param {array} [options.keep = [] ]
+     * @param {Array} [options.keep = [] ]
      * @return {string}
      */
     convert(spectraData, options) {
         // encodeFormat: ('FIX','SQZ','DIF','DIFDUP','CVS','PAC')
         options = Object.assign({}, defaultParameters, options);
-        const encodeFormat = options.encode.toUpperCase().trim();
-        const factorY = options.yFactor || 1;
-        let type = options.type;
-        const userDefinedParams = options.keep;
+        var encodeFormat = options.encode.toUpperCase().trim();
+        var factorY = options.yFactor || 1;
+        var type = options.type;
+        var userDefinedParams = options.keep;
 
         if (type === null || type.length === 0) {
             type = 'SIMPLE';
@@ -15633,7 +15900,7 @@ class JcampCreator {
         spectraData.setActiveElement(0);
 
         var scale = factorY / spectraData.getParamDouble('YFACTOR', 1);
-        let minMax = {};
+        var minMax = {};
 
         if (!spectraData.is2D()) {
             minMax = spectraData.getMinMaxY();
@@ -15848,7 +16115,7 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
         outString += '##DATA TABLE= ';
         if (spectraData.isDataClassPeak()) {
             outString += '(XY..XY), PEAKS' + CRLF;
-            for (let point = 0; point < spectraData.getNbPoints(); point++) {
+            for (var point = 0; point < spectraData.getNbPoints(); point++) {
                 outString += spectraData.getX(point) + ', ' + spectraData.getY(point) + CRLF;
             }
         } else if (spectraData.isDataClassXY()) {
@@ -15868,8 +16135,8 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
 
             var tempString = '';
             var data = new Array(spectraData.getNbPoints());
-            for (let point = data.length - 1; point >= 0; point--) {
-                data[point] = Math.round(spectraData.getY(point) * scale);
+            for (var _point = data.length - 1; _point >= 0; _point--) {
+                data[_point] = Math.round(spectraData.getY(_point) * scale);
             }
 
             tempString += Encoder.encode(data, spectraData.getFirstX() * scaleX, spectraData.getDeltaX() * scaleX, encodeFormat);
@@ -15949,8 +16216,8 @@ function simpleHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams)
         outString += '##XYDATA=(X++(Y..Y))' + CRLF;
         var tempString = '';
         var data = new Array(spectraData.getNbPoints());
-        for (let point = data.length - 1; point >= 0; point--) {
-            data[point] = Math.round(spectraData.getY(point) * scale);
+        for (var _point2 = data.length - 1; _point2 >= 0; _point2--) {
+            data[_point2] = Math.round(spectraData.getY(_point2) * scale);
         }
 
         tempString += Encoder.encode(data, spectraData.getFirstX() * scaleX, spectraData.getDeltaX() * scaleX, encodeFormat);
@@ -15966,7 +16233,7 @@ function simpleHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams)
 module.exports = JcampCreator;
 
 /***/ }),
-/* 69 */
+/* 70 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15979,16 +16246,16 @@ module.exports = JcampCreator;
 * Created by acastillo on 3/2/16.
 */
 
-const newLine = '\r\n';
+var newLine = '\r\n';
 
-const pseudoDigits = [['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'], ['@', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'], ['@', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'], ['%', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'], ['%', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r'], [' ', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 's']];
+var pseudoDigits = [['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'], ['@', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'], ['@', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'], ['%', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'], ['%', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r'], [' ', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 's']];
 
-const SQZ_P = 1,
-      SQZ_N = 2,
-      DIF_P = 3,
-      DIF_N = 4,
-      DUP = 5,
-      MaxLinelength = 100;
+var SQZ_P = 1,
+    SQZ_N = 2,
+    DIF_P = 3,
+    DIF_N = 4,
+    DUP = 5,
+    MaxLinelength = 100;
 
 /**
  * This function encodes the given vector. The encoding format is specified by the
@@ -16337,7 +16604,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 70 */
+/* 71 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -16347,7 +16614,7 @@ module.exports = {
  */
 
 
-const patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
+var patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
 var symRatio = 1.5;
 var maxErrorIter1 = 2.5; //Hz
 var maxErrorIter2 = 1; //Hz
@@ -16538,11 +16805,10 @@ function abstractPattern(signal, Jc) {
 
     if (Jc && Jc.length > 0) {
         Jc.sort(function (a, b) {
-            return a - b;
+            return b - a;
         });
 
         for (i = 0; i < Jc.length - 1; i++) {
-
             if (Math.abs(Jc[i] - Jc[i + 1]) < tol) {
                 cont++;
             } else {
@@ -16658,7 +16924,7 @@ function getNextCombination(ranges, value) {
 /**
  * This function generates the possible values that each peak can contribute
  * to the multiplet.
- * @param {Array} Array of objects with peaks information {intensity}
+ * @param {Array} peaks Array of objects with peaks information {intensity}
  * @return {{values: Array, currentIndex: Array, active: number}}
  */
 function getRanges(peaks) {
@@ -16827,7 +17093,7 @@ function symmetrize(signal, maxError, iteration) {
     }
     signal.delta1 = cs / signal.observe;
     //Now, the peak should be symmetric in heights, but we need to know if it is symmetric in x
-    let symFactor = 0,
+    var symFactor = 0,
         weight = 0;
     if (peaks.length > 1) {
         for (i = Math.ceil(peaks.length / 2) - 1; i >= 0; i--) {
@@ -16855,7 +17121,7 @@ function symmetrize(signal, maxError, iteration) {
     } else {
         //Center the given pattern at cs and symmetrize x
         if (peaks.length > 1) {
-            let dxi;
+            var dxi = void 0;
             for (i = Math.ceil(peaks.length / 2) - 1; i >= 0; i--) {
                 dxi = (peaks[i].x - peaks[peaks.length - 1 - i].x) / 2.0;
                 peaks[i].x = cs + dxi;
@@ -16965,7 +17231,7 @@ function getArea(peak) {
 }
 
 /***/ }),
-/* 71 */
+/* 72 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -16986,14 +17252,14 @@ function getArea(peak) {
  * @param {boolean} [options.optimize = true] - if it's true adjust an train of gaussian or lorentzian shapes to spectrum.
  * @param {string} [options.functionType = 'gaussian'] - This option allows us choose between 'gaussian' or 'lorentzian' function when options.optimize is true.
  * @param {number} [options.broadWidth = 0.25] - Threshold to determine if some peak is candidate to clustering into range.
- * @returns {Array}
+ * @return {Array}
  */
 
-const GSD = __webpack_require__(101);
+var GSD = __webpack_require__(100);
 //var extend = require("extend");
 //var removeImpurities = require('./ImpurityRemover');
 
-const defaultOptions = {
+var defaultOptions = {
 
     thresholdFactor: 1,
     optimize: false,
@@ -17032,7 +17298,7 @@ function extractPeaks(spectrum, optionsEx) {
  * this function remove the peaks with an intensity lower to threshold
  * @param {object} peakList - peaks
  * @param {number} threshold
- * @returns {object} the clean peakList
+ * @return {object} the clean peakList
  * @private
  */
 function clearList(peakList, threshold) {
@@ -17047,18 +17313,18 @@ function clearList(peakList, threshold) {
 module.exports = extractPeaks;
 
 /***/ }),
-/* 72 */
+/* 73 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 var PeakOptimizer = __webpack_require__(22);
-var simpleClustering = __webpack_require__(48);
-var matrixPeakFinders = __webpack_require__(112);
-var FFTUtils = __webpack_require__(40).FFTUtils;
+var simpleClustering = __webpack_require__(50);
+var matrixPeakFinders = __webpack_require__(111);
+var FFTUtils = __webpack_require__(42).FFTUtils;
 
-const smallFilter = [[0, 0, 1, 2, 2, 2, 1, 0, 0], [0, 1, 4, 7, 7, 7, 4, 1, 0], [1, 4, 5, 3, 0, 3, 5, 4, 1], [2, 7, 3, -12, -23, -12, 3, 7, 2], [2, 7, 0, -23, -40, -23, 0, 7, 2], [2, 7, 3, -12, -23, -12, 3, 7, 2], [1, 4, 5, 3, 0, 3, 5, 4, 1], [0, 1, 3, 7, 7, 7, 3, 1, 0], [0, 0, 1, 2, 2, 2, 1, 0, 0]];
+var smallFilter = [[0, 0, 1, 2, 2, 2, 1, 0, 0], [0, 1, 4, 7, 7, 7, 4, 1, 0], [1, 4, 5, 3, 0, 3, 5, 4, 1], [2, 7, 3, -12, -23, -12, 3, 7, 2], [2, 7, 0, -23, -40, -23, 0, 7, 2], [2, 7, 3, -12, -23, -12, 3, 7, 2], [1, 4, 5, 3, 0, 3, 5, 4, 1], [0, 1, 3, 7, 7, 7, 3, 1, 0], [0, 0, 1, 2, 2, 2, 1, 0, 0]];
 
 function getZones(spectraData, thresholdFactor) {
     if (thresholdFactor === 0) {
@@ -17086,19 +17352,19 @@ function getZones(spectraData, thresholdFactor) {
 
     var nStdDev = getLoGnStdDevNMR(spectraData);
     if (isHomonuclear) {
-        let convolutedSpectrum = FFTUtils.convolute(data, smallFilter, nbSubSpectra, nbPoints);
-        let peaksMC1 = matrixPeakFinders.findPeaks2DRegion(data, { filteredData: convolutedSpectrum, rows: nbSubSpectra, cols: nbPoints, nStdDev: nStdDev * thresholdFactor }); //)1.5);
+        var convolutedSpectrum = FFTUtils.convolute(data, smallFilter, nbSubSpectra, nbPoints);
+        var peaksMC1 = matrixPeakFinders.findPeaks2DRegion(data, { filteredData: convolutedSpectrum, rows: nbSubSpectra, cols: nbPoints, nStdDev: nStdDev * thresholdFactor }); //)1.5);
         var peaksMax1 = matrixPeakFinders.findPeaks2DMax(data, { filteredData: convolutedSpectrum, rows: nbSubSpectra, cols: nbPoints, nStdDev: (nStdDev + 0.5) * thresholdFactor }); //2.0);
         for (var i = 0; i < peaksMC1.length; i++) {
             peaksMax1.push(peaksMC1[i]);
         }
         return PeakOptimizer.enhanceSymmetry(createSignals2D(peaksMax1, spectraData, 24));
     } else {
-        let convolutedSpectrum = FFTUtils.convolute(data, smallFilter, nbSubSpectra, nbPoints);
-        let peaksMC1 = matrixPeakFinders.findPeaks2DRegion(data, { filteredData: convolutedSpectrum, rows: nbSubSpectra, cols: nbPoints, nStdDev: nStdDev * thresholdFactor });
+        var _convolutedSpectrum = FFTUtils.convolute(data, smallFilter, nbSubSpectra, nbPoints);
+        var _peaksMC = matrixPeakFinders.findPeaks2DRegion(data, { filteredData: _convolutedSpectrum, rows: nbSubSpectra, cols: nbPoints, nStdDev: nStdDev * thresholdFactor });
         //Peak2D[] peaksMC1 = matrixPeakFinders.findPeaks2DMax(data, nbSubSpectra, nbPoints, (nStdDev+0.5)*thresholdFactor);
         //Remove peaks with less than 3% of the intensity of the highest peak
-        return createSignals2D(PeakOptimizer.clean(peaksMC1, 0.05), spectraData, 24);
+        return createSignals2D(PeakOptimizer.clean(_peaksMC, 0.05), spectraData, 24);
     }
 }
 
@@ -17207,18 +17473,18 @@ function createSignals2D(peaks, spectraData, tolerance) {
 module.exports = getZones;
 
 /***/ }),
-/* 73 */
+/* 74 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const JAnalyzer = __webpack_require__(70);
-const Ranges = __webpack_require__(20);
+var JAnalyzer = __webpack_require__(71);
+var Ranges = __webpack_require__(20);
 //var extend = require("extend");
 //var removeImpurities = require('./ImpurityRemover');
 
-const defaultOptions = {
+var defaultOptions = {
     nH: 99,
     clean: true,
     compile: true,
@@ -17286,10 +17552,10 @@ function createRanges(spectrum, peakList, options) {
                     for (j = peaksO.length - 1; j >= 0; j--) {
                         peaks1.push(peaksO[j]);
                     }
-                    let ranges = detectSignals(peaks1, spectrum, nHi, options.integralType, options.frequencyCluster);
+                    var _ranges = detectSignals(peaks1, spectrum, nHi, options.integralType, options.frequencyCluster);
 
-                    for (j = 0; j < ranges.length; j++) {
-                        signals.push(ranges[j]);
+                    for (j = 0; j < _ranges.length; j++) {
+                        signals.push(_ranges[j]);
                     }
                 }
             }
@@ -17330,7 +17596,7 @@ function createRanges(spectrum, peakList, options) {
         signals[i]._highlight = [signals[i].signalID];
     }
 
-    let ranges = new Array(signals.length);
+    var ranges = new Array(signals.length);
     for (i = 0; i < signals.length; i++) {
         var signal = signals[i];
         ranges[i] = {
@@ -17373,7 +17639,7 @@ function createRanges(spectrum, peakList, options) {
  * @private
  */
 function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
-    const frequency = spectrum.observeFrequencyX();
+    var frequency = spectrum.observeFrequencyX();
     var cs = spectrum.cs,
         sum = spectrum.sum,
         i = spectrum.i,
@@ -17425,7 +17691,7 @@ function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
     //Normalize the integral to the normalization parameter and calculate cs
     for (i = 0; i < signals.length; i++) {
         peaks = signals[i].peaks;
-        let integral = signals[i].integralData;
+        var integral = signals[i].integralData;
         cs = 0;
         sum = 0;
 
@@ -17445,8 +17711,8 @@ function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
     if (nH !== 0) {
         for (i = 0; i < signals.length; i++) {
             //console.log(integral.value);
-            let integral = signals[i].integralData;
-            integral.value *= nH / spectrumIntegral;
+            var _integral = signals[i].integralData;
+            _integral.value *= nH / spectrumIntegral;
         }
     }
 
@@ -17601,403 +17867,7 @@ function area(peak) {
 module.exports = createRanges;
 
 /***/ }),
-/* 74 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-const getMultiplicityFromSignal = __webpack_require__(23);
-
-/**
- * nbDecimalsDelta : default depends nucleus H, F: 2 otherwise 1
- * nbDecimalsJ : default depends nucleus H, F: 1, otherwise 0
- * ascending : true / false
- * format : default "AIMJ" or when 2D data is collected the default format may be "IMJA"
- * deltaSeparator : ', '
- * detailSeparator : ', '
- */
-
-var globalOptions = {
-    h: {
-        nucleus: '1H',
-        nbDecimalDelta: 2,
-        nbDecimalJ: 1,
-        observedFrequency: 400
-    },
-    c: {
-        nucleus: '13C',
-        nbDecimalDelta: 1,
-        nbDecimalJ: 1,
-        observedFrequency: 100
-    },
-    f: {
-        nucleus: '19F',
-        nbDecimalDelta: 2,
-        nbDecimalJ: 1,
-        observedFrequency: 400
-    }
-};
-
-function toAcs(ranges, options = {}) {
-
-    var nucleus = (options.nucleus || '1H').toLowerCase().replace(/[0-9]/g, '');
-
-    var defaultOptions = globalOptions[nucleus];
-
-    options = Object.assign({}, defaultOptions, { ascending: false, format: 'IMJA' }, options);
-
-    ranges = ranges.clone();
-
-    if (options.ascending) {
-        ranges.sort(function (a, b) {
-            let fromA = Math.min(a.from, a.to);
-            let fromB = Math.min(b.from, b.to);
-            return fromB - fromA;
-        });
-    } else {
-        ranges.sort(function (a, b) {
-            let fromA = Math.min(a.from, a.to);
-            let fromB = Math.min(b.from, b.to);
-            return fromA - fromB;
-        });
-    }
-
-    var acsString = formatAcs(ranges, options);
-
-    if (acsString.length > 0) acsString += '.';
-
-    return acsString;
-}
-
-function formatAcs(ranges, options) {
-    var acs = spectroInformation(options);
-    if (acs.length === 0) acs = 'δ ';
-    var acsRanges = [];
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
-
-    try {
-        for (var _iterator = ranges[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-            let range = _step.value;
-
-            pushDelta(range, acsRanges, options);
-        }
-    } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
-    } finally {
-        try {
-            if (!_iteratorNormalCompletion && _iterator.return) {
-                _iterator.return();
-            }
-        } finally {
-            if (_didIteratorError) {
-                throw _iteratorError;
-            }
-        }
-    }
-
-    if (acsRanges.length > 0) {
-        return acs + acsRanges.join(', ');
-    } else {
-        return '';
-    }
-}
-
-function spectroInformation(options) {
-    let parenthesis = [];
-    let strings = formatNucleus(options.nucleus) + ' NMR';
-    if (options.solvent) {
-        parenthesis.push(formatMF(options.solvent));
-    }
-    if (options.frequencyObserved) {
-        parenthesis.push((options.frequencyObserved * 1).toFixed(0) + ' MHz');
-    }
-    if (parenthesis.length > 0) {
-        strings += ' (' + parenthesis.join(', ') + '): δ ';
-    } else {
-        strings += ' : δ ';
-    }
-    return strings;
-}
-
-function pushDelta(range, acsRanges, options) {
-    var strings = '';
-    var parenthesis = [];
-    let fromTo = [range.from, range.to];
-    if (Array.isArray(range.signal) && range.signal.length > 0) {
-        var signals = range.signal;
-        if (signals.length > 1) {
-            strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
-            strings += ' (' + getIntegral(range, options);
-            var _iteratorNormalCompletion2 = true;
-            var _didIteratorError2 = false;
-            var _iteratorError2 = undefined;
-
-            try {
-                for (var _iterator2 = signals[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-                    let signal = _step2.value;
-
-                    parenthesis = [];
-                    if (signal.delta !== undefined) {
-                        strings = appendSeparator(strings);
-                        strings += signal.delta.toFixed(options.nbDecimalDelta);
-                        switchFormat({}, signal, parenthesis, options);
-                        if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
-                    }
-                }
-            } catch (err) {
-                _didIteratorError2 = true;
-                _iteratorError2 = err;
-            } finally {
-                try {
-                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
-                        _iterator2.return();
-                    }
-                } finally {
-                    if (_didIteratorError2) {
-                        throw _iteratorError2;
-                    }
-                }
-            }
-
-            strings += ')';
-        } else {
-            parenthesis = [];
-            if (signals[0].delta !== undefined) {
-                strings += signals[0].delta.toFixed(options.nbDecimalDelta);
-                switchFormat(range, signals[0], parenthesis, options);
-                if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
-            } else {
-                strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
-                switchFormat(range, signals[0], parenthesis, options);
-                if (parenthesis.length > 0) strings += ' (' + parenthesis + ')';
-            }
-        }
-    } else {
-        strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
-        switchFormat(range, [], parenthesis, options);
-        if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
-    }
-    acsRanges.push(strings);
-}
-
-module.exports = toAcs;
-
-function getIntegral(range, options) {
-    let integral = '';
-    if (range.pubIntegral) {
-        integral = range.pubIntegral;
-    } else if (range.integral) {
-        integral = range.integral.toFixed(0) + options.nucleus[options.nucleus.length - 1];
-    }
-    return integral;
-}
-
-function pushIntegral(range, parenthesis, options) {
-    let integral = getIntegral(range, options);
-    if (integral.length > 0) parenthesis.push(integral);
-}
-
-function pushMultiplicityFromSignal(signal, parenthesis) {
-    let multiplicity = getMultiplicityFromSignal(signal);
-    if (multiplicity.length > 0) parenthesis.push(multiplicity);
-}
-
-function switchFormat(range, signal, parenthesis, options) {
-    var _iteratorNormalCompletion3 = true;
-    var _didIteratorError3 = false;
-    var _iteratorError3 = undefined;
-
-    try {
-        for (var _iterator3 = options.format[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-            const char = _step3.value;
-
-            switch (char.toUpperCase()) {
-                case 'I':
-                    pushIntegral(range, parenthesis, options);
-                    break;
-                case 'M':
-                    pushMultiplicityFromSignal(signal, parenthesis);
-                    break;
-                case 'A':
-                    pushAssignment(signal, parenthesis);
-                    break;
-                case 'J':
-                    pushCoupling(signal, parenthesis, options);
-                    break;
-                default:
-                    throw new Error('Unknow format letter: ' + char);
-            }
-        }
-    } catch (err) {
-        _didIteratorError3 = true;
-        _iteratorError3 = err;
-    } finally {
-        try {
-            if (!_iteratorNormalCompletion3 && _iterator3.return) {
-                _iterator3.return();
-            }
-        } finally {
-            if (_didIteratorError3) {
-                throw _iteratorError3;
-            }
-        }
-    }
-}
-
-function formatMF(mf) {
-    return mf.replace(/([0-9]+)/g, '<sub>$1</sub>');
-}
-
-function formatNucleus(nucleus) {
-    return nucleus.replace(/([0-9]+)/g, '<sup>$1</sup>');
-}
-
-function appendSeparator(strings) {
-    if (strings.length > 0 && !strings.match(/ $/) && !strings.match(/\($/)) {
-        strings += ', ';
-    }
-    return strings;
-}
-
-function formatAssignment(assignment) {
-    assignment = assignment.replace(/([0-9]+)/g, '<sub>$1</sub>');
-    assignment = assignment.replace(/\"([^\"]*)\"/g, '<i>$1</i>');
-    return assignment;
-}
-
-function pushCoupling(signal, parenthesis, options) {
-    if (Array.isArray(signal.j) && signal.j.length > 0) {
-        var values = [];
-        var _iteratorNormalCompletion4 = true;
-        var _didIteratorError4 = false;
-        var _iteratorError4 = undefined;
-
-        try {
-            for (var _iterator4 = signal.j[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-                let j = _step4.value;
-
-                if (j.coupling !== undefined) {
-                    values.push(j.coupling.toFixed(options.nbDecimalJ));
-                }
-            }
-        } catch (err) {
-            _didIteratorError4 = true;
-            _iteratorError4 = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion4 && _iterator4.return) {
-                    _iterator4.return();
-                }
-            } finally {
-                if (_didIteratorError4) {
-                    throw _iteratorError4;
-                }
-            }
-        }
-
-        if (values.length > 0) parenthesis.push('<i>J</i> = ' + values.join(', ') + ' Hz');
-    }
-}
-
-function pushAssignment(signal, parenthesis) {
-    if (signal.pubAssignment) {
-        parenthesis.push(formatAssignment(signal.pubAssignment));
-    } else if (signal.assignment) {
-        parenthesis.push(formatAssignment(signal.assignment));
-    }
-}
-
-/***/ }),
 /* 75 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-/**
- * This function converts an array of peaks [{x, y, width}] in a vector equally x,y vector from a given window
- * TODO: This function is very general and should be placed somewhere else
- * @param {Array} peaks - List of the peaks
- * @param {object} options - it has some options to
- * @param {number} [options.from] - one limit of given window
- * @param {number} [options.to] - one limit of given window
- * @param {string} [options.fnName] - function name to generate the signals form
- * @param {number} [options.nWidth] - width factor of signal form
- * @param {number} [options.nbPoints] - number of points that the vector will have
- * @return {{x: Array, y: Array}}
- */
-
-function peak2Vector(peaks, options) {
-    options = options || {};
-    var from = options.from;
-    var to = options.to;
-    var nbPoints = options.nbPoints || 16 * 1024;
-    var fnName = options.fnName || 'gaussian';
-    var nWidth = options.nWidth || 4;
-
-    if (!from) {
-        from = Number.MAX_VALUE;
-        for (let i = 0; i < peaks.length; i++) {
-            if (peaks[i].x - peaks[i].width * nWidth < from) {
-                from = peaks[i].x - peaks[i].width * nWidth;
-            }
-        }
-    }
-
-    if (!to) {
-        to = Number.MIN_VALUE;
-        for (let i = 0; i < peaks.length; i++) {
-            if (peaks[i].x + peaks[i].width * nWidth > to) {
-                to = peaks[i].x + peaks[i].width * nWidth;
-            }
-        }
-    }
-
-    var x = new Array(nbPoints);
-    var y = new Array(nbPoints);
-    var dx = (to - from) / (nbPoints - 1);
-    for (let i = 0; i < nbPoints; i++) {
-        x[i] = from + i * dx;
-        y[i] = 0;
-    }
-
-    var intensity = 'intensity';
-    if (peaks[0].y) {
-        intensity = 'y';
-    }
-
-    for (let i = 0; i < peaks.length; i++) {
-        var peak = peaks[i];
-        if (peak.x > from && peak.x < to) {
-            var index = Math.round((peak.x - from) / dx);
-            var w = Math.round(peak.width * nWidth / dx);
-            if (fnName === 'gaussian') {
-                for (var j = index - w; j < index + w; j++) {
-                    if (j >= 0 && j < nbPoints) {
-                        y[j] += peak[intensity] * Math.exp(-0.5 * Math.pow((peak.x - x[j]) / (peak.width / 2), 2));
-                    }
-                }
-            } else {
-                var factor = peak[intensity] * Math.pow(peak.width, 2) / 4;
-                for (let j = index - w; j < index + w; j++) {
-                    if (j >= 0 && j < nbPoints) {
-                        y[j] += factor / (Math.pow(peak.x - x[j], 2) + Math.pow(peak.width / 2, 2));
-                    }
-                }
-            }
-        }
-    }
-
-    return { x: x, y: y };
-}
-
-module.exports = peak2Vector;
-
-/***/ }),
-/* 76 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18024,7 +17894,7 @@ function annotations1D(ranges, optionsG) {
         if (!annotation._highlight || annotation._highlight.length === 0) {
             annotation._highlight = [prediction.signalID];
             prediction.signal.forEach(function (signal) {
-                for (let j = 0; j < signal.diaID.length; j++) {
+                for (var j = 0; j < signal.diaID.length; j++) {
                     annotation._highlight.push(signal.diaID[j]);
                 }
             });
@@ -18097,7 +17967,7 @@ function annotations2D(zones, optionsG) {
 module.exports = { annotations2D: annotations2D, annotations1D: annotations1D };
 
 /***/ }),
-/* 77 */
+/* 76 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18218,14 +18088,14 @@ function fromByteArray (uint8) {
 
 
 /***/ }),
-/* 78 */
+/* 77 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(79);
+module.exports = __webpack_require__(78);
 
 
 /***/ }),
-/* 79 */
+/* 78 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// Generated by CoffeeScript 1.8.0
@@ -18609,7 +18479,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
 
 /***/ }),
-/* 80 */
+/* 79 */
 /***/ (function(module, exports) {
 
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
@@ -18699,7 +18569,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 
 
 /***/ }),
-/* 81 */
+/* 80 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18950,7 +18820,7 @@ module.exports = IOBuffer;
 
 
 /***/ }),
-/* 82 */
+/* 81 */
 /***/ (function(module, exports) {
 
 var toString = {}.toString;
@@ -18961,7 +18831,7 @@ module.exports = Array.isArray || function (arr) {
 
 
 /***/ }),
-/* 83 */
+/* 82 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19112,7 +18982,7 @@ module.exports=function(spectrum, value, result) {
 
 
 /***/ }),
-/* 84 */
+/* 83 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19221,7 +19091,7 @@ module.exports = function crc32(input, crc) {
 
 
 /***/ }),
-/* 85 */
+/* 84 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19333,14 +19203,14 @@ exports.isRegExp = function (object) {
 
 
 /***/ }),
-/* 86 */
+/* 85 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var USE_TYPEDARRAY = (typeof Uint8Array !== 'undefined') && (typeof Uint16Array !== 'undefined') && (typeof Uint32Array !== 'undefined');
 
-var pako = __webpack_require__(143);
+var pako = __webpack_require__(142);
 exports.uncompressInputType = USE_TYPEDARRAY ? "uint8array" : "array";
 exports.compressInputType = USE_TYPEDARRAY ? "uint8array" : "array";
 
@@ -19356,7 +19226,7 @@ exports.uncompress =  function(input) {
 
 
 /***/ }),
-/* 87 */
+/* 86 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19411,15 +19281,15 @@ function JSZip(data, options) {
     };
 }
 JSZip.prototype = __webpack_require__(13);
-JSZip.prototype.load = __webpack_require__(88);
+JSZip.prototype.load = __webpack_require__(87);
 JSZip.support = __webpack_require__(5);
-JSZip.defaults = __webpack_require__(32);
+JSZip.defaults = __webpack_require__(34);
 
 /**
  * @deprecated
  * This namespace will be removed in a future version without replacement.
  */
-JSZip.utils = __webpack_require__(85);
+JSZip.utils = __webpack_require__(84);
 
 JSZip.base64 = {
     /**
@@ -19442,15 +19312,15 @@ module.exports = JSZip;
 
 
 /***/ }),
-/* 88 */
+/* 87 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var base64 = __webpack_require__(10);
-var utf8 = __webpack_require__(36);
+var utf8 = __webpack_require__(38);
 var utils = __webpack_require__(0);
-var ZipEntries = __webpack_require__(92);
+var ZipEntries = __webpack_require__(91);
 module.exports = function(data, options) {
     var files, zipEntries, i, input;
     options = utils.extend(options || {}, {
@@ -19488,12 +19358,12 @@ module.exports = function(data, options) {
 
 
 /***/ }),
-/* 89 */
+/* 88 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var Uint8ArrayReader = __webpack_require__(35);
+var Uint8ArrayReader = __webpack_require__(37);
 
 function NodeBufferReader(data) {
     this.data = data;
@@ -19516,7 +19386,7 @@ module.exports = NodeBufferReader;
 
 
 /***/ }),
-/* 90 */
+/* 89 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19553,7 +19423,7 @@ module.exports = StringWriter;
 
 
 /***/ }),
-/* 91 */
+/* 90 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19596,18 +19466,18 @@ module.exports = Uint8ArrayWriter;
 
 
 /***/ }),
-/* 92 */
+/* 91 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var StringReader = __webpack_require__(34);
-var NodeBufferReader = __webpack_require__(89);
-var Uint8ArrayReader = __webpack_require__(35);
-var ArrayReader = __webpack_require__(29);
+var StringReader = __webpack_require__(36);
+var NodeBufferReader = __webpack_require__(88);
+var Uint8ArrayReader = __webpack_require__(37);
+var ArrayReader = __webpack_require__(31);
 var utils = __webpack_require__(0);
-var sig = __webpack_require__(33);
-var ZipEntry = __webpack_require__(93);
+var sig = __webpack_require__(35);
+var ZipEntry = __webpack_require__(92);
 var support = __webpack_require__(5);
 var jszipProto = __webpack_require__(13);
 //  class ZipEntries {{{
@@ -19883,14 +19753,14 @@ module.exports = ZipEntries;
 
 
 /***/ }),
-/* 93 */
+/* 92 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var StringReader = __webpack_require__(34);
+var StringReader = __webpack_require__(36);
 var utils = __webpack_require__(0);
-var CompressedObject = __webpack_require__(30);
+var CompressedObject = __webpack_require__(32);
 var jszipProto = __webpack_require__(13);
 var support = __webpack_require__(5);
 
@@ -20209,7 +20079,7 @@ module.exports = ZipEntry;
 
 
 /***/ }),
-/* 94 */
+/* 93 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20441,7 +20311,7 @@ module.exports = {
 
 
 /***/ }),
-/* 95 */
+/* 94 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20701,7 +20571,7 @@ exports.getEquallySpacedData = getEquallySpacedData;
 exports.integral = integral;
 
 /***/ }),
-/* 96 */
+/* 95 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20728,7 +20598,7 @@ function SNV(data) {
 
 
 /***/ }),
-/* 97 */
+/* 96 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20816,7 +20686,7 @@ function DisjointSetNode(value) {
 
 
 /***/ }),
-/* 98 */
+/* 97 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20855,13 +20725,13 @@ module.exports = distanceMatrix;
 
 
 /***/ }),
-/* 99 */
+/* 98 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var FFT = __webpack_require__(39);
+var FFT = __webpack_require__(41);
 
 var FFTUtils= {
     DEBUG : false,
@@ -21173,14 +21043,14 @@ module.exports = FFTUtils;
 
 
 /***/ }),
-/* 100 */
+/* 99 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const extend = __webpack_require__(27);
-const SG = __webpack_require__(136);
+const extend = __webpack_require__(29);
+const SG = __webpack_require__(135);
 
 const defaultOptions = {
     sgOptions: {
@@ -21471,18 +21341,18 @@ module.exports = gsd;
 
 
 /***/ }),
-/* 101 */
+/* 100 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-module.exports.post = __webpack_require__(102);
-module.exports.gsd = __webpack_require__(100);
+module.exports.post = __webpack_require__(101);
+module.exports.gsd = __webpack_require__(99);
 
 
 /***/ }),
-/* 102 */
+/* 101 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21491,7 +21361,7 @@ module.exports.gsd = __webpack_require__(100);
  */
 
 
-var Opt = __webpack_require__(133);
+var Opt = __webpack_require__(132);
 
 function sampleFunction(from, to, x, y, lastIndex) {
     var nbPoints = x.length;
@@ -21760,7 +21630,7 @@ module.exports = {optimizePeaks: optimizePeaks, joinBroadPeaks: joinBroadPeaks};
 
 
 /***/ }),
-/* 103 */
+/* 102 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21768,7 +21638,7 @@ module.exports = {optimizePeaks: optimizePeaks, joinBroadPeaks: joinBroadPeaks};
 
 const newArray = __webpack_require__(18);
 
-const primeFinder = __webpack_require__(104);
+const primeFinder = __webpack_require__(103);
 const nextPrime = primeFinder.nextPrime;
 const largestPrime = primeFinder.largestPrime;
 
@@ -22070,11 +21940,11 @@ function chooseShrinkCapacity(size, minLoad, maxLoad) {
 
 
 /***/ }),
-/* 104 */
+/* 103 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const binarySearch = __webpack_require__(24);
-const sortAsc = __webpack_require__(52).asc;
+const binarySearch = __webpack_require__(26);
+const sortAsc = __webpack_require__(54).asc;
 
 const largestPrime = 0x7fffffff;
 
@@ -22162,16 +22032,16 @@ exports.largestPrime = largestPrime;
 
 
 /***/ }),
-/* 105 */
+/* 104 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const euclidean = __webpack_require__(38);
-const ClusterLeaf = __webpack_require__(41);
+const euclidean = __webpack_require__(40);
+const ClusterLeaf = __webpack_require__(43);
 const Cluster = __webpack_require__(14);
-const distanceMatrix = __webpack_require__(98);
+const distanceMatrix = __webpack_require__(97);
 
 /**
  * @private
@@ -22412,14 +22282,14 @@ module.exports = agnes;
 
 
 /***/ }),
-/* 106 */
+/* 105 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const euclidean = __webpack_require__(38);
-const ClusterLeaf = __webpack_require__(41);
+const euclidean = __webpack_require__(40);
+const ClusterLeaf = __webpack_require__(43);
 const Cluster = __webpack_require__(14);
 
 /**
@@ -22725,27 +22595,27 @@ module.exports = diana;
 
 
 /***/ }),
-/* 107 */
+/* 106 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-exports.agnes = __webpack_require__(105);
-exports.diana = __webpack_require__(106);
+exports.agnes = __webpack_require__(104);
+exports.diana = __webpack_require__(105);
 //exports.birch = require('./birch');
 //exports.cure = require('./cure');
 //exports.chameleon = require('./chameleon');
 
 
 /***/ }),
-/* 108 */
+/* 107 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var FFT = __webpack_require__(42);
+var FFT = __webpack_require__(44);
 
 var FFTUtils= {
     DEBUG : false,
@@ -23058,25 +22928,25 @@ module.exports = FFTUtils;
 
 
 /***/ }),
-/* 109 */
+/* 108 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-exports.FFTUtils = __webpack_require__(108);
-exports.FFT = __webpack_require__(42);
+exports.FFTUtils = __webpack_require__(107);
+exports.FFT = __webpack_require__(44);
 
 
 /***/ }),
-/* 110 */
+/* 109 */
 /***/ (function(module, exports, __webpack_require__) {
 
 'use strict;'
 /**
  * Created by acastillo on 7/7/16.
  */
-var FFTUtils = __webpack_require__(109).FFTUtils;
+var FFTUtils = __webpack_require__(108).FFTUtils;
 
 function convolutionFFT(input, kernel, opt) {
     var tmp = matrix2Array(input);
@@ -23230,13 +23100,13 @@ module.exports = {
 };
 
 /***/ }),
-/* 111 */
+/* 110 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const DisjointSet = __webpack_require__(97);
+const DisjointSet = __webpack_require__(96);
 
 const direction4X = [-1, 0];
 const direction4Y = [0, -1];
@@ -23323,7 +23193,7 @@ module.exports = ccLabeling;
 
 
 /***/ }),
-/* 112 */
+/* 111 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -23332,8 +23202,8 @@ module.exports = ccLabeling;
  * Created by acastillo on 7/7/16.
  */
 var StatArray = __webpack_require__(6).array;
-var convolution = __webpack_require__(110);
-var labeling = __webpack_require__(111);
+var convolution = __webpack_require__(109);
+var labeling = __webpack_require__(110);
 
 
 const smallFilter = [
@@ -23513,7 +23383,7 @@ module.exports={
 
 
 /***/ }),
-/* 113 */
+/* 112 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -23610,7 +23480,7 @@ module.exports = CholeskyDecomposition;
 
 
 /***/ }),
-/* 114 */
+/* 113 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24397,7 +24267,7 @@ module.exports = EigenvalueDecomposition;
 
 
 /***/ }),
-/* 115 */
+/* 114 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24556,7 +24426,7 @@ module.exports = QrDecomposition;
 
 
 /***/ }),
-/* 116 */
+/* 115 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24564,11 +24434,11 @@ module.exports = QrDecomposition;
 
 var Matrix = __webpack_require__(1).Matrix;
 
-var SingularValueDecomposition = __webpack_require__(45);
-var EigenvalueDecomposition = __webpack_require__(114);
-var LuDecomposition = __webpack_require__(44);
-var QrDecomposition = __webpack_require__(115);
-var CholeskyDecomposition = __webpack_require__(113);
+var SingularValueDecomposition = __webpack_require__(47);
+var EigenvalueDecomposition = __webpack_require__(113);
+var LuDecomposition = __webpack_require__(46);
+var QrDecomposition = __webpack_require__(114);
+var CholeskyDecomposition = __webpack_require__(112);
 
 function inverse(matrix) {
     matrix = Matrix.checkMatrix(matrix);
@@ -24625,7 +24495,7 @@ module.exports = {
 
 
 /***/ }),
-/* 117 */
+/* 116 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24637,7 +24507,7 @@ if (!Symbol.species) {
 
 
 /***/ }),
-/* 118 */
+/* 117 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24665,7 +24535,7 @@ module.exports = MatrixColumnView;
 
 
 /***/ }),
-/* 119 */
+/* 118 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24692,7 +24562,7 @@ module.exports = MatrixFlipColumnView;
 
 
 /***/ }),
-/* 120 */
+/* 119 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24719,7 +24589,7 @@ module.exports = MatrixFlipRowView;
 
 
 /***/ }),
-/* 121 */
+/* 120 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24747,7 +24617,7 @@ module.exports = MatrixRowView;
 
 
 /***/ }),
-/* 122 */
+/* 121 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24778,7 +24648,7 @@ module.exports = MatrixSelectionView;
 
 
 /***/ }),
-/* 123 */
+/* 122 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24809,7 +24679,7 @@ module.exports = MatrixSubView;
 
 
 /***/ }),
-/* 124 */
+/* 123 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24836,14 +24706,14 @@ module.exports = MatrixTransposeView;
 
 
 /***/ }),
-/* 125 */
+/* 124 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
  * Created by acastillo on 8/5/15.
  */
 var Matrix = __webpack_require__(8);
-var math = __webpack_require__(46);
+var math = __webpack_require__(48);
 
 var DEBUG = false;
 /** Levenberg Marquardt curve-fitting: minimize sum of weighted squared residuals
@@ -25358,19 +25228,19 @@ var LM = {
 module.exports = LM;
 
 /***/ }),
-/* 126 */
+/* 125 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-module.exports = __webpack_require__(125);
+module.exports = __webpack_require__(124);
 module.exports.Matrix = __webpack_require__(8);
-module.exports.Matrix.algebra = __webpack_require__(46);
+module.exports.Matrix.algebra = __webpack_require__(48);
 
 
 /***/ }),
-/* 127 */
+/* 126 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -25466,7 +25336,7 @@ module.exports = CholeskyDecomposition;
 
 
 /***/ }),
-/* 128 */
+/* 127 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26239,7 +26109,7 @@ module.exports = EigenvalueDecomposition;
 
 
 /***/ }),
-/* 129 */
+/* 128 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26415,7 +26285,7 @@ module.exports = LuDecomposition;
 
 
 /***/ }),
-/* 130 */
+/* 129 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26572,7 +26442,7 @@ module.exports = QrDecomposition;
 
 
 /***/ }),
-/* 131 */
+/* 130 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27076,7 +26946,7 @@ module.exports = SingularValueDecomposition;
 
 
 /***/ }),
-/* 132 */
+/* 131 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27084,11 +26954,11 @@ module.exports = SingularValueDecomposition;
 
 var Matrix = __webpack_require__(4);
 
-var SingularValueDecomposition = __webpack_require__(131);
-var EigenvalueDecomposition = __webpack_require__(128);
-var LuDecomposition = __webpack_require__(129);
-var QrDecomposition = __webpack_require__(130);
-var CholeskyDecomposition = __webpack_require__(127);
+var SingularValueDecomposition = __webpack_require__(130);
+var EigenvalueDecomposition = __webpack_require__(127);
+var LuDecomposition = __webpack_require__(128);
+var QrDecomposition = __webpack_require__(129);
+var CholeskyDecomposition = __webpack_require__(126);
 
 function inverse(matrix) {
     return solve(matrix, Matrix.eye(matrix.rows));
@@ -27123,13 +26993,13 @@ module.exports = {
 
 
 /***/ }),
-/* 133 */
+/* 132 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var LM = __webpack_require__(126);
+var LM = __webpack_require__(125);
 var math = LM.Matrix.algebra;
 var Matrix = __webpack_require__(8);
 
@@ -27587,23 +27457,23 @@ module.exports.optimizeGaussianTrain = optimizeGaussianTrain;
 module.exports.optimizeLorentzianTrain = optimizeLorentzianTrain;
 
 /***/ }),
+/* 133 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.array = __webpack_require__(49);
+exports.matrix = __webpack_require__(134);
+
+
+/***/ }),
 /* 134 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-
-exports.array = __webpack_require__(47);
-exports.matrix = __webpack_require__(135);
-
-
-/***/ }),
-/* 135 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var arrayStat = __webpack_require__(47);
+var arrayStat = __webpack_require__(49);
 
 // https://github.com/accord-net/framework/blob/development/Sources/Accord.Statistics/Tools.cs
 
@@ -28125,12 +27995,12 @@ module.exports = {
 
 
 /***/ }),
-/* 136 */
+/* 135 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //Code translate from Pascal source in http://pubs.acs.org/doi/pdf/10.1021/ac00205a007
-var extend = __webpack_require__(27);
-var stat = __webpack_require__(134);
+var extend = __webpack_require__(29);
+var stat = __webpack_require__(133);
 
 var defaultOptions = {
     windowSize: 9,
@@ -28300,13 +28170,13 @@ module.exports = SavitzkyGolay;
 
 
 /***/ }),
-/* 137 */
+/* 136 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var arrayStat = __webpack_require__(50);
+var arrayStat = __webpack_require__(52);
 
 function compareNumbers(a, b) {
     return a - b;
@@ -28918,7 +28788,7 @@ exports.weightedScatter = function weightedScatter(matrix, weights, means, facto
 
 
 /***/ }),
-/* 138 */
+/* 137 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28926,8 +28796,8 @@ exports.weightedScatter = function weightedScatter(matrix, weights, means, facto
 
 const Matrix = __webpack_require__(16);
 const newArray = __webpack_require__(18);
-const simpleClustering = __webpack_require__(48);
-const hlClust = __webpack_require__(107);
+const simpleClustering = __webpack_require__(50);
+const hlClust = __webpack_require__(106);
 
 class SpinSystem {
     constructor(chemicalShifts, couplingConstants, multiplicity) {
@@ -29195,13 +29065,13 @@ module.exports = SpinSystem;
 
 
 /***/ }),
-/* 139 */
+/* 138 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const SparseMatrix = __webpack_require__(49);
+const SparseMatrix = __webpack_require__(51);
 
 function createPauli(mult) {
     const spin = (mult - 1) / 2;
@@ -29243,19 +29113,19 @@ module.exports = getPauli;
 
 
 /***/ }),
-/* 140 */
+/* 139 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 const Matrix = __webpack_require__(16);
-const SparseMatrix = __webpack_require__(49);
-const binarySearch = __webpack_require__(24);
-const sortAsc = __webpack_require__(52).asc;
+const SparseMatrix = __webpack_require__(51);
+const binarySearch = __webpack_require__(26);
+const sortAsc = __webpack_require__(54).asc;
 const newArray = __webpack_require__(18);
 
-const getPauli = __webpack_require__(139);
+const getPauli = __webpack_require__(138);
 
 const smallValue = 1e-2;
 
@@ -29543,7 +29413,7 @@ module.exports = simulate1d;
 
 
 /***/ }),
-/* 141 */
+/* 140 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29640,7 +29510,7 @@ module.exports = simule2DNmrSpectrum;
 
 
 /***/ }),
-/* 142 */
+/* 141 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29651,7 +29521,7 @@ module.exports = Number.isNaN || function (x) {
 
 
 /***/ }),
-/* 143 */
+/* 142 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29660,9 +29530,9 @@ module.exports = Number.isNaN || function (x) {
 
 var assign    = __webpack_require__(2).assign;
 
-var deflate   = __webpack_require__(144);
-var inflate   = __webpack_require__(145);
-var constants = __webpack_require__(55);
+var deflate   = __webpack_require__(143);
+var inflate   = __webpack_require__(144);
+var constants = __webpack_require__(57);
 
 var pako = {};
 
@@ -29672,18 +29542,18 @@ module.exports = pako;
 
 
 /***/ }),
-/* 144 */
+/* 143 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 
-var zlib_deflate = __webpack_require__(146);
+var zlib_deflate = __webpack_require__(145);
 var utils        = __webpack_require__(2);
-var strings      = __webpack_require__(53);
+var strings      = __webpack_require__(55);
 var msg          = __webpack_require__(19);
-var ZStream      = __webpack_require__(57);
+var ZStream      = __webpack_require__(59);
 
 var toString = Object.prototype.toString;
 
@@ -30079,20 +29949,20 @@ exports.gzip = gzip;
 
 
 /***/ }),
-/* 145 */
+/* 144 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 
-var zlib_inflate = __webpack_require__(149);
+var zlib_inflate = __webpack_require__(148);
 var utils        = __webpack_require__(2);
-var strings      = __webpack_require__(53);
-var c            = __webpack_require__(55);
+var strings      = __webpack_require__(55);
+var c            = __webpack_require__(57);
 var msg          = __webpack_require__(19);
-var ZStream      = __webpack_require__(57);
-var GZheader     = __webpack_require__(147);
+var ZStream      = __webpack_require__(59);
+var GZheader     = __webpack_require__(146);
 
 var toString = Object.prototype.toString;
 
@@ -30504,35 +30374,16 @@ exports.ungzip  = inflate;
 
 
 /***/ }),
-/* 146 */
+/* 145 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-// (C) 1995-2013 Jean-loup Gailly and Mark Adler
-// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
-//
-// This software is provided 'as-is', without any express or implied
-// warranty. In no event will the authors be held liable for any damages
-// arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
-// freely, subject to the following restrictions:
-//
-// 1. The origin of this software must not be misrepresented; you must not
-//   claim that you wrote the original software. If you use this software
-//   in a product, an acknowledgment in the product documentation would be
-//   appreciated but is not required.
-// 2. Altered source versions must be plainly marked as such, and must not be
-//   misrepresented as being the original software.
-// 3. This notice may not be removed or altered from any source distribution.
-
 var utils   = __webpack_require__(2);
-var trees   = __webpack_require__(151);
-var adler32 = __webpack_require__(54);
-var crc32   = __webpack_require__(56);
+var trees   = __webpack_require__(150);
+var adler32 = __webpack_require__(56);
+var crc32   = __webpack_require__(58);
 var msg     = __webpack_require__(19);
 
 /* Public constants ==========================================================*/
@@ -32385,30 +32236,12 @@ exports.deflateTune = deflateTune;
 
 
 /***/ }),
-/* 147 */
+/* 146 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-// (C) 1995-2013 Jean-loup Gailly and Mark Adler
-// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
-//
-// This software is provided 'as-is', without any express or implied
-// warranty. In no event will the authors be held liable for any damages
-// arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
-// freely, subject to the following restrictions:
-//
-// 1. The origin of this software must not be misrepresented; you must not
-//   claim that you wrote the original software. If you use this software
-//   in a product, an acknowledgment in the product documentation would be
-//   appreciated but is not required.
-// 2. Altered source versions must be plainly marked as such, and must not be
-//   misrepresented as being the original software.
-// 3. This notice may not be removed or altered from any source distribution.
 
 function GZheader() {
   /* true if compressed data believed to be text */
@@ -32450,30 +32283,11 @@ module.exports = GZheader;
 
 
 /***/ }),
-/* 148 */
+/* 147 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-
-// (C) 1995-2013 Jean-loup Gailly and Mark Adler
-// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
-//
-// This software is provided 'as-is', without any express or implied
-// warranty. In no event will the authors be held liable for any damages
-// arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
-// freely, subject to the following restrictions:
-//
-// 1. The origin of this software must not be misrepresented; you must not
-//   claim that you wrote the original software. If you use this software
-//   in a product, an acknowledgment in the product documentation would be
-//   appreciated but is not required.
-// 2. Altered source versions must be plainly marked as such, and must not be
-//   misrepresented as being the original software.
-// 3. This notice may not be removed or altered from any source distribution.
 
 // See state defs from inflate.js
 var BAD = 30;       /* got a data error -- remain here until reset */
@@ -32802,36 +32616,18 @@ module.exports = function inflate_fast(strm, start) {
 
 
 /***/ }),
-/* 149 */
+/* 148 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-// (C) 1995-2013 Jean-loup Gailly and Mark Adler
-// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
-//
-// This software is provided 'as-is', without any express or implied
-// warranty. In no event will the authors be held liable for any damages
-// arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
-// freely, subject to the following restrictions:
-//
-// 1. The origin of this software must not be misrepresented; you must not
-//   claim that you wrote the original software. If you use this software
-//   in a product, an acknowledgment in the product documentation would be
-//   appreciated but is not required.
-// 2. Altered source versions must be plainly marked as such, and must not be
-//   misrepresented as being the original software.
-// 3. This notice may not be removed or altered from any source distribution.
 
 var utils         = __webpack_require__(2);
-var adler32       = __webpack_require__(54);
-var crc32         = __webpack_require__(56);
-var inflate_fast  = __webpack_require__(148);
-var inflate_table = __webpack_require__(150);
+var adler32       = __webpack_require__(56);
+var crc32         = __webpack_require__(58);
+var inflate_fast  = __webpack_require__(147);
+var inflate_table = __webpack_require__(149);
 
 var CODES = 0;
 var LENS = 1;
@@ -34365,30 +34161,12 @@ exports.inflateUndermine = inflateUndermine;
 
 
 /***/ }),
-/* 150 */
+/* 149 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-// (C) 1995-2013 Jean-loup Gailly and Mark Adler
-// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
-//
-// This software is provided 'as-is', without any express or implied
-// warranty. In no event will the authors be held liable for any damages
-// arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
-// freely, subject to the following restrictions:
-//
-// 1. The origin of this software must not be misrepresented; you must not
-//   claim that you wrote the original software. If you use this software
-//   in a product, an acknowledgment in the product documentation would be
-//   appreciated but is not required.
-// 2. Altered source versions must be plainly marked as such, and must not be
-//   misrepresented as being the original software.
-// 3. This notice may not be removed or altered from any source distribution.
 
 var utils = __webpack_require__(2);
 
@@ -34715,30 +34493,12 @@ module.exports = function inflate_table(type, lens, lens_index, codes, table, ta
 
 
 /***/ }),
-/* 151 */
+/* 150 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-// (C) 1995-2013 Jean-loup Gailly and Mark Adler
-// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
-//
-// This software is provided 'as-is', without any express or implied
-// warranty. In no event will the authors be held liable for any damages
-// arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
-// freely, subject to the following restrictions:
-//
-// 1. The origin of this software must not be misrepresented; you must not
-//   claim that you wrote the original software. If you use this software
-//   in a product, an acknowledgment in the product documentation would be
-//   appreciated but is not required.
-// 2. Altered source versions must be plainly marked as such, and must not be
-//   misrepresented as being the original software.
-// 3. This notice may not be removed or altered from any source distribution.
 
 var utils = __webpack_require__(2);
 
@@ -35942,7 +35702,7 @@ exports._tr_align = _tr_align;
 
 
 /***/ }),
-/* 152 */
+/* 151 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -36115,10 +35875,6 @@ process.off = noop;
 process.removeListener = noop;
 process.removeAllListeners = noop;
 process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
-
-process.listeners = function (name) { return [] }
 
 process.binding = function (name) {
     throw new Error('process.binding is not supported');
@@ -36132,7 +35888,7 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 153 */
+/* 152 */
 /***/ (function(module, exports) {
 
 if (typeof Object.create === 'function') {
@@ -36161,7 +35917,7 @@ if (typeof Object.create === 'function') {
 
 
 /***/ }),
-/* 154 */
+/* 153 */
 /***/ (function(module, exports) {
 
 module.exports = function isBuffer(arg) {
@@ -36172,7 +35928,7 @@ module.exports = function isBuffer(arg) {
 }
 
 /***/ }),
-/* 155 */
+/* 154 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global, process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -36700,7 +36456,7 @@ function isPrimitive(arg) {
 }
 exports.isPrimitive = isPrimitive;
 
-exports.isBuffer = __webpack_require__(154);
+exports.isBuffer = __webpack_require__(153);
 
 function objectToString(o) {
   return Object.prototype.toString.call(o);
@@ -36744,7 +36500,7 @@ exports.log = function() {
  *     prototype.
  * @param {function} superCtor Constructor function to inherit prototype from.
  */
-exports.inherits = __webpack_require__(153);
+exports.inherits = __webpack_require__(152);
 
 exports._extend = function(origin, add) {
   // Don't do anything if add isn't an object
@@ -36762,10 +36518,10 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(58), __webpack_require__(152)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(60), __webpack_require__(151)))
 
 /***/ }),
-/* 156 */
+/* 155 */
 /***/ (function(module, exports) {
 
 module.exports = {
@@ -36806,6 +36562,8 @@ module.exports = {
 		"should": "^11.1.1"
 	},
 	"dependencies": {
+		"babel-core": "^6.24.1",
+		"babel-loader": "^7.0.0",
 		"brukerconverter": "^1.0.1",
 		"jcampconverter": "^2.4.5",
 		"ml-array-utils": "^0.3.0",
@@ -36818,6 +36576,18 @@ module.exports = {
 		"nmr-simulation": "^1.0.0"
 	}
 };
+
+/***/ }),
+/* 156 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.SD = __webpack_require__(9);
+exports.NMR = __webpack_require__(61);
+exports.NMR2D = __webpack_require__(62);
+exports.Ranges = __webpack_require__(20);
 
 /***/ })
 /******/ ]);
