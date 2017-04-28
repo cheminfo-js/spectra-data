@@ -43,6 +43,10 @@ function rotate(array, shift) {
     }
 }
 /**
+ * Put a new value in the range
+ * @param {number} value
+ * @param {number} nbPoints
+ * @return {*}
  * @private
  */
 function putInRange(value, nbPoints) {

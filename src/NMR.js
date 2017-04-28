@@ -19,9 +19,9 @@ class NMR extends SD {
 
     /**
      * This function creates a SD instance from the given 1D prediction
-     * @param prediction
-     * @param options
-     * @returns {SD}
+     * @param {Array} prediction
+     * @param {object} options
+     * @return {SD}
      */
     static fromPrediction(prediction, options) {
         const spinSystem = simulator.SpinSystem.fromPrediction(prediction);

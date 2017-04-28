@@ -24,7 +24,7 @@ class JcampCreator {
      * @param {string} [options.encode = 'DIFDUP']
      * @param {number} [options.yFactor = 1]
      * @param {string} [options.type = 'SIMPLE']
-     * @param {array} [options.keep = [] ]
+     * @param {Array} [options.keep = [] ]
      * @return {string}
      */
     convert(spectraData, options) {

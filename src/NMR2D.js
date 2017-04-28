@@ -16,9 +16,9 @@ class NMR2D extends SD {
 
     /**
      * This function creates a SD instance from the given 2D prediction
-     * @param prediction
-     * @param options
-     * @returns {SD}
+     * @param {Array} prediction
+     * @param {object} options
+     * @return {SD}
      */
     static fromPrediction(prediction, options) {
         var data = simule2DNmrSpectrum(prediction, options);
@@ -58,8 +58,9 @@ class NMR2D extends SD {
     /**
      * This function creates a 2D spectrum from a matrix containing the independent values of the spectrum and a set
      * of options...
-     * @param data
-     * @param options
+     * @param {Array} data
+     * @param {object} options
+     * @return {*}
      */
     static fromMatrix(data, options) {
         var result = {};

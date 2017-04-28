@@ -303,7 +303,7 @@ function getNextCombination(ranges, value) {
 /**
  * This function generates the possible values that each peak can contribute
  * to the multiplet.
- * @param {Array} Array of objects with peaks information {intensity}
+ * @param {Array} peaks Array of objects with peaks information {intensity}
  * @return {{values: Array, currentIndex: Array, active: number}}
  */
 function getRanges(peaks) {

@@ -21,11 +21,11 @@ class Zones extends Array {
 
     /**
      * This function return a Range instance from predictions
-     * @param {Object} predictions - predictions of a spin system
-     * @param {Object} options - options object
+     * @param {object} predictions - predictions of a spin system
+     * @param {object} options - options Object
      * @param {number} [options.lineWidth] - spectral line width
      * @param {number} [options.frequency] - frequency to determine the [from, to] of a range
-     * @returns {Ranges}
+     * @return {Ranges}
      */
     static fromPrediction(predictions, options) {
         /*
@@ -109,8 +109,8 @@ class Zones extends Array {
     /**
      * This function return Ranges instance from a SD instance
      * @param {SD} spectrum - SD instance
-     * @param {Object} opt - options object to extractPeaks function
-     * @returns {Ranges}
+     * @param {object} opt - options object to extractPeaks function
+     * @return {Ranges}
      */
     static fromSpectrum(spectrum, opt) {
         this.options = Object.assign({}, {}, opt);

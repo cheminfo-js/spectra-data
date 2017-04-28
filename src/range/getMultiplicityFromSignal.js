@@ -7,6 +7,9 @@ function getMultiplicityFromSignal(signal) {
     } else if (signal.multiplicity) {
         multiplicity = signal.multiplicity;
     } else if (Array.isArray(signal.j) && signal.j.length > 0) {
+        signal.j.sort(function (a, b) {
+            return b.coupling - a.coupling;
+        });
         var couplings = signal.j;
         var addSpace = false;
         for (let coupling of couplings) {

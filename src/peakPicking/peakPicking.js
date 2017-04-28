@@ -15,7 +15,7 @@
  * @param {boolean} [options.optimize = true] - if it's true adjust an train of gaussian or lorentzian shapes to spectrum.
  * @param {string} [options.functionType = 'gaussian'] - This option allows us choose between 'gaussian' or 'lorentzian' function when options.optimize is true.
  * @param {number} [options.broadWidth = 0.25] - Threshold to determine if some peak is candidate to clustering into range.
- * @returns {Array}
+ * @return {Array}
  */
 const GSD = require('ml-gsd');
 //var extend = require("extend");
@@ -61,7 +61,7 @@ function extractPeaks(spectrum, optionsEx) {
  * this function remove the peaks with an intensity lower to threshold
  * @param {object} peakList - peaks
  * @param {number} threshold
- * @returns {object} the clean peakList
+ * @return {object} the clean peakList
  * @private
  */
 function clearList(peakList, threshold) {

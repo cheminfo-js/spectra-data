@@ -57,7 +57,6 @@ function getZones(spectraData, thresholdFactor) {
         //Remove peaks with less than 3% of the intensity of the highest peak
         return createSignals2D(PeakOptimizer.clean(peaksMC1, 0.05), spectraData, 24);
     }
-
 }
 
 

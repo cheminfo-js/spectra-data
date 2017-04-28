@@ -185,7 +185,7 @@ class Ranges extends Array {
 
     /**
      * This function return the peak list as a object with x and y arrays
-     * @param {object} options - See the options parameter in {@link #peak2vector} function documentation
+     * @param {bject} options - See the options parameter in {@link #peak2vector} function documentation
      * @return {object} - {x: Array, y: Array}
      */
     getVector(options) {
@@ -224,7 +224,7 @@ class Ranges extends Array {
 
     /**
      * Return an array of deltas and multiplicity for an index database
-     * @options {Array} options
+     * @param {object} options - options object for toIndex function
      * @return {Array} [{delta, multiplicity},...]
      */
     toIndex(options) {
