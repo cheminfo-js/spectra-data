@@ -107,7 +107,9 @@ class Ranges extends Array {
                 }
             }
         }
-
+        result.sort((a, b) => {
+            return a.from - b.from;
+        });
         return new Ranges(result);
     }
 
@@ -243,7 +245,7 @@ class Ranges extends Array {
             }
         }
         return index;
-    }
+    } //@TODO to check
 
 
     /**
@@ -280,7 +282,7 @@ function compactPattern(signal, options) {
     } = options;
     if (jc && jc.length > 0) {
         jc.sort(function (a, b) {
-            return a.coupling - b.coupling;
+            return b.coupling - a.coupling;
         });
         if (jc[0].diaID) {
             diaIDs = [jc[0].diaID];
@@ -318,7 +320,6 @@ function compactPattern(signal, options) {
         }
         let jTemp = {
             'coupling': Math.abs(jc[i].coupling),
-
             'multiplicity': patterns[cont]
         };
         if (diaIDs.length > 0) {
@@ -337,4 +338,3 @@ function compactPattern(signal, options) {
     }
     return pattern;
 }
-

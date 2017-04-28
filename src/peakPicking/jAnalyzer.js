@@ -188,11 +188,10 @@ function abstractPattern(signal, Jc) {
 
     if (Jc && Jc.length > 0) {
         Jc.sort(function (a, b) {
-            return a - b;
+            return b - a;
         });
 
         for (i = 0; i < Jc.length - 1; i++) {
-
             if (Math.abs(Jc[i] - Jc[i + 1]) < tol) {
                 cont++;
             } else {

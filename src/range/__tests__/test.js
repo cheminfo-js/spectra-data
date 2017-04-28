@@ -115,10 +115,8 @@ describe('toIndex Test Case from differents sources', function () {
         var range = Ranges.fromPrediction(prediction, {lineWidth: 1});
         var index = range.toIndex({});
         index.length.should.eql(10);
-        index[0].delta.should.eql(6.853);
-        index[0].multiplicity.should.eql('t');
-        // var index = range.toIndex({tolerance: 0.05, compactPattern: true});
-        // index[0].multiplicity.should.equal('t') // at the moment I don't know where is the problem
+        index[1].delta.should.eql(2.237);
+        index[0].multiplicity.should.eql('m');
     });
 });
 

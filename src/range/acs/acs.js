@@ -34,29 +34,18 @@ var globalOptions = {
 };
 
 function toAcs(ranges, options = {}) {
-
     var nucleus = (options.nucleus || '1H').toLowerCase().replace(/[0-9]/g, '');
-
     var defaultOptions = globalOptions[nucleus];
-
     options = Object.assign({}, defaultOptions, {ascending: false, format: 'IMJA'}, options);
 
     ranges = ranges.clone();
-
-    if (options.ascending) {
-        ranges.sort(function (a, b) {
-            let fromA = Math.min(a.from, a.to);
-            let fromB = Math.min(b.from, b.to);
-            return fromB - fromA;
-        });
-    } else {
-        ranges.sort(function (a, b) {
+    if (options.ascending === true) {
+        ranges.sort((a, b) => {
             let fromA = Math.min(a.from, a.to);
             let fromB = Math.min(b.from, b.to);
             return fromA - fromB;
         });
     }
-
     var acsString = formatAcs(ranges, options);
 
     if (acsString.length > 0) acsString += '.';
@@ -90,7 +79,7 @@ function spectroInformation(options) {
     if (parenthesis.length > 0) {
         strings += ' (' + parenthesis.join(', ') + '): δ ';
     } else {
-        strings += ' : δ ';
+        strings += ': δ ';
     }
     return strings;
 }
@@ -102,6 +91,11 @@ function pushDelta(range, acsRanges, options) {
     if (Array.isArray(range.signal) && range.signal.length > 0) {
         var signals = range.signal;
         if (signals.length > 1) {
+            if (options.ascending === true) {
+                signals.sort((a, b) => {
+                    return a.delta - b.delta;
+                });
+            }
             strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-'
                      + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
             strings += ' (' + getIntegral(range, options);
@@ -110,9 +104,9 @@ function pushDelta(range, acsRanges, options) {
                 if (signal.delta !== undefined) {
                     strings = appendSeparator(strings);
                     strings += signal.delta.toFixed(options.nbDecimalDelta);
-                    switchFormat({}, signal, parenthesis, options);
-                    if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
                 }
+                switchFormat({}, signal, parenthesis, options);
+                if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
             }
             strings += ')';
         } else {
