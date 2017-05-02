@@ -38,6 +38,38 @@ class SD {
     }
 
     /**
+     * This function create a SD instance from xy data
+     * @param {Array} x - X data.
+     * @param {Array} y - Y data.
+     * @param {object} options - Optional parameters
+     * @return {SD} SD instance from x and y data
+     */
+    static fromXY(x, y, options) {
+        const result = {};
+        result.profiling = [];
+        result.logs = [];
+        result.info = {};
+        const spectrum = {};
+        spectrum.isXYdata = true;
+        spectrum.nbPoints = x.length;
+        spectrum.firstX = x[0];
+        spectrum.firstY = y[0];
+        spectrum.lastX = x[spectrum.nbPoints - 1];
+        spectrum.lastY = y[spectrum.nbPoints - 1];
+        spectrum.xFactor = 1;
+        spectrum.yFactor = 1;
+        spectrum.xUnit = options.xUnit;
+        spectrum.yUnit = options.yUnit;
+        spectrum.deltaX = (spectrum.lastX - spectrum.firstX) / (spectrum.nbPoints - 1);
+        spectrum.title = options.title || 'spectra-data from xy';
+        spectrum.dataType = options.dataType;
+        spectrum.data = [{x: x, y: y}];
+        result.twoD = false;
+        result.spectra = [spectrum];
+        return new this(result);
+    }
+
+    /**
      * This function sets the nactiveSpectrum sub-spectrum as active
      * @param {number} nactiveSpectrum index of the sub-spectrum to set as active
      */

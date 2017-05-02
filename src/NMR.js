@@ -46,38 +46,28 @@ class NMR extends SD {
      * @return {NMR} SD instance from x and y data
      */
     static fromXY(x, y, options) {
-        var result = {};
-        result.profiling = [];
-        result.logs = [];
-        var spectra = [];
-        result.spectra = spectra;
-        result.info = {};
-        var spectrum = {};
-        spectrum.isXYdata = true;
-        spectrum.nbPoints = x.length;
-        spectrum.firstX = x[0];
-        spectrum.firstY = y[0];
-        spectrum.lastX = x[spectrum.nbPoints - 1];
-        spectrum.lastY = y[spectrum.nbPoints - 1];
-        spectrum.xFactor = 1;
-        spectrum.yFactor = 1;
-        spectrum.xUnit = options.xUnit || 'PPM';
-        spectrum.yUnit = options.yUnit || 'Intensity';
-        spectrum.deltaX = (spectrum.lastX - spectrum.firstX) / (spectrum.nbPoints - 1);
-        spectrum.title = options.title || 'spectra-data from xy';
-        spectrum.dataType = options.dataType || 'NMR';
+        var options = Object.assign({}, options, {
+            xUnit: 'PPM',
+            yUnit: 'Intensity',
+            dataType: 'NMR'
+        });
+        var sd=SD.fromXY(x, y, options);
+
+        var spectrum = sd.spectra[0];
+
+
         spectrum.observeFrequency = options.frequency || 400;
-        result.info.observefrequency = spectrum.observeFrequency;
-        result.info['.SOLVENTNAME'] = options.solvent || 'none';
+        sd.info.observefrequency = spectrum.observeFrequency;
+        sd.info['.SOLVENTNAME'] = options.solvent || 'none';
         // eslint-disable-next-line camelcase
-        result.info.$SW_h = Math.abs(spectrum.lastX - spectrum.firstX) * spectrum.observeFrequency;
-        result.info.$SW = Math.abs(spectrum.lastX - spectrum.firstX);
-        result.info.$TD = spectrum.nbPoints;
-        result.xType = options.nucleus || '1H';
-        spectrum.data = [{x: x, y: y}];
-        result.twoD = false;
-        spectra.push(spectrum);
-        return new NMR(result);
+        sd.info.$SW_h = Math.abs(spectrum.lastX - spectrum.firstX) * spectrum.observeFrequency;
+        sd.info.$SW = Math.abs(spectrum.lastX - spectrum.firstX);
+        sd.info.$TD = spectrum.nbPoints;
+        sd.xType = options.nucleus || '1H';
+        sd.twoD = false;
+        sd.push(spectrum);
+        return sd;
+        // return new NMR(result);
     }
 
     /**
