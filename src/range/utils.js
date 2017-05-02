@@ -3,18 +3,18 @@
 const acs = require('./acs/acs');
 const patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
 
-function nmrJ(Js, options) {
-    var Jstring = '';
-    var opt = Object.assign({}, {separator: ', ', nbDecimal: 2}, options);
+function nmrJ(Js, options = {}) {
+    var jString = '';
+    options = Object.assign({}, {separator: ', ', nbDecimal: 2}, options);
     let j, i;
     for (i = 0; i < Js.length; i++) {
         j = Js[i];
         if (j.length > 11) {
-            j += opt.separator;
+            j += options.separator;
         }
-        Jstring += j.multiplicity + ' ' + j.coupling.toFixed(opt.nbDecimal);
+        jString += j.multiplicity + ' ' + j.coupling.toFixed(options.nbDecimal);
     }
-    return Jstring;
+    return jString;
 }
 
 function toACS(ranges, options) {
@@ -55,15 +55,14 @@ function joinCoupling(signal, tolerance) {
                     jTemp.assignment = atoms;
                 }
                 newNmrJs.push(jTemp);
-
-                pattern += patterns[cont];
-                cont = 1;
                 if (jc[0].diaID) {
                     diaIDs = [jc[i].diaID];
                 }
                 if (jc[0].assignment) {
                     atoms = [jc[i].assignment];
                 }
+                pattern += patterns[cont];
+                cont = 1;
             }
         }
         let jTemp = {

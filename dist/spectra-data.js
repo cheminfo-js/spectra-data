@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 67);
+/******/ 	return __webpack_require__(__webpack_require__.s = 69);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -435,7 +435,7 @@ exports.extend = function() {
 
 
 __webpack_require__(117);
-var abstractMatrix = __webpack_require__(43);
+var abstractMatrix = __webpack_require__(45);
 var util = __webpack_require__(7);
 
 class Matrix extends abstractMatrix(Array) {
@@ -691,7 +691,7 @@ exports.setTyped(TYPED_OK);
 "use strict";
 
 
-var abstractMatrix = __webpack_require__(43);
+var abstractMatrix = __webpack_require__(45);
 var Matrix = __webpack_require__(1);
 
 class BaseView extends abstractMatrix() {
@@ -2227,7 +2227,7 @@ else {
     }
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26).Buffer))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(28).Buffer))
 
 /***/ }),
 /* 6 */
@@ -2236,7 +2236,7 @@ else {
 "use strict";
 
 
-exports.array = __webpack_require__(50);
+exports.array = __webpack_require__(52);
 exports.matrix = __webpack_require__(137);
 
 
@@ -2410,10 +2410,10 @@ module.exports.Decompositions = module.exports.DC = __webpack_require__(132);
 // http://jsperf.com/lp-array-and-loops/2
 
 const StatArray = __webpack_require__(6).array;
-const ArrayUtils = __webpack_require__(37);
-const JcampConverter = __webpack_require__(28);
-const JcampCreator = __webpack_require__(68);
-const peakPicking = __webpack_require__(71);
+const ArrayUtils = __webpack_require__(39);
+const JcampConverter = __webpack_require__(30);
+const JcampCreator = __webpack_require__(70);
+const peakPicking = __webpack_require__(73);
 
 const DATACLASS_XY = 1;
 const DATACLASS_PEAK = 2;
@@ -3455,7 +3455,7 @@ module.exports.test = function(b){
     return Buffer.isBuffer(b);
 };
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26).Buffer))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(28).Buffer))
 
 /***/ }),
 /* 13 */
@@ -3466,13 +3466,13 @@ module.exports.test = function(b){
 var support = __webpack_require__(5);
 var utils = __webpack_require__(0);
 var crc32 = __webpack_require__(84);
-var signature = __webpack_require__(33);
-var defaults = __webpack_require__(32);
+var signature = __webpack_require__(35);
+var defaults = __webpack_require__(34);
 var base64 = __webpack_require__(10);
 var compressions = __webpack_require__(11);
-var CompressedObject = __webpack_require__(30);
+var CompressedObject = __webpack_require__(32);
 var nodeBuffer = __webpack_require__(12);
-var utf8 = __webpack_require__(36);
+var utf8 = __webpack_require__(38);
 var StringWriter = __webpack_require__(90);
 var Uint8ArrayWriter = __webpack_require__(91);
 
@@ -4564,12 +4564,10 @@ module.exports = {
 // const peakPicking = require('../peakPicking/peakPicking');
 // const peaks2Ranges = require('../peakPicking/peaks2Ranges');
 
-const acs = __webpack_require__(74);
-const peak2Vector = __webpack_require__(75);
+const acs = __webpack_require__(23);
+const peak2Vector = __webpack_require__(24);
 const GUI = __webpack_require__(76);
-const patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
-const getMultiplicityFromSignal = __webpack_require__(23);
-
+const joinCoupling = __webpack_require__(25).joinCoupling;
 class Ranges extends Array {
 
     constructor(ranges) {
@@ -4593,7 +4591,7 @@ class Ranges extends Array {
      * @param {number} [options.frequency] - frequency to determine the [from, to] of a range
      * @return {Ranges}
      */
-    static fromPrediction(predictions, options) {
+    static fromSignals(predictions, options) {
         options = Object.assign({}, { lineWidth: 1, frequency: 400, nucleus: '1H' }, options);
         //1. Collapse all the equivalent predictions
         const nPredictions = predictions.length;
@@ -4666,7 +4664,9 @@ class Ranges extends Array {
                 }
             }
         }
-
+        result.sort((a, b) => {
+            return a.from - b.from;
+        });
         return new Ranges(result);
     }
 
@@ -4739,7 +4739,7 @@ class Ranges extends Array {
 
     /**
      * This function return the peak list as a object with x and y arrays
-     * @param {object} options - See the options parameter in {@link #peak2vector} function documentation
+     * @param {bject} options - See the options parameter in {@link #peak2vector} function documentation
      * @return {object} - {x: Array, y: Array}
      */
     getVector(options) {
@@ -4777,13 +4777,13 @@ class Ranges extends Array {
 
     /**
      * Return an array of deltas and multiplicity for an index database
-     * @options {Array} options
+     * @param {object} options - options object for toIndex function
      * @return {Array} [{delta, multiplicity},...]
      */
     toIndex(options) {
         var index = [];
 
-        if (options.compactPattern || false) this.compactPatterns(options);
+        if (options.compactPattern) this.joinCouplings(options);
 
         var _iteratorNormalCompletion = true;
         var _didIteratorError = false;
@@ -4803,7 +4803,7 @@ class Ranges extends Array {
                             let s = _step2.value;
 
                             index.push({
-                                multiplicity: s.multiplicity || getMultiplicityFromSignal(s),
+                                multiplicity: s.multiplicity || joinCoupling(s, 0.05),
                                 delta: s.delta
                             });
                         }
@@ -4847,14 +4847,17 @@ class Ranges extends Array {
     }
 
     /**
-     * Returns the multiplet in the compact format
-     * @param {object} options
-     * @private
+     * Joins coupling constants
+     * @param {object} [options]
+     * @param {number} [options.tolerance=0.05]
      */
-    compactPatterns(options) {
+    joinCouplings(options = {}) {
+        var _options$tolerance = options.tolerance,
+            tolerance = _options$tolerance === undefined ? 0.05 : _options$tolerance;
+
         this.forEach(range => {
             range.signal.forEach(signal => {
-                signal.multiplicity = compactPattern(signal, options);
+                signal.multiplicity = joinCoupling(signal, tolerance);
             });
         });
     }
@@ -4867,81 +4870,6 @@ class Ranges extends Array {
 
 module.exports = Ranges;
 
-function compactPattern(signal, options) {
-    var _options$jc = options.jc,
-        jc = _options$jc === undefined ? signal.j : _options$jc,
-        _options$cont = options.cont,
-        cont = _options$cont === undefined ? 1 : _options$cont,
-        _options$pattern = options.pattern,
-        pattern = _options$pattern === undefined ? '' : _options$pattern,
-        _options$tolerance = options.tolerance,
-        tolerance = _options$tolerance === undefined ? options.tolerance || 0.05 : _options$tolerance,
-        _options$newNmrJs = options.newNmrJs,
-        newNmrJs = _options$newNmrJs === undefined ? [] : _options$newNmrJs,
-        _options$diaIDs = options.diaIDs,
-        diaIDs = _options$diaIDs === undefined ? [] : _options$diaIDs,
-        _options$atoms = options.atoms,
-        atoms = _options$atoms === undefined ? [] : _options$atoms;
-
-    if (jc && jc.length > 0) {
-        jc.sort(function (a, b) {
-            return a.coupling - b.coupling;
-        });
-        if (jc[0].diaID) {
-            diaIDs = [jc[0].diaID];
-        }
-        if (jc[0].assignment) {
-            atoms = [jc[0].assignment];
-        }
-        for (var i = 0; i < jc.length - 1; i++) {
-            if (Math.abs(jc[i].coupling - jc[i + 1].coupling) < tolerance) {
-                cont++;
-                diaIDs.push(jc[i].diaID);
-                atoms.push(jc[i].assignment);
-            } else {
-                let jTemp = {
-                    'coupling': Math.abs(jc[i].coupling),
-                    'multiplicity': patterns[cont]
-                };
-                if (diaIDs.length > 0) {
-                    jTemp.diaID = diaIDs;
-                }
-                if (atoms.length > 0) {
-                    jTemp.assignment = atoms;
-                }
-                newNmrJs.push(jTemp);
-
-                pattern += patterns[cont];
-                cont = 1;
-                if (jc[0].diaID) {
-                    diaIDs = [jc[i].diaID];
-                }
-                if (jc[0].assignment) {
-                    atoms = [jc[i].assignment];
-                }
-            }
-        }
-        let jTemp = {
-            'coupling': Math.abs(jc[i].coupling),
-
-            'multiplicity': patterns[cont]
-        };
-        if (diaIDs.length > 0) {
-            jTemp.diaID = diaIDs;
-        }
-        if (atoms.length > 0) {
-            jTemp.assignment = atoms;
-        }
-        newNmrJs.push(jTemp);
-
-        pattern += patterns[cont];
-        signal.j = newNmrJs;
-    } else {
-        pattern = 's';
-    }
-    return pattern;
-}
-
 /***/ }),
 /* 21 */
 /***/ (function(module, exports, __webpack_require__) {
@@ -4949,11 +4877,11 @@ function compactPattern(signal, options) {
 "use strict";
 
 
-module.exports.fourierTransform = __webpack_require__(63);
-module.exports.zeroFilling = __webpack_require__(66);
-module.exports.apodization = __webpack_require__(61);
-module.exports.phaseCorrection = __webpack_require__(64);
-module.exports.digitalFilter = __webpack_require__(62);
+module.exports.fourierTransform = __webpack_require__(65);
+module.exports.zeroFilling = __webpack_require__(68);
+module.exports.apodization = __webpack_require__(63);
+module.exports.phaseCorrection = __webpack_require__(66);
+module.exports.digitalFilter = __webpack_require__(64);
 
 /***/ }),
 /* 22 */
@@ -5269,63 +5197,490 @@ function alignSingleDimension(signals2D, references) {
 
 "use strict";
 
+/**
+ * nbDecimalsDelta : default depends nucleus H, F: 2 otherwise 1
+ * nbDecimalsJ : default depends nucleus H, F: 1, otherwise 0
+ * ascending : true / false
+ * format : default "AIMJ" or when 2D data is collected the default format may be "IMJA"
+ * deltaSeparator : ', '
+ * detailSeparator : ', '
+ */
 
-function getMultiplicityFromSignal(signal) {
-    let multiplicity = '';
-    if (signal.pubMultiplicity) {
-        multiplicity = signal.pubMultiplicity;
-    } else if (signal.multiplicity) {
-        multiplicity = signal.multiplicity;
-    } else if (Array.isArray(signal.j) && signal.j.length > 0) {
-        var couplings = signal.j;
-        var addSpace = false;
-        var _iteratorNormalCompletion = true;
-        var _didIteratorError = false;
-        var _iteratorError = undefined;
+const joinCoupling = __webpack_require__(25).joinCoupling;
+var globalOptions = {
+    h: {
+        nucleus: '1H',
+        nbDecimalDelta: 2,
+        nbDecimalJ: 1,
+        observedFrequency: 400
+    },
+    c: {
+        nucleus: '13C',
+        nbDecimalDelta: 1,
+        nbDecimalJ: 1,
+        observedFrequency: 100
+    },
+    f: {
+        nucleus: '19F',
+        nbDecimalDelta: 2,
+        nbDecimalJ: 1,
+        observedFrequency: 400
+    }
+};
 
+function toAcs(ranges, options = {}) {
+    var nucleus = (options.nucleus || '1H').toLowerCase().replace(/[0-9]/g, '');
+    var defaultOptions = globalOptions[nucleus];
+    options = Object.assign({}, defaultOptions, { ascending: false, format: 'IMJA' }, options);
+
+    ranges = ranges.clone();
+    if (options.ascending === true) {
+        ranges.sort((a, b) => {
+            let fromA = Math.min(a.from, a.to);
+            let fromB = Math.min(b.from, b.to);
+            return fromA - fromB;
+        });
+    }
+    var acsString = formatAcs(ranges, options);
+
+    if (acsString.length > 0) acsString += '.';
+
+    return acsString;
+}
+
+function formatAcs(ranges, options) {
+    var acs = spectroInformation(options);
+    if (acs.length === 0) acs = 'δ ';
+    var acsRanges = [];
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+        for (var _iterator = ranges[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+            let range = _step.value;
+
+            pushDelta(range, acsRanges, options);
+        }
+    } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+    } finally {
         try {
-            for (var _iterator = couplings[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                let coupling = _step.value;
+            if (!_iteratorNormalCompletion && _iterator.return) {
+                _iterator.return();
+            }
+        } finally {
+            if (_didIteratorError) {
+                throw _iteratorError;
+            }
+        }
+    }
 
-                if (coupling.multiplicity.length > 1) {
-                    multiplicity += ' ';
-                    addSpace = true;
-                } else {
-                    if (addSpace) {
-                        multiplicity += ' ';
-                        addSpace = false;
+    if (acsRanges.length > 0) {
+        return acs + acsRanges.join(', ');
+    } else {
+        return '';
+    }
+}
+
+function spectroInformation(options) {
+    let parenthesis = [];
+    let strings = formatNucleus(options.nucleus) + ' NMR';
+    if (options.solvent) {
+        parenthesis.push(formatMF(options.solvent));
+    }
+    if (options.frequencyObserved) {
+        parenthesis.push((options.frequencyObserved * 1).toFixed(0) + ' MHz');
+    }
+    if (parenthesis.length > 0) {
+        strings += ' (' + parenthesis.join(', ') + '): δ ';
+    } else {
+        strings += ': δ ';
+    }
+    return strings;
+}
+
+function pushDelta(range, acsRanges, options) {
+    var strings = '';
+    var parenthesis = [];
+    let fromTo = [range.from, range.to];
+    if (Array.isArray(range.signal) && range.signal.length > 0) {
+        var signals = range.signal;
+        if (signals.length > 1) {
+            if (options.ascending === true) {
+                signals.sort((a, b) => {
+                    return a.delta - b.delta;
+                });
+            }
+            strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
+            strings += ' (' + getIntegral(range, options);
+            var _iteratorNormalCompletion2 = true;
+            var _didIteratorError2 = false;
+            var _iteratorError2 = undefined;
+
+            try {
+                for (var _iterator2 = signals[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                    let signal = _step2.value;
+
+                    parenthesis = [];
+                    if (signal.delta !== undefined) {
+                        strings = appendSeparator(strings);
+                        strings += signal.delta.toFixed(options.nbDecimalDelta);
+                    }
+                    switchFormat({}, signal, parenthesis, options);
+                    if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
+                }
+            } catch (err) {
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                        _iterator2.return();
+                    }
+                } finally {
+                    if (_didIteratorError2) {
+                        throw _iteratorError2;
                     }
                 }
-                multiplicity += coupling.multiplicity;
+            }
+
+            strings += ')';
+        } else {
+            parenthesis = [];
+            if (signals[0].delta !== undefined) {
+                strings += signals[0].delta.toFixed(options.nbDecimalDelta);
+                switchFormat(range, signals[0], parenthesis, options);
+                if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
+            } else {
+                strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
+                switchFormat(range, signals[0], parenthesis, options);
+                if (parenthesis.length > 0) strings += ' (' + parenthesis + ')';
+            }
+        }
+    } else {
+        strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
+        switchFormat(range, [], parenthesis, options);
+        if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
+    }
+    acsRanges.push(strings);
+}
+
+function getIntegral(range, options) {
+    let integral = '';
+    if (range.pubIntegral) {
+        integral = range.pubIntegral;
+    } else if (range.integral) {
+        integral = range.integral.toFixed(0) + options.nucleus[options.nucleus.length - 1];
+    }
+    return integral;
+}
+
+function pushIntegral(range, parenthesis, options) {
+    let integral = getIntegral(range, options);
+    if (integral.length > 0) parenthesis.push(integral);
+}
+
+function pushMultiplicityFromSignal(signal, parenthesis) {
+    let multiplicity = signal.multiplicity || joinCoupling(signal, 0.05);
+    if (multiplicity.length > 0) parenthesis.push(multiplicity);
+}
+
+function switchFormat(range, signal, parenthesis, options) {
+    var _iteratorNormalCompletion3 = true;
+    var _didIteratorError3 = false;
+    var _iteratorError3 = undefined;
+
+    try {
+        for (var _iterator3 = options.format[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+            const char = _step3.value;
+
+            switch (char.toUpperCase()) {
+                case 'I':
+                    pushIntegral(range, parenthesis, options);
+                    break;
+                case 'M':
+                    pushMultiplicityFromSignal(signal, parenthesis);
+                    break;
+                case 'A':
+                    pushAssignment(signal, parenthesis);
+                    break;
+                case 'J':
+                    pushCoupling(signal, parenthesis, options);
+                    break;
+                default:
+                    throw new Error('Unknow format letter: ' + char);
+            }
+        }
+    } catch (err) {
+        _didIteratorError3 = true;
+        _iteratorError3 = err;
+    } finally {
+        try {
+            if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                _iterator3.return();
+            }
+        } finally {
+            if (_didIteratorError3) {
+                throw _iteratorError3;
+            }
+        }
+    }
+}
+
+function formatMF(mf) {
+    return mf.replace(/([0-9]+)/g, '<sub>$1</sub>');
+}
+
+function formatNucleus(nucleus) {
+    return nucleus.replace(/([0-9]+)/g, '<sup>$1</sup>');
+}
+
+function appendSeparator(strings) {
+    if (strings.length > 0 && !strings.match(/ $/) && !strings.match(/\($/)) {
+        strings += ', ';
+    }
+    return strings;
+}
+
+function formatAssignment(assignment) {
+    assignment = assignment.replace(/([0-9]+)/g, '<sub>$1</sub>');
+    assignment = assignment.replace(/\"([^\"]*)\"/g, '<i>$1</i>');
+    return assignment;
+}
+
+function pushCoupling(signal, parenthesis, options) {
+    if (Array.isArray(signal.j) && signal.j.length > 0) {
+        signal.j.sort(function (a, b) {
+            return b.coupling - a.coupling;
+        });
+
+        var values = [];
+        var _iteratorNormalCompletion4 = true;
+        var _didIteratorError4 = false;
+        var _iteratorError4 = undefined;
+
+        try {
+            for (var _iterator4 = signal.j[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                let j = _step4.value;
+
+                if (j.coupling !== undefined) {
+                    values.push(j.coupling.toFixed(options.nbDecimalJ));
+                }
             }
         } catch (err) {
-            _didIteratorError = true;
-            _iteratorError = err;
+            _didIteratorError4 = true;
+            _iteratorError4 = err;
         } finally {
             try {
-                if (!_iteratorNormalCompletion && _iterator.return) {
-                    _iterator.return();
+                if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                    _iterator4.return();
                 }
             } finally {
-                if (_didIteratorError) {
-                    throw _iteratorError;
+                if (_didIteratorError4) {
+                    throw _iteratorError4;
                 }
             }
         }
 
-        return multiplicity;
-    } else if (signal.delta) {
-        return 's';
-    } else {
-        return 'm';
+        if (values.length > 0) parenthesis.push('<i>J</i> = ' + values.join(', ') + ' Hz');
     }
-    return multiplicity;
 }
 
-module.exports = getMultiplicityFromSignal;
+function pushAssignment(signal, parenthesis) {
+    if (signal.pubAssignment) {
+        parenthesis.push(formatAssignment(signal.pubAssignment));
+    } else if (signal.assignment) {
+        parenthesis.push(formatAssignment(signal.assignment));
+    }
+}
+module.exports = toAcs;
 
 /***/ }),
 /* 24 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/**
+ * This function converts an array of peaks [{x, y, width}] in a vector equally x,y vector from a given window
+ * TODO: This function is very general and should be placed somewhere else
+ * @param {Array} peaks - List of the peaks
+ * @param {object} options - it has some options to
+ * @param {number} [options.from] - one limit of given window
+ * @param {number} [options.to] - one limit of given window
+ * @param {string} [options.fnName] - function name to generate the signals form
+ * @param {number} [options.nWidth] - width factor of signal form
+ * @param {number} [options.nbPoints] - number of points that the vector will have
+ * @return {{x: Array, y: Array}}
+ */
+
+function peak2Vector(peaks, options) {
+    options = options || {};
+    var from = options.from;
+    var to = options.to;
+    var nbPoints = options.nbPoints || 16 * 1024;
+    var fnName = options.fnName || 'gaussian';
+    var nWidth = options.nWidth || 4;
+
+    if (!from) {
+        from = Number.MAX_VALUE;
+        for (let i = 0; i < peaks.length; i++) {
+            if (peaks[i].x - peaks[i].width * nWidth < from) {
+                from = peaks[i].x - peaks[i].width * nWidth;
+            }
+        }
+    }
+
+    if (!to) {
+        to = Number.MIN_VALUE;
+        for (let i = 0; i < peaks.length; i++) {
+            if (peaks[i].x + peaks[i].width * nWidth > to) {
+                to = peaks[i].x + peaks[i].width * nWidth;
+            }
+        }
+    }
+
+    var x = new Array(nbPoints);
+    var y = new Array(nbPoints);
+    var dx = (to - from) / (nbPoints - 1);
+    for (let i = 0; i < nbPoints; i++) {
+        x[i] = from + i * dx;
+        y[i] = 0;
+    }
+
+    var intensity = 'intensity';
+    if (peaks[0].y) {
+        intensity = 'y';
+    }
+
+    for (let i = 0; i < peaks.length; i++) {
+        var peak = peaks[i];
+        if (peak.x > from && peak.x < to) {
+            var index = Math.round((peak.x - from) / dx);
+            var w = Math.round(peak.width * nWidth / dx);
+            if (fnName === 'gaussian') {
+                for (var j = index - w; j < index + w; j++) {
+                    if (j >= 0 && j < nbPoints) {
+                        y[j] += peak[intensity] * Math.exp(-0.5 * Math.pow((peak.x - x[j]) / (peak.width / 2), 2));
+                    }
+                }
+            } else {
+                var factor = peak[intensity] * Math.pow(peak.width, 2) / 4;
+                for (let j = index - w; j < index + w; j++) {
+                    if (j >= 0 && j < nbPoints) {
+                        y[j] += factor / (Math.pow(peak.x - x[j], 2) + Math.pow(peak.width / 2, 2));
+                    }
+                }
+            }
+        }
+    }
+
+    return { x: x, y: y };
+}
+
+module.exports = peak2Vector;
+
+/***/ }),
+/* 25 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+const acs = __webpack_require__(23);
+const patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
+
+function nmrJ(Js, options = {}) {
+    var jString = '';
+    options = Object.assign({}, { separator: ', ', nbDecimal: 2 }, options);
+    let j, i;
+    for (i = 0; i < Js.length; i++) {
+        j = Js[i];
+        if (j.length > 11) {
+            j += options.separator;
+        }
+        jString += j.multiplicity + ' ' + j.coupling.toFixed(options.nbDecimal);
+    }
+    return jString;
+}
+
+function toACS(ranges, options) {
+    return acs(ranges, options);
+}
+
+function joinCoupling(signal, tolerance) {
+    var jc = signal.j;
+    var cont = 1;
+    var pattern = '';
+    var newNmrJs = [];
+    var diaIDs = [];
+    var atoms = [];
+    if (jc && jc.length > 0) {
+        jc.sort(function (a, b) {
+            return b.coupling - a.coupling;
+        });
+        if (jc[0].diaID) {
+            diaIDs = [jc[0].diaID];
+        }
+        if (jc[0].assignment) {
+            atoms = [jc[0].assignment];
+        }
+        for (var i = 0; i < jc.length - 1; i++) {
+            if (Math.abs(jc[i].coupling - jc[i + 1].coupling) < tolerance) {
+                cont++;
+                diaIDs.push(jc[i].diaID);
+                atoms.push(jc[i].assignment);
+            } else {
+                let jTemp = {
+                    coupling: Math.abs(jc[i].coupling),
+                    multiplicity: patterns[cont]
+                };
+                if (diaIDs.length > 0) {
+                    jTemp.diaID = diaIDs;
+                }
+                if (atoms.length > 0) {
+                    jTemp.assignment = atoms;
+                }
+                newNmrJs.push(jTemp);
+                if (jc[0].diaID) {
+                    diaIDs = [jc[i].diaID];
+                }
+                if (jc[0].assignment) {
+                    atoms = [jc[i].assignment];
+                }
+                pattern += patterns[cont];
+                cont = 1;
+            }
+        }
+        let jTemp = {
+            coupling: Math.abs(jc[i].coupling),
+            multiplicity: patterns[cont]
+        };
+        if (diaIDs.length > 0) {
+            jTemp.diaID = diaIDs;
+        }
+        if (atoms.length > 0) {
+            jTemp.assignment = atoms;
+        }
+        newNmrJs.push(jTemp);
+
+        pattern += patterns[cont];
+        signal.j = newNmrJs;
+    } else if (signal.delta) {
+        pattern = 's';
+    } else {
+        pattern = 'm';
+    }
+    return pattern;
+}
+
+module.exports = { toACS, nmrJ, joinCoupling };
+module.exports.peak2Vector = __webpack_require__(24);
+
+/***/ }),
+/* 26 */
 /***/ (function(module, exports) {
 
 module.exports = function(haystack, needle, comparator, low, high) {
@@ -5374,13 +5729,13 @@ module.exports = function(haystack, needle, comparator, low, high) {
 
 
 /***/ }),
-/* 25 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const Converter = __webpack_require__(28);
+const Converter = __webpack_require__(30);
 const IOBuffer = __webpack_require__(81);
 const JSZip = __webpack_require__(87);
 
@@ -5925,7 +6280,7 @@ module.exports =  {
 };
 
 /***/ }),
-/* 26 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7719,10 +8074,10 @@ function isnan (val) {
   return val !== val // eslint-disable-line no-self-compare
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(58)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(60)))
 
 /***/ }),
-/* 27 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7815,7 +8170,7 @@ module.exports = function extend() {
 
 
 /***/ }),
-/* 28 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8697,12 +9052,12 @@ module.exports = {
 
 
 /***/ }),
-/* 29 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var DataReader = __webpack_require__(31);
+var DataReader = __webpack_require__(33);
 
 function ArrayReader(data) {
     if (data) {
@@ -8755,7 +9110,7 @@ module.exports = ArrayReader;
 
 
 /***/ }),
-/* 30 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8790,7 +9145,7 @@ module.exports = CompressedObject;
 
 
 /***/ }),
-/* 31 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8905,7 +9260,7 @@ module.exports = DataReader;
 
 
 /***/ }),
-/* 32 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8923,7 +9278,7 @@ exports.dosPermissions = null;
 
 
 /***/ }),
-/* 33 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8937,12 +9292,12 @@ exports.DATA_DESCRIPTOR = "PK\x07\x08";
 
 
 /***/ }),
-/* 34 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var DataReader = __webpack_require__(31);
+var DataReader = __webpack_require__(33);
 var utils = __webpack_require__(0);
 
 function StringReader(data, optimizedBinaryString) {
@@ -8981,12 +9336,12 @@ module.exports = StringReader;
 
 
 /***/ }),
-/* 35 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var ArrayReader = __webpack_require__(29);
+var ArrayReader = __webpack_require__(31);
 
 function Uint8ArrayReader(data) {
     if (data) {
@@ -9014,7 +9369,7 @@ module.exports = Uint8ArrayReader;
 
 
 /***/ }),
-/* 36 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9228,7 +9583,7 @@ exports.utf8decode = function utf8decode(buf) {
 
 
 /***/ }),
-/* 37 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = exports = __webpack_require__(94);
@@ -9239,7 +9594,7 @@ exports.SNV = __webpack_require__(96).SNV;
 
 
 /***/ }),
-/* 38 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9262,7 +9617,7 @@ euclidean.squared = squaredEuclidean;
 
 
 /***/ }),
-/* 39 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -9499,18 +9854,18 @@ var FFT = (function(){
 
 
 /***/ }),
-/* 40 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 exports.FFTUtils = __webpack_require__(99);
-exports.FFT = __webpack_require__(39);
+exports.FFT = __webpack_require__(41);
 
 
 /***/ }),
-/* 41 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9532,7 +9887,7 @@ module.exports = ClusterLeaf;
 
 
 /***/ }),
-/* 42 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -9769,7 +10124,7 @@ var FFT = (function(){
 
 
 /***/ }),
-/* 43 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9777,9 +10132,9 @@ var FFT = (function(){
 
 module.exports = abstractMatrix;
 
-var LuDecomposition = __webpack_require__(44);
-var SvDecomposition = __webpack_require__(45);
-var arrayUtils = __webpack_require__(37);
+var LuDecomposition = __webpack_require__(46);
+var SvDecomposition = __webpack_require__(47);
+var arrayUtils = __webpack_require__(39);
 var util = __webpack_require__(7);
 var MatrixTransposeView = __webpack_require__(124);
 var MatrixRowView = __webpack_require__(121);
@@ -11594,7 +11949,7 @@ function abstractMatrix(superCtor) {
 
 
 /***/ }),
-/* 44 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11775,7 +12130,7 @@ module.exports = LuDecomposition;
 
 
 /***/ }),
-/* 45 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12296,7 +12651,7 @@ module.exports = SingularValueDecomposition;
 
 
 /***/ }),
-/* 46 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12555,7 +12910,7 @@ module.exports = {
 
 
 /***/ }),
-/* 47 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13015,7 +13370,7 @@ exports.cumulativeSum = function cumulativeSum(array) {
 
 
 /***/ }),
-/* 48 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13130,7 +13485,7 @@ function fullClusterGeneratorVector(conn){
 }
 
 /***/ }),
-/* 49 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 const HashTable = __webpack_require__(103);
@@ -13428,7 +13783,7 @@ function fillTemplateFunction(template, values) {
 
 
 /***/ }),
-/* 50 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13914,7 +14269,7 @@ exports.cumulativeSum = function cumulativeSum(array) {
 
 
 /***/ }),
-/* 51 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13926,7 +14281,7 @@ exports.simulate2D = __webpack_require__(141);
 
 
 /***/ }),
-/* 52 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13953,7 +14308,7 @@ exports.desc = function (a, b) {
 
 
 /***/ }),
-/* 53 */
+/* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14145,7 +14500,7 @@ exports.utf8border = function (buf, max) {
 
 
 /***/ }),
-/* 54 */
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14203,7 +14558,7 @@ module.exports = adler32;
 
 
 /***/ }),
-/* 55 */
+/* 57 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14278,7 +14633,7 @@ module.exports = {
 
 
 /***/ }),
-/* 56 */
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14344,7 +14699,7 @@ module.exports = crc32;
 
 
 /***/ }),
-/* 57 */
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14398,7 +14753,7 @@ module.exports = ZStream;
 
 
 /***/ }),
-/* 58 */
+/* 60 */
 /***/ (function(module, exports) {
 
 var g;
@@ -14425,7 +14780,7 @@ module.exports = g;
 
 
 /***/ }),
-/* 59 */
+/* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14433,9 +14788,9 @@ module.exports = g;
 
 const SD = __webpack_require__(9);
 const Filters = __webpack_require__(21);
-const Brukerconverter = __webpack_require__(25);
-const peaks2Ranges = __webpack_require__(73);
-const simulator = __webpack_require__(51);
+const Brukerconverter = __webpack_require__(27);
+const peaks2Ranges = __webpack_require__(75);
+const simulator = __webpack_require__(53);
 
 /**
  * @class NMR
@@ -14450,19 +14805,22 @@ class NMR extends SD {
 
     /**
      * This function creates a SD instance from the given 1D prediction
-     * @param prediction
-     * @param options
-     * @returns {SD}
+     * @param {Array} prediction
+     * @param {object} options
+     * @return {SD}
      */
-    static fromPrediction(prediction, options) {
-        const spinSystem = simulator.SpinSystem.fromPrediction(prediction);
-        let opt = Object.assign({}, options, {
+    static fromSignals(prediction, options = {}) {
+
+        options = Object.assign({}, {
             nbPoints: 16 * 1024,
             maxClusterSize: 8,
             output: 'xy'
-        });
-        spinSystem.ensureClusterSize(opt);
-        var data = simulator.simulate1D(spinSystem, opt);
+        }, options);
+
+        const spinSystem = simulator.SpinSystem.fromPrediction(prediction);
+
+        spinSystem.ensureClusterSize(options);
+        var data = simulator.simulate1D(spinSystem, options);
         return NMR.fromXY(data.x, data.y, options);
     }
 
@@ -14849,19 +15207,19 @@ class NMR extends SD {
 module.exports = NMR;
 
 /***/ }),
-/* 60 */
+/* 62 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 const SD = __webpack_require__(9);
-const peakPicking2D = __webpack_require__(72);
+const peakPicking2D = __webpack_require__(74);
 const PeakOptimizer = __webpack_require__(22);
-const Brukerconverter = __webpack_require__(25);
+const Brukerconverter = __webpack_require__(27);
 const Filters = __webpack_require__(21);
 const StatArray = __webpack_require__(6).array;
-const simule2DNmrSpectrum = __webpack_require__(51).simulate2D;
+const simule2DNmrSpectrum = __webpack_require__(53).simulate2D;
 
 class NMR2D extends SD {
 
@@ -14871,9 +15229,9 @@ class NMR2D extends SD {
 
     /**
      * This function creates a SD instance from the given 2D prediction
-     * @param prediction
-     * @param options
-     * @returns {SD}
+     * @param {Array} prediction
+     * @param {object} options
+     * @return {SD}
      */
     static fromPrediction(prediction, options) {
         var data = simule2DNmrSpectrum(prediction, options);
@@ -14913,8 +15271,9 @@ class NMR2D extends SD {
     /**
      * This function creates a 2D spectrum from a matrix containing the independent values of the spectrum and a set
      * of options...
-     * @param data
-     * @param options
+     * @param {Array} data
+     * @param {object} options
+     * @return {*}
      */
     static fromMatrix(data, options) {
         var result = {};
@@ -15224,7 +15583,7 @@ class NMR2D extends SD {
 module.exports = NMR2D;
 
 /***/ }),
-/* 61 */
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15261,13 +15620,13 @@ function apodization(spectraData, parameters) {
 module.exports = apodization;
 
 /***/ }),
-/* 62 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var rotate = __webpack_require__(65);
+var rotate = __webpack_require__(67);
 
 function digitalFilter(spectraData, options) {
     let activeElement = spectraData.activeElement;
@@ -15301,13 +15660,13 @@ function digitalFilter(spectraData, options) {
 module.exports = digitalFilter;
 
 /***/ }),
-/* 63 */
+/* 65 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const fft = __webpack_require__(40);
+const fft = __webpack_require__(42);
 
 /**
  * This function make a fourier transformation to each FID withing a SD instance
@@ -15394,7 +15753,7 @@ function updateSpectra(spectraData, spectraType) {
 module.exports = fourierTransform;
 
 /***/ }),
-/* 64 */
+/* 66 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15461,7 +15820,7 @@ function phaseCorrection(spectraData, phi0, phi1) {
 module.exports = phaseCorrection;
 
 /***/ }),
-/* 65 */
+/* 67 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15513,6 +15872,10 @@ function rotate(array, shift) {
     }
 }
 /**
+ * Put a new value in the range
+ * @param {number} value
+ * @param {number} nbPoints
+ * @return {*}
  * @private
  */
 function putInRange(value, nbPoints) {
@@ -15528,7 +15891,7 @@ function putInRange(value, nbPoints) {
 module.exports = rotate;
 
 /***/ }),
-/* 66 */
+/* 68 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15572,25 +15935,25 @@ function zeroFilling(spectraData, zeroFillingX) {
 module.exports = zeroFilling;
 
 /***/ }),
-/* 67 */
+/* 69 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 exports.SD = __webpack_require__(9);
-exports.NMR = __webpack_require__(59);
-exports.NMR2D = __webpack_require__(60);
+exports.NMR = __webpack_require__(61);
+exports.NMR2D = __webpack_require__(62);
 exports.Ranges = __webpack_require__(20);
 
 /***/ }),
-/* 68 */
+/* 70 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const Encoder = __webpack_require__(69);
+const Encoder = __webpack_require__(71);
 const Integer = { MAX_VALUE: Number.MAX_SAFE_INTEGER, MIN_VALUE: Number.MIN_SAFE_INTEGER };
 const CRLF = '\r\n';
 const version = 'Cheminfo tools ' + __webpack_require__(156).version;
@@ -15614,7 +15977,7 @@ class JcampCreator {
      * @param {string} [options.encode = 'DIFDUP']
      * @param {number} [options.yFactor = 1]
      * @param {string} [options.type = 'SIMPLE']
-     * @param {array} [options.keep = [] ]
+     * @param {Array} [options.keep = [] ]
      * @return {string}
      */
     convert(spectraData, options) {
@@ -15966,7 +16329,7 @@ function simpleHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams)
 module.exports = JcampCreator;
 
 /***/ }),
-/* 69 */
+/* 71 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -16337,7 +16700,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 70 */
+/* 72 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -16538,11 +16901,10 @@ function abstractPattern(signal, Jc) {
 
     if (Jc && Jc.length > 0) {
         Jc.sort(function (a, b) {
-            return a - b;
+            return b - a;
         });
 
         for (i = 0; i < Jc.length - 1; i++) {
-
             if (Math.abs(Jc[i] - Jc[i + 1]) < tol) {
                 cont++;
             } else {
@@ -16658,7 +17020,7 @@ function getNextCombination(ranges, value) {
 /**
  * This function generates the possible values that each peak can contribute
  * to the multiplet.
- * @param {Array} Array of objects with peaks information {intensity}
+ * @param {Array} peaks Array of objects with peaks information {intensity}
  * @return {{values: Array, currentIndex: Array, active: number}}
  */
 function getRanges(peaks) {
@@ -16965,7 +17327,7 @@ function getArea(peak) {
 }
 
 /***/ }),
-/* 71 */
+/* 73 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -16986,7 +17348,7 @@ function getArea(peak) {
  * @param {boolean} [options.optimize = true] - if it's true adjust an train of gaussian or lorentzian shapes to spectrum.
  * @param {string} [options.functionType = 'gaussian'] - This option allows us choose between 'gaussian' or 'lorentzian' function when options.optimize is true.
  * @param {number} [options.broadWidth = 0.25] - Threshold to determine if some peak is candidate to clustering into range.
- * @returns {Array}
+ * @return {Array}
  */
 
 const GSD = __webpack_require__(101);
@@ -17032,7 +17394,7 @@ function extractPeaks(spectrum, optionsEx) {
  * this function remove the peaks with an intensity lower to threshold
  * @param {object} peakList - peaks
  * @param {number} threshold
- * @returns {object} the clean peakList
+ * @return {object} the clean peakList
  * @private
  */
 function clearList(peakList, threshold) {
@@ -17047,16 +17409,16 @@ function clearList(peakList, threshold) {
 module.exports = extractPeaks;
 
 /***/ }),
-/* 72 */
+/* 74 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 var PeakOptimizer = __webpack_require__(22);
-var simpleClustering = __webpack_require__(48);
+var simpleClustering = __webpack_require__(50);
 var matrixPeakFinders = __webpack_require__(112);
-var FFTUtils = __webpack_require__(40).FFTUtils;
+var FFTUtils = __webpack_require__(42).FFTUtils;
 
 const smallFilter = [[0, 0, 1, 2, 2, 2, 1, 0, 0], [0, 1, 4, 7, 7, 7, 4, 1, 0], [1, 4, 5, 3, 0, 3, 5, 4, 1], [2, 7, 3, -12, -23, -12, 3, 7, 2], [2, 7, 0, -23, -40, -23, 0, 7, 2], [2, 7, 3, -12, -23, -12, 3, 7, 2], [1, 4, 5, 3, 0, 3, 5, 4, 1], [0, 1, 3, 7, 7, 7, 3, 1, 0], [0, 0, 1, 2, 2, 2, 1, 0, 0]];
 
@@ -17207,13 +17569,13 @@ function createSignals2D(peaks, spectraData, tolerance) {
 module.exports = getZones;
 
 /***/ }),
-/* 73 */
+/* 75 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const JAnalyzer = __webpack_require__(70);
+const JAnalyzer = __webpack_require__(72);
 const Ranges = __webpack_require__(20);
 //var extend = require("extend");
 //var removeImpurities = require('./ImpurityRemover');
@@ -17599,402 +17961,6 @@ function area(peak) {
 }
 
 module.exports = createRanges;
-
-/***/ }),
-/* 74 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-const getMultiplicityFromSignal = __webpack_require__(23);
-
-/**
- * nbDecimalsDelta : default depends nucleus H, F: 2 otherwise 1
- * nbDecimalsJ : default depends nucleus H, F: 1, otherwise 0
- * ascending : true / false
- * format : default "AIMJ" or when 2D data is collected the default format may be "IMJA"
- * deltaSeparator : ', '
- * detailSeparator : ', '
- */
-
-var globalOptions = {
-    h: {
-        nucleus: '1H',
-        nbDecimalDelta: 2,
-        nbDecimalJ: 1,
-        observedFrequency: 400
-    },
-    c: {
-        nucleus: '13C',
-        nbDecimalDelta: 1,
-        nbDecimalJ: 1,
-        observedFrequency: 100
-    },
-    f: {
-        nucleus: '19F',
-        nbDecimalDelta: 2,
-        nbDecimalJ: 1,
-        observedFrequency: 400
-    }
-};
-
-function toAcs(ranges, options = {}) {
-
-    var nucleus = (options.nucleus || '1H').toLowerCase().replace(/[0-9]/g, '');
-
-    var defaultOptions = globalOptions[nucleus];
-
-    options = Object.assign({}, defaultOptions, { ascending: false, format: 'IMJA' }, options);
-
-    ranges = ranges.clone();
-
-    if (options.ascending) {
-        ranges.sort(function (a, b) {
-            let fromA = Math.min(a.from, a.to);
-            let fromB = Math.min(b.from, b.to);
-            return fromB - fromA;
-        });
-    } else {
-        ranges.sort(function (a, b) {
-            let fromA = Math.min(a.from, a.to);
-            let fromB = Math.min(b.from, b.to);
-            return fromA - fromB;
-        });
-    }
-
-    var acsString = formatAcs(ranges, options);
-
-    if (acsString.length > 0) acsString += '.';
-
-    return acsString;
-}
-
-function formatAcs(ranges, options) {
-    var acs = spectroInformation(options);
-    if (acs.length === 0) acs = 'δ ';
-    var acsRanges = [];
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
-
-    try {
-        for (var _iterator = ranges[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-            let range = _step.value;
-
-            pushDelta(range, acsRanges, options);
-        }
-    } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
-    } finally {
-        try {
-            if (!_iteratorNormalCompletion && _iterator.return) {
-                _iterator.return();
-            }
-        } finally {
-            if (_didIteratorError) {
-                throw _iteratorError;
-            }
-        }
-    }
-
-    if (acsRanges.length > 0) {
-        return acs + acsRanges.join(', ');
-    } else {
-        return '';
-    }
-}
-
-function spectroInformation(options) {
-    let parenthesis = [];
-    let strings = formatNucleus(options.nucleus) + ' NMR';
-    if (options.solvent) {
-        parenthesis.push(formatMF(options.solvent));
-    }
-    if (options.frequencyObserved) {
-        parenthesis.push((options.frequencyObserved * 1).toFixed(0) + ' MHz');
-    }
-    if (parenthesis.length > 0) {
-        strings += ' (' + parenthesis.join(', ') + '): δ ';
-    } else {
-        strings += ' : δ ';
-    }
-    return strings;
-}
-
-function pushDelta(range, acsRanges, options) {
-    var strings = '';
-    var parenthesis = [];
-    let fromTo = [range.from, range.to];
-    if (Array.isArray(range.signal) && range.signal.length > 0) {
-        var signals = range.signal;
-        if (signals.length > 1) {
-            strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
-            strings += ' (' + getIntegral(range, options);
-            var _iteratorNormalCompletion2 = true;
-            var _didIteratorError2 = false;
-            var _iteratorError2 = undefined;
-
-            try {
-                for (var _iterator2 = signals[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-                    let signal = _step2.value;
-
-                    parenthesis = [];
-                    if (signal.delta !== undefined) {
-                        strings = appendSeparator(strings);
-                        strings += signal.delta.toFixed(options.nbDecimalDelta);
-                        switchFormat({}, signal, parenthesis, options);
-                        if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
-                    }
-                }
-            } catch (err) {
-                _didIteratorError2 = true;
-                _iteratorError2 = err;
-            } finally {
-                try {
-                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
-                        _iterator2.return();
-                    }
-                } finally {
-                    if (_didIteratorError2) {
-                        throw _iteratorError2;
-                    }
-                }
-            }
-
-            strings += ')';
-        } else {
-            parenthesis = [];
-            if (signals[0].delta !== undefined) {
-                strings += signals[0].delta.toFixed(options.nbDecimalDelta);
-                switchFormat(range, signals[0], parenthesis, options);
-                if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
-            } else {
-                strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
-                switchFormat(range, signals[0], parenthesis, options);
-                if (parenthesis.length > 0) strings += ' (' + parenthesis + ')';
-            }
-        }
-    } else {
-        strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
-        switchFormat(range, [], parenthesis, options);
-        if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
-    }
-    acsRanges.push(strings);
-}
-
-module.exports = toAcs;
-
-function getIntegral(range, options) {
-    let integral = '';
-    if (range.pubIntegral) {
-        integral = range.pubIntegral;
-    } else if (range.integral) {
-        integral = range.integral.toFixed(0) + options.nucleus[options.nucleus.length - 1];
-    }
-    return integral;
-}
-
-function pushIntegral(range, parenthesis, options) {
-    let integral = getIntegral(range, options);
-    if (integral.length > 0) parenthesis.push(integral);
-}
-
-function pushMultiplicityFromSignal(signal, parenthesis) {
-    let multiplicity = getMultiplicityFromSignal(signal);
-    if (multiplicity.length > 0) parenthesis.push(multiplicity);
-}
-
-function switchFormat(range, signal, parenthesis, options) {
-    var _iteratorNormalCompletion3 = true;
-    var _didIteratorError3 = false;
-    var _iteratorError3 = undefined;
-
-    try {
-        for (var _iterator3 = options.format[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-            const char = _step3.value;
-
-            switch (char.toUpperCase()) {
-                case 'I':
-                    pushIntegral(range, parenthesis, options);
-                    break;
-                case 'M':
-                    pushMultiplicityFromSignal(signal, parenthesis);
-                    break;
-                case 'A':
-                    pushAssignment(signal, parenthesis);
-                    break;
-                case 'J':
-                    pushCoupling(signal, parenthesis, options);
-                    break;
-                default:
-                    throw new Error('Unknow format letter: ' + char);
-            }
-        }
-    } catch (err) {
-        _didIteratorError3 = true;
-        _iteratorError3 = err;
-    } finally {
-        try {
-            if (!_iteratorNormalCompletion3 && _iterator3.return) {
-                _iterator3.return();
-            }
-        } finally {
-            if (_didIteratorError3) {
-                throw _iteratorError3;
-            }
-        }
-    }
-}
-
-function formatMF(mf) {
-    return mf.replace(/([0-9]+)/g, '<sub>$1</sub>');
-}
-
-function formatNucleus(nucleus) {
-    return nucleus.replace(/([0-9]+)/g, '<sup>$1</sup>');
-}
-
-function appendSeparator(strings) {
-    if (strings.length > 0 && !strings.match(/ $/) && !strings.match(/\($/)) {
-        strings += ', ';
-    }
-    return strings;
-}
-
-function formatAssignment(assignment) {
-    assignment = assignment.replace(/([0-9]+)/g, '<sub>$1</sub>');
-    assignment = assignment.replace(/\"([^\"]*)\"/g, '<i>$1</i>');
-    return assignment;
-}
-
-function pushCoupling(signal, parenthesis, options) {
-    if (Array.isArray(signal.j) && signal.j.length > 0) {
-        var values = [];
-        var _iteratorNormalCompletion4 = true;
-        var _didIteratorError4 = false;
-        var _iteratorError4 = undefined;
-
-        try {
-            for (var _iterator4 = signal.j[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-                let j = _step4.value;
-
-                if (j.coupling !== undefined) {
-                    values.push(j.coupling.toFixed(options.nbDecimalJ));
-                }
-            }
-        } catch (err) {
-            _didIteratorError4 = true;
-            _iteratorError4 = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion4 && _iterator4.return) {
-                    _iterator4.return();
-                }
-            } finally {
-                if (_didIteratorError4) {
-                    throw _iteratorError4;
-                }
-            }
-        }
-
-        if (values.length > 0) parenthesis.push('<i>J</i> = ' + values.join(', ') + ' Hz');
-    }
-}
-
-function pushAssignment(signal, parenthesis) {
-    if (signal.pubAssignment) {
-        parenthesis.push(formatAssignment(signal.pubAssignment));
-    } else if (signal.assignment) {
-        parenthesis.push(formatAssignment(signal.assignment));
-    }
-}
-
-/***/ }),
-/* 75 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-/**
- * This function converts an array of peaks [{x, y, width}] in a vector equally x,y vector from a given window
- * TODO: This function is very general and should be placed somewhere else
- * @param {Array} peaks - List of the peaks
- * @param {object} options - it has some options to
- * @param {number} [options.from] - one limit of given window
- * @param {number} [options.to] - one limit of given window
- * @param {string} [options.fnName] - function name to generate the signals form
- * @param {number} [options.nWidth] - width factor of signal form
- * @param {number} [options.nbPoints] - number of points that the vector will have
- * @return {{x: Array, y: Array}}
- */
-
-function peak2Vector(peaks, options) {
-    options = options || {};
-    var from = options.from;
-    var to = options.to;
-    var nbPoints = options.nbPoints || 16 * 1024;
-    var fnName = options.fnName || 'gaussian';
-    var nWidth = options.nWidth || 4;
-
-    if (!from) {
-        from = Number.MAX_VALUE;
-        for (let i = 0; i < peaks.length; i++) {
-            if (peaks[i].x - peaks[i].width * nWidth < from) {
-                from = peaks[i].x - peaks[i].width * nWidth;
-            }
-        }
-    }
-
-    if (!to) {
-        to = Number.MIN_VALUE;
-        for (let i = 0; i < peaks.length; i++) {
-            if (peaks[i].x + peaks[i].width * nWidth > to) {
-                to = peaks[i].x + peaks[i].width * nWidth;
-            }
-        }
-    }
-
-    var x = new Array(nbPoints);
-    var y = new Array(nbPoints);
-    var dx = (to - from) / (nbPoints - 1);
-    for (let i = 0; i < nbPoints; i++) {
-        x[i] = from + i * dx;
-        y[i] = 0;
-    }
-
-    var intensity = 'intensity';
-    if (peaks[0].y) {
-        intensity = 'y';
-    }
-
-    for (let i = 0; i < peaks.length; i++) {
-        var peak = peaks[i];
-        if (peak.x > from && peak.x < to) {
-            var index = Math.round((peak.x - from) / dx);
-            var w = Math.round(peak.width * nWidth / dx);
-            if (fnName === 'gaussian') {
-                for (var j = index - w; j < index + w; j++) {
-                    if (j >= 0 && j < nbPoints) {
-                        y[j] += peak[intensity] * Math.exp(-0.5 * Math.pow((peak.x - x[j]) / (peak.width / 2), 2));
-                    }
-                }
-            } else {
-                var factor = peak[intensity] * Math.pow(peak.width, 2) / 4;
-                for (let j = index - w; j < index + w; j++) {
-                    if (j >= 0 && j < nbPoints) {
-                        y[j] += factor / (Math.pow(peak.x - x[j], 2) + Math.pow(peak.width / 2, 2));
-                    }
-                }
-            }
-        }
-    }
-
-    return { x: x, y: y };
-}
-
-module.exports = peak2Vector;
 
 /***/ }),
 /* 76 */
@@ -19413,7 +19379,7 @@ function JSZip(data, options) {
 JSZip.prototype = __webpack_require__(13);
 JSZip.prototype.load = __webpack_require__(88);
 JSZip.support = __webpack_require__(5);
-JSZip.defaults = __webpack_require__(32);
+JSZip.defaults = __webpack_require__(34);
 
 /**
  * @deprecated
@@ -19448,7 +19414,7 @@ module.exports = JSZip;
 "use strict";
 
 var base64 = __webpack_require__(10);
-var utf8 = __webpack_require__(36);
+var utf8 = __webpack_require__(38);
 var utils = __webpack_require__(0);
 var ZipEntries = __webpack_require__(92);
 module.exports = function(data, options) {
@@ -19493,7 +19459,7 @@ module.exports = function(data, options) {
 
 "use strict";
 
-var Uint8ArrayReader = __webpack_require__(35);
+var Uint8ArrayReader = __webpack_require__(37);
 
 function NodeBufferReader(data) {
     this.data = data;
@@ -19601,12 +19567,12 @@ module.exports = Uint8ArrayWriter;
 
 "use strict";
 
-var StringReader = __webpack_require__(34);
+var StringReader = __webpack_require__(36);
 var NodeBufferReader = __webpack_require__(89);
-var Uint8ArrayReader = __webpack_require__(35);
-var ArrayReader = __webpack_require__(29);
+var Uint8ArrayReader = __webpack_require__(37);
+var ArrayReader = __webpack_require__(31);
 var utils = __webpack_require__(0);
-var sig = __webpack_require__(33);
+var sig = __webpack_require__(35);
 var ZipEntry = __webpack_require__(93);
 var support = __webpack_require__(5);
 var jszipProto = __webpack_require__(13);
@@ -19888,9 +19854,9 @@ module.exports = ZipEntries;
 
 "use strict";
 
-var StringReader = __webpack_require__(34);
+var StringReader = __webpack_require__(36);
 var utils = __webpack_require__(0);
-var CompressedObject = __webpack_require__(30);
+var CompressedObject = __webpack_require__(32);
 var jszipProto = __webpack_require__(13);
 var support = __webpack_require__(5);
 
@@ -20861,7 +20827,7 @@ module.exports = distanceMatrix;
 "use strict";
 
 
-var FFT = __webpack_require__(39);
+var FFT = __webpack_require__(41);
 
 var FFTUtils= {
     DEBUG : false,
@@ -21179,7 +21145,7 @@ module.exports = FFTUtils;
 "use strict";
 
 
-const extend = __webpack_require__(27);
+const extend = __webpack_require__(29);
 const SG = __webpack_require__(136);
 
 const defaultOptions = {
@@ -22073,8 +22039,8 @@ function chooseShrinkCapacity(size, minLoad, maxLoad) {
 /* 104 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const binarySearch = __webpack_require__(24);
-const sortAsc = __webpack_require__(52).asc;
+const binarySearch = __webpack_require__(26);
+const sortAsc = __webpack_require__(54).asc;
 
 const largestPrime = 0x7fffffff;
 
@@ -22168,8 +22134,8 @@ exports.largestPrime = largestPrime;
 "use strict";
 
 
-const euclidean = __webpack_require__(38);
-const ClusterLeaf = __webpack_require__(41);
+const euclidean = __webpack_require__(40);
+const ClusterLeaf = __webpack_require__(43);
 const Cluster = __webpack_require__(14);
 const distanceMatrix = __webpack_require__(98);
 
@@ -22418,8 +22384,8 @@ module.exports = agnes;
 "use strict";
 
 
-const euclidean = __webpack_require__(38);
-const ClusterLeaf = __webpack_require__(41);
+const euclidean = __webpack_require__(40);
+const ClusterLeaf = __webpack_require__(43);
 const Cluster = __webpack_require__(14);
 
 /**
@@ -22745,7 +22711,7 @@ exports.diana = __webpack_require__(106);
 "use strict";
 
 
-var FFT = __webpack_require__(42);
+var FFT = __webpack_require__(44);
 
 var FFTUtils= {
     DEBUG : false,
@@ -23065,7 +23031,7 @@ module.exports = FFTUtils;
 
 
 exports.FFTUtils = __webpack_require__(108);
-exports.FFT = __webpack_require__(42);
+exports.FFT = __webpack_require__(44);
 
 
 /***/ }),
@@ -24564,9 +24530,9 @@ module.exports = QrDecomposition;
 
 var Matrix = __webpack_require__(1).Matrix;
 
-var SingularValueDecomposition = __webpack_require__(45);
+var SingularValueDecomposition = __webpack_require__(47);
 var EigenvalueDecomposition = __webpack_require__(114);
-var LuDecomposition = __webpack_require__(44);
+var LuDecomposition = __webpack_require__(46);
 var QrDecomposition = __webpack_require__(115);
 var CholeskyDecomposition = __webpack_require__(113);
 
@@ -24843,7 +24809,7 @@ module.exports = MatrixTransposeView;
  * Created by acastillo on 8/5/15.
  */
 var Matrix = __webpack_require__(8);
-var math = __webpack_require__(46);
+var math = __webpack_require__(48);
 
 var DEBUG = false;
 /** Levenberg Marquardt curve-fitting: minimize sum of weighted squared residuals
@@ -25366,7 +25332,7 @@ module.exports = LM;
 
 module.exports = __webpack_require__(125);
 module.exports.Matrix = __webpack_require__(8);
-module.exports.Matrix.algebra = __webpack_require__(46);
+module.exports.Matrix.algebra = __webpack_require__(48);
 
 
 /***/ }),
@@ -27593,7 +27559,7 @@ module.exports.optimizeLorentzianTrain = optimizeLorentzianTrain;
 "use strict";
 
 
-exports.array = __webpack_require__(47);
+exports.array = __webpack_require__(49);
 exports.matrix = __webpack_require__(135);
 
 
@@ -27603,7 +27569,7 @@ exports.matrix = __webpack_require__(135);
 
 "use strict";
 
-var arrayStat = __webpack_require__(47);
+var arrayStat = __webpack_require__(49);
 
 // https://github.com/accord-net/framework/blob/development/Sources/Accord.Statistics/Tools.cs
 
@@ -28129,7 +28095,7 @@ module.exports = {
 /***/ (function(module, exports, __webpack_require__) {
 
 //Code translate from Pascal source in http://pubs.acs.org/doi/pdf/10.1021/ac00205a007
-var extend = __webpack_require__(27);
+var extend = __webpack_require__(29);
 var stat = __webpack_require__(134);
 
 var defaultOptions = {
@@ -28306,7 +28272,7 @@ module.exports = SavitzkyGolay;
 "use strict";
 
 
-var arrayStat = __webpack_require__(50);
+var arrayStat = __webpack_require__(52);
 
 function compareNumbers(a, b) {
     return a - b;
@@ -28926,7 +28892,7 @@ exports.weightedScatter = function weightedScatter(matrix, weights, means, facto
 
 const Matrix = __webpack_require__(16);
 const newArray = __webpack_require__(18);
-const simpleClustering = __webpack_require__(48);
+const simpleClustering = __webpack_require__(50);
 const hlClust = __webpack_require__(107);
 
 class SpinSystem {
@@ -29201,7 +29167,7 @@ module.exports = SpinSystem;
 "use strict";
 
 
-const SparseMatrix = __webpack_require__(49);
+const SparseMatrix = __webpack_require__(51);
 
 function createPauli(mult) {
     const spin = (mult - 1) / 2;
@@ -29250,9 +29216,9 @@ module.exports = getPauli;
 
 
 const Matrix = __webpack_require__(16);
-const SparseMatrix = __webpack_require__(49);
-const binarySearch = __webpack_require__(24);
-const sortAsc = __webpack_require__(52).asc;
+const SparseMatrix = __webpack_require__(51);
+const binarySearch = __webpack_require__(26);
+const sortAsc = __webpack_require__(54).asc;
 const newArray = __webpack_require__(18);
 
 const getPauli = __webpack_require__(139);
@@ -29662,7 +29628,7 @@ var assign    = __webpack_require__(2).assign;
 
 var deflate   = __webpack_require__(144);
 var inflate   = __webpack_require__(145);
-var constants = __webpack_require__(55);
+var constants = __webpack_require__(57);
 
 var pako = {};
 
@@ -29681,9 +29647,9 @@ module.exports = pako;
 
 var zlib_deflate = __webpack_require__(146);
 var utils        = __webpack_require__(2);
-var strings      = __webpack_require__(53);
+var strings      = __webpack_require__(55);
 var msg          = __webpack_require__(19);
-var ZStream      = __webpack_require__(57);
+var ZStream      = __webpack_require__(59);
 
 var toString = Object.prototype.toString;
 
@@ -30088,10 +30054,10 @@ exports.gzip = gzip;
 
 var zlib_inflate = __webpack_require__(149);
 var utils        = __webpack_require__(2);
-var strings      = __webpack_require__(53);
-var c            = __webpack_require__(55);
+var strings      = __webpack_require__(55);
+var c            = __webpack_require__(57);
 var msg          = __webpack_require__(19);
-var ZStream      = __webpack_require__(57);
+var ZStream      = __webpack_require__(59);
 var GZheader     = __webpack_require__(147);
 
 var toString = Object.prototype.toString;
@@ -30531,8 +30497,8 @@ exports.ungzip  = inflate;
 
 var utils   = __webpack_require__(2);
 var trees   = __webpack_require__(151);
-var adler32 = __webpack_require__(54);
-var crc32   = __webpack_require__(56);
+var adler32 = __webpack_require__(56);
+var crc32   = __webpack_require__(58);
 var msg     = __webpack_require__(19);
 
 /* Public constants ==========================================================*/
@@ -32828,8 +32794,8 @@ module.exports = function inflate_fast(strm, start) {
 // 3. This notice may not be removed or altered from any source distribution.
 
 var utils         = __webpack_require__(2);
-var adler32       = __webpack_require__(54);
-var crc32         = __webpack_require__(56);
+var adler32       = __webpack_require__(56);
+var crc32         = __webpack_require__(58);
 var inflate_fast  = __webpack_require__(148);
 var inflate_table = __webpack_require__(150);
 
@@ -36762,7 +36728,7 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(58), __webpack_require__(152)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(60), __webpack_require__(152)))
 
 /***/ }),
 /* 156 */
@@ -36770,7 +36736,7 @@ function hasOwnProperty(obj, prop) {
 
 module.exports = {
 	"name": "spectra-data",
-	"version": "3.0.5",
+	"version": "3.0.7",
 	"description": "spectra-data project - manipulate spectra",
 	"keywords": [
 		"spectra-data",
@@ -36806,6 +36772,8 @@ module.exports = {
 		"should": "^11.1.1"
 	},
 	"dependencies": {
+		"babel-core": "^6.24.1",
+		"babel-loader": "^7.0.0",
 		"brukerconverter": "^1.0.1",
 		"jcampconverter": "^2.4.5",
 		"ml-array-utils": "^0.3.0",

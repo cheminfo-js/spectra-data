@@ -23,7 +23,7 @@ class NMR extends SD {
      * @param {object} options
      * @return {SD}
      */
-    static fromPrediction(prediction, options = {}) {
+    static fromSignals(prediction, options = {}) {
 
         options = Object.assign({}, {
             nbPoints: 16 * 1024,
