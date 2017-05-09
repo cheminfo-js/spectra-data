@@ -13,7 +13,7 @@ var cs1 = 2,
     totalIntegral = 0;
 
 var line = new Array(NbPoints);
-var x = Xrange(0, 10, NbPoints);
+var x = xRange(0, 10, NbPoints);
 
 for (var i = 0; i < NbPoints; i++) {
     line[i] = 2 * intensity / Math.PI * w / (4 * Math.pow(cs1 - x[i], 2) + Math.pow(w, 2))
@@ -21,7 +21,6 @@ for (var i = 0; i < NbPoints; i++) {
 }
 
 var spectrum = NMR.fromXY(x, line, {});
-
 var options = {noiseLevel: 0.1,
     thresholdFactor: 1,
     clean: false,
@@ -46,7 +45,7 @@ while (i < peakPicking.length) {
     i += 1;
 }
 
-function Xrange(start, end, NbPoints) {
+function xRange(start, end, NbPoints) {
     var a = new Array(NbPoints).fill(start);
     var jump = (end - start) / (NbPoints - 1);
     for (let i = 0; i < NbPoints; i++) {

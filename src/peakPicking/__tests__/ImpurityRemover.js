@@ -3,7 +3,7 @@ const Data = require('../../..');
 const FS = require('fs');
 
 function createSpectraData(filename) {
-    var spectrum = Data.SD.fromJcamp(
+    var spectrum = Data.NMR.fromJcamp(
         FS.readFileSync(__dirname + filename).toString()
     );
     return spectrum;
@@ -19,11 +19,10 @@ describe('spectra-data examples getRanges', function () {
             thresholdFactor: 1,
             clean: true,
             compile: true,
-            idPrefix: '1H'
+            idPrefix: '1H',
+            removeImpurity: {solvent: 'DMSO', nH: 16}
         });
         peakPicking.length.should.equal(8);
     });
-
-
 });
 

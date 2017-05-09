@@ -5,6 +5,7 @@ const Filters = require('./filters/Filters.js');
 const Brukerconverter = require('brukerconverter');
 const peaks2Ranges = require('./peakPicking/peaks2Ranges');
 const simulator = require('nmr-simulation');
+const impurityRemover = require('./peakPicking/ImpurityRemover');
 
 /**
  * @class NMR
@@ -46,28 +47,23 @@ class NMR extends SD {
      * @return {NMR} SD instance from x and y data
      */
     static fromXY(x, y, options) {
-        var options = Object.assign({}, options, {
+        options = Object.assign({}, options, {
             xUnit: 'PPM',
             yUnit: 'Intensity',
             dataType: 'NMR'
         });
-        var sd=SD.fromXY(x, y, options);
-
-        var spectrum = sd.spectra[0];
-
+        var spectraData = SD.fromXY(x, y, options);
+        var spectrum = spectraData.sd.spectra[0];
 
         spectrum.observeFrequency = options.frequency || 400;
-        sd.info.observefrequency = spectrum.observeFrequency;
-        sd.info['.SOLVENTNAME'] = options.solvent || 'none';
+        spectraData.putParam('observeFrequency', spectrum.observeFrequency);
+        spectraData.putParam('.SOLVENTNAME', options.solvent || 'none');
         // eslint-disable-next-line camelcase
-        sd.info.$SW_h = Math.abs(spectrum.lastX - spectrum.firstX) * spectrum.observeFrequency;
-        sd.info.$SW = Math.abs(spectrum.lastX - spectrum.firstX);
-        sd.info.$TD = spectrum.nbPoints;
-        sd.xType = options.nucleus || '1H';
-        sd.twoD = false;
-        sd.push(spectrum);
-        return sd;
-        // return new NMR(result);
+        spectraData.putParam('.$SW_h', Math.abs(spectrum.lastX - spectrum.firstX) * spectrum.observeFrequency);
+        spectraData.putParam('.$SW', Math.abs(spectrum.lastX - spectrum.firstX));
+        spectraData.putParam('.$TD', spectrum.nbPoints);
+        spectraData.sd.xType = options.nucleus || '1H';
+        return new NMR(spectraData.sd);
     }
 
     /**
@@ -389,7 +385,12 @@ class NMR extends SD {
         } else {
             var peaks = this.getPeaks(parameters);
             var params = Object.assign({}, {nH: this.totalIntegral}, parameters);
-            return peaks2Ranges(this, peaks, params);
+            var ranges = peaks2Ranges(this, peaks, params);
+            var removeImpurity = parameters.removeImpurity;
+            if (removeImpurity) {
+                ranges = impurityRemover(ranges, removeImpurity.solvent, removeImpurity.nH);
+            }
+            return ranges;
         }
     }
 

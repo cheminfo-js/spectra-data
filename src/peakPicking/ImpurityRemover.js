@@ -39,7 +39,7 @@ function checkImpurity(peakList, impurity) {
         return 0;
     }
     for (i = 0; i < toRemove.length; i++) {
-        peakList[toRemove[i]].integralData.value = 0;
+        peakList[toRemove[i]].integral = 0;
     }
     return 1;
 }
@@ -60,17 +60,19 @@ function removeImpurities(peakList, solvent, nH) {
             scores[i] = checkImpurity(peakList, impurities[i].shifts);
         }
     }
-    //Recompute the integrals
+    // Recompute the integrals
     var sumObserved = 0;
     for (i = 0; i < peakList.length; i++) {
-        sumObserved += peakList[i].integralData.value;
+        sumObserved += peakList[i].integral;
     }
+
     if (sumObserved !== nH) {
         sumObserved = nH / sumObserved;
         for (i = 0; i < peakList.length; i++) {
-            peakList[i].integralData.value *= sumObserved;
+            peakList[i].integral *= sumObserved;
         }
     }
+    return peakList;
 }
 
 module.exports = removeImpurities;

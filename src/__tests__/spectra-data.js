@@ -9,11 +9,11 @@ describe('spectra-data examples library name', function () {
     });
 });
 
+var x = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+var y = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
 describe('reduceData', function () {
     it('ascending data', function () {
-        var x = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-        var y = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-
         var ans = spectraData.NMR.fromXY(x, y, {});
         ans.reduceData(1, 3, 3);
         ans.getYData()[0].should.be.equal(1);
@@ -28,9 +28,6 @@ describe('reduceData', function () {
     });
 
     it('descending data', function () {
-        var x = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-        var y = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-
         x.reverse();
         y.reverse();
 

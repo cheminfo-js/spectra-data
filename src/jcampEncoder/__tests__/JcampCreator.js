@@ -14,6 +14,7 @@ function createSpectraData(filename) {
 }
 
 var spectrum = createSpectraData('/../../../data-test/ethylvinylether/1h.jdx');
+
 var createdJcamp0 = spectrum.toJcamp({type: 'SIMPLE'});
 var createdJcamp1 = spectrum.toJcamp({type: 'NTUPLES'});
 

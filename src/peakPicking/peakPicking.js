@@ -22,7 +22,6 @@ const GSD = require('ml-gsd');
 //var removeImpurities = require('./ImpurityRemover');
 
 const defaultOptions = {
-
     thresholdFactor: 1,
     optimize: false,
     minMaxRatio: 0.01,
@@ -36,6 +35,7 @@ const defaultOptions = {
 
 
 function extractPeaks(spectrum, optionsEx) {
+
     var options = Object.assign({}, defaultOptions, optionsEx);
     var noiseLevel = Math.abs(spectrum.getNoiseLevel()) * (options.thresholdFactor);
     var data = spectrum.getXYData();
