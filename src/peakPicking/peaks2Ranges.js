@@ -7,11 +7,7 @@ const Ranges = require('../range/Ranges');
 
 const defaultOptions = {
     nH: 99,
-    clean: true,
-    compile: true,
-    integralType: 'sum',
-    idPrefix: '',
-    frequencyCluster: 16
+    idPrefix: ''
 };
 /**
  * This function clustering peaks and calculate the integral value for each range from the peak list returned from extractPeaks function.
@@ -28,13 +24,13 @@ const defaultOptions = {
  */
 
 function createRanges(spectrum, peakList, options) {
-    options = Object.assign({}, defaultOptions, options);
+    options = Object.assign({}, defaultOptions, options, {frequency: spectrum.observeFrequencyX()});
     var i,
         j,
         nHi,
         sum;
-
-    var signals = detectSignals(peakList, spectrum, options.nH, options.integralType, options.frequencyCluster);
+    var nH = options.nH;
+    var signals = detectSignals(peakList, spectrum, options);
 
     //Remove all the signals with small integral
     if (options.clean || false) {
@@ -77,7 +73,8 @@ function createRanges(spectrum, peakList, options) {
                     for (j = peaksO.length - 1; j >= 0; j--) {
                         peaks1.push(peaksO[j]);
                     }
-                    let ranges = detectSignals(peaks1, spectrum, nHi, options.integralType, options.frequencyCluster);
+                    options.nH = nHi;
+                    let ranges = detectSignals(peaks1, spectrum, options);
 
                     for (j = 0; j < ranges.length; j++) {
                         signals.push(ranges[j]);
@@ -90,8 +87,8 @@ function createRanges(spectrum, peakList, options) {
         for (i = 0; i < signals.length; i++) {
             sumObserved += Math.round(signals[i].integralData.value);
         }
-        if (sumObserved !== options.nH) {
-            sumIntegral = options.nH / sumObserved;
+        if (sumObserved !== nH) {
+            sumIntegral = nH / sumObserved;
             for (i = 0; i < signals.length; i++) {
                 signals[i].integralData.value *= sumIntegral;
             }
@@ -158,40 +155,41 @@ function createRanges(spectrum, peakList, options) {
  * Extract the signals from the peakList and the given spectrum.
  * @param {object} peakList - nmr signals
  * @param {object} spectrum - spectra data
- * @param {number} nH - Number of hydrogens or some number to normalize the integral data, If it's zero return the absolute integral value
- * @param {string} integralType - option to chose between approx area with peaks or the sum of the points of given range
- * @param {number} frequencyCluster - distance limit to clustering the peaks.
+ * @param {object} options
+ * @param {...number} options.nH - Number of hydrogens or some number to normalize the integral data, If it's zero return the absolute integral value
+ * @param {string} options.integralType - option to chose between approx area with peaks or the sum of the points of given range
+ * @param {...number} options.frequencyCluster - distance limit to clustering the peaks.
  * range = frequencyCluster / observeFrequency -> Peaks withing this range are considered to belongs to the same signal1D
  * @return {Array} nmr signals
  * @private
  */
-function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
-    const frequency = spectrum.observeFrequencyX();
+function detectSignals(peakList, spectrum, options = {}) {
     var {
-        cs,
-        sum,
-        i,
-        j,
-        signals = [],
-        signal1D = {},
-        peaks = null,
-        prevPeak = {x: 100000, y: 0, width: 0},
-        spectrumIntegral = 0
-    } = spectrum;
-
-    frequencyCluster = Number.isFinite(frequencyCluster) ? frequencyCluster : 16;
-    integralType = (integralType === 'sum' || integralType === 'peaks') ? integralType : 'sum';
-
+        nH = 99,
+        integralType = 'sum',
+        frequencyCluster = 16,
+        frequency = spectrum.observeFrequencyX()
+    } = options;
+    var cs;
+    var sum;
+    var i;
+    var j;
+    var signals = [];
+    var signal1D = {};
+    var peaks = null;
+    var prevPeak = {x: 100000, y: 0, width: 0};
+    var spectrumIntegral = 0;
+    frequencyCluster = frequencyCluster / frequency;
     for (i = 0; i < peakList.length; i++) {
-        if (Math.abs(peakList[i].x - prevPeak.x) > frequencyCluster / frequency) {
+        if (Math.abs(peakList[i].x - prevPeak.x) > frequencyCluster) {
             signal1D = {nbPeaks: 1, units: 'PPM',
                 'startX': peakList[i].x - peakList[i].width,
                 'stopX': peakList[i].x + peakList[i].width,
                 'multiplicity': '', 'pattern': '',
                 'observe': frequency, 'nucleus': '1H',
-                'integralData': {'from': peakList[i].x - peakList[i].width * 3,
+                'integralData': {
+                    'from': peakList[i].x - peakList[i].width * 3,
                     'to': peakList[i].x + peakList[i].width * 3
-                     //"value":area(peakList[i])
                 },
                 'peaks': []};
             signal1D.peaks.push({x: peakList[i].x, 'intensity': peakList[i].y, width: peakList[i].width});
@@ -234,7 +232,6 @@ function detectSignals(peakList, spectrum, nH, integralType, frequencyCluster) {
     }
     if (nH !== 0) {
         for (i = 0; i < signals.length; i++) {
-            //console.log(integral.value);
             let integral = signals[i].integralData;
             integral.value *= nH / spectrumIntegral;
         }

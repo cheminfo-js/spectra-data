@@ -2,46 +2,23 @@
 
 const impuritiesList = require('./impurities.json');
 const look4 = 'solvent_residual_peak' + 'H2O' + 'TMS';
-//var pascalTriangle = [[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1],[1,5,10,10,5,1],[1,6,15,20,15,6,1]];
-//var patterns = ["s","d","t","q","quint","h","sept","o","n"];
-
-/*function removeSignal(peak, noiseSignal) {
-
-}*/
 
 function checkImpurity(peakList, impurity) {
-    var error = 0.025, i;
-    var found = false;
-    var indexes = new Array(impurity.length);
-    for (i = 0; i < impurity.length; i++) {
-        found = false;
-        for (var j = 0; j < peakList.length; j++) {
-            if (Math.abs(impurity[i].shift - peakList[j].delta1) <
-                (error + Math.abs(peakList[j].startX - peakList[j].stopX) / 2) &&
-                (impurity[i].multiplicity === '' ||
-                (impurity[i].multiplicity.indexOf(peakList[j].multiplicity) >= 0 && !peakList[j].asymmetric))) {
-                found = true;
-                indexes[i] = j;
-                break;
+    var j, tolerance, diference;
+    var i = impurity.length;
+    while (i--) {
+        j = peakList.length;
+        while (j--) {
+            if (!peakList[j].asymmetric) {
+                tolerance = 0.025 + Math.abs(peakList[j].from - peakList[j].to) / 2;
+                diference = Math.abs(impurity[i].shift - Math.abs(peakList[j].from + peakList[j].to) / 2);
+                if (diference < tolerance) { // && (impurity[i].multiplicity === '' || (impurity[i].multiplicity.indexOf(peakList[j].multiplicity)) { // some impurities has multiplicities like 'bs' but at presents it is unsupported
+                    peakList.splice(j, 1);
+                    break;
+                }
             }
         }
-        if (!found) {
-            break;
-        }
     }
-
-    var toRemove = [];
-    if (found) {
-        for (i = 0; i < impurity.length; i++) {
-            toRemove.push(indexes[i]);
-        }
-    } else {
-        return 0;
-    }
-    for (i = 0; i < toRemove.length; i++) {
-        peakList[toRemove[i]].integral = 0;
-    }
-    return 1;
 }
 
 function removeImpurities(peakList, solvent, nH) {
@@ -52,15 +29,14 @@ function removeImpurities(peakList, solvent, nH) {
             break;
         }
     }
-    impurities.push({'shifts': [{'proton': 'X', 'coupling': 0, 'multiplicity': '', 'shift': 0.0}], 'name': 'TMS'});
-    var nRows = impurities.length;
-    var scores = new Array(nRows);
-    for (i = 0; i < nRows; i++) {
+
+    for (i = 0; i < impurities.length; i++) {
         if (look4.indexOf(impurities[i].name) >= 0) {
-            scores[i] = checkImpurity(peakList, impurities[i].shifts);
+            // console.log('pasa')
+            checkImpurity(peakList, impurities[i].shifts);
         }
     }
-    // Recompute the integrals
+
     var sumObserved = 0;
     for (i = 0; i < peakList.length; i++) {
         sumObserved += peakList[i].integral;
