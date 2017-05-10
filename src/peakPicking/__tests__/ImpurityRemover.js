@@ -13,13 +13,13 @@ describe('spectra-data examples getRanges', function () {
     it('number of peaks', function () {
         var spectrum = createSpectraData('/../../../data-test/indometacin/1h.dx');
         var peakPicking = spectrum.getRanges({
-            'nH': 16,
+            nH: 16,
             realTop: true,
             thresholdFactor: 1,
             clean: true,
             compile: true,
             idPrefix: '1H',
-            removeImpurity: {solvent: 'DMSO', nH: 8}
+            removeImpurity: {solvent: 'DMSO', nH: 16}
         });
         peakPicking.length.should.equal(8);
     });

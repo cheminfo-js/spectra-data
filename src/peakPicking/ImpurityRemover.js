@@ -1,7 +1,7 @@
 'use strict';
 
-const impuritiesList = require('./impurities.json');
-const look4 = 'solvent_residual_peak' + 'H2O' + 'TMS';
+const impurities = require('./impurities.json');
+const toCheck = ['solvent_residual_peak', 'H2O', 'TMS'];
 
 function checkImpurity(peakList, impurity) {
     var j, tolerance, diference;
@@ -21,31 +21,31 @@ function checkImpurity(peakList, impurity) {
     }
 }
 
-function removeImpurities(peakList, solvent, nH) {
-    var impurities = null, i;
-    for (i = 0; i < impuritiesList.length; i++) {
-        if (impuritiesList[i].solvent.indexOf(solvent) >= 0) {
-            impurities = impuritiesList[i].impurities;
-            break;
+function removeImpurities(peakList, options = {}) {
+    var {
+        solvent = '',
+        nH = 99,
+        sumObserved = 0,
+    } = options;
+
+    solvent = solvent.toLowerCase();
+    if (solvent === '(cd3)2so') solvent = 'dmso';
+    var solventImpurities = impurities[solvent];
+    if (solventImpurities) {
+        for (let impurity of toCheck) {
+            let impurityShifts = solventImpurities[impurity.toLowerCase()];
+            checkImpurity(peakList, impurityShifts);
         }
-    }
 
-    for (i = 0; i < impurities.length; i++) {
-        if (look4.indexOf(impurities[i].name) >= 0) {
-            // console.log('pasa')
-            checkImpurity(peakList, impurities[i].shifts);
+        for (var i = 0; i < peakList.length; i++) {
+            sumObserved += peakList[i].integral;
         }
-    }
 
-    var sumObserved = 0;
-    for (i = 0; i < peakList.length; i++) {
-        sumObserved += peakList[i].integral;
-    }
-
-    if (sumObserved !== nH) {
-        sumObserved = nH / sumObserved;
-        for (i = 0; i < peakList.length; i++) {
-            peakList[i].integral *= sumObserved;
+        if (sumObserved !== nH) {
+            sumObserved = nH / sumObserved;
+            while (i--) {
+                peakList[i].integral *= sumObserved;
+            }
         }
     }
     return peakList;

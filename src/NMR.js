@@ -5,7 +5,7 @@ const Filters = require('./filters/Filters.js');
 const Brukerconverter = require('brukerconverter');
 const peaks2Ranges = require('./peakPicking/peaks2Ranges');
 const simulator = require('nmr-simulation');
-const impurityRemover = require('./peakPicking/ImpurityRemover');
+const impurities = require('./peakPicking/impurities.json');
 
 /**
  * @class NMR
@@ -384,12 +384,8 @@ class NMR extends SD {
             return this.ranges;
         } else {
             var peaks = this.getPeaks(parameters);
-            var params = Object.assign({}, {nH: this.totalIntegral}, parameters);
-            var ranges = peaks2Ranges(this, peaks, params);
-            var removeImpurity = parameters.removeImpurity;
-            if (removeImpurity) {
-                ranges = impurityRemover(ranges, removeImpurity.solvent, removeImpurity.nH);
-            }
+            parameters = Object.assign({}, {nH: this.totalIntegral}, parameters);
+            var ranges = peaks2Ranges(this, peaks, parameters);
             return ranges;
         }
     }
@@ -411,9 +407,40 @@ class NMR extends SD {
         return this.ranges;
     }
 
-    /*autoAssignment(options) {
+    /**
+     * Return the information with respect to residual signal solvent
+     * @param {string} solvent - solvent name
+     * @return {object}
+     */
+    getResidual(solvent) {
+        return this.getImpurity(solvent, 'solvent_residual_peak');
+    }
 
-    }*/
+    /**
+     * Return an object with possible impurities in a NMR spectrum with respect to a solvent
+     * @param {string} solvent - solvent name
+     * @return {object}
+     */
+    getImpurities(solvent) {
+        return this.getImpurity(solvent, null);
+    }
+
+    /**
+     * Return the impurity information with respect to a solvent
+     * @param {string} solvent - solvent name
+     * @param {string} impurity - impurity name
+     * @return {object}
+     */
+    getImpurity(solvent, impurity) {
+        solvent = solvent.toLowerCase();
+        if (solvent === '(cd3)2so') solvent = 'dmso';
+        var result = impurities[solvent];
+        if (impurity) {
+            result = result[impurity.toLocaleLowerCase()];
+        }
+        return result;
+    }
+
 }
 
 module.exports = NMR;

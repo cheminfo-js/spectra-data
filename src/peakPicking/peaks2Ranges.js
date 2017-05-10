@@ -3,7 +3,7 @@
 const JAnalyzer = require('./jAnalyzer');
 const Ranges = require('../range/Ranges');
 //var extend = require("extend");
-//var removeImpurities = require('./ImpurityRemover');
+const impurityRemover = require('./ImpurityRemover');
 
 const defaultOptions = {
     nH: 99,
@@ -30,7 +30,7 @@ function createRanges(spectrum, peakList, options) {
         nHi,
         sum;
     var nH = options.nH;
-    var signals = detectSignals(peakList, spectrum, options);
+    var signals = detectSignals(spectrum, peakList, options);
 
     //Remove all the signals with small integral
     if (options.clean || false) {
@@ -74,7 +74,7 @@ function createRanges(spectrum, peakList, options) {
                         peaks1.push(peaksO[j]);
                     }
                     options.nH = nHi;
-                    let ranges = detectSignals(peaks1, spectrum, options);
+                    let ranges = detectSignals(spectrum, peaks1, options);
 
                     for (j = 0; j < ranges.length; j++) {
                         signals.push(ranges[j]);
@@ -144,17 +144,15 @@ function createRanges(spectrum, peakList, options) {
             ranges[i].signal[0].delta = signal.delta1;
         }
     }
-    signals = new Ranges(ranges);
-
-
-    return signals;
+    ranges = impurityRemover(ranges, options.removeImpurity);
+    return new Ranges(ranges);
 }
 
 
 /**
  * Extract the signals from the peakList and the given spectrum.
- * @param {object} peakList - nmr signals
  * @param {object} spectrum - spectra data
+ * @param {object} peakList - nmr signals
  * @param {object} options
  * @param {...number} options.nH - Number of hydrogens or some number to normalize the integral data, If it's zero return the absolute integral value
  * @param {string} options.integralType - option to chose between approx area with peaks or the sum of the points of given range
@@ -163,7 +161,7 @@ function createRanges(spectrum, peakList, options) {
  * @return {Array} nmr signals
  * @private
  */
-function detectSignals(peakList, spectrum, options = {}) {
+function detectSignals(spectrum, peakList, options = {}) {
     var {
         nH = 99,
         integralType = 'sum',
