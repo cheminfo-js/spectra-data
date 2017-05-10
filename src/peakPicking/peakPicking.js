@@ -34,9 +34,9 @@ const defaultOptions = {
 };
 
 
-function extractPeaks(spectrum, optionsEx) {
+function extractPeaks(spectrum, options = {}) {
 
-    var options = Object.assign({}, defaultOptions, optionsEx);
+    options = Object.assign({}, defaultOptions, options);
     var noiseLevel = Math.abs(spectrum.getNoiseLevel()) * (options.thresholdFactor);
     var data = spectrum.getXYData();
 

@@ -2,7 +2,6 @@
 
 const JAnalyzer = require('./jAnalyzer');
 const Ranges = require('../range/Ranges');
-//var extend = require("extend");
 const impurityRemover = require('./ImpurityRemover');
 
 const defaultOptions = {
