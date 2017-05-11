@@ -397,8 +397,8 @@ class SD {
      * @return {number}
      */
     getNoiseLevel() {
-        var stddev = StatArray.robustMeanAndStdev(this.getYData()).stdev;
-        return stddev * this.getNMRPeakThreshold(this.getNucleus(1));
+        var median = StatArray.median(this.getYData());
+        return median * this.getNMRPeakThreshold(this.getNucleus(1));
     }
 
     /**

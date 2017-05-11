@@ -6,7 +6,8 @@ const impurityRemover = require('./ImpurityRemover');
 
 const defaultOptions = {
     nH: 100,
-    idPrefix: ''
+    idPrefix: '',
+    clean: 0.5
 };
 /**
  * This function clustering peaks and calculate the integral value for each range from the peak list returned from extractPeaks function.
@@ -23,24 +24,19 @@ const defaultOptions = {
  */
 
 function createRanges(spectrum, peakList, options) {
-    options = Object.assign({}, defaultOptions, options, {frequency: spectrum.observeFrequencyX()});
-    var i,
-        j,
-        nHi,
-        sum;
+    options = Object.assign({}, defaultOptions, options);
+    var i, j;
     var nH = options.nH;
     var signals = detectSignals(spectrum, peakList, options);
 
-    //Remove all the signals with small integral
-    if (options.clean || false) {
-        for (i = signals.length - 1; i >= 0; i--) {
-            if (signals[i].integralData.value < 0.5) {
+    if (options.clean) {
+        for (i = 0; i < signals.length; i++)
+            if (signals[i].integralData.value < options.clean)
                 signals.splice(i, 1);
-            }
-        }
     }
 
-    if (options.compile || false) {
+    if (options.compile) {
+        var nHi, sum;
         for (i = 0; i < signals.length; i++) {
             JAnalyzer.compilePattern(signals[i]);
 
@@ -166,34 +162,30 @@ function detectSignals(spectrum, peakList, options = {}) {
         frequencyCluster = 16,
         frequency = spectrum.observeFrequencyX()
     } = options;
-    var cs;
-    var sum;
-    var i;
-    var j;
+
+    var cs, sum, i, j, signal1D, peaks;
     var signals = [];
-    var signal1D = {};
-    var peaks = null;
-    var prevPeak = {x: 100000, y: 0, width: 0};
+    var prevPeak = {x: 100000};
     var spectrumIntegral = 0;
     frequencyCluster = frequencyCluster / frequency;
     for (i = 0; i < peakList.length; i++) {
         if (Math.abs(peakList[i].x - prevPeak.x) > frequencyCluster) {
-            signal1D = {nbPeaks: 1, units: 'PPM',
-                'startX': peakList[i].x - peakList[i].width,
-                'stopX': peakList[i].x + peakList[i].width,
-                'multiplicity': '', 'pattern': '',
-                'observe': frequency, 'nucleus': '1H',
-                'integralData': {
-                    'from': peakList[i].x - peakList[i].width * 3,
-                    'to': peakList[i].x + peakList[i].width * 3
+            signal1D = {
+                nbPeaks: 1, units: 'PPM',
+                startX: peakList[i].x - peakList[i].width,
+                stopX: peakList[i].x + peakList[i].width,
+                multiplicity: '', pattern: '',
+                observe: frequency, nucleus: spectrum.getNucleus(1),
+                integralData: {
+                    from: peakList[i].x - peakList[i].width * 3,
+                    to: peakList[i].x + peakList[i].width * 3
                 },
-                'peaks': []};
-            signal1D.peaks.push({x: peakList[i].x, 'intensity': peakList[i].y, width: peakList[i].width});
+                peaks: [{x: peakList[i].x, 'intensity': peakList[i].y, width: peakList[i].width}]
+            };
             signals.push(signal1D);
         } else {
             var tmp = peakList[i].x + peakList[i].width;
             signal1D.stopX = Math.max(signal1D.stopX, tmp);
-            tmp = peakList[i].x - peakList[i].width;
             signal1D.startX = Math.min(signal1D.startX, tmp);
             signal1D.nbPeaks++;
             signal1D.peaks.push({x: peakList[i].x, intensity: peakList[i].y, width: peakList[i].width});
@@ -215,11 +207,11 @@ function detectSignals(spectrum, peakList, options = {}) {
         }
         signals[i].delta1 = cs / sum;
 
-        if (integralType === 'sum') {
+        if (integralType === 'sum')
             integral.value = spectrum.getArea(integral.from, integral.to);
-        } else {
+        else
             integral.value = sum;
-        }
+
         spectrumIntegral += integral.value;
 
     }
