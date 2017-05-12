@@ -1,8 +1,5 @@
 'use strict';
 
-//const JAnalyzer = require('./../peakPicking/JAnalyzer');
-// const peakPicking = require('../peakPicking/peakPicking');
-// const peaks2Ranges = require('../peakPicking/peaks2Ranges');
 const acs = require('./acs/acs');
 const peak2Vector = require('./peak2Vector');
 const GUI = require('./visualizer/index');
@@ -24,16 +21,16 @@ class Ranges extends Array {
 
     /**
      * This function return a Range instance from predictions
-     * @param {object} predictions - predictions of a spin system
+     * @param {object} signals - predictions of a spin system
      * @param {object} options - options object
      * @param {number} [options.lineWidth] - spectral line width
      * @param {number} [options.frequency] - frequency to determine the [from, to] of a range
      * @return {Ranges}
      */
-    static fromSignals(predictions, options) {
+    static fromSignals(signals, options) {
         options = Object.assign({}, {lineWidth: 1, frequency: 400, nucleus: '1H'}, options);
         //1. Collapse all the equivalent predictions
-        const nPredictions = predictions.length;
+        const nPredictions = signals.length;
         const ids = new Array(nPredictions);
         var i,
             j,
@@ -43,10 +40,10 @@ class Ranges extends Array {
             center,
             jc;
         for (i = 0; i < nPredictions; i++) {
-            if (!ids[predictions[i].diaIDs[0]]) {
-                ids[predictions[i].diaIDs[0]] = [i];
+            if (!ids[signals[i].diaIDs[0]]) {
+                ids[signals[i].diaIDs[0]] = [i];
             } else {
-                ids[predictions[i].diaIDs[0]].push(i);
+                ids[signals[i].diaIDs[0]].push(i);
             }
         }
         const idsKeys = Object.keys(ids);
@@ -54,7 +51,7 @@ class Ranges extends Array {
 
         for (i = 0; i < idsKeys.length; i++) {
             diaIDs = ids[idsKeys[i]];
-            prediction = predictions[diaIDs[0]];
+            prediction = signals[diaIDs[0]];
             width = 0;
             jc = prediction.j;
             if (jc) {
@@ -71,15 +68,15 @@ class Ranges extends Array {
                 from: prediction.delta - width,
                 to: prediction.delta + width,
                 integral: prediction.integral,
-                signal: [predictions[diaIDs[0]]]
+                signal: [signals[diaIDs[0]]]
             };
 
             result[i].multiplicity = '';
 
             for (var k = 1; k < diaIDs.length; k++) {
-                result[i].signal.push(predictions[diaIDs[k]]);
-                for (var kk = 0; kk < predictions[diaIDs[k]].j.length; kk++) {
-                    result[i].multiplicity += predictions[diaIDs[k]].j[kk].multiplicity;
+                result[i].signal.push(signals[diaIDs[k]]);
+                for (var kk = 0; kk < signals[diaIDs[k]].j.length; kk++) {
+                    result[i].multiplicity += signals[diaIDs[k]].j[kk].multiplicity;
                 }
                 result[i].integral++;
             }
@@ -90,7 +87,6 @@ class Ranges extends Array {
             result[i]._highlight = result[i].signal[0].diaIDs;
             center = (result[i].from + result[i].to) / 2;
             width = Math.abs(result[i].from - result[i].to);
-            //result[i].multiplicity = result[i].signal[0].multiplicity;
             for (j = result.length - 1; j > i; j--) {
                 //Does it overlap?
                 if (Math.abs(center - (result[j].from + result[j].to) / 2)
@@ -132,7 +128,6 @@ class Ranges extends Array {
             integralType: 'sum',
             optimize: true,
             idPrefix: '',
-            format: 'new',
             frequencyCluster: 16,
         }, opt);
 
