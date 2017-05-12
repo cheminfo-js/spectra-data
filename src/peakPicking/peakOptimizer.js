@@ -223,7 +223,7 @@ function exist(output, properties, signal, type, symmetricSearch) {
     return -1;
 }
 /**
- * We try to determine the position of each signal within the spectrum matrix.
+ * Try to determine the position of each signal within the spectrum matrix.
  * Peaks could be of 3 types: upper diagonal, diagonal or under diagonal 1,0,-1
  * respectively.
  * @param {Array} signals
@@ -237,9 +237,6 @@ function initializeProperties(signals) {
 		//We check if it is a diagonal peak
         if (Math.abs(signals[i].shiftX - signals[i].shiftY) <= diagonalError) {
             signalsProperties[i][1] = 1;
-			//We adjust the x and y value to be symmetric.
-			//In general chemical shift in the direct dimension is better than in the other one,
-			//so, we believe more to the shiftX than to the shiftY.
             var shift = (signals[i].shiftX * 2 + signals[i].shiftY) / 3.0;
             signals[i].shiftX = shift;
             signals[i].shiftY = shift;

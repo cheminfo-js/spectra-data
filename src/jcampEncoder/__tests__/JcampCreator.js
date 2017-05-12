@@ -1,7 +1,4 @@
 'use strict';
-/**
- * Created by acastillo on 3/3/16.
- */
 
 var Data = require('../../..');
 var FS = require('fs');

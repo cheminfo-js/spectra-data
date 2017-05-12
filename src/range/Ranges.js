@@ -125,7 +125,7 @@ class Ranges extends Array {
     static fromSpectrum(spectrum, opt) {
         this.options = Object.assign({}, {
             nH: 99,
-            clean: true,
+            clean: 0.5,
             realTop: false,
             thresholdFactor: 1,
             compile: true,

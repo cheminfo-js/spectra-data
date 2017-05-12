@@ -901,10 +901,8 @@ class SD {
                 return this.mf.replace(/.*C([0-9]+).*/, '$1') * 1;
             }
         } else {
-                //throw "Could not determine the totalIntegral";
             return 100;
         }
-
         return 1;
     }
 
@@ -922,26 +920,27 @@ class SD {
 
     /**
      * this function create a new peakPicking
-     * @param {object} parameters - parameters to calculation of peakPicking
+     * @param {object} options - parameters to calculation of peakPicking
      * @return {*}
      */
-    createPeaks(parameters) {
-        this.peaks = null;
-        this.peaks = this.getPeaks(parameters);
+    createPeaks(options) {
+        this.peaks = peakPicking(this, options);
         return this.peaks;
     }
 
     /**
      * this function return the peak table or extract the peak of the spectrum.
-     * @param {object} parameters - parameters to calculation of peakPicking
+     * @param {object} options - parameters to calculation of peakPicking
      * @return {*}
      */
-    getPeaks(parameters) {
+    getPeaks(options) {
+        let peaks;
         if (this.peaks) {
-            return this.peaks;
+            peaks = this.peaks;
         } else {
-            return peakPicking(this, parameters);
+            peaks = peakPicking(this, options);
         }
+        return peaks;
     }
 
     /*autoAssignment(options) {

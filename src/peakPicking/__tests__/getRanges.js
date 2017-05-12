@@ -23,7 +23,6 @@ for (var i = 0; i < NbPoints; i++) {
 var spectrum = NMR.fromXY(x, line, {});
 var options = {noiseLevel: 0.1,
     thresholdFactor: 1,
-    clean: false,
     compile: true,
     optimize: true,
     integralType: 'sum',
@@ -34,8 +33,7 @@ var options = {noiseLevel: 0.1,
         functionType: 'lorentzian',
         broadRatio: 0,
         sgOptions: {windowSize: 9, polynomial: 3}
-    },
-    format: 'new'
+    }
 };
 
 var peakPicking = spectrum.getRanges(options);

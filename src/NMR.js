@@ -372,20 +372,20 @@ class NMR extends SD {
     /**
      * This function process the given spectraData and tries to determine the NMR signals. Returns an NMRSignal1D array
      * containing all the detected 1D-NMR Signals
-     * @param {object} parameters - A JSONObject containing the optional parameters:
+     * @param {object} options - A JSONObject containing the optional parameters:
      * @option fromX:   Lower limit.
      * @option toX:     Upper limit.
      * @option threshold: The minimum intensity to consider a peak as a signal, expressed as a percentage of the highest peak.
      * @option stdev: Number of standard deviation of the noise for the threshold calculation if a threshold is not specified.
      * @return {*}
      */
-    getRanges(parameters) {
+    getRanges(options) {
         if (this.ranges) {
             return this.ranges;
         } else {
-            var peaks = this.getPeaks(parameters);
-            parameters = Object.assign({}, {nH: this.totalIntegral}, parameters);
-            var ranges = peaks2Ranges(this, peaks, parameters);
+            var peaks = this.getPeaks(options);
+            options = Object.assign({}, {nH: this.totalIntegral}, options);
+            var ranges = peaks2Ranges(this, peaks, options);
             return ranges;
         }
     }
@@ -393,17 +393,17 @@ class NMR extends SD {
     /**
      * This function compute again the process of the given spectraData and tries to determine the NMR signals.
      * Returns an NMRSignal1D array containing all the detected 1D-NMR Signals
-     * @param {object} parameters - A JSONObject containing the optional parameters:
+     * @param {object} options - A JSONObject containing the optional parameters:
      * @option fromX:   Lower limit.
      * @option toX:     Upper limit.
      * @option threshold: The minimum intensity to consider a peak as a signal, expressed as a percentage of the highest peak.
      * @option stdev: Number of standard deviation of the noise for the threshold calculation if a threshold is not specified.
      * @return {null|*}
      */
-    createRanges(parameters) {
+    createRanges(options) {
         this.ranges = null;
         this.peaks = null;
-        this.ranges = this.getRanges(parameters);
+        this.ranges = this.getRanges(options);
         return this.ranges;
     }
 
