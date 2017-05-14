@@ -22,7 +22,7 @@ function peak2Vector(peaks, options = {}) {
     } = options;
 
     var factor;
-    if (!from) {
+    if (from === null) {
         from = Number.MAX_VALUE;
         for (let i = 0; i < peaks.length; i++) {
             factor = peaks[i].x - peaks[i].width * nWidth;
@@ -31,7 +31,7 @@ function peak2Vector(peaks, options = {}) {
             }
         }
     }
-    if (!to) {
+    if (to === null) {
         to = Number.MIN_VALUE;
         for (let i = 0; i < peaks.length; i++) {
             factor = peaks[i].x + peaks[i].width * nWidth;
@@ -49,12 +49,13 @@ function peak2Vector(peaks, options = {}) {
         y[i] = 0;
     }
 
-    var intensity = peaks[0].y ? 'y' : 'intensity';
+    var intensity = peaks[0].y ? 'y' : 'intensity'; //this part I am not sure if it's usefull
 
     var functionToUse;
-    switch (functionName) {
+    switch (functionName.toLowerCase()) {
         case 'lorentzian':
             functionToUse = lorentzian;
+            console.log('funciona');
             break;
         default:
             functionToUse = gaussian;

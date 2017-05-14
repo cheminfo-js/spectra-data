@@ -78,7 +78,8 @@ function createRanges(spectrum, peakList, options) {
             }
         }
         // it was a updateIntegrals function.
-        var sumIntegral = 0, sumObserved = 0;
+        var sumIntegral = 0,
+            sumObserved = 0;
         for (i = 0; i < signals.length; i++) {
             sumObserved += Math.round(signals[i].integralData.value);
         }

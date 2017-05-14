@@ -247,7 +247,7 @@ class NMR extends SD {
      * @return {NMR} this object
      */
     brukerFilter() {
-        return Filters.digitalFilter(this, {'brukerFilter': true});
+        return Filters.digitalFilter(this, {brukerFilter: true});
     }
 
     /**
@@ -278,8 +278,8 @@ class NMR extends SD {
      * @return {NMR} this object
      */
     apodization(functionName, lineBroadening) {
-        return Filters.apodization(this, {'functionName': functionName,
-            'lineBroadening': lineBroadening});
+        return Filters.apodization(this, {functionName: functionName,
+            lineBroadening: lineBroadening});
 
     }
 

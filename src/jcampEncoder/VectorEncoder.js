@@ -15,7 +15,12 @@ const pseudoDigits = [['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
               ['%', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r'],
               [' ', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 's']];
 
-const SQZ_P = 1, SQZ_N = 2, DIF_P = 3, DIF_N = 4, DUP = 5, MaxLinelength = 100;
+const SQZ_P = 1,
+    SQZ_N = 2,
+    DIF_P = 3,
+    DIF_N = 4,
+    DUP = 5,
+    MaxLinelength = 100;
 
 /**
  * This function encodes the given vector. The encoding format is specified by the
@@ -71,7 +76,9 @@ function fixEncoding(data, firstX, intervalX, separator) {
         separator = ' ';
     }
     var outputData = '';
-    var j = 0, TD = data.length, i;
+    var j = 0,
+        TD = data.length,
+        i;
     while (j < TD - 7) {
         outputData += Math.ceil(firstX + j * intervalX);
         for (i = 0; i < 8; i++) {
@@ -98,7 +105,9 @@ function fixEncoding(data, firstX, intervalX, separator) {
  */
 function packedEncoding(data, firstX, intervalX) {
     var outputData = '';
-    var j = 0, TD = data.length, i;
+    var j = 0,
+        TD = data.length,
+        i;
 
     while (j < TD - 7) {
         outputData += Math.ceil(firstX + j * intervalX);
@@ -137,7 +146,9 @@ function packedEncoding(data, firstX, intervalX) {
 function squeezedEncoding(data, firstX, intervalX) {
     var outputData = '';
     //String outputData = new String();
-    var j = 0, TD = data.length, i;
+    var j = 0,
+        TD = data.length,
+        i;
 
     while (j < TD - 10) {
         outputData += Math.ceil(firstX + j * intervalX);
@@ -166,9 +177,14 @@ function squeezedEncoding(data, firstX, intervalX) {
  * @return {string}
  */
 function differenceDuplicateEncoding(data, firstX, intervalX) {
-    var mult = 0, index = 0, charCount = 0, i;
+    var mult = 0,
+        index = 0,
+        charCount = 0,
+        i;
     //We built a string where we store the encoded data.
-    var encodData = '', encodNumber = '', temp = '';
+    var encodData = '',
+        encodNumber = '',
+        temp = '';
 
     //We calculate the differences vector
     var diffData = new Array(data.length - 1);
@@ -231,11 +247,14 @@ function differenceDuplicateEncoding(data, firstX, intervalX) {
  * @return {string}
  */
 function differenceEncoding(data, firstX, intervalX) {
-    var index = 0, charCount = 0, i;
+    var index = 0,
+        charCount = 0,
+        i;
 
     var encodData = '';
     //String encodData = new String();
-    var encodNumber = '', temp = '';
+    var encodNumber = '',
+        temp = '';
 
     //We calculate the differences vector
     var diffData = new Array(data.length - 1);

@@ -99,7 +99,8 @@ function completeMissingIfNeeded(output, properties, thisSignal, thisProp) {
 	//Check for symmetry
     var index = exist(output, properties, thisSignal, -thisProp[0], true);
     var addedPeaks = 0;
-    var newSignal = null, tmpProp = null;
+    var newSignal = null,
+        tmpProp = null;
     if (index < 0) {//If this signal have no a symmetry image, we have to include it
         newSignal = {nucleusX: thisSignal.nucleusX, nucleusY: thisSignal.nucleusY};
         newSignal.resolutionX = thisSignal.resolutionX;
@@ -114,7 +115,8 @@ function completeMissingIfNeeded(output, properties, thisSignal, thisProp) {
     }
 	//Check for diagonal peaks
     var j = 0;
-    var diagX = false, diagY = false;
+    var diagX = false,
+        diagY = false;
     var signal;
     for (j = output.length - 1; j >= 0; j--) {
         signal = output[j];
@@ -157,8 +159,11 @@ function completeMissingIfNeeded(output, properties, thisSignal, thisProp) {
 
 //Check for any diagonal peak that match this cross peak
 function checkCrossPeaks(output, properties, signal, updateProperties) {
-    var hits = 0, i = 0, shift = signal.shiftX * 4;
-    var crossPeaksX = [], crossPeaksY = [];
+    var hits = 0,
+        i = 0,
+        shift = signal.shiftX * 4;
+    var crossPeaksX = [],
+        crossPeaksY = [];
     var cross;
     for (i = output.length - 1; i >= 0; i--) {
         cross = output[i];
@@ -272,7 +277,9 @@ function distanceTo(a, b, toImage) {
 
 function alignSingleDimension(signals2D, references) {
 	//For each 2D signal
-    var center = 0, width = 0, i, j;
+    var center = 0,
+        width = 0,
+        i, j;
     for (i = 0; i < signals2D.length; i++) {
         var signal2D = signals2D[i];
 		//For each reference 1D signal

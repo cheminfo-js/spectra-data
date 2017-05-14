@@ -222,12 +222,11 @@ class Ranges extends Array {
      * @param {object} options - options object for toIndex function
      * @return {Array} [{delta, multiplicity},...]
      */
-    toIndex(options) {
+    toIndex(options = {}) {
         var index = [];
-
         if (options.compactPattern) this.joinCouplings(options);
 
-        for (var range of this) {
+        for (let range of this) {
             if (Array.isArray(range.signal) && range.signal.length > 0) {
                 for (let s of range.signal) {
                     index.push({

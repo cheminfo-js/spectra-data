@@ -24,6 +24,7 @@ var spectrum = NMR.fromXY(x, line, {});
 var options = {noiseLevel: 0.1,
     thresholdFactor: 1,
     compile: true,
+    clean: 0.5,
     optimize: true,
     integralType: 'sum',
     nH: 3,
@@ -52,7 +53,7 @@ function xRange(start, end, NbPoints) {
     return a;
 }
 
-describe('getRanges test with two gaussians', function () {
+describe.only('getRanges test with two gaussians', function () {
     it('sum of integral is correct', function () {
         totalIntegral.should.equal(options.nH);
     });
