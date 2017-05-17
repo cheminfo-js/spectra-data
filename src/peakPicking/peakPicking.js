@@ -27,16 +27,18 @@ const defaultOptions = {
     minMaxRatio: 0.01,
     broadRatio: 0.00025,
     smoothY: true,
-    nL: 4,
-    functionType: 'gaussian',
+    widthFactor: 4,
+    functionName: 'gaussian',
     broadWidth: 0.25,
     sgOptions: {windowSize: 9, polynomial: 3}
 };
 
 
 function extractPeaks(spectrum, options = {}) {
-    options = Object.assign({}, defaultOptions, options);
-    var noiseLevel = Math.abs(spectrum.getNoiseLevel()) * (options.thresholdFactor);
+    options = Object.assign({}, defaultOptions, options, {optimize: false, broadWidth: false});
+    var noiseLevel = options.noiseLevel ||
+        Math.abs(spectrum.getNoiseLevel()) * (options.thresholdFactor);
+
     var data = spectrum.getXYData();
 
     if (options.from && options.to) {
@@ -48,7 +50,7 @@ function extractPeaks(spectrum, options = {}) {
         peakList = GSD.post.joinBroadPeaks(peakList, {width: options.broadWidth});
     }
     if (options.optimize) {
-        peakList = GSD.post.optimizePeaks(peakList, data[0], data[1], options.nL, options.functionType);
+        peakList = GSD.post.optimizePeaks(peakList, data[0], data[1], options);
     }
 
     return clearList(peakList, noiseLevel);
@@ -62,7 +64,7 @@ function extractPeaks(spectrum, options = {}) {
  * @private
  */
 function clearList(peakList, threshold) {
-    for (var i = peakList.length - 1; i >= 0; i--) {
+    for (var i = 0, l = peakList.length; i < l; i++) {
         if (Math.abs(peakList[i].y) < threshold) {
             peakList.splice(i, 1);
         }

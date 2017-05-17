@@ -35,10 +35,10 @@ describe('Range tests: formating and parsing', function () {
         fn.x[fn.x.length - 1].should.approximately(7.318545497368789, 0.005);
         fn.y[0].should.greaterThan(0);
         fn.y.length.should.equal(16384);
-        fn = ranges.getVector({from: 10, to: 0, functionName: 'Lorentzian', nbPoints: 1024});
+        fn = ranges.getVector({from: 10, to: 0, functionName: 'Lorentzian', nbPoints: 101});
         fn.x[0].should.equal(10);
         fn.x[fn.x.length - 1].should.equal(0);
-        fn.x.length.should.equal(1024);
+        fn.x.length.should.equal(101);
     });
 
     it('ranges to peaks', function () {
@@ -92,12 +92,12 @@ describe('toIndex Test Case from differents sources', function () {
 
     it('from Spectrum', function () {
         var NbPoints = 101;
-        var cs1 = 2,
-            intensity = 1,
-            w = 0.1,
-            cs2 = 8,
-            intensity2 = intensity * 2,
-            w2 = w;
+        var cs1 = 2;
+        var intensity = 1;
+        var w = 0.1;
+        var cs2 = 8;
+        var intensity2 = intensity * 2;
+        var w2 = w;
 
         var line = new Array(NbPoints);
         var x = xRange(0, 10, NbPoints);

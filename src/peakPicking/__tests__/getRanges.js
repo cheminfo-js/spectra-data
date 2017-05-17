@@ -31,7 +31,7 @@ var options = {noiseLevel: 0.1,
     frequencyCluster: 16,
     gsdOptions: {nL: 4, smoothY: false, minMaxRatio: 0.05, broadWidth: 0.2,
         noiseLevel: 0.1,
-        functionType: 'lorentzian',
+        functionName: 'lorentzian',
         broadRatio: 0,
         sgOptions: {windowSize: 9, polynomial: 3}
     }
@@ -53,7 +53,7 @@ function xRange(start, end, NbPoints) {
     return a;
 }
 
-describe.only('getRanges test with two gaussians', function () {
+describe('getRanges test with two gaussians', function () {
     it('sum of integral is correct', function () {
         totalIntegral.should.equal(options.nH);
     });

@@ -49,13 +49,12 @@ function peak2Vector(peaks, options = {}) {
         y[i] = 0;
     }
 
-    var intensity = peaks[0].y ? 'y' : 'intensity'; //this part I am not sure if it's usefull
+    var intensity = peaks[0].y ? 'y' : 'intensity';
 
     var functionToUse;
     switch (functionName.toLowerCase()) {
         case 'lorentzian':
             functionToUse = lorentzian;
-            console.log('funciona');
             break;
         default:
             functionToUse = gaussian;
