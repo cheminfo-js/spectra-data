@@ -331,7 +331,7 @@ class NMR2D extends SD {
      * @return {NMR2D} this object
      */
     brukerFilter() {
-        return Filters.digitalFilter(this, {'brukerFilter': true});
+        return Filters.digitalFilter(this, {brukerFilter: true});
     }
 
     /**

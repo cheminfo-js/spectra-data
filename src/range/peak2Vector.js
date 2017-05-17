@@ -11,32 +11,35 @@
  * @param {number} [options.nbPoints] - number of points that the vector will have
  * @return {{x: Array, y: Array}}
  */
-function peak2Vector(peaks, options) {
-    options = options || {};
-    var from = options.from;
-    var to = options.to;
-    var nbPoints = options.nbPoints || 16 * 1024;
-    var fnName = options.fnName || 'gaussian';
-    var nWidth = options.nWidth || 4;
 
-    if (!from) {
+function peak2Vector(peaks, options = {}) {
+    var {
+        from = null,
+        to = null,
+        nbPoints = 16384,
+        functionName = '',
+        nWidth = 4
+    } = options;
+
+    var factor;
+    if (from === null) {
         from = Number.MAX_VALUE;
         for (let i = 0; i < peaks.length; i++) {
-            if (peaks[i].x - peaks[i].width * nWidth < from) {
-                from = peaks[i].x - peaks[i].width * nWidth;
+            factor = peaks[i].x - peaks[i].width * nWidth;
+            if (factor < from) {
+                from = factor;
             }
         }
     }
-
-    if (!to) {
+    if (to === null) {
         to = Number.MIN_VALUE;
         for (let i = 0; i < peaks.length; i++) {
-            if (peaks[i].x + peaks[i].width * nWidth > to) {
-                to = peaks[i].x + peaks[i].width * nWidth;
+            factor = peaks[i].x + peaks[i].width * nWidth;
+            if (factor > to) {
+                to = factor;
             }
         }
     }
-
 
     var x = new Array(nbPoints);
     var y = new Array(nbPoints);
@@ -46,9 +49,15 @@ function peak2Vector(peaks, options) {
         y[i] = 0;
     }
 
-    var intensity = 'intensity';
-    if (peaks[0].y) {
-        intensity = 'y';
+    var intensity = peaks[0].y ? 'y' : 'intensity';
+
+    var functionToUse;
+    switch (functionName.toLowerCase()) {
+        case 'lorentzian':
+            functionToUse = lorentzian;
+            break;
+        default:
+            functionToUse = gaussian;
     }
 
     for (let i = 0; i < peaks.length; i++) {
@@ -56,27 +65,24 @@ function peak2Vector(peaks, options) {
         if (peak.x > from && peak.x < to) {
             var index = Math.round((peak.x - from) / dx);
             var w = Math.round(peak.width * nWidth / dx);
-            if (fnName === 'gaussian') {
-                for (var j = index - w; j < index + w; j++) {
-                    if (j >= 0 && j < nbPoints) {
-                        y[j] += peak[intensity] * Math.exp(-0.5 * Math.pow((peak.x - x[j]) / (peak.width / 2), 2));
-                    }
-                }
-            } else {
-                var factor = peak[intensity] * Math.pow(peak.width, 2) / 4;
-                for (let j = index - w; j < index + w; j++) {
-                    if (j >= 0 && j < nbPoints) {
-                        y[j] += factor / (Math.pow(peak.x - x[j], 2) + Math.pow(peak.width / 2, 2));
-
-                    }
+            for (var j = index - w; j < index + w; j++) {
+                if (j >= 0 && j < nbPoints) {
+                    y[j] += functionToUse(peak[intensity], x[j], peak.width, peak.x);
                 }
             }
-
         }
+    }
+
+    function lorentzian(intensity, x, width, mean) {
+        var factor = intensity * Math.pow(width, 2) / 4;
+        return factor / (Math.pow(mean - x, 2) + Math.pow(width / 2, 2));
+    }
+
+    function gaussian(intensity, x, width, mean) {
+        return intensity * Math.exp(-0.5 * Math.pow((mean - x) / (width / 2), 2));
     }
 
     return {x: x, y: y};
 }
 
 module.exports = peak2Vector;
-

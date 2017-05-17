@@ -397,8 +397,8 @@ class SD {
      * @return {number}
      */
     getNoiseLevel() {
-        var stddev = StatArray.robustMeanAndStdev(this.getYData()).stdev;
-        return stddev * this.getNMRPeakThreshold(this.getNucleus(1));
+        var median = StatArray.median(this.getYData());
+        return median * this.getNMRPeakThreshold(this.getNucleus(1));
     }
 
     /**
@@ -423,7 +423,10 @@ class SD {
         if (this.isDataClassXY()) {
             return Math.round((this.getFirstX() - inValue) * (-1.0 / this.getDeltaX()));
         } else if (this.isDataClassPeak()) {
-            var currentArrayPoint = 0, upperLimit = this.getNbPoints() - 1, lowerLimit = 0, midPoint;
+            var currentArrayPoint = 0;
+            var upperLimit = this.getNbPoints() - 1;
+            var lowerLimit = 0;
+            var midPoint;
             //If inverted scale
             if (this.getFirstX() > this.getLastX()) {
                 upperLimit = 0;
@@ -505,8 +508,8 @@ class SD {
      */
     yShift(value) {
         var y = this.getSpectrumData().y;
-        var length = this.getNbPoints(), i = 0;
-        for (i = 0; i < length; i++) {
+        var length = this.getNbPoints();
+        for (var i = 0; i < length; i++) {
             y[i] += value;
         }
         this.getSpectrum().firstY += value;
@@ -522,8 +525,8 @@ class SD {
         for (let i = 0; i < this.getNbSubSpectra(); i++) {
             this.setActiveElement(i);
             var x = this.getSpectrumData().x;
-            var length = this.getNbPoints(), j = 0;
-            for (j = 0; j < length; j++) {
+            var length = this.getNbPoints();
+            for (var j = 0; j < length; j++) {
                 x[j] += globalShift;
             }
 
@@ -612,7 +615,8 @@ class SD {
      */
     getMaxPeak() {
         var y = this.getSpectraDataY();
-        var max = y[0], index = 0;
+        var max = y[0];
+        var index = 0;
         for (var i = 0; i < y.length; i++) {
             if (max < y[i]) {
                 max = y[i];
@@ -901,10 +905,8 @@ class SD {
                 return this.mf.replace(/.*C([0-9]+).*/, '$1') * 1;
             }
         } else {
-                //throw "Could not determine the totalIntegral";
             return 100;
         }
-
         return 1;
     }
 
@@ -922,26 +924,27 @@ class SD {
 
     /**
      * this function create a new peakPicking
-     * @param {object} parameters - parameters to calculation of peakPicking
+     * @param {object} options - parameters to calculation of peakPicking
      * @return {*}
      */
-    createPeaks(parameters) {
-        this.peaks = null;
-        this.peaks = this.getPeaks(parameters);
+    createPeaks(options) {
+        this.peaks = peakPicking(this, options);
         return this.peaks;
     }
 
     /**
      * this function return the peak table or extract the peak of the spectrum.
-     * @param {object} parameters - parameters to calculation of peakPicking
+     * @param {object} options - parameters to calculation of peakPicking
      * @return {*}
      */
-    getPeaks(parameters) {
+    getPeaks(options) {
+        let peaks;
         if (this.peaks) {
-            return this.peaks;
+            peaks = this.peaks;
         } else {
-            return peakPicking(this, parameters);
+            peaks = peakPicking(this, options);
         }
+        return peaks;
     }
 
     /*autoAssignment(options) {

@@ -19,9 +19,11 @@ function rotate(array, shift) {
     }
 
     if (shift !== 0) {
-        var currentIndex = 0, nextIndex = shift;
+        var currentIndex = 0;
+        var nextIndex = shift;
         var toMove = nbPoints;
-        var current = array[currentIndex], next;
+        var current = array[currentIndex];
+        var next;
         var lastFirstIndex = shift;
         var direction = shift > 0 ? 1 : -1;
 

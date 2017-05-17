@@ -99,7 +99,8 @@ function completeMissingIfNeeded(output, properties, thisSignal, thisProp) {
 	//Check for symmetry
     var index = exist(output, properties, thisSignal, -thisProp[0], true);
     var addedPeaks = 0;
-    var newSignal = null, tmpProp = null;
+    var newSignal = null;
+    var tmpProp = null;
     if (index < 0) {//If this signal have no a symmetry image, we have to include it
         newSignal = {nucleusX: thisSignal.nucleusX, nucleusY: thisSignal.nucleusY};
         newSignal.resolutionX = thisSignal.resolutionX;
@@ -113,9 +114,9 @@ function completeMissingIfNeeded(output, properties, thisSignal, thisProp) {
         addedPeaks++;
     }
 	//Check for diagonal peaks
-    var j = 0;
-    var diagX = false, diagY = false;
-    var signal;
+    var j, signal;
+    var diagX = false;
+    var diagY = false;
     for (j = output.length - 1; j >= 0; j--) {
         signal = output[j];
         if (properties[j][0] === 0) {
@@ -157,10 +158,12 @@ function completeMissingIfNeeded(output, properties, thisSignal, thisProp) {
 
 //Check for any diagonal peak that match this cross peak
 function checkCrossPeaks(output, properties, signal, updateProperties) {
-    var hits = 0, i = 0, shift = signal.shiftX * 4;
-    var crossPeaksX = [], crossPeaksY = [];
+    var hits = 0;
+    var shift = signal.shiftX * 4;
+    var crossPeaksX = [];
+    var crossPeaksY = [];
     var cross;
-    for (i = output.length - 1; i >= 0; i--) {
+    for (var i = output.length - 1; i >= 0; i--) {
         cross = output[i];
         if (properties[i][0] !== 0) {
             if (Math.abs(cross.shiftX - signal.shiftX) < diagonalError) {
@@ -223,7 +226,7 @@ function exist(output, properties, signal, type, symmetricSearch) {
     return -1;
 }
 /**
- * We try to determine the position of each signal within the spectrum matrix.
+ * Try to determine the position of each signal within the spectrum matrix.
  * Peaks could be of 3 types: upper diagonal, diagonal or under diagonal 1,0,-1
  * respectively.
  * @param {Array} signals
@@ -237,9 +240,6 @@ function initializeProperties(signals) {
 		//We check if it is a diagonal peak
         if (Math.abs(signals[i].shiftX - signals[i].shiftY) <= diagonalError) {
             signalsProperties[i][1] = 1;
-			//We adjust the x and y value to be symmetric.
-			//In general chemical shift in the direct dimension is better than in the other one,
-			//so, we believe more to the shiftX than to the shiftY.
             var shift = (signals[i].shiftX * 2 + signals[i].shiftY) / 3.0;
             signals[i].shiftX = shift;
             signals[i].shiftY = shift;
@@ -275,10 +275,11 @@ function distanceTo(a, b, toImage) {
 
 function alignSingleDimension(signals2D, references) {
 	//For each 2D signal
-    var center = 0, width = 0, i, j;
+    var center = 0;
+    var width = 0;
+    var i, j;
     for (i = 0; i < signals2D.length; i++) {
         var signal2D = signals2D[i];
-		//For each reference 1D signal
         for (j = 0; j < references.length; j++) {
             center = (references[j].startX + references[j].stopX) / 2;
             width = Math.abs(references[j].startX - references[j].stopX) / 2;

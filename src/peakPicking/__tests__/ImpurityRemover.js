@@ -16,7 +16,7 @@ describe('spectra-data examples getRanges', function () {
             nH: 16,
             realTop: true,
             thresholdFactor: 1,
-            clean: true,
+            clean: 0.5,
             compile: true,
             idPrefix: '1H',
             removeImpurity: {solvent: 'DMSO', nH: 16}

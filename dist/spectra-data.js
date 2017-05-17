@@ -73,7 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 70);
+/******/ 	return __webpack_require__(__webpack_require__.s = 77);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -434,8 +434,8 @@ exports.extend = function() {
 "use strict";
 
 
-__webpack_require__(119);
-var abstractMatrix = __webpack_require__(45);
+__webpack_require__(123);
+var abstractMatrix = __webpack_require__(46);
 var util = __webpack_require__(7);
 
 class Matrix extends abstractMatrix(Array) {
@@ -691,7 +691,7 @@ exports.setTyped(TYPED_OK);
 "use strict";
 
 
-var abstractMatrix = __webpack_require__(45);
+var abstractMatrix = __webpack_require__(46);
 var Matrix = __webpack_require__(1);
 
 class BaseView extends abstractMatrix() {
@@ -2227,7 +2227,7 @@ else {
     }
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(28).Buffer))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(21).Buffer))
 
 /***/ }),
 /* 6 */
@@ -2236,8 +2236,8 @@ else {
 "use strict";
 
 
-exports.array = __webpack_require__(52);
-exports.matrix = __webpack_require__(139);
+exports.array = __webpack_require__(53);
+exports.matrix = __webpack_require__(143);
 
 
 /***/ }),
@@ -2397,7 +2397,7 @@ exports.sumAll = function sumAll(matrix) {
 
 
 module.exports = __webpack_require__(4);
-module.exports.Decompositions = module.exports.DC = __webpack_require__(134);
+module.exports.Decompositions = module.exports.DC = __webpack_require__(138);
 
 
 /***/ }),
@@ -2410,10 +2410,10 @@ module.exports.Decompositions = module.exports.DC = __webpack_require__(134);
 // http://jsperf.com/lp-array-and-loops/2
 
 const StatArray = __webpack_require__(6).array;
-const ArrayUtils = __webpack_require__(39);
-const JcampConverter = __webpack_require__(30);
-const JcampCreator = __webpack_require__(71);
-const peakPicking = __webpack_require__(75);
+const ArrayUtils = __webpack_require__(40);
+const JcampConverter = __webpack_require__(31);
+const JcampCreator = __webpack_require__(78);
+const peakPicking = __webpack_require__(82);
 
 const DATACLASS_XY = 1;
 const DATACLASS_PEAK = 2;
@@ -2802,8 +2802,8 @@ class SD {
      * @return {number}
      */
     getNoiseLevel() {
-        var stddev = StatArray.robustMeanAndStdev(this.getYData()).stdev;
-        return stddev * this.getNMRPeakThreshold(this.getNucleus(1));
+        var median = StatArray.median(this.getYData());
+        return median * this.getNMRPeakThreshold(this.getNucleus(1));
     }
 
     /**
@@ -3310,10 +3310,8 @@ class SD {
                 return this.mf.replace(/.*C([0-9]+).*/, '$1') * 1;
             }
         } else {
-            //throw "Could not determine the totalIntegral";
             return 100;
         }
-
         return 1;
     }
 
@@ -3331,26 +3329,27 @@ class SD {
 
     /**
      * this function create a new peakPicking
-     * @param {object} parameters - parameters to calculation of peakPicking
+     * @param {object} options - parameters to calculation of peakPicking
      * @return {*}
      */
-    createPeaks(parameters) {
-        this.peaks = null;
-        this.peaks = this.getPeaks(parameters);
+    createPeaks(options) {
+        this.peaks = peakPicking(this, options);
         return this.peaks;
     }
 
     /**
      * this function return the peak table or extract the peak of the spectrum.
-     * @param {object} parameters - parameters to calculation of peakPicking
+     * @param {object} options - parameters to calculation of peakPicking
      * @return {*}
      */
-    getPeaks(parameters) {
+    getPeaks(options) {
+        let peaks;
         if (this.peaks) {
-            return this.peaks;
+            peaks = this.peaks;
         } else {
-            return peakPicking(this, parameters);
+            peaks = peakPicking(this, options);
         }
+        return peaks;
     }
 
     /*autoAssignment(options) {
@@ -3471,7 +3470,7 @@ exports.STORE = {
     compressInputType: null,
     uncompressInputType: null
 };
-exports.DEFLATE = __webpack_require__(88);
+exports.DEFLATE = __webpack_require__(92);
 
 
 /***/ }),
@@ -3487,7 +3486,7 @@ module.exports.test = function(b){
     return Buffer.isBuffer(b);
 };
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(28).Buffer))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(21).Buffer))
 
 /***/ }),
 /* 13 */
@@ -3497,16 +3496,16 @@ module.exports.test = function(b){
 
 var support = __webpack_require__(5);
 var utils = __webpack_require__(0);
-var crc32 = __webpack_require__(86);
-var signature = __webpack_require__(35);
-var defaults = __webpack_require__(34);
+var crc32 = __webpack_require__(90);
+var signature = __webpack_require__(36);
+var defaults = __webpack_require__(35);
 var base64 = __webpack_require__(10);
 var compressions = __webpack_require__(11);
-var CompressedObject = __webpack_require__(32);
+var CompressedObject = __webpack_require__(33);
 var nodeBuffer = __webpack_require__(12);
-var utf8 = __webpack_require__(38);
-var StringWriter = __webpack_require__(92);
-var Uint8ArrayWriter = __webpack_require__(93);
+var utf8 = __webpack_require__(39);
+var StringWriter = __webpack_require__(96);
+var Uint8ArrayWriter = __webpack_require__(97);
 
 /**
  * Returns the raw data of a ZipObject, decompress the content if necessary.
@@ -4373,7 +4372,7 @@ module.exports = out;
 "use strict";
 
 
-const Heap = __webpack_require__(80);
+const Heap = __webpack_require__(86);
 
 function Cluster() {
     this.children = [];
@@ -4506,7 +4505,7 @@ exports.getFilled2DArray = function (rows, columns, value) {
 
 
 module.exports = __webpack_require__(1).Matrix;
-module.exports.Decompositions = module.exports.DC = __webpack_require__(118);
+module.exports.Decompositions = module.exports.DC = __webpack_require__(122);
 
 
 /***/ }),
@@ -4592,14 +4591,10 @@ module.exports = {
 "use strict";
 
 
-//const JAnalyzer = require('./../peakPicking/JAnalyzer');
-// const peakPicking = require('../peakPicking/peakPicking');
-// const peaks2Ranges = require('../peakPicking/peaks2Ranges');
-
-const acs = __webpack_require__(23);
-const peak2Vector = __webpack_require__(24);
-const GUI = __webpack_require__(78);
-const joinCoupling = __webpack_require__(25).joinCoupling;
+const acs = __webpack_require__(25);
+const peak2Vector = __webpack_require__(26);
+const GUI = __webpack_require__(85);
+const joinCoupling = __webpack_require__(27).joinCoupling;
 class Ranges extends Array {
 
     constructor(ranges) {
@@ -4617,23 +4612,23 @@ class Ranges extends Array {
 
     /**
      * This function return a Range instance from predictions
-     * @param {object} predictions - predictions of a spin system
+     * @param {object} signals - predictions of a spin system
      * @param {object} options - options object
      * @param {number} [options.lineWidth] - spectral line width
      * @param {number} [options.frequency] - frequency to determine the [from, to] of a range
      * @return {Ranges}
      */
-    static fromSignals(predictions, options) {
+    static fromSignals(signals, options) {
         options = Object.assign({}, { lineWidth: 1, frequency: 400, nucleus: '1H' }, options);
         //1. Collapse all the equivalent predictions
-        const nPredictions = predictions.length;
+        const nPredictions = signals.length;
         const ids = new Array(nPredictions);
         var i, j, diaIDs, prediction, width, center, jc;
         for (i = 0; i < nPredictions; i++) {
-            if (!ids[predictions[i].diaIDs[0]]) {
-                ids[predictions[i].diaIDs[0]] = [i];
+            if (!ids[signals[i].diaIDs[0]]) {
+                ids[signals[i].diaIDs[0]] = [i];
             } else {
-                ids[predictions[i].diaIDs[0]].push(i);
+                ids[signals[i].diaIDs[0]].push(i);
             }
         }
         const idsKeys = Object.keys(ids);
@@ -4641,7 +4636,7 @@ class Ranges extends Array {
 
         for (i = 0; i < idsKeys.length; i++) {
             diaIDs = ids[idsKeys[i]];
-            prediction = predictions[diaIDs[0]];
+            prediction = signals[diaIDs[0]];
             width = 0;
             jc = prediction.j;
             if (jc) {
@@ -4658,15 +4653,15 @@ class Ranges extends Array {
                 from: prediction.delta - width,
                 to: prediction.delta + width,
                 integral: prediction.integral,
-                signal: [predictions[diaIDs[0]]]
+                signal: [signals[diaIDs[0]]]
             };
 
             result[i].multiplicity = '';
 
             for (var k = 1; k < diaIDs.length; k++) {
-                result[i].signal.push(predictions[diaIDs[k]]);
-                for (var kk = 0; kk < predictions[diaIDs[k]].j.length; kk++) {
-                    result[i].multiplicity += predictions[diaIDs[k]].j[kk].multiplicity;
+                result[i].signal.push(signals[diaIDs[k]]);
+                for (var kk = 0; kk < signals[diaIDs[k]].j.length; kk++) {
+                    result[i].multiplicity += signals[diaIDs[k]].j[kk].multiplicity;
                 }
                 result[i].integral++;
             }
@@ -4677,7 +4672,6 @@ class Ranges extends Array {
             result[i]._highlight = result[i].signal[0].diaIDs;
             center = (result[i].from + result[i].to) / 2;
             width = Math.abs(result[i].from - result[i].to);
-            //result[i].multiplicity = result[i].signal[0].multiplicity;
             for (j = result.length - 1; j > i; j--) {
                 //Does it overlap?
                 if (Math.abs(center - (result[j].from + result[j].to) / 2) <= Math.abs(width + Math.abs(result[j].from - result[j].to)) / 2) {
@@ -4711,14 +4705,13 @@ class Ranges extends Array {
     static fromSpectrum(spectrum, opt) {
         this.options = Object.assign({}, {
             nH: 99,
-            clean: true,
+            clean: 0.5,
             realTop: false,
             thresholdFactor: 1,
             compile: true,
             integralType: 'sum',
             optimize: true,
             idPrefix: '',
-            format: 'new',
             frequencyCluster: 16
         }, opt);
 
@@ -4812,9 +4805,8 @@ class Ranges extends Array {
      * @param {object} options - options object for toIndex function
      * @return {Array} [{delta, multiplicity},...]
      */
-    toIndex(options) {
+    toIndex(options = {}) {
         var index = [];
-
         if (options.compactPattern) this.joinCouplings(options);
 
         var _iteratorNormalCompletion = true;
@@ -4823,7 +4815,7 @@ class Ranges extends Array {
 
         try {
             for (var _iterator = this[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                var range = _step.value;
+                let range = _step.value;
 
                 if (Array.isArray(range.signal) && range.signal.length > 0) {
                     var _iteratorNormalCompletion2 = true;
@@ -4907,1415 +4899,6 @@ module.exports = Ranges;
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-
-module.exports.fourierTransform = __webpack_require__(66);
-module.exports.zeroFilling = __webpack_require__(69);
-module.exports.apodization = __webpack_require__(64);
-module.exports.phaseCorrection = __webpack_require__(67);
-module.exports.digitalFilter = __webpack_require__(65);
-
-/***/ }),
-/* 22 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var diagonalError = 0.05;
-var tolerance = 0.05;
-
-module.exports = {
-
-    clean: function clean(peaks, threshold) {
-        var max = Number.NEGATIVE_INFINITY;
-        var i;
-        //double min = Double.MAX_VALUE;
-        for (i = peaks.length - 1; i >= 0; i--) {
-            if (Math.abs(peaks[i].z) > max) {
-                max = Math.abs(peaks[i].z);
-            }
-        }
-        max *= threshold;
-        for (i = peaks.length - 1; i >= 0; i--) {
-            if (Math.abs(peaks[i].z) < max) {
-                peaks.splice(i, 1);
-            }
-        }
-        return peaks;
-    },
-
-    enhanceSymmetry: function enhanceSymmetry(signals) {
-
-        var properties = initializeProperties(signals);
-        var output = signals;
-
-        //First step of the optimization: Symmetry validation
-        var i, hits, index;
-        var signal;
-        for (i = output.length - 1; i >= 0; i--) {
-            signal = output[i];
-            if (signal.peaks.length > 1) {
-                properties[i][1]++;
-            }
-            if (properties[i][0] === 1) {
-                index = exist(output, properties, signal, -1, true);
-                if (index >= 0) {
-                    properties[i][1] += 2;
-                    properties[index][1] += 2;
-                }
-            }
-        }
-        //Second step of the optimization: Diagonal image existence
-        for (i = output.length - 1; i >= 0; i--) {
-            signal = output[i];
-            if (properties[i][0] === 0) {
-                hits = checkCrossPeaks(output, properties, signal, true);
-                properties[i][1] += hits;
-                //checkCrossPeaks(output, properties, signal, false);
-            }
-        }
-
-        //Now, each peak have a score between 0 and 4, we can complete the patterns which
-        //contains peaks with high scores, and finally, we can remove peaks with scores 0 and 1
-        var count = 0;
-        for (i = output.length - 1; i >= 0; i--) {
-            if (properties[i][0] !== 0 && properties[i][1] > 2) {
-                count++;
-                count += completeMissingIfNeeded(output, properties, output[i], properties[i]);
-            }
-            if (properties[i][1] >= 2 && properties[i][0] === 0) {
-                count++;
-            }
-        }
-
-        var toReturn = new Array(count);
-        count--;
-        for (i = output.length - 1; i >= 0; i--) {
-            if (properties[i][0] !== 0 && properties[i][1] > 2 || properties[i][0] === 0 && properties[i][1] > 1) {
-                toReturn[count--] = output[i];
-            }
-        }
-        return toReturn;
-    },
-
-    /**
-     * This function maps the corresponding 2D signals to the given set of 1D signals
-     * @param {Array} signals2D
-     * @param {Array} references
-     */
-    alignDimensions: function alignDimensions(signals2D, references) {
-        //For each reference dimension
-        for (var i = 0; i < references.length; i++) {
-            var ref = references[i];
-            if (ref) {
-                alignSingleDimension(signals2D, ref);
-            }
-        }
-    }
-};
-
-function completeMissingIfNeeded(output, properties, thisSignal, thisProp) {
-    //Check for symmetry
-    var index = exist(output, properties, thisSignal, -thisProp[0], true);
-    var addedPeaks = 0;
-    var newSignal = null,
-        tmpProp = null;
-    if (index < 0) {
-        //If this signal have no a symmetry image, we have to include it
-        newSignal = { nucleusX: thisSignal.nucleusX, nucleusY: thisSignal.nucleusY };
-        newSignal.resolutionX = thisSignal.resolutionX;
-        newSignal.resolutionY = thisSignal.resolutionY;
-        newSignal.shiftX = thisSignal.shiftY;
-        newSignal.shiftY = thisSignal.shiftX;
-        newSignal.peaks = [{ x: thisSignal.shiftY, y: thisSignal.shiftX, z: 1 }];
-        output.push(newSignal);
-        tmpProp = [-thisProp[0], thisProp[1]];
-        properties.push(tmpProp);
-        addedPeaks++;
-    }
-    //Check for diagonal peaks
-    var j = 0;
-    var diagX = false,
-        diagY = false;
-    var signal;
-    for (j = output.length - 1; j >= 0; j--) {
-        signal = output[j];
-        if (properties[j][0] === 0) {
-            if (Math.abs(signal.shiftX - thisSignal.shiftX) < diagonalError) {
-                diagX = true;
-            }
-            if (Math.abs(signal.shiftY - thisSignal.shiftY) < diagonalError) {
-                diagY = true;
-            }
-        }
-    }
-    if (diagX === false) {
-        newSignal = { nucleusX: thisSignal.nucleusX, nucleusY: thisSignal.nucleusY };
-        newSignal.resolutionX = thisSignal.resolutionX;
-        newSignal.resolutionY = thisSignal.resolutionY;
-        newSignal.shiftX = thisSignal.shiftX;
-        newSignal.shiftY = thisSignal.shiftX;
-        newSignal.peaks = [{ x: thisSignal.shiftX, y: thisSignal.shiftX, z: 1 }];
-        output.push(newSignal);
-        tmpProp = [0, thisProp[1]];
-        properties.push(tmpProp);
-        addedPeaks++;
-    }
-    if (diagY === false) {
-        newSignal = { nucleusX: thisSignal.nucleusX, nucleusY: thisSignal.nucleusY };
-        newSignal.resolutionX = thisSignal.resolutionX;
-        newSignal.resolutionY = thisSignal.resolutionY;
-        newSignal.shiftX = thisSignal.shiftY;
-        newSignal.shiftY = thisSignal.shiftY;
-        newSignal.peaks = [{ x: thisSignal.shiftY, y: thisSignal.shiftY, z: 1 }];
-        output.push(newSignal);
-        tmpProp = [0, thisProp[1]];
-        properties.push(tmpProp);
-        addedPeaks++;
-    }
-    return addedPeaks;
-}
-
-//Check for any diagonal peak that match this cross peak
-function checkCrossPeaks(output, properties, signal, updateProperties) {
-    var hits = 0,
-        i = 0,
-        shift = signal.shiftX * 4;
-    var crossPeaksX = [],
-        crossPeaksY = [];
-    var cross;
-    for (i = output.length - 1; i >= 0; i--) {
-        cross = output[i];
-        if (properties[i][0] !== 0) {
-            if (Math.abs(cross.shiftX - signal.shiftX) < diagonalError) {
-                hits++;
-                if (updateProperties) {
-                    properties[i][1]++;
-                }
-                crossPeaksX.push(i);
-                shift += cross.shiftX;
-            } else {
-                if (Math.abs(cross.shiftY - signal.shiftY) < diagonalError) {
-                    hits++;
-                    if (updateProperties) {
-                        properties[i][1]++;
-                    }
-                    crossPeaksY.push(i);
-                    shift += cross.shiftY;
-                }
-            }
-        }
-    }
-    //Update found crossPeaks and diagonal peak
-    shift /= crossPeaksX.length + crossPeaksY.length + 4;
-    if (crossPeaksX.length > 0) {
-        for (i = crossPeaksX.length - 1; i >= 0; i--) {
-            output[crossPeaksX[i]].shiftX = shift;
-        }
-    }
-    if (crossPeaksY.length > 0) {
-        for (i = crossPeaksY.length - 1; i >= 0; i--) {
-            output[crossPeaksY[i]].shiftY = shift;
-        }
-    }
-    signal.shiftX = shift;
-    signal.shiftY = shift;
-    return hits;
-}
-
-function exist(output, properties, signal, type, symmetricSearch) {
-    for (var i = output.length - 1; i >= 0; i--) {
-        if (properties[i][0] === type) {
-            if (distanceTo(signal, output[i], symmetricSearch) < tolerance) {
-                if (!symmetricSearch) {
-                    let shiftX = (output[i].shiftX + signal.shiftX) / 2.0;
-                    let shiftY = (output[i].shiftY + signal.shiftY) / 2.0;
-                    output[i].shiftX = shiftX;
-                    output[i].shiftY = shiftY;
-                    signal.shiftX = shiftX;
-                    signal.shiftY = shiftY;
-                } else {
-                    let shiftX = signal.shiftX;
-                    let shiftY = output[i].shiftX;
-                    output[i].shiftY = shiftX;
-                    signal.shiftY = shiftY;
-                }
-                return i;
-            }
-        }
-    }
-    return -1;
-}
-/**
- * We try to determine the position of each signal within the spectrum matrix.
- * Peaks could be of 3 types: upper diagonal, diagonal or under diagonal 1,0,-1
- * respectively.
- * @param {Array} signals
- * @return {*} A matrix containing the properties of each signal
- * @private
- */
-function initializeProperties(signals) {
-    var signalsProperties = new Array(signals.length);
-    for (var i = signals.length - 1; i >= 0; i--) {
-        signalsProperties[i] = [0, 0];
-        //We check if it is a diagonal peak
-        if (Math.abs(signals[i].shiftX - signals[i].shiftY) <= diagonalError) {
-            signalsProperties[i][1] = 1;
-            //We adjust the x and y value to be symmetric.
-            //In general chemical shift in the direct dimension is better than in the other one,
-            //so, we believe more to the shiftX than to the shiftY.
-            var shift = (signals[i].shiftX * 2 + signals[i].shiftY) / 3.0;
-            signals[i].shiftX = shift;
-            signals[i].shiftY = shift;
-        } else {
-            if (signals[i].shiftX - signals[i].shiftY > 0) {
-                signalsProperties[i][0] = 1;
-            } else {
-                signalsProperties[i][0] = -1;
-            }
-        }
-    }
-    return signalsProperties;
-}
-
-/**
- * This function calculates the distance between 2 nmr signals . If toImage is true,
- * it will interchange x by y in the distance calculation for the second signal.
- * @param {object} a
- * @param {object} b
- * @param {boolean} toImage
- * @return {number}
- * @private
- */
-function distanceTo(a, b, toImage) {
-    if (!toImage) {
-        return Math.sqrt(Math.pow(a.shiftX - b.shiftX, 2) + Math.pow(a.shiftY - b.shiftY, 2));
-    } else {
-        return Math.sqrt(Math.pow(a.shiftX - b.shiftY, 2) + Math.pow(a.shiftY - b.shiftX, 2));
-    }
-}
-
-function alignSingleDimension(signals2D, references) {
-    //For each 2D signal
-    var center = 0,
-        width = 0,
-        i,
-        j;
-    for (i = 0; i < signals2D.length; i++) {
-        var signal2D = signals2D[i];
-        //For each reference 1D signal
-        for (j = 0; j < references.length; j++) {
-            center = (references[j].startX + references[j].stopX) / 2;
-            width = Math.abs(references[j].startX - references[j].stopX) / 2;
-            if (signal2D.nucleusX === references[j].nucleus) {
-                //The 2D peak overlaps with the 1D signal
-                if (Math.abs(signal2D.shiftX - center) <= width) {
-                    signal2D._highlight.push(references[j]._highlight[0]);
-                }
-            }
-            if (signal2D.nucleusY === references[j].nucleus) {
-                if (Math.abs(signal2D.shiftY - center) <= width) {
-                    signal2D._highlight.push(references[j]._highlight[0]);
-                }
-            }
-        }
-    }
-}
-
-/***/ }),
-/* 23 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-/**
- * nbDecimalsDelta : default depends nucleus H, F: 2 otherwise 1
- * nbDecimalsJ : default depends nucleus H, F: 1, otherwise 0
- * ascending : true / false
- * format : default "AIMJ" or when 2D data is collected the default format may be "IMJA"
- * deltaSeparator : ', '
- * detailSeparator : ', '
- */
-
-const joinCoupling = __webpack_require__(25).joinCoupling;
-var globalOptions = {
-    h: {
-        nucleus: '1H',
-        nbDecimalDelta: 2,
-        nbDecimalJ: 1,
-        observedFrequency: 400
-    },
-    c: {
-        nucleus: '13C',
-        nbDecimalDelta: 1,
-        nbDecimalJ: 1,
-        observedFrequency: 100
-    },
-    f: {
-        nucleus: '19F',
-        nbDecimalDelta: 2,
-        nbDecimalJ: 1,
-        observedFrequency: 400
-    }
-};
-
-function toAcs(ranges, options = {}) {
-    var nucleus = (options.nucleus || '1H').toLowerCase().replace(/[0-9]/g, '');
-    var defaultOptions = globalOptions[nucleus];
-    options = Object.assign({}, defaultOptions, { ascending: false, format: 'IMJA' }, options);
-
-    ranges = ranges.clone();
-    if (options.ascending === true) {
-        ranges.sort((a, b) => {
-            let fromA = Math.min(a.from, a.to);
-            let fromB = Math.min(b.from, b.to);
-            return fromA - fromB;
-        });
-    }
-    var acsString = formatAcs(ranges, options);
-
-    if (acsString.length > 0) acsString += '.';
-
-    return acsString;
-}
-
-function formatAcs(ranges, options) {
-    var acs = spectroInformation(options);
-    if (acs.length === 0) acs = 'δ ';
-    var acsRanges = [];
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
-
-    try {
-        for (var _iterator = ranges[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-            let range = _step.value;
-
-            pushDelta(range, acsRanges, options);
-        }
-    } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
-    } finally {
-        try {
-            if (!_iteratorNormalCompletion && _iterator.return) {
-                _iterator.return();
-            }
-        } finally {
-            if (_didIteratorError) {
-                throw _iteratorError;
-            }
-        }
-    }
-
-    if (acsRanges.length > 0) {
-        return acs + acsRanges.join(', ');
-    } else {
-        return '';
-    }
-}
-
-function spectroInformation(options) {
-    let parenthesis = [];
-    let strings = formatNucleus(options.nucleus) + ' NMR';
-    if (options.solvent) {
-        parenthesis.push(formatMF(options.solvent));
-    }
-    if (options.frequencyObserved) {
-        parenthesis.push((options.frequencyObserved * 1).toFixed(0) + ' MHz');
-    }
-    if (parenthesis.length > 0) {
-        strings += ' (' + parenthesis.join(', ') + '): δ ';
-    } else {
-        strings += ': δ ';
-    }
-    return strings;
-}
-
-function pushDelta(range, acsRanges, options) {
-    var strings = '';
-    var parenthesis = [];
-    let fromTo = [range.from, range.to];
-    if (Array.isArray(range.signal) && range.signal.length > 0) {
-        var signals = range.signal;
-        if (signals.length > 1) {
-            if (options.ascending === true) {
-                signals.sort((a, b) => {
-                    return a.delta - b.delta;
-                });
-            }
-            strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
-            strings += ' (' + getIntegral(range, options);
-            var _iteratorNormalCompletion2 = true;
-            var _didIteratorError2 = false;
-            var _iteratorError2 = undefined;
-
-            try {
-                for (var _iterator2 = signals[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-                    let signal = _step2.value;
-
-                    parenthesis = [];
-                    if (signal.delta !== undefined) {
-                        strings = appendSeparator(strings);
-                        strings += signal.delta.toFixed(options.nbDecimalDelta);
-                    }
-                    switchFormat({}, signal, parenthesis, options);
-                    if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
-                }
-            } catch (err) {
-                _didIteratorError2 = true;
-                _iteratorError2 = err;
-            } finally {
-                try {
-                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
-                        _iterator2.return();
-                    }
-                } finally {
-                    if (_didIteratorError2) {
-                        throw _iteratorError2;
-                    }
-                }
-            }
-
-            strings += ')';
-        } else {
-            parenthesis = [];
-            if (signals[0].delta !== undefined) {
-                strings += signals[0].delta.toFixed(options.nbDecimalDelta);
-                switchFormat(range, signals[0], parenthesis, options);
-                if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
-            } else {
-                strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
-                switchFormat(range, signals[0], parenthesis, options);
-                if (parenthesis.length > 0) strings += ' (' + parenthesis + ')';
-            }
-        }
-    } else {
-        strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
-        switchFormat(range, [], parenthesis, options);
-        if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
-    }
-    acsRanges.push(strings);
-}
-
-function getIntegral(range, options) {
-    let integral = '';
-    if (range.pubIntegral) {
-        integral = range.pubIntegral;
-    } else if (range.integral) {
-        integral = range.integral.toFixed(0) + options.nucleus[options.nucleus.length - 1];
-    }
-    return integral;
-}
-
-function pushIntegral(range, parenthesis, options) {
-    let integral = getIntegral(range, options);
-    if (integral.length > 0) parenthesis.push(integral);
-}
-
-function pushMultiplicityFromSignal(signal, parenthesis) {
-    let multiplicity = signal.multiplicity || joinCoupling(signal, 0.05);
-    if (multiplicity.length > 0) parenthesis.push(multiplicity);
-}
-
-function switchFormat(range, signal, parenthesis, options) {
-    var _iteratorNormalCompletion3 = true;
-    var _didIteratorError3 = false;
-    var _iteratorError3 = undefined;
-
-    try {
-        for (var _iterator3 = options.format[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-            const char = _step3.value;
-
-            switch (char.toUpperCase()) {
-                case 'I':
-                    pushIntegral(range, parenthesis, options);
-                    break;
-                case 'M':
-                    pushMultiplicityFromSignal(signal, parenthesis);
-                    break;
-                case 'A':
-                    pushAssignment(signal, parenthesis);
-                    break;
-                case 'J':
-                    pushCoupling(signal, parenthesis, options);
-                    break;
-                default:
-                    throw new Error('Unknow format letter: ' + char);
-            }
-        }
-    } catch (err) {
-        _didIteratorError3 = true;
-        _iteratorError3 = err;
-    } finally {
-        try {
-            if (!_iteratorNormalCompletion3 && _iterator3.return) {
-                _iterator3.return();
-            }
-        } finally {
-            if (_didIteratorError3) {
-                throw _iteratorError3;
-            }
-        }
-    }
-}
-
-function formatMF(mf) {
-    return mf.replace(/([0-9]+)/g, '<sub>$1</sub>');
-}
-
-function formatNucleus(nucleus) {
-    return nucleus.replace(/([0-9]+)/g, '<sup>$1</sup>');
-}
-
-function appendSeparator(strings) {
-    if (strings.length > 0 && !strings.match(/ $/) && !strings.match(/\($/)) {
-        strings += ', ';
-    }
-    return strings;
-}
-
-function formatAssignment(assignment) {
-    assignment = assignment.replace(/([0-9]+)/g, '<sub>$1</sub>');
-    assignment = assignment.replace(/\"([^\"]*)\"/g, '<i>$1</i>');
-    return assignment;
-}
-
-function pushCoupling(signal, parenthesis, options) {
-    if (Array.isArray(signal.j) && signal.j.length > 0) {
-        signal.j.sort(function (a, b) {
-            return b.coupling - a.coupling;
-        });
-
-        var values = [];
-        var _iteratorNormalCompletion4 = true;
-        var _didIteratorError4 = false;
-        var _iteratorError4 = undefined;
-
-        try {
-            for (var _iterator4 = signal.j[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-                let j = _step4.value;
-
-                if (j.coupling !== undefined) {
-                    values.push(j.coupling.toFixed(options.nbDecimalJ));
-                }
-            }
-        } catch (err) {
-            _didIteratorError4 = true;
-            _iteratorError4 = err;
-        } finally {
-            try {
-                if (!_iteratorNormalCompletion4 && _iterator4.return) {
-                    _iterator4.return();
-                }
-            } finally {
-                if (_didIteratorError4) {
-                    throw _iteratorError4;
-                }
-            }
-        }
-
-        if (values.length > 0) parenthesis.push('<i>J</i> = ' + values.join(', ') + ' Hz');
-    }
-}
-
-function pushAssignment(signal, parenthesis) {
-    if (signal.pubAssignment) {
-        parenthesis.push(formatAssignment(signal.pubAssignment));
-    } else if (signal.assignment) {
-        parenthesis.push(formatAssignment(signal.assignment));
-    }
-}
-module.exports = toAcs;
-
-/***/ }),
-/* 24 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-/**
- * This function converts an array of peaks [{x, y, width}] in a vector equally x,y vector from a given window
- * TODO: This function is very general and should be placed somewhere else
- * @param {Array} peaks - List of the peaks
- * @param {object} options - it has some options to
- * @param {number} [options.from] - one limit of given window
- * @param {number} [options.to] - one limit of given window
- * @param {string} [options.fnName] - function name to generate the signals form
- * @param {number} [options.nWidth] - width factor of signal form
- * @param {number} [options.nbPoints] - number of points that the vector will have
- * @return {{x: Array, y: Array}}
- */
-
-function peak2Vector(peaks, options) {
-    options = options || {};
-    var from = options.from;
-    var to = options.to;
-    var nbPoints = options.nbPoints || 16 * 1024;
-    var fnName = options.fnName || 'gaussian';
-    var nWidth = options.nWidth || 4;
-
-    if (!from) {
-        from = Number.MAX_VALUE;
-        for (let i = 0; i < peaks.length; i++) {
-            if (peaks[i].x - peaks[i].width * nWidth < from) {
-                from = peaks[i].x - peaks[i].width * nWidth;
-            }
-        }
-    }
-
-    if (!to) {
-        to = Number.MIN_VALUE;
-        for (let i = 0; i < peaks.length; i++) {
-            if (peaks[i].x + peaks[i].width * nWidth > to) {
-                to = peaks[i].x + peaks[i].width * nWidth;
-            }
-        }
-    }
-
-    var x = new Array(nbPoints);
-    var y = new Array(nbPoints);
-    var dx = (to - from) / (nbPoints - 1);
-    for (let i = 0; i < nbPoints; i++) {
-        x[i] = from + i * dx;
-        y[i] = 0;
-    }
-
-    var intensity = 'intensity';
-    if (peaks[0].y) {
-        intensity = 'y';
-    }
-
-    for (let i = 0; i < peaks.length; i++) {
-        var peak = peaks[i];
-        if (peak.x > from && peak.x < to) {
-            var index = Math.round((peak.x - from) / dx);
-            var w = Math.round(peak.width * nWidth / dx);
-            if (fnName === 'gaussian') {
-                for (var j = index - w; j < index + w; j++) {
-                    if (j >= 0 && j < nbPoints) {
-                        y[j] += peak[intensity] * Math.exp(-0.5 * Math.pow((peak.x - x[j]) / (peak.width / 2), 2));
-                    }
-                }
-            } else {
-                var factor = peak[intensity] * Math.pow(peak.width, 2) / 4;
-                for (let j = index - w; j < index + w; j++) {
-                    if (j >= 0 && j < nbPoints) {
-                        y[j] += factor / (Math.pow(peak.x - x[j], 2) + Math.pow(peak.width / 2, 2));
-                    }
-                }
-            }
-        }
-    }
-
-    return { x: x, y: y };
-}
-
-module.exports = peak2Vector;
-
-/***/ }),
-/* 25 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-const acs = __webpack_require__(23);
-const patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
-
-function nmrJ(Js, options = {}) {
-    var jString = '';
-    options = Object.assign({}, { separator: ', ', nbDecimal: 2 }, options);
-    let j, i;
-    for (i = 0; i < Js.length; i++) {
-        j = Js[i];
-        if (j.length > 11) {
-            j += options.separator;
-        }
-        jString += j.multiplicity + ' ' + j.coupling.toFixed(options.nbDecimal);
-    }
-    return jString;
-}
-
-function toACS(ranges, options) {
-    return acs(ranges, options);
-}
-
-function joinCoupling(signal, tolerance) {
-    var jc = signal.j;
-    var cont = 1;
-    var pattern = '';
-    var newNmrJs = [];
-    var diaIDs = [];
-    var atoms = [];
-    if (jc && jc.length > 0) {
-        jc.sort(function (a, b) {
-            return b.coupling - a.coupling;
-        });
-        if (jc[0].diaID) {
-            diaIDs = [jc[0].diaID];
-        }
-        if (jc[0].assignment) {
-            atoms = [jc[0].assignment];
-        }
-        for (var i = 0; i < jc.length - 1; i++) {
-            if (Math.abs(jc[i].coupling - jc[i + 1].coupling) < tolerance) {
-                cont++;
-                diaIDs.push(jc[i].diaID);
-                atoms.push(jc[i].assignment);
-            } else {
-                let jTemp = {
-                    coupling: Math.abs(jc[i].coupling),
-                    multiplicity: patterns[cont]
-                };
-                if (diaIDs.length > 0) {
-                    jTemp.diaID = diaIDs;
-                }
-                if (atoms.length > 0) {
-                    jTemp.assignment = atoms;
-                }
-                newNmrJs.push(jTemp);
-                if (jc[0].diaID) {
-                    diaIDs = [jc[i].diaID];
-                }
-                if (jc[0].assignment) {
-                    atoms = [jc[i].assignment];
-                }
-                pattern += patterns[cont];
-                cont = 1;
-            }
-        }
-        let jTemp = {
-            coupling: Math.abs(jc[i].coupling),
-            multiplicity: patterns[cont]
-        };
-        if (diaIDs.length > 0) {
-            jTemp.diaID = diaIDs;
-        }
-        if (atoms.length > 0) {
-            jTemp.assignment = atoms;
-        }
-        newNmrJs.push(jTemp);
-
-        pattern += patterns[cont];
-        signal.j = newNmrJs;
-    } else if (signal.delta) {
-        pattern = 's';
-    } else {
-        pattern = 'm';
-    }
-    return pattern;
-}
-
-module.exports = { toACS, nmrJ, joinCoupling };
-module.exports.peak2Vector = __webpack_require__(24);
-
-/***/ }),
-/* 26 */
-/***/ (function(module, exports) {
-
-module.exports = function(haystack, needle, comparator, low, high) {
-  var mid, cmp;
-
-  if(low === undefined)
-    low = 0;
-
-  else {
-    low = low|0;
-    if(low < 0 || low >= haystack.length)
-      throw new RangeError("invalid lower bound");
-  }
-
-  if(high === undefined)
-    high = haystack.length - 1;
-
-  else {
-    high = high|0;
-    if(high < low || high >= haystack.length)
-      throw new RangeError("invalid upper bound");
-  }
-
-  while(low <= high) {
-    /* Note that "(low + high) >>> 1" may overflow, and results in a typecast
-     * to double (which gives the wrong results). */
-    mid = low + (high - low >> 1);
-    cmp = +comparator(haystack[mid], needle, mid, haystack);
-
-    /* Too low. */
-    if(cmp < 0.0)
-      low  = mid + 1;
-
-    /* Too high. */
-    else if(cmp > 0.0)
-      high = mid - 1;
-
-    /* Key found. */
-    else
-      return mid;
-  }
-
-  /* Key not found. */
-  return ~low;
-}
-
-
-/***/ }),
-/* 27 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-const Converter = __webpack_require__(30);
-const IOBuffer = __webpack_require__(83);
-const JSZip = __webpack_require__(89);
-
-// constants
-var BINARY = 1;
-var TEXT = 2;
-
-
-function readZIP(zipFile, options) {
-    options = options || {};
-
-    var zip = new JSZip();
-    zip.load(zipFile, options);
-
-    var files = {
-        'ser': BINARY,
-        'fid': BINARY,
-        'acqus': TEXT,
-        'acqu2s': TEXT,
-        'procs': TEXT,
-        'proc2s': TEXT,
-        '1r': BINARY,
-        '1i': BINARY,
-        '2rr': BINARY
-    };
-    var folders = zip.filter(function (relativePath, file) {
-        if(relativePath.indexOf("ser")>=0||relativePath.indexOf("fid")>=0
-            ||relativePath.indexOf("1r")>=0||relativePath.indexOf("2rr")>=0){
-            return true;
-        }
-
-        return false;
-
-    });
-
-    var spectra = new Array(folders.length);
-
-    for(var i = 0; i < folders.length; ++i) {
-        var len = folders[i].name.length;
-        var name = folders[i].name;
-        name = name.substr(0,name.lastIndexOf("/")+1);
-        var currFolder = zip.folder(name);
-        var currFiles = currFolder.filter(function (relativePath, file) {
-            return files[relativePath] ? true : false;
-        });
-        var brukerFiles = {};
-        if(name.indexOf("pdata")>=0){
-            brukerFiles['acqus'] = zip.file(name.replace(/pdata\/[0-9]\//,"acqus")).asText();
-        }
-        for(var j = 0; j < currFiles.length; ++j) {
-            var idx = currFiles[j].name.lastIndexOf('/');
-            var name = currFiles[j].name.substr(idx + 1);
-            if(files[name] === BINARY) {
-                brukerFiles[name] = new IOBuffer(currFiles[j].asArrayBuffer());
-            } else {
-                brukerFiles[name] = currFiles[j].asText();
-            }
-        }
-        //console.log(folders[i].name);
-        spectra[i] = {"filename":folders[i].name,value:convert(brukerFiles,options)};
-    }
-
-    return spectra;
-}
-
-function convert(brukerFiles, options) {
-    options = options || {};
-    var start = new Date();
-    var result;
-    if(brukerFiles['ser'] || brukerFiles['2rr']) {
-        result =  convert2D(brukerFiles, options);
-    } else if(brukerFiles['1r'] || brukerFiles['1i'] || brukerFiles['fid']) {
-        result =   convert1D(brukerFiles, options);
-    } else {
-        throw new RangeError('The current files are invalid');
-    }
-
-    if (result.twoD && !options.noContours) {
-        //console.log("Countours");
-        add2D(result);
-        if (result.profiling) result.profiling.push({
-            action: 'Finished countour plot calculation',
-            time: new Date() - start
-        });
-        if (!options.keepSpectra) {
-            delete result.spectra;
-        }
-    }
-
-    var spectra = result.spectra;
-    if (options.xy) { // the spectraData should not be a oneD array but an object with x and y
-        if (spectra.length > 0) {
-            for (var i=0; i<spectra.length; i++) {
-                var spectrum=spectra[i];
-                if (spectrum.data.length>0) {
-                    for (var j=0; j<spectrum.data.length; j++) {
-                        var data=spectrum.data[j];
-                        var newData={x: new Array(data.length/2), y:new Array(data.length/2)};
-                        for (var k=0; k<data.length; k=k+2) {
-                            newData.x[k/2]=data[k];
-                            newData.y[k/2]=data[k+1];
-                        }
-                        spectrum.data[j]=newData;
-                    }
-
-                }
-            }
-        }
-    }
-
-    return result;
-}
-
-function convert1D(files, options) {
-    var result = parseData(files["procs"], options);
-    var temp = parseData(files['acqus'], options);
-
-    var keys = Object.keys(temp.info);
-    for (var i = 0; i < keys.length; i++) {
-        var currKey = keys[i];
-        if(result.info[currKey] === undefined) {
-            result.info[currKey] = temp.info[currKey];
-        }
-    }
-
-    if(files['1r'] || files['1i']) {
-        if(files['1r']) {
-            setXYSpectrumData(files['1r'], result, '1r', true);
-        }
-        if(files['1i']) {
-            setXYSpectrumData(files['1i'], result, '1i', false);
-        }
-    } else if(files['fid']) {
-        setFIDSpectrumData(files['fid'], result)
-    }
-    
-    return result;
-}
-
-function convert2D(files, options) {
-    var SF,SW_p,SW,offset;
-    if(files['2rr']) {
-        var result = parseData(files['procs'], options);
-        var temp = parseData(files['acqus'], options);
-
-        var keys = Object.keys(temp.info);
-        for (var i = 0; i < keys.length; i++) {
-            var currKey = keys[i];
-            if(result.info[currKey] === undefined) {
-                result.info[currKey] = temp.info[currKey];
-            }
-        }
-        
-        temp = parseData(files['proc2s'], options);
-        result.info.nbSubSpectra = temp.info['$SI'] = parseInt(temp.info['$SI']);
-        SF = temp.info['$SF'] = parseFloat(temp.info['$SF']);
-        SW_p = temp.info['$SWP'] = parseFloat(temp.info['$SWP']);
-        offset = temp.info['$OFFSET'] = parseFloat(temp.info['$OFFSET']);
-
-    } else if(files['ser']) {
-        result = parseData(files['acqus'], options);
-        temp = parseData(files['acqu2s'], options);
-        result.info.nbSubSpectra = temp.info['$SI'] = parseInt(temp.info['$TD']);
-        result.info['$SI'] = parseInt(result.info['$TD']);
-        //SW_p = temp.info['$SWH'] = parseFloat(temp.info['$SWH']);
-
-        SW_p = temp.info["$SW"];
-
-        result.info["$SWP"]=result.info["$SWH"];
-        result.info["$SF"]=parseFloat(temp.info['$SFO1']);
-        result.info['$OFFSET']=0;
-        SF = temp.info['$SFO1'] = parseFloat(temp.info['$SFO1']);
-        SF = 1;
-        offset=0;
-        result.info['$AXNUC']=result.info['$NUC1'];
-        temp.info['$AXNUC']=temp.info['$NUC1'];
-    }
-
-    result.info.firstY = offset;
-    result.info.lastY = offset - SW_p / SF;
-    result.info['$BF2'] = SF;
-    result.info['$SFO1'] = SF;
-
-    var nbSubSpectra = result.info.nbSubSpectra;
-    var pageValue = result.info.firstY;
-    var deltaY = (result.info.lastY-result.info.firstY)/(nbSubSpectra-1);
-
-    if(files['2rr']) {
-        setXYSpectrumData(files['2rr'], result, '2rr', true);
-    } else if(files['ser']) {
-        setFIDSpectrumData(files['ser'], result, 'ser', true);
-    }
-
-    for(var i = 0; i < nbSubSpectra; i++) {
-        pageValue+=deltaY;
-        result.spectra[i].pageValue=pageValue;
-    }
-
-    var dataType = files['ser'] ? 'TYPE_2DNMR_FID' : 'TYPE_2DNMR_SPECTRUM';
-
-    result.info['2D_Y_NUCLEUS'] = temp.info['$AXNUC'];
-    result.info['2D_X_NUCLEUS'] = result.info['$AXNUC'];
-    result.info['2D_Y_FRECUENCY'] = SF;
-    result.info['2D_Y_OFFSET'] = offset;
-    result.info['2D_X_FRECUENCY'] = result.info['$SF'];
-    result.info['2D_X_OFFSET'] = result.info['$OFFSET'];
-
-    result.twoD = true;
-
-    return result;
-}
-
-function setXYSpectrumData(file, spectra, store, real) {
-    var td = spectra.info['$SI'] = parseInt(spectra.info['$SI']);
-
-    var SW_p = parseFloat(spectra.info["$SWP"]);
-    var SF = parseFloat(spectra.info["$SF"]);
-    var BF = SF;
-    //var BF = parseFloat(spectra.info["$BF1"]);
-    var offset = spectra.shiftOffsetVal;//parseFloat(spectra.info["$OFFSET"]);
-
-    spectra.info["observeFrequency"] = SF;
-    spectra.info["$BF1"] = BF;
-    spectra.info["$SFO1"] = SF;
-    spectra.info.brukerReference = BF;
-
-    var endian = parseInt(spectra.info["$BYTORDP"]);
-    endian = endian ? 0 : 1;
-
-    // number of spectras
-    var nbSubSpectra = spectra.info.nbSubSpectra ? spectra.info.nbSubSpectra : 1;
-
-    if(endian)
-        file.setLittleEndian();
-    else
-        file.setBigEndian();
-
-    for(var i = 0; i < nbSubSpectra; i++) {
-        var toSave = {
-            dataType : "NMR Spectrum",
-            dataTable : "(X++(R..R))",
-            nbPoints : td,
-            firstX : offset,
-            lastX : offset - SW_p / SF,
-            xUnit : "PPM",
-            yUnit : "Arbitrary",
-            data:[new Array(td*2)],//[{x:new Array(td),y:new Array(td)}],
-            isXYdata:true,
-            observeFrequency:SF,
-            title:spectra.info['TITLE'],
-            deltaX:-(SW_p / SF)/(td-1)
-
-        };
-
-        var x = offset;
-        var deltaX = toSave.deltaX;
-        if(real) {
-            for(var k = 0; k < td; ++k) {
-                toSave.data[0][2*k] = x;
-                toSave.data[0][2*k+1] = file.readInt32();
-                if(toSave.data[0][2*k+1]===null||isNaN(toSave.data[0][2*k+1])){
-                    toSave.data[0][2*k+1] = 0;
-                }
-                x += deltaX;
-            }
-        } else {
-            for(k = td - 1; k >= 0; --k) {
-                toSave.data[0][2*k] = x;
-                toSave.data[0][2*k+1] = file.readInt32();
-                if(toSave.data[0][2*k+1]===null||isNaN(toSave.data[0][2*k+1])) {
-                    toSave.data[0][2*k+1] = 0;
-                }
-                x += deltaX;
-            }
-        }
-
-        spectra.spectra.push(toSave);
-    }
-}
-
-function parseData(file, options) {
-    var keepRecordsRegExp=/.*/;
-    if (options.keepRecordsRegExp) keepRecordsRegExp=options.keepRecordsRegExp;
-    return Converter.convert(file, {
-        keepRecordsRegExp:keepRecordsRegExp
-    });
-}
-
-function setFIDSpectrumData(file, spectra) {
-    var td = spectra.info['$TD'] = parseInt(spectra.info['$TD']);
-
-    var SW_h = spectra.info['$SWH'] = parseFloat(spectra.info['$SWH']);
-    var SW = spectra.info['$SW'] = parseFloat(spectra.info['$SW']);
-
-    var SF = spectra.info['$SFO1'] = parseFloat(spectra.info['$SFO1']);
-    var BF =  parseFloat(spectra.info['$BF1']);
-    spectra.info['$BF1'] = BF;
-
-    //var DW = 1 / (2 * SW_h);
-    //var AQ = td * DW;
-    var AQ = SW;
-    var DW = AQ/(td-1);
-
-    //console.log(DW+" "+SW+" "+td);
-    var endian = parseInt(spectra.info["$BYTORDP"]);
-    endian = endian ? 0 : 1;
-
-    if(endian)
-        file.setLittleEndian();
-    else
-        file.setBigEndian();
-
-    var nbSubSpectra = spectra.info.nbSubSpectra ? spectra.info.nbSubSpectra : 1;
-    spectra.spectra = new Array(nbSubSpectra);
-    
-    for(var j = 0; j < nbSubSpectra/2; j++) {
-        var toSave = {
-            dataType : "NMR FID",
-            dataTable : "(X++(R..R))",
-            nbPoints : td,
-            firstX : 0,
-            lastX : AQ,
-            nucleus : spectra.info["$NUC1"] ? spectra.info["$NUC1"] : undefined,
-            xUnit : "Sec",
-            yUnit : "Arbitrary",
-            data:[new Array(2*td)],//[{x:new Array(td),y:new Array(td)}],
-            isXYdata:true,
-            observeFrequency:SF,
-            title:spectra.info['TITLE'],
-            deltaX:DW
-        };
-        spectra.spectra[j*2] = toSave;
-
-        toSave = {
-            dataType : "NMR FID",
-            dataTable : "(X++(I..I))",
-            nbPoints : td,
-            firstX : 0,
-            lastX : AQ,
-            nucleus : spectra.info["$NUC1"] ? spectra.info["$NUC1"] : undefined,
-            xUnit : "Sec",
-            yUnit : "Arbitrary",
-            data:[new Array(2*td)],//[{x:new Array(td),y:new Array(td)}],
-            isXYdata:true,
-            observeFrequency:SF,
-            title:spectra.info['TITLE'],
-            deltaX:DW
-        };
-        spectra.spectra[j*2+1] = toSave;
-        
-        var x = 0;
-        var y;
-        for(var i = 0; file.available(8)&&i<td; i++, x = i*DW) {
-            y = file.readInt32();
-            if(y===null || isNaN(y)){
-                y=0;
-            }
-            spectra.spectra[j*2].data[0][2*i+1] = y;
-            spectra.spectra[j*2].data[0][2*i] = x;
-            y = file.readInt32();
-            if(y===null || isNaN(y)){
-                y=0;
-            }
-            spectra.spectra[j*2+1].data[0][2*i+1] = y;
-            spectra.spectra[j*2+1].data[0][2*i] = x;
-
-        }
-
-        for(; i < td; i++, x = i*DW) {
-            spectra.spectra[j*2].data[0][2*i+1] = 0;
-            spectra.spectra[j*2].data[0][2*i] = x;
-            spectra.spectra[j*2+1].data[0][2*i+1] = 0;
-            spectra.spectra[j*2+1].data[0][2*i] = x;
-        }
-    }
-}
-
-/**
- * Those functions should disappear if add2D becomes accessible in jcampconvert
- * @param spectra
- * @returns {{z: Array, minX: *, maxX: *, minY: *, maxY: *, minZ: *, maxZ: *, noise: number}}
- */
-
-function convertTo3DZ(spectra) {
-    var noise = 0;
-    var minZ = spectra[0].data[0][0];
-    var maxZ = minZ;
-    var ySize = spectra.length;
-    var xSize = spectra[0].data[0].length / 2;
-    var z = new Array(ySize);
-    for (var i = 0; i < ySize; i++) {
-        z[i] = new Array(xSize);
-        for (var j = 0; j < xSize; j++) {
-            z[i][j] = spectra[i].data[0][j * 2 + 1];
-            if (z[i][j] < minZ) minZ = spectra[i].data[0][j * 2 + 1];
-            if (z[i][j] > maxZ) maxZ = spectra[i].data[0][j * 2 + 1];
-            if (i !== 0 && j !== 0) {
-                noise += Math.abs(z[i][j] - z[i][j - 1]) + Math.abs(z[i][j] - z[i - 1][j]);
-            }
-        }
-    }
-    return {
-        z: z,
-        minX: spectra[0].data[0][0],
-        maxX: spectra[0].data[0][spectra[0].data[0].length - 2],
-        minY: spectra[0].pageValue,
-        maxY: spectra[ySize - 1].pageValue,
-        minZ: minZ,
-        maxZ: maxZ,
-        noise: noise / ((ySize - 1) * (xSize - 1) * 2)
-    };
-
-}
-
-function add2D(result) {
-    var zData = convertTo3DZ(result.spectra);
-    result.contourLines = generateContourLines(zData);
-    delete zData.z;
-    result.minMax = zData;
-}
-
-
-function generateContourLines(zData, options) {
-    //console.time('generateContourLines');
-    var noise = zData.noise;
-    var z = zData.z;
-    var contourLevels = [];
-    var nbLevels = 7;
-    var povarHeight = new Float32Array(4);
-    var isOver = [];
-    var nbSubSpectra = z.length;
-    var nbPovars = z[0].length;
-    var pAx, pAy, pBx, pBy;
-
-    var x0 = zData.minX;
-    var xN = zData.maxX;
-    var dx = (xN - x0) / (nbPovars - 1);
-    var y0 = zData.minY;
-    var yN = zData.maxY;
-    var dy = (yN - y0) / (nbSubSpectra - 1);
-    var minZ = zData.minZ;
-    var maxZ = zData.maxZ;
-
-    //System.out.prvarln('y0 '+y0+' yN '+yN);
-    // -------------------------
-    // Povars attribution
-    //
-    // 0----1
-    // |  / |
-    // | /  |
-    // 2----3
-    //
-    // ---------------------d------
-
-    var lineZValue;
-    for (var level = 0; level < nbLevels * 2; level++) { // multiply by 2 for positif and negatif
-        var contourLevel = {};
-        contourLevels.push(contourLevel);
-        var side = level % 2;
-        if (side === 0) {
-            lineZValue = (maxZ - 5 * noise) * Math.exp(level / 2 - nbLevels) + 5 * noise;
-        } else {
-            lineZValue = -(maxZ - 5 * noise) * Math.exp(level / 2 - nbLevels) - 5 * noise;
-        }
-        var lines = [];
-        contourLevel.zValue = lineZValue;
-        contourLevel.lines = lines;
-
-        if (lineZValue <= minZ || lineZValue >= maxZ) continue;
-
-        for (var iSubSpectra = 0; iSubSpectra < nbSubSpectra - 1; iSubSpectra++) {
-            for (var povar = 0; povar < nbPovars - 1; povar++) {
-                povarHeight[0] = z[iSubSpectra][povar];
-                povarHeight[1] = z[iSubSpectra][povar + 1];
-                povarHeight[2] = z[(iSubSpectra + 1)][povar];
-                povarHeight[3] = z[(iSubSpectra + 1)][(povar + 1)];
-
-                for (var i = 0; i < 4; i++) {
-                    isOver[i] = (povarHeight[i] > lineZValue);
-                }
-
-                // Example povar0 is over the plane and povar1 and
-                // povar2 are below, we find the varersections and add
-                // the segment
-                if (isOver[0] !== isOver[1] && isOver[0] !== isOver[2]) {
-                    pAx = povar + (lineZValue - povarHeight[0]) / (povarHeight[1] - povarHeight[0]);
-                    pAy = iSubSpectra;
-                    pBx = povar;
-                    pBy = iSubSpectra + (lineZValue - povarHeight[0]) / (povarHeight[2] - povarHeight[0]);
-                    lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
-                }
-                if (isOver[3] !== isOver[1] && isOver[3] !== isOver[2]) {
-                    pAx = povar + 1;
-                    pAy = iSubSpectra + 1 - (lineZValue - povarHeight[3]) / (povarHeight[1] - povarHeight[3]);
-                    pBx = povar + 1 - (lineZValue - povarHeight[3]) / (povarHeight[2] - povarHeight[3]);
-                    pBy = iSubSpectra + 1;
-                    lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
-                }
-                // test around the diagonal
-                if (isOver[1] !== isOver[2]) {
-                    pAx = povar + 1 - (lineZValue - povarHeight[1]) / (povarHeight[2] - povarHeight[1]);
-                    pAy = iSubSpectra + (lineZValue - povarHeight[1]) / (povarHeight[2] - povarHeight[1]);
-                    if (isOver[1] !== isOver[0]) {
-                        pBx = povar + 1 - (lineZValue - povarHeight[1]) / (povarHeight[0] - povarHeight[1]);
-                        pBy = iSubSpectra;
-                        lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
-                    }
-                    if (isOver[2] !== isOver[0]) {
-                        pBx = povar;
-                        pBy = iSubSpectra + 1 - (lineZValue - povarHeight[2]) / (povarHeight[0] - povarHeight[2]);
-                        lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
-                    }
-                    if (isOver[1] !== isOver[3]) {
-                        pBx = povar + 1;
-                        pBy = iSubSpectra + (lineZValue - povarHeight[1]) / (povarHeight[3] - povarHeight[1]);
-                        lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
-                    }
-                    if (isOver[2] !== isOver[3]) {
-                        pBx = povar + (lineZValue - povarHeight[2]) / (povarHeight[3] - povarHeight[2]);
-                        pBy = iSubSpectra + 1;
-                        lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
-                    }
-                }
-            }
-        }
-    }
-    // console.timeEnd('generateContourLines');
-    return {
-        minX: zData.minX,
-        maxX: zData.maxX,
-        minY: zData.minY,
-        maxY: zData.maxY,
-        segments: contourLevels
-    };
-    //return contourLevels;
-}
-
-
-module.exports =  {
-    convertZip: readZIP,
-    converFolder: convert
-};
-
-/***/ }),
-/* 28 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
 /* WEBPACK VAR INJECTION */(function(global) {/*!
  * The buffer module from node.js, for the browser.
  *
@@ -6326,9 +4909,9 @@ module.exports =  {
 
 
 
-var base64 = __webpack_require__(79)
-var ieee754 = __webpack_require__(82)
-var isArray = __webpack_require__(84)
+var base64 = __webpack_require__(64)
+var ieee754 = __webpack_require__(65)
+var isArray = __webpack_require__(66)
 
 exports.Buffer = Buffer
 exports.SlowBuffer = SlowBuffer
@@ -8106,10 +6689,1457 @@ function isnan (val) {
   return val !== val // eslint-disable-line no-self-compare
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(60)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(22)))
+
+/***/ }),
+/* 22 */
+/***/ (function(module, exports) {
+
+var g;
+
+// This works in non-strict mode
+g = (function() {
+	return this;
+})();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || Function("return this")() || (1,eval)("this");
+} catch(e) {
+	// This works if the window reference is available
+	if(typeof window === "object")
+		g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
+
+
+/***/ }),
+/* 23 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports.fourierTransform = __webpack_require__(73);
+module.exports.zeroFilling = __webpack_require__(76);
+module.exports.apodization = __webpack_require__(71);
+module.exports.phaseCorrection = __webpack_require__(74);
+module.exports.digitalFilter = __webpack_require__(72);
+
+/***/ }),
+/* 24 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var diagonalError = 0.05;
+var tolerance = 0.05;
+
+module.exports = {
+
+    clean: function clean(peaks, threshold) {
+        var max = Number.NEGATIVE_INFINITY;
+        var i;
+        //double min = Double.MAX_VALUE;
+        for (i = peaks.length - 1; i >= 0; i--) {
+            if (Math.abs(peaks[i].z) > max) {
+                max = Math.abs(peaks[i].z);
+            }
+        }
+        max *= threshold;
+        for (i = peaks.length - 1; i >= 0; i--) {
+            if (Math.abs(peaks[i].z) < max) {
+                peaks.splice(i, 1);
+            }
+        }
+        return peaks;
+    },
+
+    enhanceSymmetry: function enhanceSymmetry(signals) {
+
+        var properties = initializeProperties(signals);
+        var output = signals;
+
+        //First step of the optimization: Symmetry validation
+        var i, hits, index;
+        var signal;
+        for (i = output.length - 1; i >= 0; i--) {
+            signal = output[i];
+            if (signal.peaks.length > 1) {
+                properties[i][1]++;
+            }
+            if (properties[i][0] === 1) {
+                index = exist(output, properties, signal, -1, true);
+                if (index >= 0) {
+                    properties[i][1] += 2;
+                    properties[index][1] += 2;
+                }
+            }
+        }
+        //Second step of the optimization: Diagonal image existence
+        for (i = output.length - 1; i >= 0; i--) {
+            signal = output[i];
+            if (properties[i][0] === 0) {
+                hits = checkCrossPeaks(output, properties, signal, true);
+                properties[i][1] += hits;
+                //checkCrossPeaks(output, properties, signal, false);
+            }
+        }
+
+        //Now, each peak have a score between 0 and 4, we can complete the patterns which
+        //contains peaks with high scores, and finally, we can remove peaks with scores 0 and 1
+        var count = 0;
+        for (i = output.length - 1; i >= 0; i--) {
+            if (properties[i][0] !== 0 && properties[i][1] > 2) {
+                count++;
+                count += completeMissingIfNeeded(output, properties, output[i], properties[i]);
+            }
+            if (properties[i][1] >= 2 && properties[i][0] === 0) {
+                count++;
+            }
+        }
+
+        var toReturn = new Array(count);
+        count--;
+        for (i = output.length - 1; i >= 0; i--) {
+            if (properties[i][0] !== 0 && properties[i][1] > 2 || properties[i][0] === 0 && properties[i][1] > 1) {
+                toReturn[count--] = output[i];
+            }
+        }
+        return toReturn;
+    },
+
+    /**
+     * This function maps the corresponding 2D signals to the given set of 1D signals
+     * @param {Array} signals2D
+     * @param {Array} references
+     */
+    alignDimensions: function alignDimensions(signals2D, references) {
+        //For each reference dimension
+        for (var i = 0; i < references.length; i++) {
+            var ref = references[i];
+            if (ref) {
+                alignSingleDimension(signals2D, ref);
+            }
+        }
+    }
+};
+
+function completeMissingIfNeeded(output, properties, thisSignal, thisProp) {
+    //Check for symmetry
+    var index = exist(output, properties, thisSignal, -thisProp[0], true);
+    var addedPeaks = 0;
+    var newSignal = null,
+        tmpProp = null;
+    if (index < 0) {
+        //If this signal have no a symmetry image, we have to include it
+        newSignal = { nucleusX: thisSignal.nucleusX, nucleusY: thisSignal.nucleusY };
+        newSignal.resolutionX = thisSignal.resolutionX;
+        newSignal.resolutionY = thisSignal.resolutionY;
+        newSignal.shiftX = thisSignal.shiftY;
+        newSignal.shiftY = thisSignal.shiftX;
+        newSignal.peaks = [{ x: thisSignal.shiftY, y: thisSignal.shiftX, z: 1 }];
+        output.push(newSignal);
+        tmpProp = [-thisProp[0], thisProp[1]];
+        properties.push(tmpProp);
+        addedPeaks++;
+    }
+    //Check for diagonal peaks
+    var j = 0;
+    var diagX = false,
+        diagY = false;
+    var signal;
+    for (j = output.length - 1; j >= 0; j--) {
+        signal = output[j];
+        if (properties[j][0] === 0) {
+            if (Math.abs(signal.shiftX - thisSignal.shiftX) < diagonalError) {
+                diagX = true;
+            }
+            if (Math.abs(signal.shiftY - thisSignal.shiftY) < diagonalError) {
+                diagY = true;
+            }
+        }
+    }
+    if (diagX === false) {
+        newSignal = { nucleusX: thisSignal.nucleusX, nucleusY: thisSignal.nucleusY };
+        newSignal.resolutionX = thisSignal.resolutionX;
+        newSignal.resolutionY = thisSignal.resolutionY;
+        newSignal.shiftX = thisSignal.shiftX;
+        newSignal.shiftY = thisSignal.shiftX;
+        newSignal.peaks = [{ x: thisSignal.shiftX, y: thisSignal.shiftX, z: 1 }];
+        output.push(newSignal);
+        tmpProp = [0, thisProp[1]];
+        properties.push(tmpProp);
+        addedPeaks++;
+    }
+    if (diagY === false) {
+        newSignal = { nucleusX: thisSignal.nucleusX, nucleusY: thisSignal.nucleusY };
+        newSignal.resolutionX = thisSignal.resolutionX;
+        newSignal.resolutionY = thisSignal.resolutionY;
+        newSignal.shiftX = thisSignal.shiftY;
+        newSignal.shiftY = thisSignal.shiftY;
+        newSignal.peaks = [{ x: thisSignal.shiftY, y: thisSignal.shiftY, z: 1 }];
+        output.push(newSignal);
+        tmpProp = [0, thisProp[1]];
+        properties.push(tmpProp);
+        addedPeaks++;
+    }
+    return addedPeaks;
+}
+
+//Check for any diagonal peak that match this cross peak
+function checkCrossPeaks(output, properties, signal, updateProperties) {
+    var hits = 0,
+        i = 0,
+        shift = signal.shiftX * 4;
+    var crossPeaksX = [],
+        crossPeaksY = [];
+    var cross;
+    for (i = output.length - 1; i >= 0; i--) {
+        cross = output[i];
+        if (properties[i][0] !== 0) {
+            if (Math.abs(cross.shiftX - signal.shiftX) < diagonalError) {
+                hits++;
+                if (updateProperties) {
+                    properties[i][1]++;
+                }
+                crossPeaksX.push(i);
+                shift += cross.shiftX;
+            } else {
+                if (Math.abs(cross.shiftY - signal.shiftY) < diagonalError) {
+                    hits++;
+                    if (updateProperties) {
+                        properties[i][1]++;
+                    }
+                    crossPeaksY.push(i);
+                    shift += cross.shiftY;
+                }
+            }
+        }
+    }
+    //Update found crossPeaks and diagonal peak
+    shift /= crossPeaksX.length + crossPeaksY.length + 4;
+    if (crossPeaksX.length > 0) {
+        for (i = crossPeaksX.length - 1; i >= 0; i--) {
+            output[crossPeaksX[i]].shiftX = shift;
+        }
+    }
+    if (crossPeaksY.length > 0) {
+        for (i = crossPeaksY.length - 1; i >= 0; i--) {
+            output[crossPeaksY[i]].shiftY = shift;
+        }
+    }
+    signal.shiftX = shift;
+    signal.shiftY = shift;
+    return hits;
+}
+
+function exist(output, properties, signal, type, symmetricSearch) {
+    for (var i = output.length - 1; i >= 0; i--) {
+        if (properties[i][0] === type) {
+            if (distanceTo(signal, output[i], symmetricSearch) < tolerance) {
+                if (!symmetricSearch) {
+                    let shiftX = (output[i].shiftX + signal.shiftX) / 2.0;
+                    let shiftY = (output[i].shiftY + signal.shiftY) / 2.0;
+                    output[i].shiftX = shiftX;
+                    output[i].shiftY = shiftY;
+                    signal.shiftX = shiftX;
+                    signal.shiftY = shiftY;
+                } else {
+                    let shiftX = signal.shiftX;
+                    let shiftY = output[i].shiftX;
+                    output[i].shiftY = shiftX;
+                    signal.shiftY = shiftY;
+                }
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+/**
+ * Try to determine the position of each signal within the spectrum matrix.
+ * Peaks could be of 3 types: upper diagonal, diagonal or under diagonal 1,0,-1
+ * respectively.
+ * @param {Array} signals
+ * @return {*} A matrix containing the properties of each signal
+ * @private
+ */
+function initializeProperties(signals) {
+    var signalsProperties = new Array(signals.length);
+    for (var i = signals.length - 1; i >= 0; i--) {
+        signalsProperties[i] = [0, 0];
+        //We check if it is a diagonal peak
+        if (Math.abs(signals[i].shiftX - signals[i].shiftY) <= diagonalError) {
+            signalsProperties[i][1] = 1;
+            var shift = (signals[i].shiftX * 2 + signals[i].shiftY) / 3.0;
+            signals[i].shiftX = shift;
+            signals[i].shiftY = shift;
+        } else {
+            if (signals[i].shiftX - signals[i].shiftY > 0) {
+                signalsProperties[i][0] = 1;
+            } else {
+                signalsProperties[i][0] = -1;
+            }
+        }
+    }
+    return signalsProperties;
+}
+
+/**
+ * This function calculates the distance between 2 nmr signals . If toImage is true,
+ * it will interchange x by y in the distance calculation for the second signal.
+ * @param {object} a
+ * @param {object} b
+ * @param {boolean} toImage
+ * @return {number}
+ * @private
+ */
+function distanceTo(a, b, toImage) {
+    if (!toImage) {
+        return Math.sqrt(Math.pow(a.shiftX - b.shiftX, 2) + Math.pow(a.shiftY - b.shiftY, 2));
+    } else {
+        return Math.sqrt(Math.pow(a.shiftX - b.shiftY, 2) + Math.pow(a.shiftY - b.shiftX, 2));
+    }
+}
+
+function alignSingleDimension(signals2D, references) {
+    //For each 2D signal
+    var center = 0,
+        width = 0,
+        i,
+        j;
+    for (i = 0; i < signals2D.length; i++) {
+        var signal2D = signals2D[i];
+        //For each reference 1D signal
+        for (j = 0; j < references.length; j++) {
+            center = (references[j].startX + references[j].stopX) / 2;
+            width = Math.abs(references[j].startX - references[j].stopX) / 2;
+            if (signal2D.nucleusX === references[j].nucleus) {
+                //The 2D peak overlaps with the 1D signal
+                if (Math.abs(signal2D.shiftX - center) <= width) {
+                    signal2D._highlight.push(references[j]._highlight[0]);
+                }
+            }
+            if (signal2D.nucleusY === references[j].nucleus) {
+                if (Math.abs(signal2D.shiftY - center) <= width) {
+                    signal2D._highlight.push(references[j]._highlight[0]);
+                }
+            }
+        }
+    }
+}
+
+/***/ }),
+/* 25 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/**
+ * nbDecimalsDelta : default depends nucleus H, F: 2 otherwise 1
+ * nbDecimalsJ : default depends nucleus H, F: 1, otherwise 0
+ * ascending : true / false
+ * format : default "AIMJ" or when 2D data is collected the default format may be "IMJA"
+ * deltaSeparator : ', '
+ * detailSeparator : ', '
+ */
+
+const joinCoupling = __webpack_require__(27).joinCoupling;
+var globalOptions = {
+    h: {
+        nucleus: '1H',
+        nbDecimalDelta: 2,
+        nbDecimalJ: 1,
+        observedFrequency: 400
+    },
+    c: {
+        nucleus: '13C',
+        nbDecimalDelta: 1,
+        nbDecimalJ: 1,
+        observedFrequency: 100
+    },
+    f: {
+        nucleus: '19F',
+        nbDecimalDelta: 2,
+        nbDecimalJ: 1,
+        observedFrequency: 400
+    }
+};
+
+function toAcs(ranges, options = {}) {
+    var nucleus = (options.nucleus || '1H').toLowerCase().replace(/[0-9]/g, '');
+    var defaultOptions = globalOptions[nucleus];
+    options = Object.assign({}, defaultOptions, { ascending: false, format: 'IMJA' }, options);
+
+    ranges = ranges.clone();
+    if (options.ascending === true) {
+        ranges.sort((a, b) => {
+            let fromA = Math.min(a.from, a.to);
+            let fromB = Math.min(b.from, b.to);
+            return fromA - fromB;
+        });
+    }
+    var acsString = formatAcs(ranges, options);
+
+    if (acsString.length > 0) acsString += '.';
+
+    return acsString;
+}
+
+function formatAcs(ranges, options) {
+    var acs = spectroInformation(options);
+    if (acs.length === 0) acs = 'δ ';
+    var acsRanges = [];
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+        for (var _iterator = ranges[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+            let range = _step.value;
+
+            pushDelta(range, acsRanges, options);
+        }
+    } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+    } finally {
+        try {
+            if (!_iteratorNormalCompletion && _iterator.return) {
+                _iterator.return();
+            }
+        } finally {
+            if (_didIteratorError) {
+                throw _iteratorError;
+            }
+        }
+    }
+
+    if (acsRanges.length > 0) {
+        return acs + acsRanges.join(', ');
+    } else {
+        return '';
+    }
+}
+
+function spectroInformation(options) {
+    let parenthesis = [];
+    let strings = formatNucleus(options.nucleus) + ' NMR';
+    if (options.solvent) {
+        parenthesis.push(formatMF(options.solvent));
+    }
+    if (options.frequencyObserved) {
+        parenthesis.push((options.frequencyObserved * 1).toFixed(0) + ' MHz');
+    }
+    if (parenthesis.length > 0) {
+        strings += ' (' + parenthesis.join(', ') + '): δ ';
+    } else {
+        strings += ': δ ';
+    }
+    return strings;
+}
+
+function pushDelta(range, acsRanges, options) {
+    var strings = '';
+    var parenthesis = [];
+    let fromTo = [range.from, range.to];
+    if (Array.isArray(range.signal) && range.signal.length > 0) {
+        var signals = range.signal;
+        if (signals.length > 1) {
+            if (options.ascending === true) {
+                signals.sort((a, b) => {
+                    return a.delta - b.delta;
+                });
+            }
+            strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
+            strings += ' (' + getIntegral(range, options);
+            var _iteratorNormalCompletion2 = true;
+            var _didIteratorError2 = false;
+            var _iteratorError2 = undefined;
+
+            try {
+                for (var _iterator2 = signals[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                    let signal = _step2.value;
+
+                    parenthesis = [];
+                    if (signal.delta !== undefined) {
+                        strings = appendSeparator(strings);
+                        strings += signal.delta.toFixed(options.nbDecimalDelta);
+                    }
+                    switchFormat({}, signal, parenthesis, options);
+                    if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
+                }
+            } catch (err) {
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                        _iterator2.return();
+                    }
+                } finally {
+                    if (_didIteratorError2) {
+                        throw _iteratorError2;
+                    }
+                }
+            }
+
+            strings += ')';
+        } else {
+            parenthesis = [];
+            if (signals[0].delta !== undefined) {
+                strings += signals[0].delta.toFixed(options.nbDecimalDelta);
+                switchFormat(range, signals[0], parenthesis, options);
+                if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
+            } else {
+                strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
+                switchFormat(range, signals[0], parenthesis, options);
+                if (parenthesis.length > 0) strings += ' (' + parenthesis + ')';
+            }
+        }
+    } else {
+        strings += Math.min(...fromTo).toFixed(options.nbDecimalDelta) + '-' + Math.max(...fromTo).toFixed(options.nbDecimalDelta);
+        switchFormat(range, [], parenthesis, options);
+        if (parenthesis.length > 0) strings += ' (' + parenthesis.join(', ') + ')';
+    }
+    acsRanges.push(strings);
+}
+
+function getIntegral(range, options) {
+    let integral = '';
+    if (range.pubIntegral) {
+        integral = range.pubIntegral;
+    } else if (range.integral) {
+        integral = range.integral.toFixed(0) + options.nucleus[options.nucleus.length - 1];
+    }
+    return integral;
+}
+
+function pushIntegral(range, parenthesis, options) {
+    let integral = getIntegral(range, options);
+    if (integral.length > 0) parenthesis.push(integral);
+}
+
+function pushMultiplicityFromSignal(signal, parenthesis) {
+    let multiplicity = signal.multiplicity || joinCoupling(signal, 0.05);
+    if (multiplicity.length > 0) parenthesis.push(multiplicity);
+}
+
+function switchFormat(range, signal, parenthesis, options) {
+    var _iteratorNormalCompletion3 = true;
+    var _didIteratorError3 = false;
+    var _iteratorError3 = undefined;
+
+    try {
+        for (var _iterator3 = options.format[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+            const char = _step3.value;
+
+            switch (char.toUpperCase()) {
+                case 'I':
+                    pushIntegral(range, parenthesis, options);
+                    break;
+                case 'M':
+                    pushMultiplicityFromSignal(signal, parenthesis);
+                    break;
+                case 'A':
+                    pushAssignment(signal, parenthesis);
+                    break;
+                case 'J':
+                    pushCoupling(signal, parenthesis, options);
+                    break;
+                default:
+                    throw new Error('Unknow format letter: ' + char);
+            }
+        }
+    } catch (err) {
+        _didIteratorError3 = true;
+        _iteratorError3 = err;
+    } finally {
+        try {
+            if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                _iterator3.return();
+            }
+        } finally {
+            if (_didIteratorError3) {
+                throw _iteratorError3;
+            }
+        }
+    }
+}
+
+function formatMF(mf) {
+    return mf.replace(/([0-9]+)/g, '<sub>$1</sub>');
+}
+
+function formatNucleus(nucleus) {
+    return nucleus.replace(/([0-9]+)/g, '<sup>$1</sup>');
+}
+
+function appendSeparator(strings) {
+    if (strings.length > 0 && !strings.match(/ $/) && !strings.match(/\($/)) {
+        strings += ', ';
+    }
+    return strings;
+}
+
+function formatAssignment(assignment) {
+    assignment = assignment.replace(/([0-9]+)/g, '<sub>$1</sub>');
+    assignment = assignment.replace(/\"([^\"]*)\"/g, '<i>$1</i>');
+    return assignment;
+}
+
+function pushCoupling(signal, parenthesis, options) {
+    if (Array.isArray(signal.j) && signal.j.length > 0) {
+        signal.j.sort(function (a, b) {
+            return b.coupling - a.coupling;
+        });
+
+        var values = [];
+        var _iteratorNormalCompletion4 = true;
+        var _didIteratorError4 = false;
+        var _iteratorError4 = undefined;
+
+        try {
+            for (var _iterator4 = signal.j[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                let j = _step4.value;
+
+                if (j.coupling !== undefined) {
+                    values.push(j.coupling.toFixed(options.nbDecimalJ));
+                }
+            }
+        } catch (err) {
+            _didIteratorError4 = true;
+            _iteratorError4 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                    _iterator4.return();
+                }
+            } finally {
+                if (_didIteratorError4) {
+                    throw _iteratorError4;
+                }
+            }
+        }
+
+        if (values.length > 0) parenthesis.push('<i>J</i> = ' + values.join(', ') + ' Hz');
+    }
+}
+
+function pushAssignment(signal, parenthesis) {
+    if (signal.pubAssignment) {
+        parenthesis.push(formatAssignment(signal.pubAssignment));
+    } else if (signal.assignment) {
+        parenthesis.push(formatAssignment(signal.assignment));
+    }
+}
+module.exports = toAcs;
+
+/***/ }),
+/* 26 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+/**
+ * This function converts an array of peaks [{x, y, width}] in a vector equally x,y vector from a given window
+ * TODO: This function is very general and should be placed somewhere else
+ * @param {Array} peaks - List of the peaks
+ * @param {object} options - it has some options to
+ * @param {number} [options.from] - one limit of given window
+ * @param {number} [options.to] - one limit of given window
+ * @param {string} [options.fnName] - function name to generate the signals form
+ * @param {number} [options.nWidth] - width factor of signal form
+ * @param {number} [options.nbPoints] - number of points that the vector will have
+ * @return {{x: Array, y: Array}}
+ */
+
+function peak2Vector(peaks, options = {}) {
+    var _options$from = options.from,
+        from = _options$from === undefined ? null : _options$from,
+        _options$to = options.to,
+        to = _options$to === undefined ? null : _options$to,
+        _options$nbPoints = options.nbPoints,
+        nbPoints = _options$nbPoints === undefined ? 16384 : _options$nbPoints,
+        _options$functionName = options.functionName,
+        functionName = _options$functionName === undefined ? '' : _options$functionName,
+        _options$nWidth = options.nWidth,
+        nWidth = _options$nWidth === undefined ? 4 : _options$nWidth;
+
+
+    var factor;
+    if (from === null) {
+        var from = Number.MAX_VALUE;
+        for (let i = 0; i < peaks.length; i++) {
+            factor = peaks[i].x - peaks[i].width * nWidth;
+            if (factor < from) {
+                from = factor;
+            }
+        }
+    }
+    if (to === null) {
+        var to = Number.MIN_VALUE;
+        for (let i = 0; i < peaks.length; i++) {
+            factor = peaks[i].x + peaks[i].width * nWidth;
+            if (factor > to) {
+                to = factor;
+            }
+        }
+    }
+
+    var x = new Array(nbPoints);
+    var y = new Array(nbPoints);
+    var dx = (to - from) / (nbPoints - 1);
+    for (let i = 0; i < nbPoints; i++) {
+        x[i] = from + i * dx;
+        y[i] = 0;
+    }
+
+    var intensity = peaks[0].y ? 'y' : 'intensity'; //this part I am not sure if it's usefull
+
+    var functionToUse;
+    switch (functionName.toLowerCase()) {
+        case 'lorentzian':
+            functionToUse = lorentzian;
+            console.log('funciona');
+            break;
+        default:
+            functionToUse = gaussian;
+    }
+
+    for (let i = 0; i < peaks.length; i++) {
+        var peak = peaks[i];
+        if (peak.x > from && peak.x < to) {
+            var index = Math.round((peak.x - from) / dx);
+            var w = Math.round(peak.width * nWidth / dx);
+            for (var j = index - w; j < index + w; j++) {
+                if (j >= 0 && j < nbPoints) {
+                    y[j] += functionToUse(peak[intensity], x[j], peak.width, peak.x);
+                }
+            }
+        }
+    }
+
+    function lorentzian(intensity, x, width, mean) {
+        var factor = intensity * Math.pow(width, 2) / 4;
+        return factor / (Math.pow(mean - x, 2) + Math.pow(width / 2, 2));
+    }
+
+    function gaussian(intensity, x, width, mean) {
+        return intensity * Math.exp(-0.5 * Math.pow((mean - x) / (width / 2), 2));
+    }
+
+    return { x: x, y: y };
+}
+
+module.exports = peak2Vector;
+
+/***/ }),
+/* 27 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+const acs = __webpack_require__(25);
+const patterns = ['s', 'd', 't', 'q', 'quint', 'h', 'sept', 'o', 'n'];
+
+function nmrJ(Js, options = {}) {
+    var jString = '';
+    options = Object.assign({}, { separator: ', ', nbDecimal: 2 }, options);
+    let j, i;
+    for (i = 0; i < Js.length; i++) {
+        j = Js[i];
+        if (j.length > 11) {
+            j += options.separator;
+        }
+        jString += j.multiplicity + ' ' + j.coupling.toFixed(options.nbDecimal);
+    }
+    return jString;
+}
+
+function toACS(ranges, options) {
+    return acs(ranges, options);
+}
+
+function joinCoupling(signal, tolerance) {
+    var jc = signal.j;
+    var cont = 1;
+    var pattern = '';
+    var newNmrJs = [];
+    var diaIDs = [];
+    var atoms = [];
+    if (jc && jc.length > 0) {
+        jc.sort(function (a, b) {
+            return b.coupling - a.coupling;
+        });
+        if (jc[0].diaID) {
+            diaIDs = [jc[0].diaID];
+        }
+        if (jc[0].assignment) {
+            atoms = [jc[0].assignment];
+        }
+        for (var i = 0; i < jc.length - 1; i++) {
+            if (Math.abs(jc[i].coupling - jc[i + 1].coupling) < tolerance) {
+                cont++;
+                diaIDs.push(jc[i].diaID);
+                atoms.push(jc[i].assignment);
+            } else {
+                let jTemp = {
+                    coupling: Math.abs(jc[i].coupling),
+                    multiplicity: patterns[cont]
+                };
+                if (diaIDs.length > 0) {
+                    jTemp.diaID = diaIDs;
+                }
+                if (atoms.length > 0) {
+                    jTemp.assignment = atoms;
+                }
+                newNmrJs.push(jTemp);
+                if (jc[0].diaID) {
+                    diaIDs = [jc[i].diaID];
+                }
+                if (jc[0].assignment) {
+                    atoms = [jc[i].assignment];
+                }
+                pattern += patterns[cont];
+                cont = 1;
+            }
+        }
+        let jTemp = {
+            coupling: Math.abs(jc[i].coupling),
+            multiplicity: patterns[cont]
+        };
+        if (diaIDs.length > 0) {
+            jTemp.diaID = diaIDs;
+        }
+        if (atoms.length > 0) {
+            jTemp.assignment = atoms;
+        }
+        newNmrJs.push(jTemp);
+
+        pattern += patterns[cont];
+        signal.j = newNmrJs;
+    } else if (signal.delta) {
+        pattern = 's';
+    } else {
+        pattern = 'm';
+    }
+    return pattern;
+}
+
+module.exports = { toACS, nmrJ, joinCoupling };
+module.exports.peak2Vector = __webpack_require__(26);
+
+/***/ }),
+/* 28 */
+/***/ (function(module, exports) {
+
+module.exports = function(haystack, needle, comparator, low, high) {
+  var mid, cmp;
+
+  if(low === undefined)
+    low = 0;
+
+  else {
+    low = low|0;
+    if(low < 0 || low >= haystack.length)
+      throw new RangeError("invalid lower bound");
+  }
+
+  if(high === undefined)
+    high = haystack.length - 1;
+
+  else {
+    high = high|0;
+    if(high < low || high >= haystack.length)
+      throw new RangeError("invalid upper bound");
+  }
+
+  while(low <= high) {
+    /* Note that "(low + high) >>> 1" may overflow, and results in a typecast
+     * to double (which gives the wrong results). */
+    mid = low + (high - low >> 1);
+    cmp = +comparator(haystack[mid], needle, mid, haystack);
+
+    /* Too low. */
+    if(cmp < 0.0)
+      low  = mid + 1;
+
+    /* Too high. */
+    else if(cmp > 0.0)
+      high = mid - 1;
+
+    /* Key found. */
+    else
+      return mid;
+  }
+
+  /* Key not found. */
+  return ~low;
+}
+
 
 /***/ }),
 /* 29 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+const Converter = __webpack_require__(31);
+const IOBuffer = __webpack_require__(88);
+const JSZip = __webpack_require__(93);
+
+// constants
+var BINARY = 1;
+var TEXT = 2;
+
+
+function readZIP(zipFile, options) {
+    options = options || {};
+
+    var zip = new JSZip();
+    zip.load(zipFile, options);
+
+    var files = {
+        'ser': BINARY,
+        'fid': BINARY,
+        'acqus': TEXT,
+        'acqu2s': TEXT,
+        'procs': TEXT,
+        'proc2s': TEXT,
+        '1r': BINARY,
+        '1i': BINARY,
+        '2rr': BINARY
+    };
+    var folders = zip.filter(function (relativePath, file) {
+        if(relativePath.indexOf("ser")>=0||relativePath.indexOf("fid")>=0
+            ||relativePath.indexOf("1r")>=0||relativePath.indexOf("2rr")>=0){
+            return true;
+        }
+
+        return false;
+
+    });
+
+    var spectra = new Array(folders.length);
+
+    for(var i = 0; i < folders.length; ++i) {
+        var len = folders[i].name.length;
+        var name = folders[i].name;
+        name = name.substr(0,name.lastIndexOf("/")+1);
+        var currFolder = zip.folder(name);
+        var currFiles = currFolder.filter(function (relativePath, file) {
+            return files[relativePath] ? true : false;
+        });
+        var brukerFiles = {};
+        if(name.indexOf("pdata")>=0){
+            brukerFiles['acqus'] = zip.file(name.replace(/pdata\/[0-9]\//,"acqus")).asText();
+        }
+        for(var j = 0; j < currFiles.length; ++j) {
+            var idx = currFiles[j].name.lastIndexOf('/');
+            var name = currFiles[j].name.substr(idx + 1);
+            if(files[name] === BINARY) {
+                brukerFiles[name] = new IOBuffer(currFiles[j].asArrayBuffer());
+            } else {
+                brukerFiles[name] = currFiles[j].asText();
+            }
+        }
+        //console.log(folders[i].name);
+        spectra[i] = {"filename":folders[i].name,value:convert(brukerFiles,options)};
+    }
+
+    return spectra;
+}
+
+function convert(brukerFiles, options) {
+    options = options || {};
+    var start = new Date();
+    var result;
+    if(brukerFiles['ser'] || brukerFiles['2rr']) {
+        result =  convert2D(brukerFiles, options);
+    } else if(brukerFiles['1r'] || brukerFiles['1i'] || brukerFiles['fid']) {
+        result =   convert1D(brukerFiles, options);
+    } else {
+        throw new RangeError('The current files are invalid');
+    }
+
+    if (result.twoD && !options.noContours) {
+        //console.log("Countours");
+        add2D(result);
+        if (result.profiling) result.profiling.push({
+            action: 'Finished countour plot calculation',
+            time: new Date() - start
+        });
+        if (!options.keepSpectra) {
+            delete result.spectra;
+        }
+    }
+
+    var spectra = result.spectra;
+    if (options.xy) { // the spectraData should not be a oneD array but an object with x and y
+        if (spectra.length > 0) {
+            for (var i=0; i<spectra.length; i++) {
+                var spectrum=spectra[i];
+                if (spectrum.data.length>0) {
+                    for (var j=0; j<spectrum.data.length; j++) {
+                        var data=spectrum.data[j];
+                        var newData={x: new Array(data.length/2), y:new Array(data.length/2)};
+                        for (var k=0; k<data.length; k=k+2) {
+                            newData.x[k/2]=data[k];
+                            newData.y[k/2]=data[k+1];
+                        }
+                        spectrum.data[j]=newData;
+                    }
+
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+function convert1D(files, options) {
+    var result = parseData(files["procs"], options);
+    var temp = parseData(files['acqus'], options);
+
+    var keys = Object.keys(temp.info);
+    for (var i = 0; i < keys.length; i++) {
+        var currKey = keys[i];
+        if(result.info[currKey] === undefined) {
+            result.info[currKey] = temp.info[currKey];
+        }
+    }
+
+    if(files['1r'] || files['1i']) {
+        if(files['1r']) {
+            setXYSpectrumData(files['1r'], result, '1r', true);
+        }
+        if(files['1i']) {
+            setXYSpectrumData(files['1i'], result, '1i', false);
+        }
+    } else if(files['fid']) {
+        setFIDSpectrumData(files['fid'], result)
+    }
+    
+    return result;
+}
+
+function convert2D(files, options) {
+    var SF,SW_p,SW,offset;
+    if(files['2rr']) {
+        var result = parseData(files['procs'], options);
+        var temp = parseData(files['acqus'], options);
+
+        var keys = Object.keys(temp.info);
+        for (var i = 0; i < keys.length; i++) {
+            var currKey = keys[i];
+            if(result.info[currKey] === undefined) {
+                result.info[currKey] = temp.info[currKey];
+            }
+        }
+        
+        temp = parseData(files['proc2s'], options);
+        result.info.nbSubSpectra = temp.info['$SI'] = parseInt(temp.info['$SI']);
+        SF = temp.info['$SF'] = parseFloat(temp.info['$SF']);
+        SW_p = temp.info['$SWP'] = parseFloat(temp.info['$SWP']);
+        offset = temp.info['$OFFSET'] = parseFloat(temp.info['$OFFSET']);
+
+    } else if(files['ser']) {
+        result = parseData(files['acqus'], options);
+        temp = parseData(files['acqu2s'], options);
+        result.info.nbSubSpectra = temp.info['$SI'] = parseInt(temp.info['$TD']);
+        result.info['$SI'] = parseInt(result.info['$TD']);
+        //SW_p = temp.info['$SWH'] = parseFloat(temp.info['$SWH']);
+
+        SW_p = temp.info["$SW"];
+
+        result.info["$SWP"]=result.info["$SWH"];
+        result.info["$SF"]=parseFloat(temp.info['$SFO1']);
+        result.info['$OFFSET']=0;
+        SF = temp.info['$SFO1'] = parseFloat(temp.info['$SFO1']);
+        SF = 1;
+        offset=0;
+        result.info['$AXNUC']=result.info['$NUC1'];
+        temp.info['$AXNUC']=temp.info['$NUC1'];
+    }
+
+    result.info.firstY = offset;
+    result.info.lastY = offset - SW_p / SF;
+    result.info['$BF2'] = SF;
+    result.info['$SFO1'] = SF;
+
+    var nbSubSpectra = result.info.nbSubSpectra;
+    var pageValue = result.info.firstY;
+    var deltaY = (result.info.lastY-result.info.firstY)/(nbSubSpectra-1);
+
+    if(files['2rr']) {
+        setXYSpectrumData(files['2rr'], result, '2rr', true);
+    } else if(files['ser']) {
+        setFIDSpectrumData(files['ser'], result, 'ser', true);
+    }
+
+    for(var i = 0; i < nbSubSpectra; i++) {
+        pageValue+=deltaY;
+        result.spectra[i].pageValue=pageValue;
+    }
+
+    var dataType = files['ser'] ? 'TYPE_2DNMR_FID' : 'TYPE_2DNMR_SPECTRUM';
+
+    result.info['2D_Y_NUCLEUS'] = temp.info['$AXNUC'];
+    result.info['2D_X_NUCLEUS'] = result.info['$AXNUC'];
+    result.info['2D_Y_FRECUENCY'] = SF;
+    result.info['2D_Y_OFFSET'] = offset;
+    result.info['2D_X_FRECUENCY'] = result.info['$SF'];
+    result.info['2D_X_OFFSET'] = result.info['$OFFSET'];
+
+    result.twoD = true;
+
+    return result;
+}
+
+function setXYSpectrumData(file, spectra, store, real) {
+    var td = spectra.info['$SI'] = parseInt(spectra.info['$SI']);
+
+    var SW_p = parseFloat(spectra.info["$SWP"]);
+    var SF = parseFloat(spectra.info["$SF"]);
+    var BF = SF;
+    //var BF = parseFloat(spectra.info["$BF1"]);
+    var offset = spectra.shiftOffsetVal;//parseFloat(spectra.info["$OFFSET"]);
+
+    spectra.info["observeFrequency"] = SF;
+    spectra.info["$BF1"] = BF;
+    spectra.info["$SFO1"] = SF;
+    spectra.info.brukerReference = BF;
+
+    var endian = parseInt(spectra.info["$BYTORDP"]);
+    endian = endian ? 0 : 1;
+
+    // number of spectras
+    var nbSubSpectra = spectra.info.nbSubSpectra ? spectra.info.nbSubSpectra : 1;
+
+    if(endian)
+        file.setLittleEndian();
+    else
+        file.setBigEndian();
+
+    for(var i = 0; i < nbSubSpectra; i++) {
+        var toSave = {
+            dataType : "NMR Spectrum",
+            dataTable : "(X++(R..R))",
+            nbPoints : td,
+            firstX : offset,
+            lastX : offset - SW_p / SF,
+            xUnit : "PPM",
+            yUnit : "Arbitrary",
+            data:[new Array(td*2)],//[{x:new Array(td),y:new Array(td)}],
+            isXYdata:true,
+            observeFrequency:SF,
+            title:spectra.info['TITLE'],
+            deltaX:-(SW_p / SF)/(td-1)
+
+        };
+
+        var x = offset;
+        var deltaX = toSave.deltaX;
+        if(real) {
+            for(var k = 0; k < td; ++k) {
+                toSave.data[0][2*k] = x;
+                toSave.data[0][2*k+1] = file.readInt32();
+                if(toSave.data[0][2*k+1]===null||isNaN(toSave.data[0][2*k+1])){
+                    toSave.data[0][2*k+1] = 0;
+                }
+                x += deltaX;
+            }
+        } else {
+            for(k = td - 1; k >= 0; --k) {
+                toSave.data[0][2*k] = x;
+                toSave.data[0][2*k+1] = file.readInt32();
+                if(toSave.data[0][2*k+1]===null||isNaN(toSave.data[0][2*k+1])) {
+                    toSave.data[0][2*k+1] = 0;
+                }
+                x += deltaX;
+            }
+        }
+
+        spectra.spectra.push(toSave);
+    }
+}
+
+function parseData(file, options) {
+    var keepRecordsRegExp=/.*/;
+    if (options.keepRecordsRegExp) keepRecordsRegExp=options.keepRecordsRegExp;
+    return Converter.convert(file, {
+        keepRecordsRegExp:keepRecordsRegExp
+    });
+}
+
+function setFIDSpectrumData(file, spectra) {
+    var td = spectra.info['$TD'] = parseInt(spectra.info['$TD']);
+
+    var SW_h = spectra.info['$SWH'] = parseFloat(spectra.info['$SWH']);
+    var SW = spectra.info['$SW'] = parseFloat(spectra.info['$SW']);
+
+    var SF = spectra.info['$SFO1'] = parseFloat(spectra.info['$SFO1']);
+    var BF =  parseFloat(spectra.info['$BF1']);
+    spectra.info['$BF1'] = BF;
+
+    //var DW = 1 / (2 * SW_h);
+    //var AQ = td * DW;
+    var AQ = SW;
+    var DW = AQ/(td-1);
+
+    //console.log(DW+" "+SW+" "+td);
+    var endian = parseInt(spectra.info["$BYTORDP"]);
+    endian = endian ? 0 : 1;
+
+    if(endian)
+        file.setLittleEndian();
+    else
+        file.setBigEndian();
+
+    var nbSubSpectra = spectra.info.nbSubSpectra ? spectra.info.nbSubSpectra : 1;
+    spectra.spectra = new Array(nbSubSpectra);
+    
+    for(var j = 0; j < nbSubSpectra/2; j++) {
+        var toSave = {
+            dataType : "NMR FID",
+            dataTable : "(X++(R..R))",
+            nbPoints : td,
+            firstX : 0,
+            lastX : AQ,
+            nucleus : spectra.info["$NUC1"] ? spectra.info["$NUC1"] : undefined,
+            xUnit : "Sec",
+            yUnit : "Arbitrary",
+            data:[new Array(2*td)],//[{x:new Array(td),y:new Array(td)}],
+            isXYdata:true,
+            observeFrequency:SF,
+            title:spectra.info['TITLE'],
+            deltaX:DW
+        };
+        spectra.spectra[j*2] = toSave;
+
+        toSave = {
+            dataType : "NMR FID",
+            dataTable : "(X++(I..I))",
+            nbPoints : td,
+            firstX : 0,
+            lastX : AQ,
+            nucleus : spectra.info["$NUC1"] ? spectra.info["$NUC1"] : undefined,
+            xUnit : "Sec",
+            yUnit : "Arbitrary",
+            data:[new Array(2*td)],//[{x:new Array(td),y:new Array(td)}],
+            isXYdata:true,
+            observeFrequency:SF,
+            title:spectra.info['TITLE'],
+            deltaX:DW
+        };
+        spectra.spectra[j*2+1] = toSave;
+        
+        var x = 0;
+        var y;
+        for(var i = 0; file.available(8)&&i<td; i++, x = i*DW) {
+            y = file.readInt32();
+            if(y===null || isNaN(y)){
+                y=0;
+            }
+            spectra.spectra[j*2].data[0][2*i+1] = y;
+            spectra.spectra[j*2].data[0][2*i] = x;
+            y = file.readInt32();
+            if(y===null || isNaN(y)){
+                y=0;
+            }
+            spectra.spectra[j*2+1].data[0][2*i+1] = y;
+            spectra.spectra[j*2+1].data[0][2*i] = x;
+
+        }
+
+        for(; i < td; i++, x = i*DW) {
+            spectra.spectra[j*2].data[0][2*i+1] = 0;
+            spectra.spectra[j*2].data[0][2*i] = x;
+            spectra.spectra[j*2+1].data[0][2*i+1] = 0;
+            spectra.spectra[j*2+1].data[0][2*i] = x;
+        }
+    }
+}
+
+/**
+ * Those functions should disappear if add2D becomes accessible in jcampconvert
+ * @param spectra
+ * @returns {{z: Array, minX: *, maxX: *, minY: *, maxY: *, minZ: *, maxZ: *, noise: number}}
+ */
+
+function convertTo3DZ(spectra) {
+    var noise = 0;
+    var minZ = spectra[0].data[0][0];
+    var maxZ = minZ;
+    var ySize = spectra.length;
+    var xSize = spectra[0].data[0].length / 2;
+    var z = new Array(ySize);
+    for (var i = 0; i < ySize; i++) {
+        z[i] = new Array(xSize);
+        for (var j = 0; j < xSize; j++) {
+            z[i][j] = spectra[i].data[0][j * 2 + 1];
+            if (z[i][j] < minZ) minZ = spectra[i].data[0][j * 2 + 1];
+            if (z[i][j] > maxZ) maxZ = spectra[i].data[0][j * 2 + 1];
+            if (i !== 0 && j !== 0) {
+                noise += Math.abs(z[i][j] - z[i][j - 1]) + Math.abs(z[i][j] - z[i - 1][j]);
+            }
+        }
+    }
+    return {
+        z: z,
+        minX: spectra[0].data[0][0],
+        maxX: spectra[0].data[0][spectra[0].data[0].length - 2],
+        minY: spectra[0].pageValue,
+        maxY: spectra[ySize - 1].pageValue,
+        minZ: minZ,
+        maxZ: maxZ,
+        noise: noise / ((ySize - 1) * (xSize - 1) * 2)
+    };
+
+}
+
+function add2D(result) {
+    var zData = convertTo3DZ(result.spectra);
+    result.contourLines = generateContourLines(zData);
+    delete zData.z;
+    result.minMax = zData;
+}
+
+
+function generateContourLines(zData, options) {
+    //console.time('generateContourLines');
+    var noise = zData.noise;
+    var z = zData.z;
+    var contourLevels = [];
+    var nbLevels = 7;
+    var povarHeight = new Float32Array(4);
+    var isOver = [];
+    var nbSubSpectra = z.length;
+    var nbPovars = z[0].length;
+    var pAx, pAy, pBx, pBy;
+
+    var x0 = zData.minX;
+    var xN = zData.maxX;
+    var dx = (xN - x0) / (nbPovars - 1);
+    var y0 = zData.minY;
+    var yN = zData.maxY;
+    var dy = (yN - y0) / (nbSubSpectra - 1);
+    var minZ = zData.minZ;
+    var maxZ = zData.maxZ;
+
+    //System.out.prvarln('y0 '+y0+' yN '+yN);
+    // -------------------------
+    // Povars attribution
+    //
+    // 0----1
+    // |  / |
+    // | /  |
+    // 2----3
+    //
+    // ---------------------d------
+
+    var lineZValue;
+    for (var level = 0; level < nbLevels * 2; level++) { // multiply by 2 for positif and negatif
+        var contourLevel = {};
+        contourLevels.push(contourLevel);
+        var side = level % 2;
+        if (side === 0) {
+            lineZValue = (maxZ - 5 * noise) * Math.exp(level / 2 - nbLevels) + 5 * noise;
+        } else {
+            lineZValue = -(maxZ - 5 * noise) * Math.exp(level / 2 - nbLevels) - 5 * noise;
+        }
+        var lines = [];
+        contourLevel.zValue = lineZValue;
+        contourLevel.lines = lines;
+
+        if (lineZValue <= minZ || lineZValue >= maxZ) continue;
+
+        for (var iSubSpectra = 0; iSubSpectra < nbSubSpectra - 1; iSubSpectra++) {
+            for (var povar = 0; povar < nbPovars - 1; povar++) {
+                povarHeight[0] = z[iSubSpectra][povar];
+                povarHeight[1] = z[iSubSpectra][povar + 1];
+                povarHeight[2] = z[(iSubSpectra + 1)][povar];
+                povarHeight[3] = z[(iSubSpectra + 1)][(povar + 1)];
+
+                for (var i = 0; i < 4; i++) {
+                    isOver[i] = (povarHeight[i] > lineZValue);
+                }
+
+                // Example povar0 is over the plane and povar1 and
+                // povar2 are below, we find the varersections and add
+                // the segment
+                if (isOver[0] !== isOver[1] && isOver[0] !== isOver[2]) {
+                    pAx = povar + (lineZValue - povarHeight[0]) / (povarHeight[1] - povarHeight[0]);
+                    pAy = iSubSpectra;
+                    pBx = povar;
+                    pBy = iSubSpectra + (lineZValue - povarHeight[0]) / (povarHeight[2] - povarHeight[0]);
+                    lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
+                }
+                if (isOver[3] !== isOver[1] && isOver[3] !== isOver[2]) {
+                    pAx = povar + 1;
+                    pAy = iSubSpectra + 1 - (lineZValue - povarHeight[3]) / (povarHeight[1] - povarHeight[3]);
+                    pBx = povar + 1 - (lineZValue - povarHeight[3]) / (povarHeight[2] - povarHeight[3]);
+                    pBy = iSubSpectra + 1;
+                    lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
+                }
+                // test around the diagonal
+                if (isOver[1] !== isOver[2]) {
+                    pAx = povar + 1 - (lineZValue - povarHeight[1]) / (povarHeight[2] - povarHeight[1]);
+                    pAy = iSubSpectra + (lineZValue - povarHeight[1]) / (povarHeight[2] - povarHeight[1]);
+                    if (isOver[1] !== isOver[0]) {
+                        pBx = povar + 1 - (lineZValue - povarHeight[1]) / (povarHeight[0] - povarHeight[1]);
+                        pBy = iSubSpectra;
+                        lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
+                    }
+                    if (isOver[2] !== isOver[0]) {
+                        pBx = povar;
+                        pBy = iSubSpectra + 1 - (lineZValue - povarHeight[2]) / (povarHeight[0] - povarHeight[2]);
+                        lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
+                    }
+                    if (isOver[1] !== isOver[3]) {
+                        pBx = povar + 1;
+                        pBy = iSubSpectra + (lineZValue - povarHeight[1]) / (povarHeight[3] - povarHeight[1]);
+                        lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
+                    }
+                    if (isOver[2] !== isOver[3]) {
+                        pBx = povar + (lineZValue - povarHeight[2]) / (povarHeight[3] - povarHeight[2]);
+                        pBy = iSubSpectra + 1;
+                        lines.push(pAx * dx + x0, pAy * dy + y0, pBx * dx + x0, pBy * dy + y0);
+                    }
+                }
+            }
+        }
+    }
+    // console.timeEnd('generateContourLines');
+    return {
+        minX: zData.minX,
+        maxX: zData.maxX,
+        minY: zData.minY,
+        maxY: zData.maxY,
+        segments: contourLevels
+    };
+    //return contourLevels;
+}
+
+
+module.exports =  {
+    convertZip: readZIP,
+    converFolder: convert
+};
+
+/***/ }),
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8202,13 +8232,13 @@ module.exports = function extend() {
 
 
 /***/ }),
-/* 30 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var parseXYDataRegExp = __webpack_require__(85);
+var parseXYDataRegExp = __webpack_require__(89);
 
 
 function getConverter() {
@@ -9084,12 +9114,12 @@ module.exports = {
 
 
 /***/ }),
-/* 31 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var DataReader = __webpack_require__(33);
+var DataReader = __webpack_require__(34);
 
 function ArrayReader(data) {
     if (data) {
@@ -9142,7 +9172,7 @@ module.exports = ArrayReader;
 
 
 /***/ }),
-/* 32 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9177,7 +9207,7 @@ module.exports = CompressedObject;
 
 
 /***/ }),
-/* 33 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9292,7 +9322,7 @@ module.exports = DataReader;
 
 
 /***/ }),
-/* 34 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9310,7 +9340,7 @@ exports.dosPermissions = null;
 
 
 /***/ }),
-/* 35 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9324,12 +9354,12 @@ exports.DATA_DESCRIPTOR = "PK\x07\x08";
 
 
 /***/ }),
-/* 36 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var DataReader = __webpack_require__(33);
+var DataReader = __webpack_require__(34);
 var utils = __webpack_require__(0);
 
 function StringReader(data, optimizedBinaryString) {
@@ -9368,12 +9398,12 @@ module.exports = StringReader;
 
 
 /***/ }),
-/* 37 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var ArrayReader = __webpack_require__(31);
+var ArrayReader = __webpack_require__(32);
 
 function Uint8ArrayReader(data) {
     if (data) {
@@ -9401,7 +9431,7 @@ module.exports = Uint8ArrayReader;
 
 
 /***/ }),
-/* 38 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9615,18 +9645,18 @@ exports.utf8decode = function utf8decode(buf) {
 
 
 /***/ }),
-/* 39 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = exports = __webpack_require__(96);
+module.exports = exports = __webpack_require__(100);
 
 
-exports.getEquallySpacedData = __webpack_require__(97).getEquallySpacedData;
-exports.SNV = __webpack_require__(98).SNV;
+exports.getEquallySpacedData = __webpack_require__(101).getEquallySpacedData;
+exports.SNV = __webpack_require__(102).SNV;
 
 
 /***/ }),
-/* 40 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9649,7 +9679,7 @@ euclidean.squared = squaredEuclidean;
 
 
 /***/ }),
-/* 41 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -9886,25 +9916,25 @@ var FFT = (function(){
 
 
 /***/ }),
-/* 42 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.FFTUtils = __webpack_require__(101);
-exports.FFT = __webpack_require__(41);
-
-
-/***/ }),
 /* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
+exports.FFTUtils = __webpack_require__(105);
+exports.FFT = __webpack_require__(42);
+
+
+/***/ }),
+/* 44 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
 const Cluster = __webpack_require__(14);
-const util = __webpack_require__(157);
+const util = __webpack_require__(70);
 
 function ClusterLeaf(index) {
     Cluster.call(this);
@@ -9919,7 +9949,7 @@ module.exports = ClusterLeaf;
 
 
 /***/ }),
-/* 44 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -10156,7 +10186,7 @@ var FFT = (function(){
 
 
 /***/ }),
-/* 45 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10164,17 +10194,17 @@ var FFT = (function(){
 
 module.exports = abstractMatrix;
 
-var LuDecomposition = __webpack_require__(46);
-var SvDecomposition = __webpack_require__(47);
-var arrayUtils = __webpack_require__(39);
+var LuDecomposition = __webpack_require__(47);
+var SvDecomposition = __webpack_require__(48);
+var arrayUtils = __webpack_require__(40);
 var util = __webpack_require__(7);
-var MatrixTransposeView = __webpack_require__(126);
-var MatrixRowView = __webpack_require__(123);
-var MatrixSubView = __webpack_require__(125);
-var MatrixSelectionView = __webpack_require__(124);
-var MatrixColumnView = __webpack_require__(120);
-var MatrixFlipRowView = __webpack_require__(122);
-var MatrixFlipColumnView = __webpack_require__(121);
+var MatrixTransposeView = __webpack_require__(130);
+var MatrixRowView = __webpack_require__(127);
+var MatrixSubView = __webpack_require__(129);
+var MatrixSelectionView = __webpack_require__(128);
+var MatrixColumnView = __webpack_require__(124);
+var MatrixFlipRowView = __webpack_require__(126);
+var MatrixFlipColumnView = __webpack_require__(125);
 
 function abstractMatrix(superCtor) {
     if (superCtor === undefined) superCtor = Object;
@@ -11981,7 +12011,7 @@ function abstractMatrix(superCtor) {
 
 
 /***/ }),
-/* 46 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12162,7 +12192,7 @@ module.exports = LuDecomposition;
 
 
 /***/ }),
-/* 47 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12683,7 +12713,7 @@ module.exports = SingularValueDecomposition;
 
 
 /***/ }),
-/* 48 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12942,7 +12972,7 @@ module.exports = {
 
 
 /***/ }),
-/* 49 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13402,7 +13432,7 @@ exports.cumulativeSum = function cumulativeSum(array) {
 
 
 /***/ }),
-/* 50 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13517,10 +13547,10 @@ function fullClusterGeneratorVector(conn){
 }
 
 /***/ }),
-/* 51 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const HashTable = __webpack_require__(105);
+const HashTable = __webpack_require__(109);
 
 class SparseMatrix {
     constructor(rows, columns, options = {}) {
@@ -13815,7 +13845,7 @@ function fillTemplateFunction(template, values) {
 
 
 /***/ }),
-/* 52 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14301,24 +14331,24 @@ exports.cumulativeSum = function cumulativeSum(array) {
 
 
 /***/ }),
-/* 53 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-exports.SpinSystem = __webpack_require__(140);
-exports.simulate1D = __webpack_require__(142);
-exports.simulate2D = __webpack_require__(143);
-
-
-/***/ }),
 /* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var numberIsNan = __webpack_require__(144);
+
+exports.SpinSystem = __webpack_require__(144);
+exports.simulate1D = __webpack_require__(146);
+exports.simulate2D = __webpack_require__(147);
+
+
+/***/ }),
+/* 55 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var numberIsNan = __webpack_require__(148);
 
 function assertNum(x) {
 	if (typeof x !== 'number' || numberIsNan(x)) {
@@ -14340,7 +14370,7 @@ exports.desc = function (a, b) {
 
 
 /***/ }),
-/* 55 */
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14532,7 +14562,7 @@ exports.utf8border = function (buf, max) {
 
 
 /***/ }),
-/* 56 */
+/* 57 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14590,7 +14620,7 @@ module.exports = adler32;
 
 
 /***/ }),
-/* 57 */
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14665,7 +14695,7 @@ module.exports = {
 
 
 /***/ }),
-/* 58 */
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14731,7 +14761,7 @@ module.exports = crc32;
 
 
 /***/ }),
-/* 59 */
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14782,33 +14812,6 @@ function ZStream() {
 }
 
 module.exports = ZStream;
-
-
-/***/ }),
-/* 60 */
-/***/ (function(module, exports) {
-
-var g;
-
-// This works in non-strict mode
-g = (function() {
-	return this;
-})();
-
-try {
-	// This works if eval is allowed (see CSP)
-	g = g || Function("return this")() || (1,eval)("this");
-} catch(e) {
-	// This works if the window reference is available
-	if(typeof window === "object")
-		g = window;
-}
-
-// g can still be undefined, but nothing to do about it...
-// We return undefined, instead of nothing here, so it's
-// easier to handle this case. if(!global) { ...}
-
-module.exports = g;
 
 
 /***/ }),
@@ -17955,10 +17958,10 @@ module.exports = {
 
 
 const SD = __webpack_require__(9);
-const Filters = __webpack_require__(21);
-const Brukerconverter = __webpack_require__(27);
-const peaks2Ranges = __webpack_require__(77);
-const simulator = __webpack_require__(53);
+const Filters = __webpack_require__(23);
+const Brukerconverter = __webpack_require__(29);
+const peaks2Ranges = __webpack_require__(84);
+const simulator = __webpack_require__(54);
 const impurities = __webpack_require__(61);
 
 /**
@@ -18320,20 +18323,20 @@ class NMR extends SD {
     /**
      * This function process the given spectraData and tries to determine the NMR signals. Returns an NMRSignal1D array
      * containing all the detected 1D-NMR Signals
-     * @param {object} parameters - A JSONObject containing the optional parameters:
+     * @param {object} options - A JSONObject containing the optional parameters:
      * @option fromX:   Lower limit.
      * @option toX:     Upper limit.
      * @option threshold: The minimum intensity to consider a peak as a signal, expressed as a percentage of the highest peak.
      * @option stdev: Number of standard deviation of the noise for the threshold calculation if a threshold is not specified.
      * @return {*}
      */
-    getRanges(parameters) {
+    getRanges(options) {
         if (this.ranges) {
             return this.ranges;
         } else {
-            var peaks = this.getPeaks(parameters);
-            parameters = Object.assign({}, { nH: this.totalIntegral }, parameters);
-            var ranges = peaks2Ranges(this, peaks, parameters);
+            var peaks = this.getPeaks(options);
+            options = Object.assign({}, { nH: this.totalIntegral }, options);
+            var ranges = peaks2Ranges(this, peaks, options);
             return ranges;
         }
     }
@@ -18341,17 +18344,17 @@ class NMR extends SD {
     /**
      * This function compute again the process of the given spectraData and tries to determine the NMR signals.
      * Returns an NMRSignal1D array containing all the detected 1D-NMR Signals
-     * @param {object} parameters - A JSONObject containing the optional parameters:
+     * @param {object} options - A JSONObject containing the optional parameters:
      * @option fromX:   Lower limit.
      * @option toX:     Upper limit.
      * @option threshold: The minimum intensity to consider a peak as a signal, expressed as a percentage of the highest peak.
      * @option stdev: Number of standard deviation of the noise for the threshold calculation if a threshold is not specified.
      * @return {null|*}
      */
-    createRanges(parameters) {
+    createRanges(options) {
         this.ranges = null;
         this.peaks = null;
-        this.ranges = this.getRanges(parameters);
+        this.ranges = this.getRanges(options);
         return this.ranges;
     }
 
@@ -18401,12 +18404,12 @@ module.exports = NMR;
 
 
 const SD = __webpack_require__(9);
-const peakPicking2D = __webpack_require__(76);
-const PeakOptimizer = __webpack_require__(22);
-const Brukerconverter = __webpack_require__(27);
-const Filters = __webpack_require__(21);
+const peakPicking2D = __webpack_require__(83);
+const PeakOptimizer = __webpack_require__(24);
+const Brukerconverter = __webpack_require__(29);
+const Filters = __webpack_require__(23);
 const StatArray = __webpack_require__(6).array;
-const simule2DNmrSpectrum = __webpack_require__(53).simulate2D;
+const simule2DNmrSpectrum = __webpack_require__(54).simulate2D;
 
 class NMR2D extends SD {
 
@@ -18776,6 +18779,1051 @@ module.exports = NMR2D;
 "use strict";
 
 
+exports.byteLength = byteLength
+exports.toByteArray = toByteArray
+exports.fromByteArray = fromByteArray
+
+var lookup = []
+var revLookup = []
+var Arr = typeof Uint8Array !== 'undefined' ? Uint8Array : Array
+
+var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+for (var i = 0, len = code.length; i < len; ++i) {
+  lookup[i] = code[i]
+  revLookup[code.charCodeAt(i)] = i
+}
+
+revLookup['-'.charCodeAt(0)] = 62
+revLookup['_'.charCodeAt(0)] = 63
+
+function placeHoldersCount (b64) {
+  var len = b64.length
+  if (len % 4 > 0) {
+    throw new Error('Invalid string. Length must be a multiple of 4')
+  }
+
+  // the number of equal signs (place holders)
+  // if there are two placeholders, than the two characters before it
+  // represent one byte
+  // if there is only one, then the three characters before it represent 2 bytes
+  // this is just a cheap hack to not do indexOf twice
+  return b64[len - 2] === '=' ? 2 : b64[len - 1] === '=' ? 1 : 0
+}
+
+function byteLength (b64) {
+  // base64 is 4/3 + up to two characters of the original data
+  return b64.length * 3 / 4 - placeHoldersCount(b64)
+}
+
+function toByteArray (b64) {
+  var i, j, l, tmp, placeHolders, arr
+  var len = b64.length
+  placeHolders = placeHoldersCount(b64)
+
+  arr = new Arr(len * 3 / 4 - placeHolders)
+
+  // if there are placeholders, only get up to the last complete 4 chars
+  l = placeHolders > 0 ? len - 4 : len
+
+  var L = 0
+
+  for (i = 0, j = 0; i < l; i += 4, j += 3) {
+    tmp = (revLookup[b64.charCodeAt(i)] << 18) | (revLookup[b64.charCodeAt(i + 1)] << 12) | (revLookup[b64.charCodeAt(i + 2)] << 6) | revLookup[b64.charCodeAt(i + 3)]
+    arr[L++] = (tmp >> 16) & 0xFF
+    arr[L++] = (tmp >> 8) & 0xFF
+    arr[L++] = tmp & 0xFF
+  }
+
+  if (placeHolders === 2) {
+    tmp = (revLookup[b64.charCodeAt(i)] << 2) | (revLookup[b64.charCodeAt(i + 1)] >> 4)
+    arr[L++] = tmp & 0xFF
+  } else if (placeHolders === 1) {
+    tmp = (revLookup[b64.charCodeAt(i)] << 10) | (revLookup[b64.charCodeAt(i + 1)] << 4) | (revLookup[b64.charCodeAt(i + 2)] >> 2)
+    arr[L++] = (tmp >> 8) & 0xFF
+    arr[L++] = tmp & 0xFF
+  }
+
+  return arr
+}
+
+function tripletToBase64 (num) {
+  return lookup[num >> 18 & 0x3F] + lookup[num >> 12 & 0x3F] + lookup[num >> 6 & 0x3F] + lookup[num & 0x3F]
+}
+
+function encodeChunk (uint8, start, end) {
+  var tmp
+  var output = []
+  for (var i = start; i < end; i += 3) {
+    tmp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2])
+    output.push(tripletToBase64(tmp))
+  }
+  return output.join('')
+}
+
+function fromByteArray (uint8) {
+  var tmp
+  var len = uint8.length
+  var extraBytes = len % 3 // if we have 1 byte left, pad 2 bytes
+  var output = ''
+  var parts = []
+  var maxChunkLength = 16383 // must be multiple of 3
+
+  // go through the array every three bytes, we'll deal with trailing stuff later
+  for (var i = 0, len2 = len - extraBytes; i < len2; i += maxChunkLength) {
+    parts.push(encodeChunk(uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)))
+  }
+
+  // pad the end with zeros, but make sure to not forget the extra bytes
+  if (extraBytes === 1) {
+    tmp = uint8[len - 1]
+    output += lookup[tmp >> 2]
+    output += lookup[(tmp << 4) & 0x3F]
+    output += '=='
+  } else if (extraBytes === 2) {
+    tmp = (uint8[len - 2] << 8) + (uint8[len - 1])
+    output += lookup[tmp >> 10]
+    output += lookup[(tmp >> 4) & 0x3F]
+    output += lookup[(tmp << 2) & 0x3F]
+    output += '='
+  }
+
+  parts.push(output)
+
+  return parts.join('')
+}
+
+
+/***/ }),
+/* 65 */
+/***/ (function(module, exports) {
+
+exports.read = function (buffer, offset, isLE, mLen, nBytes) {
+  var e, m
+  var eLen = nBytes * 8 - mLen - 1
+  var eMax = (1 << eLen) - 1
+  var eBias = eMax >> 1
+  var nBits = -7
+  var i = isLE ? (nBytes - 1) : 0
+  var d = isLE ? -1 : 1
+  var s = buffer[offset + i]
+
+  i += d
+
+  e = s & ((1 << (-nBits)) - 1)
+  s >>= (-nBits)
+  nBits += eLen
+  for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8) {}
+
+  m = e & ((1 << (-nBits)) - 1)
+  e >>= (-nBits)
+  nBits += mLen
+  for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8) {}
+
+  if (e === 0) {
+    e = 1 - eBias
+  } else if (e === eMax) {
+    return m ? NaN : ((s ? -1 : 1) * Infinity)
+  } else {
+    m = m + Math.pow(2, mLen)
+    e = e - eBias
+  }
+  return (s ? -1 : 1) * m * Math.pow(2, e - mLen)
+}
+
+exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
+  var e, m, c
+  var eLen = nBytes * 8 - mLen - 1
+  var eMax = (1 << eLen) - 1
+  var eBias = eMax >> 1
+  var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0)
+  var i = isLE ? 0 : (nBytes - 1)
+  var d = isLE ? 1 : -1
+  var s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0
+
+  value = Math.abs(value)
+
+  if (isNaN(value) || value === Infinity) {
+    m = isNaN(value) ? 1 : 0
+    e = eMax
+  } else {
+    e = Math.floor(Math.log(value) / Math.LN2)
+    if (value * (c = Math.pow(2, -e)) < 1) {
+      e--
+      c *= 2
+    }
+    if (e + eBias >= 1) {
+      value += rt / c
+    } else {
+      value += rt * Math.pow(2, 1 - eBias)
+    }
+    if (value * c >= 2) {
+      e++
+      c /= 2
+    }
+
+    if (e + eBias >= eMax) {
+      m = 0
+      e = eMax
+    } else if (e + eBias >= 1) {
+      m = (value * c - 1) * Math.pow(2, mLen)
+      e = e + eBias
+    } else {
+      m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen)
+      e = 0
+    }
+  }
+
+  for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8) {}
+
+  e = (e << mLen) | m
+  eLen += mLen
+  for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8) {}
+
+  buffer[offset + i - d] |= s * 128
+}
+
+
+/***/ }),
+/* 66 */
+/***/ (function(module, exports) {
+
+var toString = {}.toString;
+
+module.exports = Array.isArray || function (arr) {
+  return toString.call(arr) == '[object Array]';
+};
+
+
+/***/ }),
+/* 67 */
+/***/ (function(module, exports) {
+
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+
+/***/ }),
+/* 68 */
+/***/ (function(module, exports) {
+
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
+
+
+/***/ }),
+/* 69 */
+/***/ (function(module, exports) {
+
+module.exports = function isBuffer(arg) {
+  return arg && typeof arg === 'object'
+    && typeof arg.copy === 'function'
+    && typeof arg.fill === 'function'
+    && typeof arg.readUInt8 === 'function';
+}
+
+/***/ }),
+/* 70 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function(global, process) {// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+var formatRegExp = /%[sdj%]/g;
+exports.format = function(f) {
+  if (!isString(f)) {
+    var objects = [];
+    for (var i = 0; i < arguments.length; i++) {
+      objects.push(inspect(arguments[i]));
+    }
+    return objects.join(' ');
+  }
+
+  var i = 1;
+  var args = arguments;
+  var len = args.length;
+  var str = String(f).replace(formatRegExp, function(x) {
+    if (x === '%%') return '%';
+    if (i >= len) return x;
+    switch (x) {
+      case '%s': return String(args[i++]);
+      case '%d': return Number(args[i++]);
+      case '%j':
+        try {
+          return JSON.stringify(args[i++]);
+        } catch (_) {
+          return '[Circular]';
+        }
+      default:
+        return x;
+    }
+  });
+  for (var x = args[i]; i < len; x = args[++i]) {
+    if (isNull(x) || !isObject(x)) {
+      str += ' ' + x;
+    } else {
+      str += ' ' + inspect(x);
+    }
+  }
+  return str;
+};
+
+
+// Mark that a method should not be used.
+// Returns a modified function which warns once by default.
+// If --no-deprecation is set, then it is a no-op.
+exports.deprecate = function(fn, msg) {
+  // Allow for deprecating things in the process of starting up.
+  if (isUndefined(global.process)) {
+    return function() {
+      return exports.deprecate(fn, msg).apply(this, arguments);
+    };
+  }
+
+  if (process.noDeprecation === true) {
+    return fn;
+  }
+
+  var warned = false;
+  function deprecated() {
+    if (!warned) {
+      if (process.throwDeprecation) {
+        throw new Error(msg);
+      } else if (process.traceDeprecation) {
+        console.trace(msg);
+      } else {
+        console.error(msg);
+      }
+      warned = true;
+    }
+    return fn.apply(this, arguments);
+  }
+
+  return deprecated;
+};
+
+
+var debugs = {};
+var debugEnviron;
+exports.debuglog = function(set) {
+  if (isUndefined(debugEnviron))
+    debugEnviron = process.env.NODE_DEBUG || '';
+  set = set.toUpperCase();
+  if (!debugs[set]) {
+    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
+      var pid = process.pid;
+      debugs[set] = function() {
+        var msg = exports.format.apply(exports, arguments);
+        console.error('%s %d: %s', set, pid, msg);
+      };
+    } else {
+      debugs[set] = function() {};
+    }
+  }
+  return debugs[set];
+};
+
+
+/**
+ * Echos the value of a value. Trys to print the value out
+ * in the best way possible given the different types.
+ *
+ * @param {Object} obj The object to print out.
+ * @param {Object} opts Optional options object that alters the output.
+ */
+/* legacy: obj, showHidden, depth, colors*/
+function inspect(obj, opts) {
+  // default options
+  var ctx = {
+    seen: [],
+    stylize: stylizeNoColor
+  };
+  // legacy...
+  if (arguments.length >= 3) ctx.depth = arguments[2];
+  if (arguments.length >= 4) ctx.colors = arguments[3];
+  if (isBoolean(opts)) {
+    // legacy...
+    ctx.showHidden = opts;
+  } else if (opts) {
+    // got an "options" object
+    exports._extend(ctx, opts);
+  }
+  // set default options
+  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
+  if (isUndefined(ctx.depth)) ctx.depth = 2;
+  if (isUndefined(ctx.colors)) ctx.colors = false;
+  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
+  if (ctx.colors) ctx.stylize = stylizeWithColor;
+  return formatValue(ctx, obj, ctx.depth);
+}
+exports.inspect = inspect;
+
+
+// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
+inspect.colors = {
+  'bold' : [1, 22],
+  'italic' : [3, 23],
+  'underline' : [4, 24],
+  'inverse' : [7, 27],
+  'white' : [37, 39],
+  'grey' : [90, 39],
+  'black' : [30, 39],
+  'blue' : [34, 39],
+  'cyan' : [36, 39],
+  'green' : [32, 39],
+  'magenta' : [35, 39],
+  'red' : [31, 39],
+  'yellow' : [33, 39]
+};
+
+// Don't use 'blue' not visible on cmd.exe
+inspect.styles = {
+  'special': 'cyan',
+  'number': 'yellow',
+  'boolean': 'yellow',
+  'undefined': 'grey',
+  'null': 'bold',
+  'string': 'green',
+  'date': 'magenta',
+  // "name": intentionally not styling
+  'regexp': 'red'
+};
+
+
+function stylizeWithColor(str, styleType) {
+  var style = inspect.styles[styleType];
+
+  if (style) {
+    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
+           '\u001b[' + inspect.colors[style][1] + 'm';
+  } else {
+    return str;
+  }
+}
+
+
+function stylizeNoColor(str, styleType) {
+  return str;
+}
+
+
+function arrayToHash(array) {
+  var hash = {};
+
+  array.forEach(function(val, idx) {
+    hash[val] = true;
+  });
+
+  return hash;
+}
+
+
+function formatValue(ctx, value, recurseTimes) {
+  // Provide a hook for user-specified inspect functions.
+  // Check that value is an object with an inspect function on it
+  if (ctx.customInspect &&
+      value &&
+      isFunction(value.inspect) &&
+      // Filter out the util module, it's inspect function is special
+      value.inspect !== exports.inspect &&
+      // Also filter out any prototype objects using the circular check.
+      !(value.constructor && value.constructor.prototype === value)) {
+    var ret = value.inspect(recurseTimes, ctx);
+    if (!isString(ret)) {
+      ret = formatValue(ctx, ret, recurseTimes);
+    }
+    return ret;
+  }
+
+  // Primitive types cannot have properties
+  var primitive = formatPrimitive(ctx, value);
+  if (primitive) {
+    return primitive;
+  }
+
+  // Look up the keys of the object.
+  var keys = Object.keys(value);
+  var visibleKeys = arrayToHash(keys);
+
+  if (ctx.showHidden) {
+    keys = Object.getOwnPropertyNames(value);
+  }
+
+  // IE doesn't make error fields non-enumerable
+  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
+  if (isError(value)
+      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
+    return formatError(value);
+  }
+
+  // Some type of object without properties can be shortcutted.
+  if (keys.length === 0) {
+    if (isFunction(value)) {
+      var name = value.name ? ': ' + value.name : '';
+      return ctx.stylize('[Function' + name + ']', 'special');
+    }
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    }
+    if (isDate(value)) {
+      return ctx.stylize(Date.prototype.toString.call(value), 'date');
+    }
+    if (isError(value)) {
+      return formatError(value);
+    }
+  }
+
+  var base = '', array = false, braces = ['{', '}'];
+
+  // Make Array say that they are Array
+  if (isArray(value)) {
+    array = true;
+    braces = ['[', ']'];
+  }
+
+  // Make functions say that they are functions
+  if (isFunction(value)) {
+    var n = value.name ? ': ' + value.name : '';
+    base = ' [Function' + n + ']';
+  }
+
+  // Make RegExps say that they are RegExps
+  if (isRegExp(value)) {
+    base = ' ' + RegExp.prototype.toString.call(value);
+  }
+
+  // Make dates with properties first say the date
+  if (isDate(value)) {
+    base = ' ' + Date.prototype.toUTCString.call(value);
+  }
+
+  // Make error with message first say the error
+  if (isError(value)) {
+    base = ' ' + formatError(value);
+  }
+
+  if (keys.length === 0 && (!array || value.length == 0)) {
+    return braces[0] + base + braces[1];
+  }
+
+  if (recurseTimes < 0) {
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    } else {
+      return ctx.stylize('[Object]', 'special');
+    }
+  }
+
+  ctx.seen.push(value);
+
+  var output;
+  if (array) {
+    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
+  } else {
+    output = keys.map(function(key) {
+      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
+    });
+  }
+
+  ctx.seen.pop();
+
+  return reduceToSingleString(output, base, braces);
+}
+
+
+function formatPrimitive(ctx, value) {
+  if (isUndefined(value))
+    return ctx.stylize('undefined', 'undefined');
+  if (isString(value)) {
+    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
+                                             .replace(/'/g, "\\'")
+                                             .replace(/\\"/g, '"') + '\'';
+    return ctx.stylize(simple, 'string');
+  }
+  if (isNumber(value))
+    return ctx.stylize('' + value, 'number');
+  if (isBoolean(value))
+    return ctx.stylize('' + value, 'boolean');
+  // For some reason typeof null is "object", so special case here.
+  if (isNull(value))
+    return ctx.stylize('null', 'null');
+}
+
+
+function formatError(value) {
+  return '[' + Error.prototype.toString.call(value) + ']';
+}
+
+
+function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
+  var output = [];
+  for (var i = 0, l = value.length; i < l; ++i) {
+    if (hasOwnProperty(value, String(i))) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+          String(i), true));
+    } else {
+      output.push('');
+    }
+  }
+  keys.forEach(function(key) {
+    if (!key.match(/^\d+$/)) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+          key, true));
+    }
+  });
+  return output;
+}
+
+
+function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
+  var name, str, desc;
+  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
+  if (desc.get) {
+    if (desc.set) {
+      str = ctx.stylize('[Getter/Setter]', 'special');
+    } else {
+      str = ctx.stylize('[Getter]', 'special');
+    }
+  } else {
+    if (desc.set) {
+      str = ctx.stylize('[Setter]', 'special');
+    }
+  }
+  if (!hasOwnProperty(visibleKeys, key)) {
+    name = '[' + key + ']';
+  }
+  if (!str) {
+    if (ctx.seen.indexOf(desc.value) < 0) {
+      if (isNull(recurseTimes)) {
+        str = formatValue(ctx, desc.value, null);
+      } else {
+        str = formatValue(ctx, desc.value, recurseTimes - 1);
+      }
+      if (str.indexOf('\n') > -1) {
+        if (array) {
+          str = str.split('\n').map(function(line) {
+            return '  ' + line;
+          }).join('\n').substr(2);
+        } else {
+          str = '\n' + str.split('\n').map(function(line) {
+            return '   ' + line;
+          }).join('\n');
+        }
+      }
+    } else {
+      str = ctx.stylize('[Circular]', 'special');
+    }
+  }
+  if (isUndefined(name)) {
+    if (array && key.match(/^\d+$/)) {
+      return str;
+    }
+    name = JSON.stringify('' + key);
+    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
+      name = name.substr(1, name.length - 2);
+      name = ctx.stylize(name, 'name');
+    } else {
+      name = name.replace(/'/g, "\\'")
+                 .replace(/\\"/g, '"')
+                 .replace(/(^"|"$)/g, "'");
+      name = ctx.stylize(name, 'string');
+    }
+  }
+
+  return name + ': ' + str;
+}
+
+
+function reduceToSingleString(output, base, braces) {
+  var numLinesEst = 0;
+  var length = output.reduce(function(prev, cur) {
+    numLinesEst++;
+    if (cur.indexOf('\n') >= 0) numLinesEst++;
+    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
+  }, 0);
+
+  if (length > 60) {
+    return braces[0] +
+           (base === '' ? '' : base + '\n ') +
+           ' ' +
+           output.join(',\n  ') +
+           ' ' +
+           braces[1];
+  }
+
+  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
+}
+
+
+// NOTE: These type checking functions intentionally don't use `instanceof`
+// because it is fragile and can be easily faked with `Object.create()`.
+function isArray(ar) {
+  return Array.isArray(ar);
+}
+exports.isArray = isArray;
+
+function isBoolean(arg) {
+  return typeof arg === 'boolean';
+}
+exports.isBoolean = isBoolean;
+
+function isNull(arg) {
+  return arg === null;
+}
+exports.isNull = isNull;
+
+function isNullOrUndefined(arg) {
+  return arg == null;
+}
+exports.isNullOrUndefined = isNullOrUndefined;
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+exports.isNumber = isNumber;
+
+function isString(arg) {
+  return typeof arg === 'string';
+}
+exports.isString = isString;
+
+function isSymbol(arg) {
+  return typeof arg === 'symbol';
+}
+exports.isSymbol = isSymbol;
+
+function isUndefined(arg) {
+  return arg === void 0;
+}
+exports.isUndefined = isUndefined;
+
+function isRegExp(re) {
+  return isObject(re) && objectToString(re) === '[object RegExp]';
+}
+exports.isRegExp = isRegExp;
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+exports.isObject = isObject;
+
+function isDate(d) {
+  return isObject(d) && objectToString(d) === '[object Date]';
+}
+exports.isDate = isDate;
+
+function isError(e) {
+  return isObject(e) &&
+      (objectToString(e) === '[object Error]' || e instanceof Error);
+}
+exports.isError = isError;
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+exports.isFunction = isFunction;
+
+function isPrimitive(arg) {
+  return arg === null ||
+         typeof arg === 'boolean' ||
+         typeof arg === 'number' ||
+         typeof arg === 'string' ||
+         typeof arg === 'symbol' ||  // ES6 symbol
+         typeof arg === 'undefined';
+}
+exports.isPrimitive = isPrimitive;
+
+exports.isBuffer = __webpack_require__(69);
+
+function objectToString(o) {
+  return Object.prototype.toString.call(o);
+}
+
+
+function pad(n) {
+  return n < 10 ? '0' + n.toString(10) : n.toString(10);
+}
+
+
+var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+              'Oct', 'Nov', 'Dec'];
+
+// 26 Feb 16:19:34
+function timestamp() {
+  var d = new Date();
+  var time = [pad(d.getHours()),
+              pad(d.getMinutes()),
+              pad(d.getSeconds())].join(':');
+  return [d.getDate(), months[d.getMonth()], time].join(' ');
+}
+
+
+// log is just a thin wrapper to console.log that prepends a timestamp
+exports.log = function() {
+  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
+};
+
+
+/**
+ * Inherit the prototype methods from one constructor into another.
+ *
+ * The Function.prototype.inherits from lang.js rewritten as a standalone
+ * function (not on Function.prototype). NOTE: If this file is to be loaded
+ * during bootstrapping this function needs to be rewritten using some native
+ * functions as prototype setup using normal JavaScript does not work as
+ * expected during bootstrapping (see mirror.js in r114903).
+ *
+ * @param {function} ctor Constructor function which needs to inherit the
+ *     prototype.
+ * @param {function} superCtor Constructor function to inherit prototype from.
+ */
+exports.inherits = __webpack_require__(68);
+
+exports._extend = function(origin, add) {
+  // Don't do anything if add isn't an object
+  if (!add || !isObject(add)) return origin;
+
+  var keys = Object.keys(add);
+  var i = keys.length;
+  while (i--) {
+    origin[keys[i]] = add[keys[i]];
+  }
+  return origin;
+};
+
+function hasOwnProperty(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(22), __webpack_require__(67)))
+
+/***/ }),
+/* 71 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
 function apodization(spectraData, parameters) {
     let params = Object.assign({}, parameters);
     if (!params) {
@@ -18807,13 +19855,13 @@ function apodization(spectraData, parameters) {
 module.exports = apodization;
 
 /***/ }),
-/* 65 */
+/* 72 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var rotate = __webpack_require__(68);
+var rotate = __webpack_require__(75);
 
 function digitalFilter(spectraData, options) {
     let activeElement = spectraData.activeElement;
@@ -18847,13 +19895,13 @@ function digitalFilter(spectraData, options) {
 module.exports = digitalFilter;
 
 /***/ }),
-/* 66 */
+/* 73 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const fft = __webpack_require__(42);
+const fft = __webpack_require__(43);
 
 /**
  * This function make a fourier transformation to each FID withing a SD instance
@@ -18940,7 +19988,7 @@ function updateSpectra(spectraData, spectraType) {
 module.exports = fourierTransform;
 
 /***/ }),
-/* 67 */
+/* 74 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19007,7 +20055,7 @@ function phaseCorrection(spectraData, phi0, phi1) {
 module.exports = phaseCorrection;
 
 /***/ }),
-/* 68 */
+/* 75 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19078,7 +20126,7 @@ function putInRange(value, nbPoints) {
 module.exports = rotate;
 
 /***/ }),
-/* 69 */
+/* 76 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19122,7 +20170,7 @@ function zeroFilling(spectraData, zeroFillingX) {
 module.exports = zeroFilling;
 
 /***/ }),
-/* 70 */
+/* 77 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19134,13 +20182,13 @@ exports.NMR2D = __webpack_require__(63);
 exports.Ranges = __webpack_require__(20);
 
 /***/ }),
-/* 71 */
+/* 78 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const Encoder = __webpack_require__(72);
+const Encoder = __webpack_require__(79);
 const Integer = { MAX_VALUE: Number.MAX_SAFE_INTEGER, MIN_VALUE: Number.MIN_SAFE_INTEGER };
 const CRLF = '\r\n';
 const version = 'Cheminfo tools ' + __webpack_require__(158).version;
@@ -19516,7 +20564,7 @@ function simpleHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams)
 module.exports = JcampCreator;
 
 /***/ }),
-/* 72 */
+/* 79 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19887,7 +20935,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 73 */
+/* 80 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19972,7 +21020,7 @@ function removeImpurities(peakList, options = {}) {
 module.exports = removeImpurities;
 
 /***/ }),
-/* 74 */
+/* 81 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20599,20 +21647,23 @@ function getArea(peak) {
 }
 
 /***/ }),
-/* 75 */
+/* 82 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
+
+
+const GSD = __webpack_require__(107);
 
 /**
  * Implementation of the peak picking method described by Cobas in:
  * A new approach to improving automated analysis of proton NMR spectra
  * through Global Spectral Deconvolution (GSD)
  * http://www.spectroscopyeurope.com/images/stories/ColumnPDFs/TD_23_1.pdf
- * @param {SD} spectrum - SD instance
- * @param {Object} peakList - nmr signals
- * @param {Object} options - options object with some parameter for GSD
- * @param {boolean} [options.clean = true] - If true remove all the signals with integral < 0.5
+ * @param {SD} spectrum - SD instance.
+ * @param {Object} peakList - nmr signals.
+ * @param {Object} options - options object with some parameter for GSD.
+ * @param {boolean} [options.compile = true] - If true, the Janalyzer function is run over signals to compile the patterns.
  * @param {number} [options.minMaxRatio = 0.01] - Threshold to determine if a given peak should be considered as a noise, bases on its relative height compared to the highest peak.
  * @param {number} [options.broadRatio = 0.00025] - If broadRatio is higher than 0, then all the peaks which second derivative smaller than broadRatio * maxAbsSecondDerivative will be marked with the soft mask equal to true.
  * @param {boolean} [options.smoothY = true] - Select the peak intensities from a smoothed version of the independent variables?
@@ -20622,10 +21673,6 @@ function getArea(peak) {
  * @param {number} [options.broadWidth = 0.25] - Threshold to determine if some peak is candidate to clustering into range.
  * @return {Array}
  */
-
-const GSD = __webpack_require__(103);
-//var extend = require("extend");
-//var removeImpurities = require('./ImpurityRemover');
 
 const defaultOptions = {
     thresholdFactor: 1,
@@ -20640,7 +21687,6 @@ const defaultOptions = {
 };
 
 function extractPeaks(spectrum, options = {}) {
-
     options = Object.assign({}, defaultOptions, options);
     var noiseLevel = Math.abs(spectrum.getNoiseLevel()) * options.thresholdFactor;
     var data = spectrum.getXYData();
@@ -20648,13 +21694,11 @@ function extractPeaks(spectrum, options = {}) {
     if (options.from && options.to) {
         data = spectrum.getVector(options.from, options.to);
     }
-
     var peakList = GSD.gsd(data[0], data[1], options);
 
     if (options.broadWidth) {
         peakList = GSD.post.joinBroadPeaks(peakList, { width: options.broadWidth });
     }
-
     if (options.optimize) {
         peakList = GSD.post.optimizePeaks(peakList, data[0], data[1], options.nL, options.functionType);
     }
@@ -20681,16 +21725,16 @@ function clearList(peakList, threshold) {
 module.exports = extractPeaks;
 
 /***/ }),
-/* 76 */
+/* 83 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var PeakOptimizer = __webpack_require__(22);
-var simpleClustering = __webpack_require__(50);
-var matrixPeakFinders = __webpack_require__(114);
-var FFTUtils = __webpack_require__(42).FFTUtils;
+var PeakOptimizer = __webpack_require__(24);
+var simpleClustering = __webpack_require__(51);
+var matrixPeakFinders = __webpack_require__(118);
+var FFTUtils = __webpack_require__(43).FFTUtils;
 
 const smallFilter = [[0, 0, 1, 2, 2, 2, 1, 0, 0], [0, 1, 4, 7, 7, 7, 4, 1, 0], [1, 4, 5, 3, 0, 3, 5, 4, 1], [2, 7, 3, -12, -23, -12, 3, 7, 2], [2, 7, 0, -23, -40, -23, 0, 7, 2], [2, 7, 3, -12, -23, -12, 3, 7, 2], [1, 4, 5, 3, 0, 3, 5, 4, 1], [0, 1, 3, 7, 7, 7, 3, 1, 0], [0, 0, 1, 2, 2, 2, 1, 0, 0]];
 
@@ -20841,18 +21885,18 @@ function createSignals2D(peaks, spectraData, tolerance) {
 module.exports = getZones;
 
 /***/ }),
-/* 77 */
+/* 84 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const JAnalyzer = __webpack_require__(74);
+const JAnalyzer = __webpack_require__(81);
 const Ranges = __webpack_require__(20);
-const impurityRemover = __webpack_require__(73);
+const impurityRemover = __webpack_require__(80);
 
 const defaultOptions = {
-    nH: 99,
+    nH: 100,
     idPrefix: ''
 };
 /**
@@ -20860,33 +21904,32 @@ const defaultOptions = {
  * @param {SD} spectrum - SD instance
  * @param {Object} peakList - nmr signals
  * @param {Object} options - options object with some parameter for GSD, detectSignal functions.
- * @param {number} [options.nH = 99] - Number of hydrogens or some number to normalize the integral data. If it's zero return the absolute integral value
+ * @param {number} [options.nH = 100] - Number of hydrogens or some number to normalize the integral data. If it's zero return the absolute integral value
  * @param {string} [options.integralType = 'sum'] - option to chose between approx area with peaks or the sum of the points of given range ('sum', 'peaks')
  * @param {number} [options.frequencyCluster = 16] - distance limit to clustering peaks.
- * @param {boolean} [options.clean = true] - If true remove all the signals with integral < 0.5
+ * @param {number} [options.clean] - If exits it remove all the signals with integral < clean value
  * @param {boolean} [options.compile = true] - If true, the Janalyzer function is run over signals to compile the patterns.
  * @param {string} [options.idPrefix = ''] - prefix for signal ID
  * @returns {Array}
  */
 
 function createRanges(spectrum, peakList, options) {
-    options = Object.assign({}, defaultOptions, options, { frequency: spectrum.observeFrequencyX() });
-    var i, j, nHi, sum;
+    options = Object.assign({}, defaultOptions, options);
+    var i, j;
     var nH = options.nH;
     var signals = detectSignals(spectrum, peakList, options);
 
-    //Remove all the signals with small integral
-    if (options.clean || false) {
-        for (i = signals.length - 1; i >= 0; i--) {
-            if (signals[i].integralData.value < 0.5) {
+    if (options.clean) {
+        for (i = 0; i < signals.length; i++) {
+            if (signals[i].integralData.value < options.clean) {
                 signals.splice(i, 1);
             }
         }
     }
 
-    if (options.compile || false) {
+    if (options.compile) {
+        var nHi, sum;
         for (i = 0; i < signals.length; i++) {
-            //console.log("Sum "+signals[i].integralData.value);
             JAnalyzer.compilePattern(signals[i]);
 
             if (signals[i].maskPattern && signals[i].multiplicity !== 'm' && signals[i].multiplicity !== '') {
@@ -20895,17 +21938,15 @@ function createRanges(spectrum, peakList, options) {
                 sum = 0;
                 var peaksO = [];
                 for (j = signals[i].maskPattern.length - 1; j >= 0; j--) {
-                    sum += area(signals[i].peaks[j]);
-
+                    sum += computeArea(signals[i].peaks[j]);
                     if (signals[i].maskPattern[j] === false) {
                         var peakR = signals[i].peaks.splice(j, 1)[0];
                         peaksO.push({ x: peakR.x, y: peakR.intensity, width: peakR.width });
-                        //peaksO.push(peakR);
                         signals[i].mask.splice(j, 1);
                         signals[i].mask2.splice(j, 1);
                         signals[i].maskPattern.splice(j, 1);
                         signals[i].nbPeaks--;
-                        nHi += area(peakR);
+                        nHi += computeArea(peakR);
                     }
                 }
                 if (peaksO.length > 0) {
@@ -20942,10 +21983,9 @@ function createRanges(spectrum, peakList, options) {
         return b.delta1 - a.delta1;
     });
 
-    if (options.clean || false) {
+    if (options.clean) {
         for (i = signals.length - 1; i >= 0; i--) {
-            //console.log(signals[i]);
-            if (signals[i].integralData.value < 0.5) {
+            if (signals[i].integralData.value < options.clean) {
                 signals.splice(i, 1);
             }
         }
@@ -21004,7 +22044,7 @@ function createRanges(spectrum, peakList, options) {
  */
 function detectSignals(spectrum, peakList, options = {}) {
     var _options$nH = options.nH,
-        nH = _options$nH === undefined ? 99 : _options$nH,
+        nH = _options$nH === undefined ? 100 : _options$nH,
         _options$integralType = options.integralType,
         integralType = _options$integralType === undefined ? 'sum' : _options$integralType,
         _options$frequencyClu = options.frequencyCluster,
@@ -21012,69 +22052,65 @@ function detectSignals(spectrum, peakList, options = {}) {
         _options$frequency = options.frequency,
         frequency = _options$frequency === undefined ? spectrum.observeFrequencyX() : _options$frequency;
 
-    var cs;
-    var sum;
-    var i;
-    var j;
+
+    var i, j, signal1D, peaks;
     var signals = [];
-    var signal1D = {};
-    var peaks = null;
-    var prevPeak = { x: 100000, y: 0, width: 0 };
+    var prevPeak = { x: 100000 };
     var spectrumIntegral = 0;
-    frequencyCluster = frequencyCluster / frequency;
+    frequencyCluster /= frequency;
     for (i = 0; i < peakList.length; i++) {
         if (Math.abs(peakList[i].x - prevPeak.x) > frequencyCluster) {
-            signal1D = { nbPeaks: 1, units: 'PPM',
-                'startX': peakList[i].x - peakList[i].width,
-                'stopX': peakList[i].x + peakList[i].width,
-                'multiplicity': '', 'pattern': '',
-                'observe': frequency, 'nucleus': '1H',
-                'integralData': {
-                    'from': peakList[i].x - peakList[i].width * 3,
-                    'to': peakList[i].x + peakList[i].width * 3
+            signal1D = {
+                nbPeaks: 1, units: 'PPM',
+                startX: peakList[i].x - peakList[i].width,
+                stopX: peakList[i].x + peakList[i].width,
+                multiplicity: '', pattern: '',
+                observe: frequency, nucleus: spectrum.getNucleus(1),
+                integralData: {
+                    from: peakList[i].x - peakList[i].width * 3,
+                    to: peakList[i].x + peakList[i].width * 3
                 },
-                'peaks': [] };
-            signal1D.peaks.push({ x: peakList[i].x, 'intensity': peakList[i].y, width: peakList[i].width });
+                peaks: [{ x: peakList[i].x, intensity: peakList[i].y, width: peakList[i].width }]
+            };
             signals.push(signal1D);
-            //spectrumIntegral+=area(peakList[i]);
         } else {
             var tmp = peakList[i].x + peakList[i].width;
             signal1D.stopX = Math.max(signal1D.stopX, tmp);
-            tmp = peakList[i].x - peakList[i].width;
             signal1D.startX = Math.min(signal1D.startX, tmp);
             signal1D.nbPeaks++;
-            signal1D.peaks.push({ x: peakList[i].x, 'intensity': peakList[i].y, width: peakList[i].width });
-            //signal1D.integralData.value+=area(peakList[i]);
+            signal1D.peaks.push({ x: peakList[i].x, intensity: peakList[i].y, width: peakList[i].width });
             signal1D.integralData.from = Math.min(signal1D.integralData.from, peakList[i].x - peakList[i].width * 3);
             signal1D.integralData.to = Math.max(signal1D.integralData.to, peakList[i].x + peakList[i].width * 3);
-            //spectrumIntegral+=area(peakList[i]);
         }
         prevPeak = peakList[i];
     }
-    //Normalize the integral to the normalization parameter and calculate cs
+
     for (i = 0; i < signals.length; i++) {
         peaks = signals[i].peaks;
         let integral = signals[i].integralData;
-        cs = 0;
-        sum = 0;
+        let chemicalShift = 0;
+        let integralPeaks = 0;
 
         for (j = 0; j < peaks.length; j++) {
-            cs += peaks[j].x * area(peaks[j]); //.intensity;
-            sum += area(peaks[j]);
+            var area = computeArea(peaks[j]);
+            chemicalShift += peaks[j].x * area;
+            integralPeaks += area;
         }
-        signals[i].delta1 = cs / sum;
+        signals[i].delta1 = chemicalShift / integralPeaks;
 
         if (integralType === 'sum') {
             integral.value = spectrum.getArea(integral.from, integral.to);
         } else {
-            integral.value = sum;
+            integral.value = integralPeaks;
         }
         spectrumIntegral += integral.value;
     }
-    if (nH !== 0) {
+
+    if (nH > 0) {
+        let integralFactor = nH / spectrumIntegral;
         for (i = 0; i < signals.length; i++) {
             let integral = signals[i].integralData;
-            integral.value *= nH / spectrumIntegral;
+            integral.value *= integralFactor;
         }
     }
 
@@ -21082,154 +22118,19 @@ function detectSignals(spectrum, peakList, options = {}) {
 }
 
 /**
- * Updates the score that a given impurity is present in the current spectrum. In this part I would expect
- * to have into account the multiplicity of the signal. Also the relative intensity of the signals.
- * THIS IS the KEY part of the algorithm!!!!!!!!!
- * @param candidates
- * @param peakList
- * @param maxIntensity
- * @param frequency
- * @return {number}
- */
-/*function updateScore(candidates, peakList, maxIntensity, frequency) {
- //You may do it to avoid this part.
- //Check the multiplicity
- var mul, index, k;
- var j = 0;
- var min = 0;
- var indexMin = 0;
- var score = 0;
- for (var i = candidates.length - 1; i >= 0; i--) {
- mul = candidates[i][1];
- j = candidates[i][2];
- index = candidates[i][4][0];
- //I guess we should try to identify the pattern in the nearby.
- if (mul.indexOf('sep') >= 0) {
- if (peakList[index][1] > maxIntensity * 0.33) {
- candidates.splice(i, 1);//Not a candidate anymore.
- }
- } else {
- if (mul.indexOf('s') >= 0 || mul.indexOf('X') >= 0) {
- k = index - 1;
- min = peakList[index][1];
- indexMin = index;
- while (k >= 0 && Math.abs(peakList[index][0] - peakList[k][0]) < 0.025) {
- if (peakList[k][1] < min) {
- min = peakList[k][1];
- indexMin = k;
- }
- k--;
- }
- k = index + 1;
- while (k < peakList.length && Math.abs(peakList[index][0] - peakList[k][0]) < 0.025) {
- if (peakList[k][1] < min) {
- min = peakList[k][1];
- indexMin = k;
- }
- k++;
- }
- candidates[i][4][0] = indexMin;
- score += 1;
- }
- }
- if (mul.indexOf('d') >= 0) {
- if (index > 0 && index < peakList.length - 1) {
- let thisJ1 = Math.abs(Math.abs(peakList[index - 1][0] - peakList[index][0]) * frequency - j);
- let thisJ2 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index][0]) * frequency - j);
- let thisJ3 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index - 1][0]) * frequency - j);
- if (thisJ1 < 2 || thisJ2 < 2 || thisJ3 < 2) {
- if (thisJ1 < thisJ2) {
- if (thisJ1 < thisJ3) {
- candidates[i][4] = [index - 1, index];
- score += 1;
- }                        else {
- candidates[i][4] = [index - 1, index + 1];
- score += 1;
- }
- }                    else {
- if (thisJ2 < thisJ3) {
- candidates[i][4] = [index, index + 1];
- score += 1;
- }                        else {
- candidates[i][4] = [index - 1, index + 1];
- score += 1;
- }
- }
- }
- }
- }
- if (mul.indexOf('t') >= 0) {
- if (index > 0 && index < peakList.length - 1) {
- let thisJ1 = Math.abs(Math.abs(peakList[index - 1][0] - peakList[index][0]) * frequency - j);
- let thisJ2 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index][0]) * frequency - j);
- let thisJ3 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index + 2][0]) * frequency - j);
- //console.log("XX "+thisJ1+" "+thisJ2);
- if (thisJ1 < 2) {
- candidates[i][4] = [index - 1, index];
- score += 0.5;
- }
- if (thisJ2 < 2) {
- candidates[i][4].push(index + 1);
- score += 0.5;
- }
- if (thisJ3 < 2) {
- candidates[i][4].push(index + 2);
- score += 0.5;
- }
-
- }
- }
- if (mul.indexOf('q') >= 0) {
- if (index > 1 && index < peakList.length - 2) {
- var thisJ1 = Math.abs(Math.abs(peakList[index - 2][0] - peakList[index - 1][0]) * frequency - j);
- var thisJ2 = Math.abs(Math.abs(peakList[index - 1][0] - peakList[index][0]) * frequency - j);
- var thisJ3 = Math.abs(Math.abs(peakList[index + 1][0] - peakList[index][0]) * frequency - j);
- var thisJ4 = Math.abs(Math.abs(peakList[index + 2][0] - peakList[index + 1][0]) * frequency - j);
- if (thisJ1 < 2) {
- candidates[i][4].push(index - 2);
- score += 0.25;
- }
- if (thisJ2 < 2) {
- candidates[i][4].push(index - 1);
- score += 0.25;
- }
- if (thisJ3 < 2) {
- candidates[i][4].push(index + 1);
- score += 0.25;
- }
- if (thisJ4 < 2) {
- candidates[i][4].push(index + 2);
- score += 0.25;
- }
- }
- }
- }
- //Lets remove the candidates to be impurities.
- //It would be equivalent to mark the peaks as valid again
- if (score / candidates.length < 0.5) {
- for (var i = candidates.length - 1; i >= 0; i--) {
- candidates.splice(i, 1);
- }
- return 0;
- }
- //Check the relative intensity
- return 1;
- }
- */
-/**
  * Return the area of a Lorentzian function
  * @param {object} peak - object with peak information
  * @return {number}
  * @private
  */
-function area(peak) {
-    return Math.abs(peak.intensity * peak.width * 1.57); //1.772453851);
+function computeArea(peak) {
+    return Math.abs(peak.intensity * peak.width * 1.57); // todo add an option with this value: 1.772453851
 }
 
 module.exports = createRanges;
 
 /***/ }),
-/* 78 */
+/* 85 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21329,135 +22230,14 @@ function annotations2D(zones, optionsG) {
 module.exports = { annotations2D: annotations2D, annotations1D: annotations1D };
 
 /***/ }),
-/* 79 */
+/* 86 */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
-exports.byteLength = byteLength
-exports.toByteArray = toByteArray
-exports.fromByteArray = fromByteArray
-
-var lookup = []
-var revLookup = []
-var Arr = typeof Uint8Array !== 'undefined' ? Uint8Array : Array
-
-var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-for (var i = 0, len = code.length; i < len; ++i) {
-  lookup[i] = code[i]
-  revLookup[code.charCodeAt(i)] = i
-}
-
-revLookup['-'.charCodeAt(0)] = 62
-revLookup['_'.charCodeAt(0)] = 63
-
-function placeHoldersCount (b64) {
-  var len = b64.length
-  if (len % 4 > 0) {
-    throw new Error('Invalid string. Length must be a multiple of 4')
-  }
-
-  // the number of equal signs (place holders)
-  // if there are two placeholders, than the two characters before it
-  // represent one byte
-  // if there is only one, then the three characters before it represent 2 bytes
-  // this is just a cheap hack to not do indexOf twice
-  return b64[len - 2] === '=' ? 2 : b64[len - 1] === '=' ? 1 : 0
-}
-
-function byteLength (b64) {
-  // base64 is 4/3 + up to two characters of the original data
-  return b64.length * 3 / 4 - placeHoldersCount(b64)
-}
-
-function toByteArray (b64) {
-  var i, j, l, tmp, placeHolders, arr
-  var len = b64.length
-  placeHolders = placeHoldersCount(b64)
-
-  arr = new Arr(len * 3 / 4 - placeHolders)
-
-  // if there are placeholders, only get up to the last complete 4 chars
-  l = placeHolders > 0 ? len - 4 : len
-
-  var L = 0
-
-  for (i = 0, j = 0; i < l; i += 4, j += 3) {
-    tmp = (revLookup[b64.charCodeAt(i)] << 18) | (revLookup[b64.charCodeAt(i + 1)] << 12) | (revLookup[b64.charCodeAt(i + 2)] << 6) | revLookup[b64.charCodeAt(i + 3)]
-    arr[L++] = (tmp >> 16) & 0xFF
-    arr[L++] = (tmp >> 8) & 0xFF
-    arr[L++] = tmp & 0xFF
-  }
-
-  if (placeHolders === 2) {
-    tmp = (revLookup[b64.charCodeAt(i)] << 2) | (revLookup[b64.charCodeAt(i + 1)] >> 4)
-    arr[L++] = tmp & 0xFF
-  } else if (placeHolders === 1) {
-    tmp = (revLookup[b64.charCodeAt(i)] << 10) | (revLookup[b64.charCodeAt(i + 1)] << 4) | (revLookup[b64.charCodeAt(i + 2)] >> 2)
-    arr[L++] = (tmp >> 8) & 0xFF
-    arr[L++] = tmp & 0xFF
-  }
-
-  return arr
-}
-
-function tripletToBase64 (num) {
-  return lookup[num >> 18 & 0x3F] + lookup[num >> 12 & 0x3F] + lookup[num >> 6 & 0x3F] + lookup[num & 0x3F]
-}
-
-function encodeChunk (uint8, start, end) {
-  var tmp
-  var output = []
-  for (var i = start; i < end; i += 3) {
-    tmp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2])
-    output.push(tripletToBase64(tmp))
-  }
-  return output.join('')
-}
-
-function fromByteArray (uint8) {
-  var tmp
-  var len = uint8.length
-  var extraBytes = len % 3 // if we have 1 byte left, pad 2 bytes
-  var output = ''
-  var parts = []
-  var maxChunkLength = 16383 // must be multiple of 3
-
-  // go through the array every three bytes, we'll deal with trailing stuff later
-  for (var i = 0, len2 = len - extraBytes; i < len2; i += maxChunkLength) {
-    parts.push(encodeChunk(uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)))
-  }
-
-  // pad the end with zeros, but make sure to not forget the extra bytes
-  if (extraBytes === 1) {
-    tmp = uint8[len - 1]
-    output += lookup[tmp >> 2]
-    output += lookup[(tmp << 4) & 0x3F]
-    output += '=='
-  } else if (extraBytes === 2) {
-    tmp = (uint8[len - 2] << 8) + (uint8[len - 1])
-    output += lookup[tmp >> 10]
-    output += lookup[(tmp >> 4) & 0x3F]
-    output += lookup[(tmp << 2) & 0x3F]
-    output += '='
-  }
-
-  parts.push(output)
-
-  return parts.join('')
-}
+module.exports = __webpack_require__(87);
 
 
 /***/ }),
-/* 80 */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = __webpack_require__(81);
-
-
-/***/ }),
-/* 81 */
+/* 87 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// Generated by CoffeeScript 1.8.0
@@ -21841,97 +22621,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
 
 /***/ }),
-/* 82 */
-/***/ (function(module, exports) {
-
-exports.read = function (buffer, offset, isLE, mLen, nBytes) {
-  var e, m
-  var eLen = nBytes * 8 - mLen - 1
-  var eMax = (1 << eLen) - 1
-  var eBias = eMax >> 1
-  var nBits = -7
-  var i = isLE ? (nBytes - 1) : 0
-  var d = isLE ? -1 : 1
-  var s = buffer[offset + i]
-
-  i += d
-
-  e = s & ((1 << (-nBits)) - 1)
-  s >>= (-nBits)
-  nBits += eLen
-  for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8) {}
-
-  m = e & ((1 << (-nBits)) - 1)
-  e >>= (-nBits)
-  nBits += mLen
-  for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8) {}
-
-  if (e === 0) {
-    e = 1 - eBias
-  } else if (e === eMax) {
-    return m ? NaN : ((s ? -1 : 1) * Infinity)
-  } else {
-    m = m + Math.pow(2, mLen)
-    e = e - eBias
-  }
-  return (s ? -1 : 1) * m * Math.pow(2, e - mLen)
-}
-
-exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
-  var e, m, c
-  var eLen = nBytes * 8 - mLen - 1
-  var eMax = (1 << eLen) - 1
-  var eBias = eMax >> 1
-  var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0)
-  var i = isLE ? 0 : (nBytes - 1)
-  var d = isLE ? 1 : -1
-  var s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0
-
-  value = Math.abs(value)
-
-  if (isNaN(value) || value === Infinity) {
-    m = isNaN(value) ? 1 : 0
-    e = eMax
-  } else {
-    e = Math.floor(Math.log(value) / Math.LN2)
-    if (value * (c = Math.pow(2, -e)) < 1) {
-      e--
-      c *= 2
-    }
-    if (e + eBias >= 1) {
-      value += rt / c
-    } else {
-      value += rt * Math.pow(2, 1 - eBias)
-    }
-    if (value * c >= 2) {
-      e++
-      c /= 2
-    }
-
-    if (e + eBias >= eMax) {
-      m = 0
-      e = eMax
-    } else if (e + eBias >= 1) {
-      m = (value * c - 1) * Math.pow(2, mLen)
-      e = e + eBias
-    } else {
-      m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen)
-      e = 0
-    }
-  }
-
-  for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8) {}
-
-  e = (e << mLen) | m
-  eLen += mLen
-  for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8) {}
-
-  buffer[offset + i - d] |= s * 128
-}
-
-
-/***/ }),
-/* 83 */
+/* 88 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -22182,18 +22872,7 @@ module.exports = IOBuffer;
 
 
 /***/ }),
-/* 84 */
-/***/ (function(module, exports) {
-
-var toString = {}.toString;
-
-module.exports = Array.isArray || function (arr) {
-  return toString.call(arr) == '[object Array]';
-};
-
-
-/***/ }),
-/* 85 */
+/* 89 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -22344,7 +23023,7 @@ module.exports=function(spectrum, value, result) {
 
 
 /***/ }),
-/* 86 */
+/* 90 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -22453,7 +23132,7 @@ module.exports = function crc32(input, crc) {
 
 
 /***/ }),
-/* 87 */
+/* 91 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -22565,14 +23244,14 @@ exports.isRegExp = function (object) {
 
 
 /***/ }),
-/* 88 */
+/* 92 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var USE_TYPEDARRAY = (typeof Uint8Array !== 'undefined') && (typeof Uint16Array !== 'undefined') && (typeof Uint32Array !== 'undefined');
 
-var pako = __webpack_require__(145);
+var pako = __webpack_require__(149);
 exports.uncompressInputType = USE_TYPEDARRAY ? "uint8array" : "array";
 exports.compressInputType = USE_TYPEDARRAY ? "uint8array" : "array";
 
@@ -22588,7 +23267,7 @@ exports.uncompress =  function(input) {
 
 
 /***/ }),
-/* 89 */
+/* 93 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -22643,15 +23322,15 @@ function JSZip(data, options) {
     };
 }
 JSZip.prototype = __webpack_require__(13);
-JSZip.prototype.load = __webpack_require__(90);
+JSZip.prototype.load = __webpack_require__(94);
 JSZip.support = __webpack_require__(5);
-JSZip.defaults = __webpack_require__(34);
+JSZip.defaults = __webpack_require__(35);
 
 /**
  * @deprecated
  * This namespace will be removed in a future version without replacement.
  */
-JSZip.utils = __webpack_require__(87);
+JSZip.utils = __webpack_require__(91);
 
 JSZip.base64 = {
     /**
@@ -22674,15 +23353,15 @@ module.exports = JSZip;
 
 
 /***/ }),
-/* 90 */
+/* 94 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var base64 = __webpack_require__(10);
-var utf8 = __webpack_require__(38);
+var utf8 = __webpack_require__(39);
 var utils = __webpack_require__(0);
-var ZipEntries = __webpack_require__(94);
+var ZipEntries = __webpack_require__(98);
 module.exports = function(data, options) {
     var files, zipEntries, i, input;
     options = utils.extend(options || {}, {
@@ -22720,12 +23399,12 @@ module.exports = function(data, options) {
 
 
 /***/ }),
-/* 91 */
+/* 95 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var Uint8ArrayReader = __webpack_require__(37);
+var Uint8ArrayReader = __webpack_require__(38);
 
 function NodeBufferReader(data) {
     this.data = data;
@@ -22748,7 +23427,7 @@ module.exports = NodeBufferReader;
 
 
 /***/ }),
-/* 92 */
+/* 96 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -22785,7 +23464,7 @@ module.exports = StringWriter;
 
 
 /***/ }),
-/* 93 */
+/* 97 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -22828,18 +23507,18 @@ module.exports = Uint8ArrayWriter;
 
 
 /***/ }),
-/* 94 */
+/* 98 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var StringReader = __webpack_require__(36);
-var NodeBufferReader = __webpack_require__(91);
-var Uint8ArrayReader = __webpack_require__(37);
-var ArrayReader = __webpack_require__(31);
+var StringReader = __webpack_require__(37);
+var NodeBufferReader = __webpack_require__(95);
+var Uint8ArrayReader = __webpack_require__(38);
+var ArrayReader = __webpack_require__(32);
 var utils = __webpack_require__(0);
-var sig = __webpack_require__(35);
-var ZipEntry = __webpack_require__(95);
+var sig = __webpack_require__(36);
+var ZipEntry = __webpack_require__(99);
 var support = __webpack_require__(5);
 var jszipProto = __webpack_require__(13);
 //  class ZipEntries {{{
@@ -23115,14 +23794,14 @@ module.exports = ZipEntries;
 
 
 /***/ }),
-/* 95 */
+/* 99 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var StringReader = __webpack_require__(36);
+var StringReader = __webpack_require__(37);
 var utils = __webpack_require__(0);
-var CompressedObject = __webpack_require__(32);
+var CompressedObject = __webpack_require__(33);
 var jszipProto = __webpack_require__(13);
 var support = __webpack_require__(5);
 
@@ -23441,7 +24120,7 @@ module.exports = ZipEntry;
 
 
 /***/ }),
-/* 96 */
+/* 100 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -23673,7 +24352,7 @@ module.exports = {
 
 
 /***/ }),
-/* 97 */
+/* 101 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -23933,7 +24612,7 @@ exports.getEquallySpacedData = getEquallySpacedData;
 exports.integral = integral;
 
 /***/ }),
-/* 98 */
+/* 102 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -23960,7 +24639,7 @@ function SNV(data) {
 
 
 /***/ }),
-/* 99 */
+/* 103 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24048,7 +24727,7 @@ function DisjointSetNode(value) {
 
 
 /***/ }),
-/* 100 */
+/* 104 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24087,13 +24766,13 @@ module.exports = distanceMatrix;
 
 
 /***/ }),
-/* 101 */
+/* 105 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var FFT = __webpack_require__(41);
+var FFT = __webpack_require__(42);
 
 var FFTUtils= {
     DEBUG : false,
@@ -24405,14 +25084,14 @@ module.exports = FFTUtils;
 
 
 /***/ }),
-/* 102 */
+/* 106 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const extend = __webpack_require__(29);
-const SG = __webpack_require__(138);
+const extend = __webpack_require__(30);
+const SG = __webpack_require__(142);
 
 const defaultOptions = {
     sgOptions: {
@@ -24703,18 +25382,18 @@ module.exports = gsd;
 
 
 /***/ }),
-/* 103 */
+/* 107 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-module.exports.post = __webpack_require__(104);
-module.exports.gsd = __webpack_require__(102);
+module.exports.post = __webpack_require__(108);
+module.exports.gsd = __webpack_require__(106);
 
 
 /***/ }),
-/* 104 */
+/* 108 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -24723,7 +25402,7 @@ module.exports.gsd = __webpack_require__(102);
  */
 
 
-var Opt = __webpack_require__(135);
+var Opt = __webpack_require__(139);
 
 function sampleFunction(from, to, x, y, lastIndex) {
     var nbPoints = x.length;
@@ -24992,7 +25671,7 @@ module.exports = {optimizePeaks: optimizePeaks, joinBroadPeaks: joinBroadPeaks};
 
 
 /***/ }),
-/* 105 */
+/* 109 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -25000,7 +25679,7 @@ module.exports = {optimizePeaks: optimizePeaks, joinBroadPeaks: joinBroadPeaks};
 
 const newArray = __webpack_require__(18);
 
-const primeFinder = __webpack_require__(106);
+const primeFinder = __webpack_require__(110);
 const nextPrime = primeFinder.nextPrime;
 const largestPrime = primeFinder.largestPrime;
 
@@ -25302,11 +25981,11 @@ function chooseShrinkCapacity(size, minLoad, maxLoad) {
 
 
 /***/ }),
-/* 106 */
+/* 110 */
 /***/ (function(module, exports, __webpack_require__) {
 
-const binarySearch = __webpack_require__(26);
-const sortAsc = __webpack_require__(54).asc;
+const binarySearch = __webpack_require__(28);
+const sortAsc = __webpack_require__(55).asc;
 
 const largestPrime = 0x7fffffff;
 
@@ -25394,16 +26073,16 @@ exports.largestPrime = largestPrime;
 
 
 /***/ }),
-/* 107 */
+/* 111 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const euclidean = __webpack_require__(40);
-const ClusterLeaf = __webpack_require__(43);
+const euclidean = __webpack_require__(41);
+const ClusterLeaf = __webpack_require__(44);
 const Cluster = __webpack_require__(14);
-const distanceMatrix = __webpack_require__(100);
+const distanceMatrix = __webpack_require__(104);
 
 /**
  * @private
@@ -25644,14 +26323,14 @@ module.exports = agnes;
 
 
 /***/ }),
-/* 108 */
+/* 112 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const euclidean = __webpack_require__(40);
-const ClusterLeaf = __webpack_require__(43);
+const euclidean = __webpack_require__(41);
+const ClusterLeaf = __webpack_require__(44);
 const Cluster = __webpack_require__(14);
 
 /**
@@ -25957,27 +26636,27 @@ module.exports = diana;
 
 
 /***/ }),
-/* 109 */
+/* 113 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-exports.agnes = __webpack_require__(107);
-exports.diana = __webpack_require__(108);
+exports.agnes = __webpack_require__(111);
+exports.diana = __webpack_require__(112);
 //exports.birch = require('./birch');
 //exports.cure = require('./cure');
 //exports.chameleon = require('./chameleon');
 
 
 /***/ }),
-/* 110 */
+/* 114 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var FFT = __webpack_require__(44);
+var FFT = __webpack_require__(45);
 
 var FFTUtils= {
     DEBUG : false,
@@ -26290,25 +26969,25 @@ module.exports = FFTUtils;
 
 
 /***/ }),
-/* 111 */
+/* 115 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-exports.FFTUtils = __webpack_require__(110);
-exports.FFT = __webpack_require__(44);
+exports.FFTUtils = __webpack_require__(114);
+exports.FFT = __webpack_require__(45);
 
 
 /***/ }),
-/* 112 */
+/* 116 */
 /***/ (function(module, exports, __webpack_require__) {
 
 'use strict;'
 /**
  * Created by acastillo on 7/7/16.
  */
-var FFTUtils = __webpack_require__(111).FFTUtils;
+var FFTUtils = __webpack_require__(115).FFTUtils;
 
 function convolutionFFT(input, kernel, opt) {
     var tmp = matrix2Array(input);
@@ -26462,13 +27141,13 @@ module.exports = {
 };
 
 /***/ }),
-/* 113 */
+/* 117 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const DisjointSet = __webpack_require__(99);
+const DisjointSet = __webpack_require__(103);
 
 const direction4X = [-1, 0];
 const direction4Y = [0, -1];
@@ -26555,7 +27234,7 @@ module.exports = ccLabeling;
 
 
 /***/ }),
-/* 114 */
+/* 118 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26564,8 +27243,8 @@ module.exports = ccLabeling;
  * Created by acastillo on 7/7/16.
  */
 var StatArray = __webpack_require__(6).array;
-var convolution = __webpack_require__(112);
-var labeling = __webpack_require__(113);
+var convolution = __webpack_require__(116);
+var labeling = __webpack_require__(117);
 
 
 const smallFilter = [
@@ -26745,7 +27424,7 @@ module.exports={
 
 
 /***/ }),
-/* 115 */
+/* 119 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26842,7 +27521,7 @@ module.exports = CholeskyDecomposition;
 
 
 /***/ }),
-/* 116 */
+/* 120 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27629,7 +28308,7 @@ module.exports = EigenvalueDecomposition;
 
 
 /***/ }),
-/* 117 */
+/* 121 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27788,7 +28467,7 @@ module.exports = QrDecomposition;
 
 
 /***/ }),
-/* 118 */
+/* 122 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27796,11 +28475,11 @@ module.exports = QrDecomposition;
 
 var Matrix = __webpack_require__(1).Matrix;
 
-var SingularValueDecomposition = __webpack_require__(47);
-var EigenvalueDecomposition = __webpack_require__(116);
-var LuDecomposition = __webpack_require__(46);
-var QrDecomposition = __webpack_require__(117);
-var CholeskyDecomposition = __webpack_require__(115);
+var SingularValueDecomposition = __webpack_require__(48);
+var EigenvalueDecomposition = __webpack_require__(120);
+var LuDecomposition = __webpack_require__(47);
+var QrDecomposition = __webpack_require__(121);
+var CholeskyDecomposition = __webpack_require__(119);
 
 function inverse(matrix) {
     matrix = Matrix.checkMatrix(matrix);
@@ -27857,7 +28536,7 @@ module.exports = {
 
 
 /***/ }),
-/* 119 */
+/* 123 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27869,7 +28548,7 @@ if (!Symbol.species) {
 
 
 /***/ }),
-/* 120 */
+/* 124 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27897,7 +28576,7 @@ module.exports = MatrixColumnView;
 
 
 /***/ }),
-/* 121 */
+/* 125 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27924,7 +28603,7 @@ module.exports = MatrixFlipColumnView;
 
 
 /***/ }),
-/* 122 */
+/* 126 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27951,7 +28630,7 @@ module.exports = MatrixFlipRowView;
 
 
 /***/ }),
-/* 123 */
+/* 127 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -27979,7 +28658,7 @@ module.exports = MatrixRowView;
 
 
 /***/ }),
-/* 124 */
+/* 128 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28010,7 +28689,7 @@ module.exports = MatrixSelectionView;
 
 
 /***/ }),
-/* 125 */
+/* 129 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28041,7 +28720,7 @@ module.exports = MatrixSubView;
 
 
 /***/ }),
-/* 126 */
+/* 130 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28068,14 +28747,14 @@ module.exports = MatrixTransposeView;
 
 
 /***/ }),
-/* 127 */
+/* 131 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
  * Created by acastillo on 8/5/15.
  */
 var Matrix = __webpack_require__(8);
-var math = __webpack_require__(48);
+var math = __webpack_require__(49);
 
 var DEBUG = false;
 /** Levenberg Marquardt curve-fitting: minimize sum of weighted squared residuals
@@ -28590,19 +29269,19 @@ var LM = {
 module.exports = LM;
 
 /***/ }),
-/* 128 */
+/* 132 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-module.exports = __webpack_require__(127);
+module.exports = __webpack_require__(131);
 module.exports.Matrix = __webpack_require__(8);
-module.exports.Matrix.algebra = __webpack_require__(48);
+module.exports.Matrix.algebra = __webpack_require__(49);
 
 
 /***/ }),
-/* 129 */
+/* 133 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28698,7 +29377,7 @@ module.exports = CholeskyDecomposition;
 
 
 /***/ }),
-/* 130 */
+/* 134 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29471,7 +30150,7 @@ module.exports = EigenvalueDecomposition;
 
 
 /***/ }),
-/* 131 */
+/* 135 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29647,7 +30326,7 @@ module.exports = LuDecomposition;
 
 
 /***/ }),
-/* 132 */
+/* 136 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -29804,7 +30483,7 @@ module.exports = QrDecomposition;
 
 
 /***/ }),
-/* 133 */
+/* 137 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30308,7 +30987,7 @@ module.exports = SingularValueDecomposition;
 
 
 /***/ }),
-/* 134 */
+/* 138 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -30316,11 +30995,11 @@ module.exports = SingularValueDecomposition;
 
 var Matrix = __webpack_require__(4);
 
-var SingularValueDecomposition = __webpack_require__(133);
-var EigenvalueDecomposition = __webpack_require__(130);
-var LuDecomposition = __webpack_require__(131);
-var QrDecomposition = __webpack_require__(132);
-var CholeskyDecomposition = __webpack_require__(129);
+var SingularValueDecomposition = __webpack_require__(137);
+var EigenvalueDecomposition = __webpack_require__(134);
+var LuDecomposition = __webpack_require__(135);
+var QrDecomposition = __webpack_require__(136);
+var CholeskyDecomposition = __webpack_require__(133);
 
 function inverse(matrix) {
     return solve(matrix, Matrix.eye(matrix.rows));
@@ -30355,13 +31034,13 @@ module.exports = {
 
 
 /***/ }),
-/* 135 */
+/* 139 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var LM = __webpack_require__(128);
+var LM = __webpack_require__(132);
 var math = LM.Matrix.algebra;
 var Matrix = __webpack_require__(8);
 
@@ -30819,23 +31498,23 @@ module.exports.optimizeGaussianTrain = optimizeGaussianTrain;
 module.exports.optimizeLorentzianTrain = optimizeLorentzianTrain;
 
 /***/ }),
-/* 136 */
+/* 140 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-exports.array = __webpack_require__(49);
-exports.matrix = __webpack_require__(137);
+exports.array = __webpack_require__(50);
+exports.matrix = __webpack_require__(141);
 
 
 /***/ }),
-/* 137 */
+/* 141 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var arrayStat = __webpack_require__(49);
+var arrayStat = __webpack_require__(50);
 
 // https://github.com/accord-net/framework/blob/development/Sources/Accord.Statistics/Tools.cs
 
@@ -31357,12 +32036,12 @@ module.exports = {
 
 
 /***/ }),
-/* 138 */
+/* 142 */
 /***/ (function(module, exports, __webpack_require__) {
 
 //Code translate from Pascal source in http://pubs.acs.org/doi/pdf/10.1021/ac00205a007
-var extend = __webpack_require__(29);
-var stat = __webpack_require__(136);
+var extend = __webpack_require__(30);
+var stat = __webpack_require__(140);
 
 var defaultOptions = {
     windowSize: 9,
@@ -31532,13 +32211,13 @@ module.exports = SavitzkyGolay;
 
 
 /***/ }),
-/* 139 */
+/* 143 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var arrayStat = __webpack_require__(52);
+var arrayStat = __webpack_require__(53);
 
 function compareNumbers(a, b) {
     return a - b;
@@ -32150,7 +32829,7 @@ exports.weightedScatter = function weightedScatter(matrix, weights, means, facto
 
 
 /***/ }),
-/* 140 */
+/* 144 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32158,8 +32837,8 @@ exports.weightedScatter = function weightedScatter(matrix, weights, means, facto
 
 const Matrix = __webpack_require__(16);
 const newArray = __webpack_require__(18);
-const simpleClustering = __webpack_require__(50);
-const hlClust = __webpack_require__(109);
+const simpleClustering = __webpack_require__(51);
+const hlClust = __webpack_require__(113);
 
 class SpinSystem {
     constructor(chemicalShifts, couplingConstants, multiplicity) {
@@ -32427,13 +33106,13 @@ module.exports = SpinSystem;
 
 
 /***/ }),
-/* 141 */
+/* 145 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-const SparseMatrix = __webpack_require__(51);
+const SparseMatrix = __webpack_require__(52);
 
 function createPauli(mult) {
     const spin = (mult - 1) / 2;
@@ -32475,19 +33154,19 @@ module.exports = getPauli;
 
 
 /***/ }),
-/* 142 */
+/* 146 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 const Matrix = __webpack_require__(16);
-const SparseMatrix = __webpack_require__(51);
-const binarySearch = __webpack_require__(26);
-const sortAsc = __webpack_require__(54).asc;
+const SparseMatrix = __webpack_require__(52);
+const binarySearch = __webpack_require__(28);
+const sortAsc = __webpack_require__(55).asc;
 const newArray = __webpack_require__(18);
 
-const getPauli = __webpack_require__(141);
+const getPauli = __webpack_require__(145);
 
 const smallValue = 1e-2;
 
@@ -32775,7 +33454,7 @@ module.exports = simulate1d;
 
 
 /***/ }),
-/* 143 */
+/* 147 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32872,7 +33551,7 @@ module.exports = simule2DNmrSpectrum;
 
 
 /***/ }),
-/* 144 */
+/* 148 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32883,7 +33562,7 @@ module.exports = Number.isNaN || function (x) {
 
 
 /***/ }),
-/* 145 */
+/* 149 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -32892,9 +33571,9 @@ module.exports = Number.isNaN || function (x) {
 
 var assign    = __webpack_require__(2).assign;
 
-var deflate   = __webpack_require__(146);
-var inflate   = __webpack_require__(147);
-var constants = __webpack_require__(57);
+var deflate   = __webpack_require__(150);
+var inflate   = __webpack_require__(151);
+var constants = __webpack_require__(58);
 
 var pako = {};
 
@@ -32904,18 +33583,18 @@ module.exports = pako;
 
 
 /***/ }),
-/* 146 */
+/* 150 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 
-var zlib_deflate = __webpack_require__(148);
+var zlib_deflate = __webpack_require__(152);
 var utils        = __webpack_require__(2);
-var strings      = __webpack_require__(55);
+var strings      = __webpack_require__(56);
 var msg          = __webpack_require__(19);
-var ZStream      = __webpack_require__(59);
+var ZStream      = __webpack_require__(60);
 
 var toString = Object.prototype.toString;
 
@@ -33311,20 +33990,20 @@ exports.gzip = gzip;
 
 
 /***/ }),
-/* 147 */
+/* 151 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 
-var zlib_inflate = __webpack_require__(151);
+var zlib_inflate = __webpack_require__(155);
 var utils        = __webpack_require__(2);
-var strings      = __webpack_require__(55);
-var c            = __webpack_require__(57);
+var strings      = __webpack_require__(56);
+var c            = __webpack_require__(58);
 var msg          = __webpack_require__(19);
-var ZStream      = __webpack_require__(59);
-var GZheader     = __webpack_require__(149);
+var ZStream      = __webpack_require__(60);
+var GZheader     = __webpack_require__(153);
 
 var toString = Object.prototype.toString;
 
@@ -33736,7 +34415,7 @@ exports.ungzip  = inflate;
 
 
 /***/ }),
-/* 148 */
+/* 152 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -33762,9 +34441,9 @@ exports.ungzip  = inflate;
 // 3. This notice may not be removed or altered from any source distribution.
 
 var utils   = __webpack_require__(2);
-var trees   = __webpack_require__(153);
-var adler32 = __webpack_require__(56);
-var crc32   = __webpack_require__(58);
+var trees   = __webpack_require__(157);
+var adler32 = __webpack_require__(57);
+var crc32   = __webpack_require__(59);
 var msg     = __webpack_require__(19);
 
 /* Public constants ==========================================================*/
@@ -35617,7 +36296,7 @@ exports.deflateTune = deflateTune;
 
 
 /***/ }),
-/* 149 */
+/* 153 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -35682,7 +36361,7 @@ module.exports = GZheader;
 
 
 /***/ }),
-/* 150 */
+/* 154 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -36034,7 +36713,7 @@ module.exports = function inflate_fast(strm, start) {
 
 
 /***/ }),
-/* 151 */
+/* 155 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -36060,10 +36739,10 @@ module.exports = function inflate_fast(strm, start) {
 // 3. This notice may not be removed or altered from any source distribution.
 
 var utils         = __webpack_require__(2);
-var adler32       = __webpack_require__(56);
-var crc32         = __webpack_require__(58);
-var inflate_fast  = __webpack_require__(150);
-var inflate_table = __webpack_require__(152);
+var adler32       = __webpack_require__(57);
+var crc32         = __webpack_require__(59);
+var inflate_fast  = __webpack_require__(154);
+var inflate_table = __webpack_require__(156);
 
 var CODES = 0;
 var LENS = 1;
@@ -37597,7 +38276,7 @@ exports.inflateUndermine = inflateUndermine;
 
 
 /***/ }),
-/* 152 */
+/* 156 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -37947,7 +38626,7 @@ module.exports = function inflate_table(type, lens, lens_index, codes, table, ta
 
 
 /***/ }),
-/* 153 */
+/* 157 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -39174,829 +39853,6 @@ exports._tr_align = _tr_align;
 
 
 /***/ }),
-/* 154 */
-/***/ (function(module, exports) {
-
-// shim for using process in browser
-var process = module.exports = {};
-
-// cached from whatever global is present so that test runners that stub it
-// don't break things.  But we need to wrap it in a try catch in case it is
-// wrapped in strict mode code which doesn't define any globals.  It's inside a
-// function because try/catches deoptimize in certain engines.
-
-var cachedSetTimeout;
-var cachedClearTimeout;
-
-function defaultSetTimout() {
-    throw new Error('setTimeout has not been defined');
-}
-function defaultClearTimeout () {
-    throw new Error('clearTimeout has not been defined');
-}
-(function () {
-    try {
-        if (typeof setTimeout === 'function') {
-            cachedSetTimeout = setTimeout;
-        } else {
-            cachedSetTimeout = defaultSetTimout;
-        }
-    } catch (e) {
-        cachedSetTimeout = defaultSetTimout;
-    }
-    try {
-        if (typeof clearTimeout === 'function') {
-            cachedClearTimeout = clearTimeout;
-        } else {
-            cachedClearTimeout = defaultClearTimeout;
-        }
-    } catch (e) {
-        cachedClearTimeout = defaultClearTimeout;
-    }
-} ())
-function runTimeout(fun) {
-    if (cachedSetTimeout === setTimeout) {
-        //normal enviroments in sane situations
-        return setTimeout(fun, 0);
-    }
-    // if setTimeout wasn't available but was latter defined
-    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
-        cachedSetTimeout = setTimeout;
-        return setTimeout(fun, 0);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedSetTimeout(fun, 0);
-    } catch(e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
-            return cachedSetTimeout.call(null, fun, 0);
-        } catch(e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
-            return cachedSetTimeout.call(this, fun, 0);
-        }
-    }
-
-
-}
-function runClearTimeout(marker) {
-    if (cachedClearTimeout === clearTimeout) {
-        //normal enviroments in sane situations
-        return clearTimeout(marker);
-    }
-    // if clearTimeout wasn't available but was latter defined
-    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
-        cachedClearTimeout = clearTimeout;
-        return clearTimeout(marker);
-    }
-    try {
-        // when when somebody has screwed with setTimeout but no I.E. maddness
-        return cachedClearTimeout(marker);
-    } catch (e){
-        try {
-            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
-            return cachedClearTimeout.call(null, marker);
-        } catch (e){
-            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
-            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
-            return cachedClearTimeout.call(this, marker);
-        }
-    }
-
-
-
-}
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = runTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    runClearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        runTimeout(drainQueue);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-process.prependListener = noop;
-process.prependOnceListener = noop;
-
-process.listeners = function (name) { return [] }
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
-
-/***/ }),
-/* 155 */
-/***/ (function(module, exports) {
-
-if (typeof Object.create === 'function') {
-  // implementation from standard node.js 'util' module
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    ctor.prototype = Object.create(superCtor.prototype, {
-      constructor: {
-        value: ctor,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-  };
-} else {
-  // old school shim for old browsers
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    var TempCtor = function () {}
-    TempCtor.prototype = superCtor.prototype
-    ctor.prototype = new TempCtor()
-    ctor.prototype.constructor = ctor
-  }
-}
-
-
-/***/ }),
-/* 156 */
-/***/ (function(module, exports) {
-
-module.exports = function isBuffer(arg) {
-  return arg && typeof arg === 'object'
-    && typeof arg.copy === 'function'
-    && typeof arg.fill === 'function'
-    && typeof arg.readUInt8 === 'function';
-}
-
-/***/ }),
-/* 157 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function(global, process) {// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-var formatRegExp = /%[sdj%]/g;
-exports.format = function(f) {
-  if (!isString(f)) {
-    var objects = [];
-    for (var i = 0; i < arguments.length; i++) {
-      objects.push(inspect(arguments[i]));
-    }
-    return objects.join(' ');
-  }
-
-  var i = 1;
-  var args = arguments;
-  var len = args.length;
-  var str = String(f).replace(formatRegExp, function(x) {
-    if (x === '%%') return '%';
-    if (i >= len) return x;
-    switch (x) {
-      case '%s': return String(args[i++]);
-      case '%d': return Number(args[i++]);
-      case '%j':
-        try {
-          return JSON.stringify(args[i++]);
-        } catch (_) {
-          return '[Circular]';
-        }
-      default:
-        return x;
-    }
-  });
-  for (var x = args[i]; i < len; x = args[++i]) {
-    if (isNull(x) || !isObject(x)) {
-      str += ' ' + x;
-    } else {
-      str += ' ' + inspect(x);
-    }
-  }
-  return str;
-};
-
-
-// Mark that a method should not be used.
-// Returns a modified function which warns once by default.
-// If --no-deprecation is set, then it is a no-op.
-exports.deprecate = function(fn, msg) {
-  // Allow for deprecating things in the process of starting up.
-  if (isUndefined(global.process)) {
-    return function() {
-      return exports.deprecate(fn, msg).apply(this, arguments);
-    };
-  }
-
-  if (process.noDeprecation === true) {
-    return fn;
-  }
-
-  var warned = false;
-  function deprecated() {
-    if (!warned) {
-      if (process.throwDeprecation) {
-        throw new Error(msg);
-      } else if (process.traceDeprecation) {
-        console.trace(msg);
-      } else {
-        console.error(msg);
-      }
-      warned = true;
-    }
-    return fn.apply(this, arguments);
-  }
-
-  return deprecated;
-};
-
-
-var debugs = {};
-var debugEnviron;
-exports.debuglog = function(set) {
-  if (isUndefined(debugEnviron))
-    debugEnviron = process.env.NODE_DEBUG || '';
-  set = set.toUpperCase();
-  if (!debugs[set]) {
-    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
-      var pid = process.pid;
-      debugs[set] = function() {
-        var msg = exports.format.apply(exports, arguments);
-        console.error('%s %d: %s', set, pid, msg);
-      };
-    } else {
-      debugs[set] = function() {};
-    }
-  }
-  return debugs[set];
-};
-
-
-/**
- * Echos the value of a value. Trys to print the value out
- * in the best way possible given the different types.
- *
- * @param {Object} obj The object to print out.
- * @param {Object} opts Optional options object that alters the output.
- */
-/* legacy: obj, showHidden, depth, colors*/
-function inspect(obj, opts) {
-  // default options
-  var ctx = {
-    seen: [],
-    stylize: stylizeNoColor
-  };
-  // legacy...
-  if (arguments.length >= 3) ctx.depth = arguments[2];
-  if (arguments.length >= 4) ctx.colors = arguments[3];
-  if (isBoolean(opts)) {
-    // legacy...
-    ctx.showHidden = opts;
-  } else if (opts) {
-    // got an "options" object
-    exports._extend(ctx, opts);
-  }
-  // set default options
-  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
-  if (isUndefined(ctx.depth)) ctx.depth = 2;
-  if (isUndefined(ctx.colors)) ctx.colors = false;
-  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
-  if (ctx.colors) ctx.stylize = stylizeWithColor;
-  return formatValue(ctx, obj, ctx.depth);
-}
-exports.inspect = inspect;
-
-
-// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
-inspect.colors = {
-  'bold' : [1, 22],
-  'italic' : [3, 23],
-  'underline' : [4, 24],
-  'inverse' : [7, 27],
-  'white' : [37, 39],
-  'grey' : [90, 39],
-  'black' : [30, 39],
-  'blue' : [34, 39],
-  'cyan' : [36, 39],
-  'green' : [32, 39],
-  'magenta' : [35, 39],
-  'red' : [31, 39],
-  'yellow' : [33, 39]
-};
-
-// Don't use 'blue' not visible on cmd.exe
-inspect.styles = {
-  'special': 'cyan',
-  'number': 'yellow',
-  'boolean': 'yellow',
-  'undefined': 'grey',
-  'null': 'bold',
-  'string': 'green',
-  'date': 'magenta',
-  // "name": intentionally not styling
-  'regexp': 'red'
-};
-
-
-function stylizeWithColor(str, styleType) {
-  var style = inspect.styles[styleType];
-
-  if (style) {
-    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
-           '\u001b[' + inspect.colors[style][1] + 'm';
-  } else {
-    return str;
-  }
-}
-
-
-function stylizeNoColor(str, styleType) {
-  return str;
-}
-
-
-function arrayToHash(array) {
-  var hash = {};
-
-  array.forEach(function(val, idx) {
-    hash[val] = true;
-  });
-
-  return hash;
-}
-
-
-function formatValue(ctx, value, recurseTimes) {
-  // Provide a hook for user-specified inspect functions.
-  // Check that value is an object with an inspect function on it
-  if (ctx.customInspect &&
-      value &&
-      isFunction(value.inspect) &&
-      // Filter out the util module, it's inspect function is special
-      value.inspect !== exports.inspect &&
-      // Also filter out any prototype objects using the circular check.
-      !(value.constructor && value.constructor.prototype === value)) {
-    var ret = value.inspect(recurseTimes, ctx);
-    if (!isString(ret)) {
-      ret = formatValue(ctx, ret, recurseTimes);
-    }
-    return ret;
-  }
-
-  // Primitive types cannot have properties
-  var primitive = formatPrimitive(ctx, value);
-  if (primitive) {
-    return primitive;
-  }
-
-  // Look up the keys of the object.
-  var keys = Object.keys(value);
-  var visibleKeys = arrayToHash(keys);
-
-  if (ctx.showHidden) {
-    keys = Object.getOwnPropertyNames(value);
-  }
-
-  // IE doesn't make error fields non-enumerable
-  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
-  if (isError(value)
-      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
-    return formatError(value);
-  }
-
-  // Some type of object without properties can be shortcutted.
-  if (keys.length === 0) {
-    if (isFunction(value)) {
-      var name = value.name ? ': ' + value.name : '';
-      return ctx.stylize('[Function' + name + ']', 'special');
-    }
-    if (isRegExp(value)) {
-      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-    }
-    if (isDate(value)) {
-      return ctx.stylize(Date.prototype.toString.call(value), 'date');
-    }
-    if (isError(value)) {
-      return formatError(value);
-    }
-  }
-
-  var base = '', array = false, braces = ['{', '}'];
-
-  // Make Array say that they are Array
-  if (isArray(value)) {
-    array = true;
-    braces = ['[', ']'];
-  }
-
-  // Make functions say that they are functions
-  if (isFunction(value)) {
-    var n = value.name ? ': ' + value.name : '';
-    base = ' [Function' + n + ']';
-  }
-
-  // Make RegExps say that they are RegExps
-  if (isRegExp(value)) {
-    base = ' ' + RegExp.prototype.toString.call(value);
-  }
-
-  // Make dates with properties first say the date
-  if (isDate(value)) {
-    base = ' ' + Date.prototype.toUTCString.call(value);
-  }
-
-  // Make error with message first say the error
-  if (isError(value)) {
-    base = ' ' + formatError(value);
-  }
-
-  if (keys.length === 0 && (!array || value.length == 0)) {
-    return braces[0] + base + braces[1];
-  }
-
-  if (recurseTimes < 0) {
-    if (isRegExp(value)) {
-      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-    } else {
-      return ctx.stylize('[Object]', 'special');
-    }
-  }
-
-  ctx.seen.push(value);
-
-  var output;
-  if (array) {
-    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
-  } else {
-    output = keys.map(function(key) {
-      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
-    });
-  }
-
-  ctx.seen.pop();
-
-  return reduceToSingleString(output, base, braces);
-}
-
-
-function formatPrimitive(ctx, value) {
-  if (isUndefined(value))
-    return ctx.stylize('undefined', 'undefined');
-  if (isString(value)) {
-    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
-                                             .replace(/'/g, "\\'")
-                                             .replace(/\\"/g, '"') + '\'';
-    return ctx.stylize(simple, 'string');
-  }
-  if (isNumber(value))
-    return ctx.stylize('' + value, 'number');
-  if (isBoolean(value))
-    return ctx.stylize('' + value, 'boolean');
-  // For some reason typeof null is "object", so special case here.
-  if (isNull(value))
-    return ctx.stylize('null', 'null');
-}
-
-
-function formatError(value) {
-  return '[' + Error.prototype.toString.call(value) + ']';
-}
-
-
-function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
-  var output = [];
-  for (var i = 0, l = value.length; i < l; ++i) {
-    if (hasOwnProperty(value, String(i))) {
-      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-          String(i), true));
-    } else {
-      output.push('');
-    }
-  }
-  keys.forEach(function(key) {
-    if (!key.match(/^\d+$/)) {
-      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-          key, true));
-    }
-  });
-  return output;
-}
-
-
-function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
-  var name, str, desc;
-  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
-  if (desc.get) {
-    if (desc.set) {
-      str = ctx.stylize('[Getter/Setter]', 'special');
-    } else {
-      str = ctx.stylize('[Getter]', 'special');
-    }
-  } else {
-    if (desc.set) {
-      str = ctx.stylize('[Setter]', 'special');
-    }
-  }
-  if (!hasOwnProperty(visibleKeys, key)) {
-    name = '[' + key + ']';
-  }
-  if (!str) {
-    if (ctx.seen.indexOf(desc.value) < 0) {
-      if (isNull(recurseTimes)) {
-        str = formatValue(ctx, desc.value, null);
-      } else {
-        str = formatValue(ctx, desc.value, recurseTimes - 1);
-      }
-      if (str.indexOf('\n') > -1) {
-        if (array) {
-          str = str.split('\n').map(function(line) {
-            return '  ' + line;
-          }).join('\n').substr(2);
-        } else {
-          str = '\n' + str.split('\n').map(function(line) {
-            return '   ' + line;
-          }).join('\n');
-        }
-      }
-    } else {
-      str = ctx.stylize('[Circular]', 'special');
-    }
-  }
-  if (isUndefined(name)) {
-    if (array && key.match(/^\d+$/)) {
-      return str;
-    }
-    name = JSON.stringify('' + key);
-    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
-      name = name.substr(1, name.length - 2);
-      name = ctx.stylize(name, 'name');
-    } else {
-      name = name.replace(/'/g, "\\'")
-                 .replace(/\\"/g, '"')
-                 .replace(/(^"|"$)/g, "'");
-      name = ctx.stylize(name, 'string');
-    }
-  }
-
-  return name + ': ' + str;
-}
-
-
-function reduceToSingleString(output, base, braces) {
-  var numLinesEst = 0;
-  var length = output.reduce(function(prev, cur) {
-    numLinesEst++;
-    if (cur.indexOf('\n') >= 0) numLinesEst++;
-    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
-  }, 0);
-
-  if (length > 60) {
-    return braces[0] +
-           (base === '' ? '' : base + '\n ') +
-           ' ' +
-           output.join(',\n  ') +
-           ' ' +
-           braces[1];
-  }
-
-  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
-}
-
-
-// NOTE: These type checking functions intentionally don't use `instanceof`
-// because it is fragile and can be easily faked with `Object.create()`.
-function isArray(ar) {
-  return Array.isArray(ar);
-}
-exports.isArray = isArray;
-
-function isBoolean(arg) {
-  return typeof arg === 'boolean';
-}
-exports.isBoolean = isBoolean;
-
-function isNull(arg) {
-  return arg === null;
-}
-exports.isNull = isNull;
-
-function isNullOrUndefined(arg) {
-  return arg == null;
-}
-exports.isNullOrUndefined = isNullOrUndefined;
-
-function isNumber(arg) {
-  return typeof arg === 'number';
-}
-exports.isNumber = isNumber;
-
-function isString(arg) {
-  return typeof arg === 'string';
-}
-exports.isString = isString;
-
-function isSymbol(arg) {
-  return typeof arg === 'symbol';
-}
-exports.isSymbol = isSymbol;
-
-function isUndefined(arg) {
-  return arg === void 0;
-}
-exports.isUndefined = isUndefined;
-
-function isRegExp(re) {
-  return isObject(re) && objectToString(re) === '[object RegExp]';
-}
-exports.isRegExp = isRegExp;
-
-function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
-}
-exports.isObject = isObject;
-
-function isDate(d) {
-  return isObject(d) && objectToString(d) === '[object Date]';
-}
-exports.isDate = isDate;
-
-function isError(e) {
-  return isObject(e) &&
-      (objectToString(e) === '[object Error]' || e instanceof Error);
-}
-exports.isError = isError;
-
-function isFunction(arg) {
-  return typeof arg === 'function';
-}
-exports.isFunction = isFunction;
-
-function isPrimitive(arg) {
-  return arg === null ||
-         typeof arg === 'boolean' ||
-         typeof arg === 'number' ||
-         typeof arg === 'string' ||
-         typeof arg === 'symbol' ||  // ES6 symbol
-         typeof arg === 'undefined';
-}
-exports.isPrimitive = isPrimitive;
-
-exports.isBuffer = __webpack_require__(156);
-
-function objectToString(o) {
-  return Object.prototype.toString.call(o);
-}
-
-
-function pad(n) {
-  return n < 10 ? '0' + n.toString(10) : n.toString(10);
-}
-
-
-var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
-              'Oct', 'Nov', 'Dec'];
-
-// 26 Feb 16:19:34
-function timestamp() {
-  var d = new Date();
-  var time = [pad(d.getHours()),
-              pad(d.getMinutes()),
-              pad(d.getSeconds())].join(':');
-  return [d.getDate(), months[d.getMonth()], time].join(' ');
-}
-
-
-// log is just a thin wrapper to console.log that prepends a timestamp
-exports.log = function() {
-  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
-};
-
-
-/**
- * Inherit the prototype methods from one constructor into another.
- *
- * The Function.prototype.inherits from lang.js rewritten as a standalone
- * function (not on Function.prototype). NOTE: If this file is to be loaded
- * during bootstrapping this function needs to be rewritten using some native
- * functions as prototype setup using normal JavaScript does not work as
- * expected during bootstrapping (see mirror.js in r114903).
- *
- * @param {function} ctor Constructor function which needs to inherit the
- *     prototype.
- * @param {function} superCtor Constructor function to inherit prototype from.
- */
-exports.inherits = __webpack_require__(155);
-
-exports._extend = function(origin, add) {
-  // Don't do anything if add isn't an object
-  if (!add || !isObject(add)) return origin;
-
-  var keys = Object.keys(add);
-  var i = keys.length;
-  while (i--) {
-    origin[keys[i]] = add[keys[i]];
-  }
-  return origin;
-};
-
-function hasOwnProperty(obj, prop) {
-  return Object.prototype.hasOwnProperty.call(obj, prop);
-}
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(60), __webpack_require__(154)))
-
-/***/ }),
 /* 158 */
 /***/ (function(module, exports) {
 
@@ -40028,7 +39884,7 @@ module.exports = {
 		"build": "cheminfo build"
 	},
 	"devDependencies": {
-		"cheminfo-tools": "^1.13.0",
+		"cheminfo-tools": "^1.16.0",
 		"eslint": "^3.9.1",
 		"eslint-config-cheminfo": "^1.5.2",
 		"eslint-plugin-no-only-tests": "^1.1.0",

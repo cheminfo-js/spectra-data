@@ -54,7 +54,8 @@ function singleFitting(data, pInit, opts) {
 
     var yFitting = errFunc(t, pFit);
 
-    var yFit = [], xFit = [];
+    var yFit = [];
+    var xFit = [];
 
     for (i = 0; i < 100; i++) {
         xFit.push(t[i][0]);
@@ -64,7 +65,10 @@ function singleFitting(data, pInit, opts) {
 }
 
 function errFunc(z, p) {
-    var a = p[0][0], b = p[1][0], c = p[2][0], d = p[3][0];
+    var a = p[0][0];
+    var b = p[1][0];
+    var c = p[2][0];
+    var d = p[3][0];
     var x = math.multiply(c, math.add(z, -d));
     const erfA = 0.147;
     var signOfX = math.matrix(x.length, 1);

@@ -4,7 +4,7 @@ const Encoder = require('./VectorEncoder');
 const Integer = {MAX_VALUE: Number.MAX_SAFE_INTEGER, MIN_VALUE: Number.MIN_SAFE_INTEGER};
 const CRLF = '\r\n';
 const version = 'Cheminfo tools ' + require('../../package.json').version;
-const defaultParameters = {'encode': 'DIFDUP', 'yFactor': 1, 'type': 'SIMPLE', 'keep': []};
+const defaultParameters = {encode: 'DIFDUP', yFactor: 1, type: 'SIMPLE', keep: []};
 /**
  * This class converts a SpectraData object into a String that can be stored as a jcamp file.
  * The string reflects the current state of the object and not the raw data from where this
@@ -100,7 +100,8 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
     }
 
     var keys = Object.keys(abscVar);
-    var mostCommon = keys[0], defaultSub = 0;
+    var mostCommon = keys[0];
+    var defaultSub = 0;
 
     for (sub = 1; sub < keys.length; sub++) {
         if (abscVar[keys[sub]].value > abscVar[mostCommon].value) {
@@ -111,7 +112,7 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
     var isComplex = false;
     spectraData.setActiveElement(defaultSub);
     var isNMR = spectraData.getDataType().indexOf('NMR') >= 0;
-    //If it is a NMR spectrum
+
     if (isNMR) {
         outString += '##.OBSERVE FREQUENCY= ' + spectraData.getParamDouble('observefrequency', 0) + CRLF;
         outString += '##.OBSERVE NUCLEUS= ^' + spectraData.getNucleus() + CRLF;
@@ -157,7 +158,8 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
         }
     }
     outString += '##NTUPLES=\t' + nTuplesName + CRLF;
-    var freq1 = 1, freq2 = 1;//spectraData.getParamDouble("2D_Y_FREQUENCY", 0);
+    var freq1 = 1;
+    var freq2 = 1;
     if (!spectraData.is2D() && spectraData.getNbSubSpectra() > 1 && isNMR) {
         isComplex = true;
     }
@@ -237,7 +239,9 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
         }
     }
     //Ordinate of the second dimension in case of 2D NMR spectra
-    var yUnits = 0, lastY = 0, dy = 1;
+    var yUnits = 0;
+    var lastY = 0;
+    var dy = 1;
 
     if (spectraData.is2D() && isNMR) {
         yUnits = spectraData.getParamDouble('firstY', 0) * freq1;

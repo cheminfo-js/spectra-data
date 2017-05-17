@@ -26,7 +26,7 @@
     "build": "cheminfo build"
   },
   "devDependencies": {
-    "cheminfo-tools": "^1.13.0",
+    "cheminfo-tools": "^1.16.0",
     "eslint": "^3.9.1",
     "eslint-config-cheminfo": "^1.5.2",
     "eslint-plugin-no-only-tests": "^1.1.0",

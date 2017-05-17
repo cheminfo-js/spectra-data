@@ -76,9 +76,9 @@ function annotations2D(zones, optionsG) {
             {x: signal.fromTo[0].to + 0.01, y: signal.fromTo[1].to + 0.01}];
         annotation.fillColor = options.fillColor;
         annotation.label = {text: signal.remark,
-            'position': {
-                'x': signal.signal[0].delta[0],
-                'y': signal.signal[0].delta[1] - 0.025}
+            position: {
+                x: signal.signal[0].delta[0],
+                y: signal.signal[0].delta[1] - 0.025}
         };
         if (signal.integral === 1) {
             annotation.strokeColor = options.strokeColor;
