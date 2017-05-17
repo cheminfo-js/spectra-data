@@ -100,8 +100,8 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
     }
 
     var keys = Object.keys(abscVar);
-    var mostCommon = keys[0],
-        defaultSub = 0;
+    var mostCommon = keys[0];
+    var defaultSub = 0;
 
     for (sub = 1; sub < keys.length; sub++) {
         if (abscVar[keys[sub]].value > abscVar[mostCommon].value) {
@@ -112,7 +112,7 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
     var isComplex = false;
     spectraData.setActiveElement(defaultSub);
     var isNMR = spectraData.getDataType().indexOf('NMR') >= 0;
-    //If it is a NMR spectrum
+
     if (isNMR) {
         outString += '##.OBSERVE FREQUENCY= ' + spectraData.getParamDouble('observefrequency', 0) + CRLF;
         outString += '##.OBSERVE NUCLEUS= ^' + spectraData.getNucleus() + CRLF;
@@ -158,8 +158,8 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
         }
     }
     outString += '##NTUPLES=\t' + nTuplesName + CRLF;
-    var freq1 = 1,
-        freq2 = 1;//spectraData.getParamDouble("2D_Y_FREQUENCY", 0);
+    var freq1 = 1;
+    var freq2 = 1;
     if (!spectraData.is2D() && spectraData.getNbSubSpectra() > 1 && isNMR) {
         isComplex = true;
     }
@@ -239,9 +239,9 @@ function ntuplesHead(spectraData, scale, scaleX, encodeFormat, userDefinedParams
         }
     }
     //Ordinate of the second dimension in case of 2D NMR spectra
-    var yUnits = 0,
-        lastY = 0,
-        dy = 1;
+    var yUnits = 0;
+    var lastY = 0;
+    var dy = 1;
 
     if (spectraData.is2D() && isNMR) {
         yUnits = spectraData.getParamDouble('firstY', 0) * freq1;

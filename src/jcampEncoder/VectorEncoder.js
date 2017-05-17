@@ -15,12 +15,12 @@ const pseudoDigits = [['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
               ['%', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r'],
               [' ', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 's']];
 
-const SQZ_P = 1,
-    SQZ_N = 2,
-    DIF_P = 3,
-    DIF_N = 4,
-    DUP = 5,
-    MaxLinelength = 100;
+const SQZ_P = 1;
+const SQZ_N = 2;
+const DIF_P = 3;
+const DIF_N = 4;
+const DUP = 5;
+const MaxLinelength = 100;
 
 /**
  * This function encodes the given vector. The encoding format is specified by the
@@ -76,9 +76,9 @@ function fixEncoding(data, firstX, intervalX, separator) {
         separator = ' ';
     }
     var outputData = '';
-    var j = 0,
-        TD = data.length,
-        i;
+    var j = 0;
+    var TD = data.length;
+    var i;
     while (j < TD - 7) {
         outputData += Math.ceil(firstX + j * intervalX);
         for (i = 0; i < 8; i++) {
@@ -105,9 +105,9 @@ function fixEncoding(data, firstX, intervalX, separator) {
  */
 function packedEncoding(data, firstX, intervalX) {
     var outputData = '';
-    var j = 0,
-        TD = data.length,
-        i;
+    var j = 0;
+    var TD = data.length;
+    var i;
 
     while (j < TD - 7) {
         outputData += Math.ceil(firstX + j * intervalX);
@@ -146,9 +146,9 @@ function packedEncoding(data, firstX, intervalX) {
 function squeezedEncoding(data, firstX, intervalX) {
     var outputData = '';
     //String outputData = new String();
-    var j = 0,
-        TD = data.length,
-        i;
+    var j = 0;
+    var TD = data.length;
+    var i;
 
     while (j < TD - 10) {
         outputData += Math.ceil(firstX + j * intervalX);
@@ -177,14 +177,14 @@ function squeezedEncoding(data, firstX, intervalX) {
  * @return {string}
  */
 function differenceDuplicateEncoding(data, firstX, intervalX) {
-    var mult = 0,
-        index = 0,
-        charCount = 0,
-        i;
+    var mult = 0;
+    var index = 0;
+    var charCount = 0;
+    var i;
     //We built a string where we store the encoded data.
-    var encodData = '',
-        encodNumber = '',
-        temp = '';
+    var encodData = '';
+    var encodNumber = '';
+    var temp = '';
 
     //We calculate the differences vector
     var diffData = new Array(data.length - 1);
@@ -247,14 +247,13 @@ function differenceDuplicateEncoding(data, firstX, intervalX) {
  * @return {string}
  */
 function differenceEncoding(data, firstX, intervalX) {
-    var index = 0,
-        charCount = 0,
-        i;
+    var index = 0;
+    var charCount = 0;
+    var i;
 
     var encodData = '';
-    //String encodData = new String();
-    var encodNumber = '',
-        temp = '';
+    var encodNumber = '';
+    var temp = '';
 
     //We calculate the differences vector
     var diffData = new Array(data.length - 1);
@@ -262,21 +261,19 @@ function differenceEncoding(data, firstX, intervalX) {
         diffData[i] = data[i + 1] - data[i];
     }
 
-    index = 0;
     var numDiff = diffData.length;
     while (index < numDiff) {
-        if (charCount === 0) {//Iniciar linea
+        if (charCount === 0) {
             //We convert the first number.
             encodNumber = Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString()) + differenceDigit(diffData[index].toString());
             encodData += encodNumber;
             charCount += encodNumber.length;
         } else {
-            //Mirar si cabe, en caso contrario iniciar una nueva linea
             encodNumber = differenceDigit(diffData[index].toString());
             if (encodNumber.length + charCount < MaxLinelength) {
                 encodData += encodNumber;
                 charCount += encodNumber.length;
-            } else {//Iniciar nueva linea
+            } else {
                 encodData += newLine;
                 temp = Math.ceil(firstX + index * intervalX) + squeezedDigit(data[index].toString()) + encodNumber;
                 encodData += temp;//Each line start with first index number.
@@ -298,7 +295,6 @@ function differenceEncoding(data, firstX, intervalX) {
  * @return {string}
  */
 function squeezedDigit(num) {
-    //console.log(num+" "+num.length);
     var SQZdigit = '';
     if (num.charAt(0) === '-') {
         SQZdigit += pseudoDigits[SQZ_N][num.charAt(1)];

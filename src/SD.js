@@ -423,10 +423,10 @@ class SD {
         if (this.isDataClassXY()) {
             return Math.round((this.getFirstX() - inValue) * (-1.0 / this.getDeltaX()));
         } else if (this.isDataClassPeak()) {
-            var currentArrayPoint = 0,
-                upperLimit = this.getNbPoints() - 1,
-                lowerLimit = 0,
-                midPoint;
+            var currentArrayPoint = 0;
+            var upperLimit = this.getNbPoints() - 1;
+            var lowerLimit = 0;
+            var midPoint;
             //If inverted scale
             if (this.getFirstX() > this.getLastX()) {
                 upperLimit = 0;
@@ -508,9 +508,8 @@ class SD {
      */
     yShift(value) {
         var y = this.getSpectrumData().y;
-        var length = this.getNbPoints(),
-            i = 0;
-        for (i = 0; i < length; i++) {
+        var length = this.getNbPoints();
+        for (var i = 0; i < length; i++) {
             y[i] += value;
         }
         this.getSpectrum().firstY += value;
@@ -526,9 +525,8 @@ class SD {
         for (let i = 0; i < this.getNbSubSpectra(); i++) {
             this.setActiveElement(i);
             var x = this.getSpectrumData().x;
-            var length = this.getNbPoints(),
-                j = 0;
-            for (j = 0; j < length; j++) {
+            var length = this.getNbPoints();
+            for (var j = 0; j < length; j++) {
                 x[j] += globalShift;
             }
 
@@ -617,8 +615,8 @@ class SD {
      */
     getMaxPeak() {
         var y = this.getSpectraDataY();
-        var max = y[0],
-            index = 0;
+        var max = y[0];
+        var index = 0;
         for (var i = 0; i < y.length; i++) {
             if (max < y[i]) {
                 max = y[i];

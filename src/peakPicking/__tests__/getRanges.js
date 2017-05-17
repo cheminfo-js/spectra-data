@@ -4,13 +4,13 @@
 const NMR = require('../../NMR.js');
 
 var NbPoints = 101;
-var cs1 = 2,
-    intensity = 1,
-    w = 0.1,
-    cs2 = 8,
-    intensity2 = intensity * 2,
-    w2 = w,
-    totalIntegral = 0;
+var cs1 = 2;
+var intensity = 1;
+var w = 0.1;
+var cs2 = 8;
+var intensity2 = intensity * 2;
+var w2 = w;
+var totalIntegral = 0;
 
 var line = new Array(NbPoints);
 var x = xRange(0, 10, NbPoints);
@@ -21,7 +21,8 @@ for (var i = 0; i < NbPoints; i++) {
 }
 
 var spectrum = NMR.fromXY(x, line, {});
-var options = {noiseLevel: 0.1,
+var options = {
+    noiseLevel: 0.1,
     thresholdFactor: 1,
     compile: true,
     clean: 0.5,
@@ -29,19 +30,15 @@ var options = {noiseLevel: 0.1,
     integralType: 'sum',
     nH: 3,
     frequencyCluster: 16,
-    gsdOptions: {nL: 4, smoothY: false, minMaxRatio: 0.05, broadWidth: 0.2,
-        noiseLevel: 0.1,
-        functionName: 'lorentzian',
-        broadRatio: 0,
-        sgOptions: {windowSize: 9, polynomial: 3}
-    }
+    widthFactor: 4, smoothY: false, minMaxRatio: 0.05, broadWidth: 0.2,
+    functionName: 'lorentzian',
+    broadRatio: 0
 };
 
 var peakPicking = spectrum.getRanges(options);
-i = 0;
-while (i < peakPicking.length) {
+
+for (i = 0; i < peakPicking.length; i++) {
     totalIntegral += peakPicking[i].integral;
-    i += 1;
 }
 
 function xRange(start, end, NbPoints) {
