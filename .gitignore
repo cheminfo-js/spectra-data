@@ -6,3 +6,4 @@ test/data/h1_31.jdx
 *.log
 
 src/gg.js
+dist/
