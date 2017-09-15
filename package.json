@@ -7,10 +7,11 @@
     "build": "cheminfo build"
   },
   "dependencies": {
-    "babel-plugin-remove-comments": "^2.0.0",
-    "spectra-data": "^3.1.13"
+    "spectra-data": "^3.1.15"
   },
   "devDependencies": {
+    "babel-plugin-remove-comments": "^2.0.0",
+    "babel-preset-babili": "^0.1.4",
     "cheminfo-tools": "^1.19.2"
   }
 }
