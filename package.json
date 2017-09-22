@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "spectra-data",
-  "version": "3.1.10",
+  "version": "3.2.0",
   "main": "./index.js",
   "scripts": {
     "build": "cheminfo build"
@@ -12,6 +12,6 @@
   "devDependencies": {
     "babel-plugin-remove-comments": "^2.0.0",
     "babel-preset-babili": "^0.1.4",
-    "cheminfo-tools": "^1.19.2"
+    "cheminfo-tools": "^1.20.0"
   }
 }
