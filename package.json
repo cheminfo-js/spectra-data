@@ -1,13 +1,13 @@
 {
   "private": true,
   "name": "spectra-data-browser",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "main": "./index.js",
   "scripts": {
     "build": "cheminfo build"
   },
   "dependencies": {
-    "spectra-data": "^3.1.16"
+    "spectra-data": "^3.1.17"
   },
   "devDependencies": {
     "babel-plugin-remove-comments": "^2.0.0",
