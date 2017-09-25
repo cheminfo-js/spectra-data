@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "spectra-data-browser",
+  "name": "spectra-data",
   "version": "3.2.1",
   "main": "./index.js",
   "scripts": {
