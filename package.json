@@ -4,7 +4,7 @@
   "version": "3.3.0",
   "main": "./index.js",
   "scripts": {
-    "build": "cheminfo build"
+    "build": "cheminfo build --no-source-map"
   },
   "dependencies": {
     "spectra-data": "3.2.0"
@@ -12,6 +12,7 @@
   "devDependencies": {
     "babel-plugin-remove-comments": "^2.0.0",
     "babel-preset-babili": "^0.1.4",
+    "babel-preset-es2015": "^6.24.1",
     "cheminfo-tools": "^1.20.0"
   }
 }
