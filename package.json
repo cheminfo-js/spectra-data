@@ -7,7 +7,7 @@
     "build": "cheminfo build --no-source-map"
   },
   "dependencies": {
-    "spectra-data": "3.3.2"
+    "spectra-data": "3.3.3"
   },
   "devDependencies": {
     "babel-plugin-remove-comments": "^2.0.0",
